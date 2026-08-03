@@ -1,3 +1,7 @@
+<p align="center">
+  <a href="https://felippeyann.github.io/sales-analytics-dashboards/"><img src="docs/banner.svg" alt="Sales & Marketing Analytics Dashboards" width="100%"></a>
+</p>
+
 # Sales & Marketing Analytics Dashboards
 
 **Live demo: [felippeyann.github.io/sales-analytics-dashboards](https://felippeyann.github.io/sales-analytics-dashboards/)**
@@ -8,16 +12,58 @@ Everything here is a **demo build**: all data is 100% synthetic (people, emails,
 
 ## Dashboards
 
-| # | Dashboard | What it shows |
-|---|-----------|---------------|
-| 01 | [Análise de Agendamentos](01_agendamentos.html) | Meeting-booking funnel: UTM origin Sankey, squad comparison, time-to-assignment, cross filters, AI insights |
-| 02 | [Produtividade SDR](02_produtividade_sdr.html) | Daily SDR productivity: calls, connections, bookings, WhatsApp, individual ranking vs team average, configurable goals |
-| 03 | [Stage Monitoring](03_stage_monitoring.html) | Social-selling pipeline stage changes: flow Sankey, average time per stage, bottleneck detection |
-| 04 | [Lead Scoring](04_leadscoring.html) | Lead classification (A/B/C/D) and conversion rates by score band |
-| 05 | [Primeiro Agendamento](05_primeiro_agendamento.html) | AI vs human SDR benchmark: response time to first meeting |
-| 06 | [NewsRadar Editorial](06_newsradar.html) | Editorial analytics: keyword explorer (word cloud, network, heatmap), theme evolution, sources |
-| 07 | [Segmentação](07_segmentacao.html) | Customer and lead segmentation analysis |
-| 08 | [Gradiente de Metas](08_gradiente_metas.html) | Goal-gradient tracking against sales targets |
+Click any preview to open the live dashboard.
+
+<table>
+  <tr>
+    <td width="50%">
+      <a href="https://felippeyann.github.io/sales-analytics-dashboards/01_agendamentos.html"><img src="docs/previews/01_agendamentos.webp" alt="Análise de Agendamentos"></a>
+      <b>01 · Análise de Agendamentos</b><br>
+      Meeting-booking funnel: UTM origin Sankey, squad comparison, time-to-assignment, cross filters, AI insights
+    </td>
+    <td width="50%">
+      <a href="https://felippeyann.github.io/sales-analytics-dashboards/02_produtividade_sdr.html"><img src="docs/previews/02_produtividade_sdr.webp" alt="Produtividade SDR"></a>
+      <b>02 · Produtividade SDR</b><br>
+      Daily SDR productivity: calls, connections, bookings, individual ranking vs team average, configurable goals
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <a href="https://felippeyann.github.io/sales-analytics-dashboards/03_stage_monitoring.html"><img src="docs/previews/03_stage_monitoring.webp" alt="Stage Monitoring"></a>
+      <b>03 · Stage Monitoring</b><br>
+      Social-selling pipeline stage changes: flow Sankey, average time per stage, bottleneck detection
+    </td>
+    <td width="50%">
+      <a href="https://felippeyann.github.io/sales-analytics-dashboards/04_leadscoring.html"><img src="docs/previews/04_leadscoring.webp" alt="Lead Scoring"></a>
+      <b>04 · Lead Scoring</b><br>
+      Lead classification (A/B/C/D) and conversion rates by score band
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <a href="https://felippeyann.github.io/sales-analytics-dashboards/05_primeiro_agendamento.html"><img src="docs/previews/05_primeiro_agendamento.webp" alt="Primeiro Agendamento"></a>
+      <b>05 · Primeiro Agendamento</b><br>
+      AI vs human SDR benchmark: response time to first meeting
+    </td>
+    <td width="50%">
+      <a href="https://felippeyann.github.io/sales-analytics-dashboards/06_newsradar.html"><img src="docs/previews/06_newsradar.webp" alt="NewsRadar Editorial"></a>
+      <b>06 · NewsRadar Editorial</b><br>
+      Editorial analytics: keyword explorer (word cloud, network, heatmap), theme evolution, sources
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <a href="https://felippeyann.github.io/sales-analytics-dashboards/07_segmentacao.html"><img src="docs/previews/07_segmentacao.webp" alt="Segmentação"></a>
+      <b>07 · Segmentação</b><br>
+      Customer and lead segmentation analysis
+    </td>
+    <td width="50%">
+      <a href="https://felippeyann.github.io/sales-analytics-dashboards/08_gradiente_metas.html"><img src="docs/previews/08_gradiente_metas.webp" alt="Gradiente de Metas"></a>
+      <b>08 · Gradiente de Metas</b><br>
+      Goal-gradient tracking against sales targets
+    </td>
+  </tr>
+</table>
 
 ## Tech
 
