@@ -4,9 +4,9 @@
 
 # Sales & Marketing Analytics Dashboards
 
-[![Live demo](https://img.shields.io/badge/live_demo-github_pages-2ea44f)](https://felippeyann.github.io/sales-analytics-dashboards/)
-![Stack](https://img.shields.io/badge/stack-vanilla_JS_+_ECharts_6-F7DF1E?logo=javascript&logoColor=black)
-![Data](https://img.shields.io/badge/data-100%25_synthetic-blue)
+[![Live demo](https://img.shields.io/badge/live_demo-github_pages-4ade80?style=flat-square)](https://felippeyann.github.io/sales-analytics-dashboards/)
+![Stack](https://img.shields.io/badge/stack-vanilla_JS_+_ECharts_6-fbbf24?logo=javascript&logoColor=black&style=flat-square)
+![Data](https://img.shields.io/badge/data-100%25_synthetic-2563EB?style=flat-square)
 
 **Live demo: [felippeyann.github.io/sales-analytics-dashboards](https://felippeyann.github.io/sales-analytics-dashboards/)**
 
