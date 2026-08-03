@@ -1,0 +1,4330 @@
+<!DOCTYPE html>
+<!--
+  ╔═══════════════════════════════════════════════════════════╗
+  ║  Analytics Dashboard - Lead Scoring (ABCD)               ║
+  ║  Versão: v1.0                                            ║
+  ║  Última atualização: 10/11/2025                          ║
+  ║  Descrição: Dashboard interativo para análise de         ║
+  ║             lead scoring e classificação ABCD            ║
+  ╚═══════════════════════════════════════════════════════════╝
+-->
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="cache-control" content="no-cache" />
+  <meta http-equiv="expires" content="0" />
+  <meta http-equiv="pragma" content="no-cache" />
+  <title>Relatório Interativo – Lead Scoring (ABCD)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
+  <script src="../RESOURCES/echarts-v6-enhancements.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --card:#0b1220; --muted:#9ca3af; --text:#e5e7eb;
+      --accent:#38bdf8; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --line:#1f2937;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#0a0f1d 0%,#0f172a 60%,#0a0f1d 100%);
+      color:var(--text);
+      font:400 clamp(14px,1.5vw,16px)/1.5 'Montserrat',system-ui,-apple-system,sans-serif;
+    }
+    header{
+      position: fixed; 
+      top: 0;
+      width: 100%; 
+      z-index: 50;
+      background:linear-gradient(180deg, rgba(10,15,29,0.95) 0%, rgba(10,15,29,0.80) 100%);
+      backdrop-filter: blur(6px);
+      border-bottom:1px solid var(--line);
+      transition: transform 0.3s ease-in-out; 
+    }
+    .header-hidden {
+      transform: translateY(-100%); 
+    }
+    .wrap{width:100%;max-width:1200px;margin:0 auto;padding:12px clamp(12px,3vw,16px)}
+    .title{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .title h1{margin:0;font-size:clamp(16px,2.2vw,20px)}
+    .badge{font-size:12px;padding:2px 8px;border:1px solid var(--line);border-radius:20px;color:var(--muted)}
+
+    .uploader{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+    .uploader input[type=file]{background:var(--panel);border:1px dashed #334155;padding:10px;border-radius:10px;color:var(--muted);width:100%;max-width:360px}
+    .hint{color:var(--muted);font-size:11px}
+
+    /* Menu de navegação minimizável */
+    .nav-container{
+      margin-top:12px;
+      background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border:1px solid #1f2937;
+      border-radius:12px;
+      overflow:hidden;
+      transition:all 0.3s ease;
+    }
+    .nav-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 14px;
+      cursor:pointer;
+      user-select:none;
+      background:rgba(56, 189, 248, 0.05);
+      border-bottom:1px solid transparent;
+      transition:all 0.2s ease;
+    }
+    .nav-header:hover{
+      background:rgba(56, 189, 248, 0.1);
+      border-bottom-color:#1f2937;
+    }
+    .nav-title{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:#cbd5e1;
+      font-size:13px;
+      font-weight:600;
+    }
+    .nav-title svg{
+      transition:transform 0.3s ease;
+    }
+    .nav-container.collapsed .nav-title svg{
+      transform:rotate(-90deg);
+    }
+    .nav-badge{
+      background:#38bdf8;
+      color:#0f172a;
+      font-size:10px;
+      font-weight:700;
+      padding:2px 6px;
+      border-radius:10px;
+      min-width:20px;
+      text-align:center;
+    }
+    .nav-content{
+      max-height:500px;
+      overflow:hidden;
+      transition:max-height 0.3s ease, opacity 0.3s ease;
+      opacity:1;
+    }
+    .nav-container.collapsed .nav-content{
+      max-height:0;
+      opacity:0;
+    }
+    nav{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+      gap:8px;
+      padding:12px;
+    }
+    nav a{
+      color:#cbd5e1;
+      text-decoration:none;
+      background:rgba(15, 23, 42, 0.6);
+      border:1px solid #334155;
+      padding:10px 12px;
+      border-radius:8px;
+      font-size:12px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      transition:all 0.2s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    nav a::before{
+      content:'';
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:3px;
+      background:linear-gradient(180deg, #38bdf8, #0ea5e9);
+      transform:translateX(-3px);
+      transition:transform 0.2s ease;
+    }
+    nav a:hover{
+      border-color:#38bdf8;
+      background:rgba(56, 189, 248, 0.1);
+      transform:translateX(2px);
+    }
+    nav a:hover::before{
+      transform:translateX(0);
+    }
+    nav a .icon{
+      font-size:14px;
+      opacity:0.7;
+    }
+
+    .grid{display:grid;gap:12px;margin-top:12px}
+    .card{
+      grid-column:1 / -1;
+      background:
+        radial-gradient(1200px 300px at 10% -10%,rgba(56,189,248,.08),transparent),
+        radial-gradient(900px 300px at 90% -20%,rgba(168,85,247,.08),transparent);
+      border:1px solid var(--line);border-radius:14px;padding:clamp(12px,2vw,16px);
+      scroll-margin-top: 120px;
+    }
+    .card h2{margin:0 0 8px 0;display:flex;align-items:center;gap:8px;font-size:clamp(15px,2vw,16px)}
+    .card h2 small{color:var(--muted);font-weight:500}
+    
+    /* Numeração dos visualizadores */
+    .card h2::before {
+      content: attr(data-number);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+      color: #0a0f1d;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 0 6px;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+      flex-shrink: 0;
+    }
+
+    @media(min-width:640px){ .grid{grid-template-columns:repeat(6,1fr)} .row-6{grid-column:span 6} .row-4{grid-column:span 6} }
+    @media(min-width:900px){ .grid{grid-template-columns:repeat(12,1fr)} .row-6{grid-column:span 6} .row-4{grid-column:span 4} }
+    @media(min-width:1280px){ .wrap{max-width:1280px} }
+
+    .chart{width:100%;height:clamp(240px,40vw,380px)}
+    #chart_heatmap{height:clamp(280px,45vw,460px)}
+
+    /* Info Icon Tooltip */
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      margin-left: 8px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #9ca3af;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #334155;
+      border-radius: 50%;
+      cursor: help;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 100;
+    }
+    
+    .info-icon:hover {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border-color: #38bdf8;
+      transform: scale(1.1);
+      z-index: 10000;
+    }
+    
+    .info-icon .tooltip {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      bottom: calc(100% + 12px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(17, 24, 39, 0.98);
+      color: #e5e7eb;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid #38bdf8;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: normal;
+      line-height: 1.5;
+      z-index: 10001;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      min-width: 200px;
+    }
+    
+    .info-icon .tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #38bdf8;
+    }
+    
+    .info-icon:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .foot{color:#94a3b8;font-size:12px;margin-top:6px}
+    .pill{display:inline-block;padding:2px 8px;border:1px solid #334155;border-radius:999px;color:#cbd5e1;font-size:12px}
+    .ok{color:#86efac}.warn{color:#fde68a}.danger{color:#fca5a5}
+    .muted{color:var(--muted)}
+
+    .table-container {
+      overflow: hidden;
+      border: 1px solid #202838;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.08) 0%, transparent 100%);
+      border-bottom: 1px solid #202838;
+      cursor: pointer;
+      user-select: none;
+    }
+    .table-header:hover {
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.12) 0%, transparent 100%);
+    }
+    .table-header h3 {
+      margin: 0;
+      font-size: 14px;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    .table-toggle {
+      background: none;
+      border: none;
+      color: #38bdf8;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0;
+      transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+    }
+    .table-container.collapsed .table-toggle {
+      transform: rotate(-90deg);
+    }
+    .table-content {
+      overflow: auto;
+      max-height: 600px;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+    .table-container.collapsed .table-content {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
+    table{width:100%;border-collapse:separate;border-spacing:0;min-width:640px}
+    th,td{padding:8px 10px;border-bottom:1px solid #202838}
+    th{color:#cbd5e1;text-align:left;font-weight:600;background:#0b1220;position:sticky;top:0}
+    td{color:#e2e8f0;word-break:break-word}
+    .version-badge{display:inline-block;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);color:#7dd3fc;font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;margin-left:10px;letter-spacing:0.5px}
+
+    @media (prefers-reduced-motion: reduce){
+      *{scroll-behavior:auto}
+    }
+
+    /* Controles do visualizador */
+    .opts{display:flex;gap:12px;align-items:center;margin:6px 0 8px 0;color:var(--muted);font-size:13px}
+    .opts label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+    .opts input{accent-color:#38bdf8}
+
+    .date-filter {
+      background: #1f2937;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+    
+    .date-filter:disabled,
+    .date-filter-label.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: #0f172a;
+      color: #64748b;
+    }
+    
+    .date-filter-disabled-hint {
+      color: #f97316;
+      font-size: 11px;
+      font-style: italic;
+      margin-left: 8px;
+    }
+    
+    .date-filter-label {
+      margin-left: auto;
+      color: #94a3b8;
+      font-size: 13px;
+      padding-right: 6px;
+    }
+
+    /* Painel de filtros ativos - UX melhorada */
+    .filter-panel {
+      position: fixed;
+      top: 140px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-width: 280px;
+      max-width: 360px;
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(17, 24, 39, 0.98) 0%, rgba(11, 18, 32, 0.98) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 16px;
+      box-shadow: 
+        0 20px 40px rgba(15, 23, 42, 0.6),
+        0 0 0 1px rgba(56, 189, 248, 0.1) inset,
+        0 8px 24px rgba(56, 189, 248, 0.15);
+      backdrop-filter: saturate(140%) blur(12px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .filter-panel:not(.collapsed) {
+      animation: panelPulse 0.5s ease;
+    }
+
+    @keyframes panelPulse {
+      0%, 100% {
+        box-shadow: 
+          0 20px 40px rgba(15, 23, 42, 0.6),
+          0 0 0 1px rgba(56, 189, 248, 0.1) inset,
+          0 8px 24px rgba(56, 189, 248, 0.15);
+      }
+      50% {
+        box-shadow: 
+          0 20px 50px rgba(15, 23, 42, 0.7),
+          0 0 0 2px rgba(56, 189, 248, 0.3) inset,
+          0 8px 32px rgba(56, 189, 248, 0.3);
+      }
+    }
+
+    .filter-panel.collapsed {
+      transform: translateX(calc(100% - 56px));
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.4);
+    }
+
+    .filter-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 16px;
+      border: none;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.08) 0%, transparent 100%);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-toggle:hover {
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.14) 0%, rgba(56, 189, 248, 0.04) 100%);
+    }
+
+    .filter-toggle-icon {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #38bdf8;
+    }
+
+    .filter-count-badge {
+      background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+      color: #0a0f1d;
+      border-radius: 10px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+    }
+
+    .filter-panel.collapsed .filter-body {
+      display: none;
+    }
+
+    .filter-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .filter-body::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .filter-body::-webkit-scrollbar-track {
+      background: rgba(31, 41, 55, 0.4);
+      border-radius: 3px;
+    }
+
+    .filter-body::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.3);
+      border-radius: 3px;
+    }
+
+    .filter-body::-webkit-scrollbar-thumb:hover {
+      background: rgba(56, 189, 248, 0.5);
+    }
+
+    .filter-chip-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-chip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(56, 189, 248, 0.06) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      animation: chipSlideIn 0.3s ease;
+    }
+
+    @keyframes chipSlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .filter-chip:hover {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(56, 189, 248, 0.1) 100%);
+      border-color: rgba(56, 189, 248, 0.5);
+      transform: translateX(2px);
+    }
+
+    .filter-chip-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .filter-chip strong {
+      color: #38bdf8;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-chip-value {
+      color: #e5e7eb;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chip-remove {
+      border: none;
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .chip-remove:hover {
+      background: rgba(239, 68, 68, 0.35);
+      color: #f87171;
+      transform: scale(1.05);
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px solid rgba(56, 189, 248, 0.15);
+    }
+
+    .filter-empty-text {
+      font-size: 12px;
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    .filter-clear {
+      border: none;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.15) 100%);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-clear:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(239, 68, 68, 0.25) 100%);
+      border-color: rgba(239, 68, 68, 0.5);
+      transform: scale(1.05);
+    }
+
+    .filter-clear:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 900px) {
+      .filter-panel {
+        position: fixed;
+        top: unset;
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        max-width: none;
+        min-width: auto;
+      }
+      .filter-panel.collapsed {
+        transform: translateY(calc(100% - 50px));
+      }
+    }
+
+    /* Painel de diagnóstico */
+    #diag-panel {
+      margin-top: 10px;
+      padding: 0;
+      border: 1px solid #1f2937;
+      border-radius: 10px;
+      background: #0b1220;
+      color: #cbd5e1;
+      font-size: 13px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    #diag-panel.collapsed #diag-content {
+      display: none;
+    }
+
+    #diag-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      cursor: pointer;
+      user-select: none;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.05) 0%, transparent 100%);
+    }
+
+    #diag-header:hover {
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.1) 0%, transparent 100%);
+    }
+
+    #diag-toggle {
+      background: none;
+      border: none;
+      color: #38bdf8;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+
+    #diag-panel.collapsed #diag-toggle {
+      transform: rotate(180deg);
+    }
+
+    #diag-content {
+      padding: 0 10px 10px 10px;
+      color: #94a3b8;
+    }
+
+    /* Modal de Metodologia */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      animation: fadeIn 0.2s ease;
+    }
+    
+    .modal-overlay.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal-content {
+      background: linear-gradient(135deg, #0F0F12 0%, #1a1a1f 100%);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 16px;
+      max-width: 800px;
+      max-height: 85vh;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(56, 189, 248, 0.2);
+      animation: slideUp 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(56, 189, 248, 0.05);
+    }
+    
+    .modal-header h2 {
+      margin: 0;
+      font-size: 20px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .modal-close {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      transition: all 0.2s ease;
+      padding: 0;
+    }
+    
+    .modal-close:hover {
+      background: rgba(239, 68, 68, 0.25);
+      transform: scale(1.1);
+    }
+    
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    
+    .modal-body h3 {
+      color: #fff;
+      font-size: 16px;
+      margin: 0 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .modal-body ul {
+      margin: 0 0 16px 0;
+      padding-left: 20px;
+      color: #C9C9D1;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    
+    .modal-body li {
+      margin-bottom: 8px;
+    }
+    
+    .modal-body code {
+      background: rgba(56, 189, 248, 0.15);
+      color: #7dd3fc;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    
+    .btn-metodologia {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #7dd3fc;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-metodologia:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: rgba(56, 189, 248, 0.5);
+      transform: translateY(-1px);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  <style>.uploader,.upload-section{display:none!important}</style>
+</head>
+<body>
+  <div id="filter-panel" class="filter-panel collapsed">
+    <button id="filter-toggle" class="filter-toggle">
+      <span class="filter-toggle-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+        </svg>
+        Filtros Ativos
+      </span>
+      <span id="filter-count" class="filter-count-badge">0</span>
+    </button>
+    <div class="filter-body">
+      <div id="filter-chips" class="filter-chip-list"></div>
+      <div class="filter-actions">
+        <span id="filter-empty-text" class="filter-empty-text">Nenhum filtro aplicado</span>
+        <button id="filter-clear" class="filter-clear" type="button" disabled>Limpar Tudo</button>
+      </div>
+    </div>
+  </div>
+  <header>
+    <div class="wrap">
+      <div class="title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 5v8l-9 5-9-5V8l9-5z" stroke="#38bdf8" stroke-width="1.5"/><path d="M12 3v18M3 8l9 5 9-5" stroke="#475569" stroke-width="1.2"/></svg>
+        <h1>Relatório Interativo – Lead Scoring (ABCD) <span class="version-badge">v1.0</span></h1>
+        <span class="badge">ECharts + CSV</span>
+      </div>
+      <div class="uploader">
+        <input id="csvFile" type="file" accept=".csv" />
+        <span class="hint">Carregue o arquivo CSV com dados de leads (colunas obrigatórias: deal_created_at, ia_score; opcionais: deal_status, c_tags, origin_name). Nada é enviado para servidores — o processamento ocorre 100% no navegador.</span>
+      </div>
+      
+      <div class="opts" style="margin-top: 12px; padding: 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 10px;">
+        <label style="color: #cbd5e1; font-weight: 600;">📅 Filtro Global de Data:</label>
+        <label>
+          Data início:
+          <input id="globalDateStart" type="date" class="date-filter" style="width: 140px;">
+        </label>
+        <label>
+          Data fim:
+          <input id="globalDateEnd" type="date" class="date-filter" style="width: 140px;">
+        </label>
+        <button id="applyGlobalDate" class="date-filter" style="padding: 6px 14px; cursor: pointer; font-weight: 600; background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%); color: #0a0f1d; border: none; border-radius: 6px;">Aplicar</button>
+        <button id="clearGlobalDate" class="date-filter" style="padding: 6px 14px; cursor: pointer; background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px;">Limpar</button>
+        <span id="globalDateInfo" style="color: #94a3b8; font-size: 12px; font-style: italic;"></span>
+        
+        <button class="btn-metodologia" onclick="openMetodologiaModal()" style="margin-left: auto;">
+          📖 Metodologia
+        </button>
+      </div>
+      
+      <div class="nav-container" id="navContainer">
+        <div class="nav-header" onclick="toggleNav()">
+          <div class="nav-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>📊 Navegação Rápida</span>
+          </div>
+          <div class="nav-badge">10</div>
+        </div>
+        <div class="nav-content">
+          <nav>
+            <a href="#conv"><span class="icon">📈</span> Conversão por Faixa</a>
+            <a href="#dist"><span class="icon">📊</span> Distribuição de Deals</a>
+            <a href="#status"><span class="icon">🎯</span> Status por Faixa</a>
+            <a href="#tags"><span class="icon">🏷️</span> Top Tags</a>
+            <a href="#funnel"><span class="icon">🔻</span> Funil de Conversão</a>
+            <a href="#origem"><span class="icon">🌐</span> Principais Origens</a>
+            <a href="#heatmap"><span class="icon">🔥</span> Heatmap</a>
+            <a href="#scores"><span class="icon">📉</span> Distribuição de Scores</a>
+            <a href="#convvol"><span class="icon">💎</span> Conversão vs Volume</a>
+            <a href="#calendario"><span class="icon">📅</span> Atividade Diária</a>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+      <section id="conv" class="card row-6">
+        <h2 data-number="01">Taxa de Conversão por Faixa <small>(ABCD)</small>
+          <span class="info-icon">ⓘ<span class="tooltip">Percentual de deals convertidos em cada faixa de score (A/B/C/D)</span></span>
+        </h2>
+        <div class="opts">
+          <label><input id="opt_avg" type="checkbox"> Média ponderada</label>
+          <label><input id="opt_highlight" type="checkbox"> Destaque máx/mín</label>
+        </div>
+        <div id="chart_conversion" class="chart"></div>
+        <div class="foot">Leads <span class="pill">A ≥ 80</span> · <span class="pill">B 60–79</span> · <span class="pill">C 40–59</span> · <span class="pill">D &lt; 40</span></div>
+      </section>
+
+      <section id="dist" class="card row-6">
+        <h2 data-number="02">Distribuição de Deals por Faixa
+          <span class="info-icon">ⓘ<span class="tooltip">Volume e proporção de deals em cada faixa de classificação ABCD</span></span>
+        </h2>
+        <div class="opts">
+          <label><input id="opt_dist_avg" type="checkbox"> Média simples</label>
+          <label><input id="opt_dist_highlight" type="checkbox"> Destaque máx/mín</label>
+        </div>
+        <div id="chart_distribution" class="chart"></div>
+      </section>
+
+      <section id="status" class="card row-6">
+        <h2 data-number="03">Status por Faixa (WON/LOST/OPEN)
+          <span class="info-icon">ⓘ<span class="tooltip">Distribuição de status de negociação por faixa de score</span></span>
+        </h2>
+        <div class="opts">
+          <span class="date-filter-label">Período:</span>
+          <select id="status_date_range" class="date-filter">
+            <option value="all">Todo período</option>
+            <option value="12">Últimos 12 meses</option>
+            <option value="6">Últimos 6 meses</option>
+            <option value="3">Últimos 3 meses</option>
+          </select>
+        </div>
+        <div id="chart_status" class="chart"></div>
+      </section>
+
+      <section id="scores" class="card row-6">
+        <h2 data-number="04">Média do Score por Faixa
+          <span class="info-icon">ⓘ<span class="tooltip">Score médio numérico dentro de cada classificação ABCD</span></span>
+        </h2>
+        <div class="opts">
+          <span class="date-filter-label">Período:</span>
+          <select id="scores_date_range" class="date-filter">
+            <option value="all">Todo período</option>
+            <option value="12">Últimos 12 meses</option>
+            <option value="6">Últimos 6 meses</option>
+            <option value="3">Últimos 3 meses</option>
+          </select>
+        </div>
+        <div id="chart_scores" class="chart"></div>
+      </section>
+
+      <section id="tags" class="card row-6">
+        <h2 data-number="05">Top Tags por Faixa
+          <span class="info-icon">ⓘ<span class="tooltip">Tags mais frequentes em cada faixa, revelando padrões de classificação</span></span>
+        </h2>
+        <div class="opts">
+          <span class="date-filter-label">Período:</span>
+          <select id="tags_date_range" class="date-filter">
+            <option value="all">Todo período</option>
+            <option value="12">Últimos 12 meses</option>
+            <option value="6">Últimos 6 meses</option>
+            <option value="3">Últimos 3 meses</option>
+          </select>
+        </div>
+        <div id="chart_tags" class="chart"></div>
+        <div class="foot muted">Anel interno: Total de tags por Faixa. Anel externo: Top 5 tags de cada Faixa.</div>
+      </section>
+
+      <section id="funnel" class="card row-6">
+        <h2 data-number="05b">Funil de Conversão por Faixa
+          <span class="info-icon">ⓘ<span class="tooltip">Visualização do funil de vendas segmentado por classificação de score</span></span>
+        </h2>
+        <div class="opts">
+          <label><input id="opt_funnel_percent" type="checkbox" checked> Mostrar %</label>
+          <span class="date-filter-label">Período:</span>
+          <select id="funnel_date_range" class="date-filter">
+            <option value="all">Todo período</option>
+            <option value="12">Últimos 12 meses</option>
+            <option value="6">Últimos 6 meses</option>
+            <option value="3">Últimos 3 meses</option>
+          </select>
+        </div>
+        <div id="chart_funnel" class="chart"></div>
+        <div class="foot muted">Jornada dos leads: Total → WON. Taxa de conversão em cada faixa. Clique para filtrar.</div>
+      </section>
+
+      <section id="origem" class="card row-12">
+        <h2 data-number="06">Principais Origens por Faixa
+          <span class="info-icon">ⓘ<span class="tooltip">Top origens de tráfego por faixa ABCD, identificando canais de maior qualidade</span></span>
+        </h2>
+        <div class="opts">
+          <label><input id="opt_origem_sort" type="checkbox"> Ordenar por volume</label>
+          <label>
+            Top: 
+            <select id="origem_top_n" class="date-filter" style="width: 60px;">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+            </select>
+          </label>
+          <span class="date-filter-label">Período:</span>
+          <select id="origem_date_range" class="date-filter">
+            <option value="all">Todo período</option>
+            <option value="12">Últimos 12 meses</option>
+            <option value="6">Últimos 6 meses</option>
+            <option value="3">Últimos 3 meses</option>
+          </select>
+        </div>
+        <div id="chart_origins" class="chart" style="height: clamp(400px, 50vw, 600px);"></div>
+        <div class="foot muted">Fonte: coluna <code>origin_name</code>. Clique em uma barra para filtrar por origem.</div>
+      </section>
+
+      <section id="heatmap" class="card row-12">
+        <h2 data-number="07">Heatmap – Leads por Dia e Faixa
+          <span class="info-icon">ⓘ<span class="tooltip">Mapa de calor mostrando volume de leads por dia da semana e faixa de score</span></span>
+        </h2>
+        <div class="opts">
+          <label>
+            Visualização:
+            <select id="heatmap_view_mode" class="date-filter" style="width: 100px;">
+              <option value="heatmap" selected>Heatmap</option>
+              <option value="lines">Linhas</option>
+            </select>
+          </label>
+          <label><input id="opt_heatmap_labels" type="checkbox"> Mostrar valores</label>
+          <label><input id="opt_remove_outliers" type="checkbox"> Remover outliers</label>
+          <label>
+            Período: 
+            <select id="heatmap_days" class="date-filter" style="width: 100px;">
+              <option value="30">30 dias</option>
+              <option value="60">60 dias</option>
+              <option value="90" selected>90 dias</option>
+              <option value="120">120 dias</option>
+              <option value="180">180 dias</option>
+            </select>
+          </label>
+          <label>
+            Escala:
+            <select id="heatmap_scale" class="date-filter" style="width: 120px;">
+              <option value="linear">Linear</option>
+              <option value="sqrt">Raiz quadrada</option>
+              <option value="log">Logarítmica</option>
+            </select>
+          </label>
+          <label>
+            Paleta:
+            <select id="heatmap_palette" class="date-filter" style="width: 100px;">
+              <option value="blue">Azul</option>
+              <option value="purple">Roxo</option>
+              <option value="green">Verde</option>
+              <option value="warm">Quente</option>
+            </select>
+          </label>
+          <label>
+            Min: <input id="heatmap_min" type="number" min="0" value="0" style="width: 60px;" class="date-filter">
+          </label>
+          <label>
+            Max: <input id="heatmap_max" type="number" min="1" placeholder="Auto" style="width: 60px;" class="date-filter">
+          </label>
+          <button id="heatmap_reset_range" class="date-filter" style="padding: 4px 10px; cursor: pointer;">↻ Auto</button>
+        </div>
+        <div id="chart_heatmap" class="chart"></div>
+        <div class="foot muted">Intensidade de leads criados por dia e faixa. Clique em uma célula para filtrar por dia específico.</div>
+      </section>
+
+      <section id="convvol" class="card row-12">
+        <h2 data-number="08">Matriz de Performance: Conversão vs Volume por Faixa</h2>
+        <div class="opts">
+          <label><input id="opt_convvol_quadrants" type="checkbox" checked> Mostrar quadrantes</label>
+          <label><input id="opt_convvol_labels" type="checkbox" checked> Mostrar labels</label>
+          <label>
+            Visualização:
+            <select id="convvol_view_type" class="date-filter" style="width: 120px;">
+              <option value="scatter">Bolhas (Scatter)</option>
+              <option value="bar">Barras Duplas</option>
+              <option value="radar">Radar</option>
+            </select>
+          </label>
+          <span class="date-filter-label">Período:</span>
+          <select id="convvol_date_range" class="date-filter">
+            <option value="all">Todo período</option>
+            <option value="12">Últimos 12 meses</option>
+            <option value="6">Últimos 6 meses</option>
+            <option value="3">Últimos 3 meses</option>
+          </select>
+        </div>
+        <div id="chart_conv_volume" class="chart"></div>
+        <div class="foot muted">
+          <span id="convvol_insight"></span>
+          Tamanho das bolhas = total de leads. Eixo X = Volume, Eixo Y = Taxa de Conversão %.
+        </div>
+      </section>
+
+      <section id="calendario" class="card row-12">
+        <h2 data-number="09">Atividade Diária por Faixa (ABCD)</h2>
+        <div class="opts" style="margin-bottom: 10px;">
+          <label>Mês:
+            <select id="calendar_month" class="date-filter">
+              <option value="">Carregando...</option>
+            </select>
+          </label>
+        </div>
+        <div id="chart_calendar_pies" class="chart" style="height: 680px;"></div>
+        <div class="foot muted">Cada pizza representa a proporção de leads criados naquele dia por faixa.</div>
+      </section>
+
+      <section id="tabelas" class="card row-12">
+        <h2 data-number="10">Tabelas Resumo</h2>
+        <div id="tables"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // ---------- Config ----------
+    const CLASSES = ["A - Hot","B - Warm","C - Cold","D - Low"];
+    const DEFAULT_THRESHOLDS = {A:80, B:60, C:40};
+    const MAX_HEATMAP_DAYS = 92;
+
+    const FILTER_DEFINITIONS = {
+      klass: {
+        label: 'Faixa',
+        predicate: (item, value) => item.klass === value
+      },
+      status: {
+        label: 'Status',
+        predicate: (item, value) => item.status === value
+      },
+      origin: {
+        label: 'Origem',
+        predicate: (item, value) => (item.origin || '').toLowerCase() === value.toLowerCase()
+      },
+      tag: {
+        label: 'Tag',
+        predicate: (item, value) => Array.isArray(item.tags) && item.tags.includes(value.toLowerCase())
+      },
+      month: {
+        label: 'Mês',
+        predicate: (item, value) => toLocalDateString(item.created)?.slice(0,7) === value
+      },
+      day: {
+        label: 'Dia',
+        predicate: (item, value) => toLocalDateString(item.created) === value
+      }
+    };
+
+    const globalFilters = new Map();
+    const filterPanelEl = document.getElementById('filter-panel');
+    const filterToggleBtn = document.getElementById('filter-toggle');
+    const filterClearBtn = document.getElementById('filter-clear');
+    const filterChipsContainer = document.getElementById('filter-chips');
+    const filterCountEl = document.getElementById('filter-count');
+    const filterEmptyText = document.getElementById('filter-empty-text');
+
+    let renderAllChartsRef = () => {};
+    let distributionMonths = [];
+    
+    // Variáveis globais de filtro de data
+    let globalDateStart = null;
+    let globalDateEnd = null;
+
+    function makeFilterKey(type, value){
+      return `${type}:${value}`;
+    }
+
+    function applyGlobalFilters(dataset){
+      if(!globalFilters.size) return dataset;
+      const filters = Array.from(globalFilters.values());
+      return dataset.filter(item => filters.every(f => {
+        const def = FILTER_DEFINITIONS[f.type];
+        return def ? def.predicate(item, f.value) : true;
+      }));
+    }
+
+    function renderFilterPanel(){
+      if(!filterChipsContainer) return;
+      filterChipsContainer.innerHTML = '';
+      
+      // Contar filtros regulares + filtro de data (se ativo)
+      let totalFilters = globalFilters.size;
+      const hasDateFilter = globalDateStart && globalDateEnd;
+      if (hasDateFilter) totalFilters++;
+      
+      if(filterCountEl) filterCountEl.textContent = String(totalFilters);
+      if(filterClearBtn) filterClearBtn.disabled = totalFilters === 0;
+      if(filterEmptyText) {
+        filterEmptyText.style.display = totalFilters ? 'none' : 'block';
+      }
+      
+      // Adicionar chip de filtro de data global (se ativo)
+      if (hasDateFilter) {
+        const chip = document.createElement('div');
+        chip.className = 'filter-chip';
+        chip.style.background = 'linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(249, 115, 22, 0.05) 100%)';
+        chip.style.borderColor = 'rgba(249, 115, 22, 0.3)';
+        
+        const labelContainer = document.createElement('div');
+        labelContainer.className = 'filter-chip-label';
+        
+        const labelType = document.createElement('strong');
+        labelType.textContent = '📅 Período';
+        labelType.style.color = '#fb923c';
+        
+        // Criar datas no fuso horário local para formatação correta
+        const [startYear, startMonth, startDay] = globalDateStart.split('-').map(Number);
+        const [endYear, endMonth, endDay] = globalDateEnd.split('-').map(Number);
+        
+        const startDateObj = new Date(startYear, startMonth - 1, startDay);
+        const endDateObj = new Date(endYear, endMonth - 1, endDay);
+        
+        const startDate = startDateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const endDate = endDateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        
+        const labelValue = document.createElement('div');
+        labelValue.className = 'filter-chip-value';
+        labelValue.textContent = `${startDate} → ${endDate}`;
+        labelValue.title = `Filtro de data: ${startDate} até ${endDate}`;
+        
+        labelContainer.appendChild(labelType);
+        labelContainer.appendChild(labelValue);
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'chip-remove';
+        removeBtn.innerHTML = '✕';
+        removeBtn.title = 'Remover filtro de data';
+        removeBtn.addEventListener('click', () => {
+          globalDateStart = null;
+          globalDateEnd = null;
+          document.getElementById('globalDateStart').value = '';
+          document.getElementById('globalDateEnd').value = '';
+          document.getElementById('globalDateInfo').textContent = '';
+          updateIndividualDateControls();
+          renderFilterPanel();
+          renderAllChartsRef();
+        });
+        
+        chip.appendChild(labelContainer);
+        chip.appendChild(removeBtn);
+        filterChipsContainer.appendChild(chip);
+      }
+      
+      // Adicionar chips de filtros regulares
+      if(!globalFilters.size && !hasDateFilter) return;
+      globalFilters.forEach(filter => {
+        const def = FILTER_DEFINITIONS[filter.type];
+        const chip = document.createElement('div');
+        chip.className = 'filter-chip';
+        
+        const labelContainer = document.createElement('div');
+        labelContainer.className = 'filter-chip-label';
+        
+        const labelType = document.createElement('strong');
+        labelType.textContent = def ? def.label : filter.type;
+        
+        const labelValue = document.createElement('div');
+        labelValue.className = 'filter-chip-value';
+        labelValue.textContent = filter.label || filter.value;
+        labelValue.title = filter.label || filter.value;
+        
+        labelContainer.appendChild(labelType);
+        labelContainer.appendChild(labelValue);
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'chip-remove';
+        removeBtn.innerHTML = '✕';
+        removeBtn.title = 'Remover filtro';
+        removeBtn.addEventListener('click', ()=> removeGlobalFilter(filter.key));
+        
+        chip.appendChild(labelContainer);
+        chip.appendChild(removeBtn);
+        filterChipsContainer.appendChild(chip);
+      });
+      
+      // Expandir painel se houver filtros
+      if(filterPanelEl && totalFilters > 0) {
+        filterPanelEl.classList.remove('collapsed');
+      }
+    }
+
+    function addGlobalFilter(filter){
+      const def = FILTER_DEFINITIONS[filter.type];
+      if(!def) return;
+      const key = makeFilterKey(filter.type, filter.value);
+      if(globalFilters.has(key)) return;
+      globalFilters.set(key, { ...filter, key });
+      renderFilterPanel();
+      if(filterPanelEl && globalFilters.size > 0) filterPanelEl.classList.remove('collapsed');
+      renderAllChartsRef();
+    }
+
+    function removeGlobalFilter(key){
+      if(!globalFilters.delete(key)) return;
+      renderFilterPanel();
+      renderAllChartsRef();
+    }
+
+    function clearGlobalFilters({ silent = false } = {}){
+      const hadFilters = globalFilters.size > 0 || (globalDateStart && globalDateEnd);
+      if(!hadFilters) return;
+      
+      // Limpar filtros regulares
+      globalFilters.clear();
+      
+      // Limpar filtro de data
+      if (globalDateStart || globalDateEnd) {
+        globalDateStart = null;
+        globalDateEnd = null;
+        document.getElementById('globalDateStart').value = '';
+        document.getElementById('globalDateEnd').value = '';
+        document.getElementById('globalDateInfo').textContent = '';
+        updateIndividualDateControls();
+      }
+      
+      renderFilterPanel();
+      if(!silent) renderAllChartsRef();
+    }
+
+    function formatMonthLabel(iso){
+      if(!iso) return iso;
+      const [yyyy, mm] = iso.split('-');
+      return `${mm}/${yyyy}`;
+    }
+
+    function filterByDate(dataset, cutoff){
+      if(!cutoff) return dataset;
+      return dataset.filter(d => d.created && d.created >= cutoff);
+    }
+
+    filterToggleBtn?.addEventListener('click', ()=>{
+      filterPanelEl?.classList.toggle('collapsed');
+    });
+
+    filterClearBtn?.addEventListener('click', ()=> clearGlobalFilters());
+
+    renderFilterPanel();
+    
+    // Cache system for data processing
+    const dataCache = new Map();
+    const processWithCache = (key, fn) => {
+        if (dataCache.has(key)) return dataCache.get(key);
+        const result = fn();
+        dataCache.set(key, result);
+        return result;
+    };
+
+    // Memory management and cleanup
+    const cleanup = () => {
+        Object.values(charts).forEach(chart => {
+            if (chart) {
+                chart.dispose();
+            }
+        });
+        dataCache.clear();
+        
+        if (window.ResizeObserver && resizeObserver) {
+            resizeObserver.disconnect();
+        }
+    };
+    
+    window.addEventListener('beforeunload', cleanup);
+
+    const FIELD_ALIASES = {
+      created_at: ["deal_created_at","created_at","data_criacao","ds_created_at","dt_created","created"],
+      updated_at: ["deal_updated_at","updated_at","dt_updated","last_update","updated"],
+      status:     ["deal_status","status","situacao","situation","state"],
+      score:      ["ia_score","score","lead_score","pontuacao","scoring"],
+      origin:     ["origin_name","origin","origem","source","utm_source","canal"],
+      tags:       ["c_tags","tags","contact_tags","etiquetas","marcadores","tags_list"]
+    };
+
+    // ---------- Utils ----------
+    const fmt = new Intl.NumberFormat('pt-BR');
+
+    function findColumn(obj, wanted){
+      const aliases = FIELD_ALIASES[wanted];
+      if(!aliases) return null;
+      const keys = Object.keys(obj);
+      const lower = keys.reduce((m,k)=> (m[k.toLowerCase()] = k, m), {});
+      for(const cand of aliases){
+        const k = lower[cand.toLowerCase()];
+        if(k) return k;
+      }
+      return null;
+    }
+
+    function normalizeDecimal(v){
+      if(v == null || v === '' || v === 'null' || v === 'undefined') return NaN;
+      if (typeof v === 'number') {
+        // Score deve estar entre 0 e 100
+        if (!Number.isFinite(v) || v < 0 || v > 100) return NaN;
+        return v;
+      }
+      let s = String(v).trim();
+      if (!s || s === 'null' || s === 'undefined' || s === 'NaN') return NaN;
+      if (s.includes(',')) s = s.replace(/\./g,'').replace(',', '.');
+      const n = Number(s);
+      // Score deve estar entre 0 e 100
+      if (!Number.isFinite(n) || n < 0 || n > 100) return NaN;
+      return n;
+    }
+
+    function parseDateFlexible(v){
+      if(!v) return null;
+      if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+      let s = String(v).trim();
+      
+      // Para datas no formato YYYY-MM-DD (comum em CSVs), criar objeto Date com fuso horário local
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const [year, month, day] = s.split('-').map(Number);
+        return new Date(year, month - 1, day); // Força fuso horário local
+      }
+      
+      // Para datetime YYYY-MM-DD HH:MM:SS, converter para ISO format
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) {
+        const [year, month, day] = s.split(' ')[0].split('-').map(Number);
+        const [hours, minutes, seconds] = s.split(' ')[1].split(':').map(Number);
+        return new Date(year, month - 1, day, hours, minutes, seconds); // Força fuso horário local
+      }
+      
+      if (/^\d{4}\/\d{2}\/\d{2}$/.test(s)) {
+        const [year, month, day] = s.split('/').map(Number);
+        return new Date(year, month - 1, day); // Força fuso horário local
+      }
+      
+      if (/^\d{2}\/\d{2}\/\d{4}( \d{2}:\d{2}(:\d{2})?)?$/.test(s)) {
+        const [dd, mm, rest] = s.split('/');
+        const [yyyy, timePart] = (rest || '').split(' ');
+        const year = parseInt(yyyy);
+        const month = parseInt(mm) - 1; // Month é 0-based
+        const day = parseInt(dd);
+        
+        if (timePart) {
+          const timeParts = timePart.split(':').map(Number);
+          const hours = timeParts[0] || 0;
+          const minutes = timeParts[1] || 0;
+          const seconds = timeParts[2] || 0;
+          return new Date(year, month, day, hours, minutes, seconds);
+        }
+        return new Date(year, month, day);
+      }
+      
+      if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+        const [dd, mm, yyyy] = s.split('-');
+        const year = parseInt(yyyy);
+        const month = parseInt(mm) - 1; // Month é 0-based
+        const day = parseInt(dd);
+        return new Date(year, month, day);
+      }
+      
+      // Fallback para outros formatos usando new Date(s)
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function topN(mapCounts, n){
+      return Array.from(mapCounts.entries()).sort((a,b)=> b[1]-a[1]).slice(0,n);
+    }
+
+    // Função auxiliar para extrair data local em formato YYYY-MM-DD (sem conversão para UTC)
+    // ⚠️ IMPORTANTE: Não usar .toISOString() pois converte para UTC e causa deslocamento de 1 dia
+    // Exemplo: 03/10/2025 00:00 (UTC-3) → toISOString() → "2025-10-02T03:00:00.000Z" (erro!)
+    // Esta função extrai a data no fuso horário local correto
+    function toLocalDateString(date) {
+      if (!date || !(date instanceof Date)) return null;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function scoreClassByThresholds(v, thr=DEFAULT_THRESHOLDS){
+      const s = normalizeDecimal(v);
+      if(!isFinite(s)) return "D - Low"; // Sem score = classificação mais baixa
+      if(s >= thr.A) return "A - Hot";
+      if(s >= thr.B) return "B - Warm";
+      if(s >= thr.C) return "C - Cold";
+      return "D - Low";
+    }
+
+    function computeQuantileThresholds(values){
+      const arr = values.filter(x=> Number.isFinite(x)).sort((a,b)=> a-b);
+      if(arr.length < 20) return null;
+      const q = p => arr[Math.floor((arr.length-1)*p)];
+      return { A:q(0.80), B:q(0.60), C:q(0.40) };
+    }
+
+    const STATUS_MAP = new Map([
+      ['won','WON'], ['ganho','WON'], ['fechado ganho','WON'], ['ganhou','WON'],
+      ['lost','LOST'], ['perdido','LOST'], ['fechado perdido','LOST'], ['perdeu','LOST'],
+      ['open','OPEN'], ['aberto','OPEN'], ['novo','OPEN'], ['em negociação','OPEN'], ['em negociacao','OPEN'],
+      ['prospecção sdr','OPEN'], ['conexão sdr','OPEN'], ['pré-agendamento','OPEN'], ['base sdr','OPEN'],
+      ['em contato pré-agendamento','OPEN'], ['prospecção ia','OPEN'], ['reunião','OPEN'], ['negociação','OPEN'],
+      ['em negociação avançada','OPEN'], ['proposta','OPEN'], ['no-show','LOST'], ['reunião removida ia','OPEN']
+    ]);
+    function normalizeStatus(v){
+      if(!v) return 'OPEN';
+      const s = String(v).trim().toLowerCase();
+      return STATUS_MAP.get(s) || (['WON','LOST','OPEN'].includes(s.toUpperCase()) ? s.toUpperCase() : 'OPEN');
+    }
+
+    function splitTags(raw){
+      if(!raw) return [];
+      const s = String(raw).trim();
+      if (s === 'nan' || s === 'null' || s === 'undefined' || s === '') return [];
+      
+      // Se for um array JSON, tenta fazer o parse
+      if (s.startsWith('[') && s.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(s);
+          if (Array.isArray(parsed)) {
+            return parsed.map(t => String(t).toLowerCase().trim()).filter(Boolean);
+          }
+        } catch (e) {
+          // Se falhar o parse JSON, continua com o método padrão
+        }
+      }
+      
+      // Método padrão: split por delimitadores
+      return s.toLowerCase().split(/[,\|;]+/).map(t=> t.trim()).filter(Boolean);
+    }
+
+    // ---------- Charts init ----------
+    const charts = {
+      conversion: echarts.init(document.getElementById('chart_conversion')),
+      distribution: echarts.init(document.getElementById('chart_distribution')),
+      status: echarts.init(document.getElementById('chart_status')),
+      scores: echarts.init(document.getElementById('chart_scores')),
+      tags: echarts.init(document.getElementById('chart_tags')),
+      funnel: echarts.init(document.getElementById('chart_funnel')),
+      origins: echarts.init(document.getElementById('chart_origins')),
+      heatmap: echarts.init(document.getElementById('chart_heatmap')),
+      convvol: echarts.init(document.getElementById('chart_conv_volume')),
+      calendarPies: echarts.init(document.getElementById('chart_calendar_pies')),
+    };
+
+    // ====== ECharts 6.0 Enhanced setOption ======
+    function setOptionEnhanced(chart, option) {
+      if (!chart) return;
+      
+      // NÃO aplicar enhance automático - causa problemas em alguns gráficos
+      // const enhanced = window.EChartsV6 ? window.EChartsV6.enhance(option) : option;
+      
+      // Apenas usar Universal Transition
+      const updateOpts = { replaceMerge: ['series'], lazyUpdate: true };
+      
+      chart.setOption(option, updateOpts);
+    }
+
+    // Optimized resize handler
+    const optimizedResize = () => {
+      let timeout;
+      return () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          Object.values(charts).forEach(chart => chart?.resize());
+        }, 250);
+      };
+    };
+    
+    window.addEventListener('resize', optimizedResize());
+    
+    if (window.ResizeObserver) {
+      const allCharts = Object.values(charts);
+      const debouncedResize = (() => {
+        let timeout;
+        return () => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => {
+            allCharts.forEach(c => c?.resize());
+          }, 250);
+        };
+      })();
+      
+      const ro = new ResizeObserver(debouncedResize);
+      const mainEl = document.querySelector('main') || document.body;
+      ro.observe(mainEl);
+      document.querySelectorAll('.card .chart').forEach(el => ro.observe(el));
+    }
+
+    // ---------- Uploader ----------
+    const fileInput = document.getElementById('csvFile');
+    fileInput.addEventListener('change', (e)=>{
+      const file = e.target.files?.[0];
+      if(!file) return;
+      
+      // Parser robusto customizado para corrigir CSVs problemáticos do DBeaver
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        let text = evt.target.result;
+        
+        console.log('🔍 Tamanho original:', (text.length / 1024).toFixed(2), 'KB');
+        
+        // Remove BOM
+        if (text.charCodeAt(0) === 0xFEFF) {
+          text = text.slice(1);
+        }
+        
+        // Normaliza line breaks
+        text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        
+        // Split em linhas
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          diag('❌ CSV inválido: arquivo vazio ou sem dados');
+          return;
+        }
+        
+        console.log('📋 Total de linhas:', lines.length);
+        
+        // Parser CSV robusto - reconstrói linha por linha
+        function parseCSVLine(line) {
+          const fields = [];
+          let currentField = '';
+          let insideQuotes = false;
+          let i = 0;
+          
+          while (i < line.length) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+            
+            if (char === '"') {
+              if (insideQuotes && nextChar === '"') {
+                currentField += '"';
+                i += 2;
+                continue;
+              } else {
+                insideQuotes = !insideQuotes;
+                i++;
+                continue;
+              }
+            }
+            
+            if (char === ',' && !insideQuotes) {
+              fields.push(currentField.trim());
+              currentField = '';
+              i++;
+              continue;
+            }
+            
+            currentField += char;
+            i++;
+          }
+          
+          fields.push(currentField.trim());
+          return fields;
+        }
+        
+        const headerFields = parseCSVLine(lines[0]);
+        const expectedFieldCount = headerFields.length;
+        
+        console.log('📊 Header:', expectedFieldCount, 'colunas');
+        console.log('📋 Colunas:', headerFields.slice(0, 10).join(', ') + '...');
+        
+        // Corrigir linhas com problemas
+        const cleanedLines = [lines[0]];
+        let fixedRows = 0;
+        
+        for (let i = 1; i < lines.length; i++) {
+          const fields = parseCSVLine(lines[i]);
+          
+          if (fields.length > expectedFieldCount) {
+            const correctedFields = fields.slice(0, expectedFieldCount - 1);
+            correctedFields.push(fields.slice(expectedFieldCount - 1).join(' | '));
+            const rebuiltLine = correctedFields.map(f => 
+              (f.includes(',') || f.includes('"')) ? `"${f.replace(/"/g, '""')}"` : f
+            ).join(',');
+            cleanedLines.push(rebuiltLine);
+            fixedRows++;
+          } else if (fields.length < expectedFieldCount) {
+            while (fields.length < expectedFieldCount) fields.push('');
+            cleanedLines.push(fields.join(','));
+            fixedRows++;
+          } else {
+            cleanedLines.push(lines[i]);
+          }
+        }
+        
+        if (fixedRows > 0) {
+          const pct = (fixedRows / (lines.length - 1) * 100).toFixed(1);
+          console.log(`🔧 ${fixedRows} linhas (${pct}%) corrigidas`);
+          diag(`✅ ${fixedRows} linhas corrigidas (${pct}%)`);
+        }
+        
+        // Criar CSV limpo
+        const cleanedCSV = cleanedLines.join('\n');
+        const cleanBlob = new Blob([cleanedCSV], { type: 'text/csv;charset=utf-8' });
+        
+        // Parse com PapaParse
+        Papa.parse(cleanBlob, {
+          header: true,
+          skipEmptyLines: 'greedy',
+          dynamicTyping: false,
+          delimiter: ',',
+          quoteChar: '"',
+          escapeChar: '"',
+          transformHeader: (h) => h.trim(),
+          transform: (v) => (v === null || v === 'NULL' || v === 'null') ? '' : String(v).trim(),
+          error: (error) => {
+            console.error('❌ Erro:', error);
+            diag(`❌ ${error.message}`);
+          },
+          complete: (results) => {
+            const errors = results.errors.length;
+            
+            if (errors > 0 && errors < 50) {
+              console.warn(`⚠️ ${errors} avisos (ignoráveis):`);
+            } else if (errors >= 50) {
+              console.warn(`⚠️ ${errors} avisos - CSV pode ter problemas`);
+            }
+            
+            // Limpar linhas vazias
+            const cleanedData = results.data.filter(row => {
+              const values = Object.values(row);
+              const hasContent = values.some(v => v !== null && v !== undefined && v !== '');
+              return hasContent;
+            });
+            
+            const removedRows = results.data.length - cleanedData.length;
+            if (removedRows > 0) {
+              console.log(`🧹 Removidas ${removedRows} linhas vazias`);
+            }
+            
+            console.log('✅ CSV parseado!');
+            console.log(`  ${cleanedData.length} registros, ${results.meta.fields?.length} colunas`);
+            console.log('� Total de colunas:', results.meta.fields?.length);
+            console.log('📝 Exemplo do primeiro registro:', cleanedData[0]);
+            
+            diag(`✅ ${cleanedData.length} registros${fixedRows > 0 ? ` (${fixedRows} corrigidos)` : ''}`);
+            
+            buildReport(cleanedData);
+          }
+        });
+      };
+      
+      reader.readAsText(file, 'UTF-8');
+    });
+
+    // ---------- Menu de navegação minimizável ----------
+    function toggleNav() {
+      const navContainer = document.getElementById('navContainer');
+      navContainer.classList.toggle('collapsed');
+      
+      // Salvar estado no localStorage
+      const isCollapsed = navContainer.classList.contains('collapsed');
+      localStorage.setItem('navCollapsed', isCollapsed);
+    }
+
+    // Restaurar estado do menu ao carregar
+    window.addEventListener('DOMContentLoaded', () => {
+      const navContainer = document.getElementById('navContainer');
+      const savedState = localStorage.getItem('navCollapsed');
+      if (savedState === 'true') {
+        navContainer.classList.add('collapsed');
+      }
+    });
+
+    // Lógica para mostrar o cabeçalho APENAS no topo
+    const header = document.querySelector('header');
+    const scrollThreshold = 10; // Uma pequena margem para não esconder em rolagens mínimas
+    
+    window.addEventListener('scroll', function() {
+        // Pega a posição atual da rolagem
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Se a rolagem for maior que o limiar, esconde o cabeçalho.
+        if (scrollTop > scrollThreshold) { 
+            header.classList.add('header-hidden');
+        } else { // Senão (se estiver no topo), mostra o cabeçalho.
+            header.classList.remove('header-hidden');
+        }
+    }, false);
+
+    // Lógica para compensar a altura do cabeçalho fixo
+    document.addEventListener('DOMContentLoaded', () => {
+      const headerElement = document.querySelector('header');
+      const mainContent = document.querySelector('main.wrap');
+      if (headerElement && mainContent) {
+          const headerHeight = headerElement.offsetHeight;
+          mainContent.style.paddingTop = `${headerHeight}px`;
+      }
+    });
+
+    // ---------- Painel de diagnóstico ----------
+    function ensureDiagPanel(){
+      if(document.getElementById('diag-panel')) return;
+      const header = document.querySelector('header .wrap');
+      const div = document.createElement('div');
+      div.id = 'diag-panel';
+      div.innerHTML = `
+        <div id="diag-header">
+          <b>Diagnóstico de Importação</b>
+          <button id="diag-toggle" type="button" title="Minimizar/Expandir">▼</button>
+        </div>
+        <div id="diag-content">
+          <span id="diag-msg"></span>
+        </div>
+      `;
+      header.appendChild(div);
+      
+      // Adicionar evento de clique para minimizar/expandir
+      const diagHeader = document.getElementById('diag-header');
+      const diagPanel = document.getElementById('diag-panel');
+      diagHeader.addEventListener('click', () => {
+        diagPanel.classList.toggle('collapsed');
+      });
+    }
+    function diag(msg){ 
+      ensureDiagPanel(); 
+      document.getElementById('diag-msg').textContent = msg;
+      // Expandir automaticamente quando há nova mensagem
+      const diagPanel = document.getElementById('diag-panel');
+      if (diagPanel) diagPanel.classList.remove('collapsed');
+    }
+
+    // ---------- Helpers V1 ----------
+    function average(rates, weights){
+      let sum = 0, wsum = 0;
+      for(let i=0;i<rates.length;i++){
+        const r = Number(rates[i]);
+        const w = Number(weights[i]);
+        if (Number.isFinite(r) && Number.isFinite(w)) { sum += r*w; wsum += w; }
+      }
+      return wsum ? +(sum/wsum).toFixed(2) : 0;
+    }
+    function getClassColor(k){
+      // Escala monocromática em roxo
+      if(k.startsWith('A')) return '#9333ea'; // Roxo mais intenso
+      if(k.startsWith('B')) return '#a855f7'; // Roxo médio-intenso
+      if(k.startsWith('C')) return '#c084fc'; // Roxo médio-claro
+      return '#d8b4fe';                       // Roxo claro
+    }
+
+    // ---------- Main ----------
+    function validateData(data) {
+      const errors = [];
+      const warnings = [];
+      
+      if (!data?.length) {
+        errors.push('CSV vazio ou inválido');
+        return { isValid: false, errors, warnings };
+      }
+
+      const first = data[0] || {};
+      const requiredCols = {
+        created_at: findColumn(first, 'created_at'),
+        score: 'ia_score', // Usar diretamente ia_score
+        status: findColumn(first, 'status')
+      };
+
+      if (!requiredCols.created_at) errors.push('Coluna de data de criação não encontrada');
+      if (!first.hasOwnProperty('ia_score')) errors.push('Coluna ia_score não encontrada');
+      if (!requiredCols.status) warnings.push('Coluna de status não encontrada - usando "OPEN" como padrão');
+
+      return {
+        isValid: errors.length === 0,
+        errors,
+        warnings,
+        columns: requiredCols
+      };
+    }
+
+    function getCutoffDate(range) {
+      // Se houver filtro global de data, ignorar o range e usar o filtro global
+      if (globalDateStart && globalDateEnd) {
+        return null; // filterByDate cuidará do filtro
+      }
+      
+      if (range === 'all') return null;
+      const months = parseInt(range);
+      if (isNaN(months)) return null;
+      const cutoff = new Date();
+      cutoff.setMonth(cutoff.getMonth() - months);
+      return cutoff;
+    }
+    
+    function filterByDate(dataset, cutoff){
+      // Priorizar filtro global de data
+      if (globalDateStart && globalDateEnd) {
+        // Criar datas no fuso horário local para evitar problemas de timezone
+        const [startYear, startMonth, startDay] = globalDateStart.split('-').map(Number);
+        const [endYear, endMonth, endDay] = globalDateEnd.split('-').map(Number);
+        
+        const start = new Date(startYear, startMonth - 1, startDay, 0, 0, 0, 0);
+        const end = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999);
+        
+        return dataset.filter(d => d.created && d.created >= start && d.created <= end);
+      }
+      
+      // Usar cutoff tradicional se não houver filtro global
+      if(!cutoff) return dataset;
+      return dataset.filter(d => d.created && d.created >= cutoff);
+    }
+
+    function buildReport(rows){
+      const validation = validateData(rows);
+      
+      if (validation.warnings.length) {
+        diag('Avisos: ' + validation.warnings.join('; '));
+      }
+      
+      if (!validation.isValid) {
+        diag('Erros: ' + validation.errors.join('; '));
+        return;
+      }
+
+      const COL = {
+        ...validation.columns,
+        updated_at: findColumn(rows[0], 'updated_at'),
+        origin: findColumn(rows[0], 'origin'),
+        tags: findColumn(rows[0], 'tags')
+      };
+
+      // Debug: encontrar a coluna ia_score correta
+      const firstRow = rows[0] || {};
+      const columnNames = Object.keys(firstRow);
+      console.log('📋 DEBUG - Todas as colunas do CSV:', columnNames);
+      
+      // Procurar coluna ia_score (pode ter espaços ou caracteres extras)
+      let iaScoreColumn = columnNames.find(col => col.trim() === 'ia_score');
+      if (!iaScoreColumn) {
+        iaScoreColumn = columnNames.find(col => col.toLowerCase().trim() === 'ia_score');
+      }
+      if (!iaScoreColumn) {
+        iaScoreColumn = columnNames.find(col => col.toLowerCase().includes('ia_score'));
+      }
+      if (!iaScoreColumn) {
+        iaScoreColumn = columnNames.find(col => col.toLowerCase().includes('score'));
+      }
+      
+      console.log('✅ Coluna ia_score mapeada para:', `"${iaScoreColumn}"`);
+      console.log('📊 Amostra de valores brutos (primeiras 20 linhas):');
+      rows.slice(0, 20).forEach((r, i) => {
+        const val = r[iaScoreColumn];
+        console.log(`  Linha ${i+1}: "${val}" (tipo: ${typeof val}, length: ${String(val || '').length})`);
+      });
+
+      // Primeiro passo: Parse básico sem classificação
+      let invalidDate = 0, emptyScore = 0, invalidScore = 0, total = 0;
+      const validScores = [];
+      let minDate = null;
+      let maxDate = null;
+      const parsed = rows.map(r=>{
+        total++;
+        const created = parseDateFlexible(COL.created_at ? r[COL.created_at] : r['created_at']);
+        
+        // Atualizar minDate e maxDate
+        if(created) {
+          if(!minDate || created < minDate) minDate = created;
+          if(!maxDate || created > maxDate) maxDate = created;
+        } else {
+          invalidDate++;
+        }
+        
+        const status  = normalizeStatus(COL.status ? r[COL.status] : r['status']);
+        const rawScoreValue = r[iaScoreColumn];
+        const rawScoreStr = rawScoreValue == null ? '' : String(rawScoreValue).trim();
+        
+        let scoreNum = NaN;
+        const rawScoreLower = rawScoreStr.toLowerCase();
+        const isEmptyScore = rawScoreStr === '' || rawScoreLower === 'null' || rawScoreLower === 'undefined' || rawScoreLower === 'nan';
+
+        if(isEmptyScore) {
+          emptyScore++;
+        } else {
+          scoreNum = normalizeDecimal(rawScoreStr);
+          if(!Number.isFinite(scoreNum)) {
+            invalidScore++;
+            if(invalidScore <= 10) {
+              console.log(`⚠️ Score inválido linha ${total}: "${rawScoreStr}" → ${scoreNum}`);
+            }
+          } else {
+            validScores.push(scoreNum);
+            if(validScores.length <= 10) {
+              console.log(`✅ Score válido linha ${total}: "${rawScoreStr}" → ${scoreNum}`);
+            }
+          }
+        }
+
+        const origin  = String(COL.origin ? r[COL.origin] : (r['origin_name'] || r['origin'] || r['origem'] || '')).trim() || 'desconhecida';
+        const tags    = splitTags(COL.tags ? r[COL.tags] : (r['c_tags'] || r['tags'] || r['tags_list']));
+        return {created, status, score:scoreNum, origin, tags, klass: null};
+      });
+
+      // Garantir que temos datas válidas para o calendário
+      if (!minDate || !maxDate) {
+        console.warn('⚠️ Não foi possível determinar minDate/maxDate. Usando data atual.');
+        maxDate = new Date();
+        minDate = new Date(maxDate.getTime() - 90 * 86400000); // 90 dias atrás
+      }
+
+      // Segundo passo: Determinar thresholds e classificar
+      let thresholds = DEFAULT_THRESHOLDS;
+      
+      // Aplicar classificação com os thresholds corretos
+      parsed.forEach(d => {
+        d.klass = scoreClassByThresholds(d.score, thresholds);
+      });
+
+      const data = parsed.filter(d=> d.created);
+
+      // Debug adicional da distribuição
+      const debugCounts = CLASSES.reduce((acc, k) => {
+        acc[k] = data.filter(d => d.klass === k).length;
+        return acc;
+      }, {});
+      
+      const emptyScorePercent = (emptyScore / total * 100).toFixed(1);
+      const invalidScorePercent = (invalidScore / total * 100).toFixed(1);
+      const validScorePercent = (validScores.length / total * 100).toFixed(1);
+      
+      console.log('📊 Resumo do processamento:');
+      console.log(`  Total de linhas: ${total}`);
+      console.log(`  Scores vazios: ${emptyScore} (${emptyScorePercent}%)`);
+      console.log(`  Scores inválidos (fora 0-100): ${invalidScore} (${invalidScorePercent}%)`);
+      console.log(`  Scores válidos: ${validScores.length} (${validScorePercent}%)`);
+      console.log(`  Distribuição ABCD:`, debugCounts);
+      
+      diag([
+        `Linhas totais: ${fmt.format(total)}.`,
+        `Válidas com data: ${fmt.format(data.length)}.`,
+        `🔍 DEBUG: Coluna ia_score encontrada: "${iaScoreColumn}".`,
+        invalidDate ? `Sem data: ${fmt.format(invalidDate)}.` : null,
+        emptyScore ? `Sem score IA: ${fmt.format(emptyScore)} (${emptyScorePercent}%).` : null,
+        invalidScore ? `Score inválido (fora 0-100): ${fmt.format(invalidScore)} (${invalidScorePercent}%).` : null,
+        validScores.length > 0 ? `✅ Scores válidos: ${fmt.format(validScores.length)} (${validScorePercent}%) - Range: ${Math.min(...validScores).toFixed(1)} a ${Math.max(...validScores).toFixed(1)}.` : '❌ Nenhum score válido encontrado!',
+        `Distribuição ABCD: A=${debugCounts['A - Hot']}, B=${debugCounts['B - Warm']}, C=${debugCounts['C - Cold']}, D=${debugCounts['D - Low']} (leads sem score ficam em D).`,
+        `✅ Usando thresholds padrão (A≥${thresholds.A}, B≥${thresholds.B}, C≥${thresholds.C}) para scores de 0 a 100.`
+      ].filter(Boolean).join(' '));
+
+      // ----- Agregações Globais para Tabelas -----
+      // Aplicar filtros globais e de data antes de popular as tabelas
+      const filteredDataForTables = filterByDate(applyGlobalFilters(data), null);
+      
+      const globalBaseByClass = new Map(CLASSES.map(k => [k, []]));
+      filteredDataForTables.forEach(d => {
+        if (globalBaseByClass.has(d.klass)) {
+          globalBaseByClass.get(d.klass).push(d);
+        }
+      });
+      const globalTotals = CLASSES.map(k => globalBaseByClass.get(k).length);
+      const globalWon = CLASSES.map(k => globalBaseByClass.get(k).filter(x => x.status === 'WON').length);
+      const globalLost = CLASSES.map(k => globalBaseByClass.get(k).filter(x => x.status === 'LOST').length);
+      const globalOpen = CLASSES.map(k => globalBaseByClass.get(k).filter(x => x.status === 'OPEN').length);
+      const globalConvRate = CLASSES.map((_, i) => globalTotals[i] ? +(globalWon[i] * 100 / globalTotals[i]).toFixed(2) : 0);
+
+      // ----- Rerender all charts -----
+      function renderAllCharts() {
+        renderConversion({ showAvg: chkAvg?.checked, showHighlight: chkHighlight?.checked });
+        renderDistribution({ showAvg: chkDistAvg?.checked, showHighlight: chkDistHighlight?.checked });
+        renderStatus();
+        renderScores();
+        renderTags();
+        renderFunnel();
+        renderOrigins();
+        renderHeatmap();
+        renderConvVol();
+        renderTables(); // Atualizar tabelas quando filtros mudarem
+        // Calendar is not filtered by individual dropdowns yet
+      }
+
+      // Atualizar referência global para permitir que filtros chamem renderAllCharts
+      renderAllChartsRef = renderAllCharts;
+
+      // ----- Conversão por Faixa -----
+      const chkAvg = document.getElementById('opt_avg');
+      const chkHighlight = document.getElementById('opt_highlight');
+      const convDateRangeSelect = document.getElementById('conv_date_range');
+
+      function renderConversion(opts){
+        const showAvg = !!opts.showAvg;
+        const showHighlight = !!opts.showHighlight;
+        
+        const cutoff = getCutoffDate(convDateRangeSelect?.value || 'all');
+        const filteredData = filterByDate(applyGlobalFilters(data), cutoff);
+
+        const baseByClass = new Map(CLASSES.map(k=> [k, []]));
+        filteredData.forEach(d=>{ if(baseByClass.has(d.klass)) baseByClass.get(d.klass).push(d); });
+
+        const convCats = CLASSES;
+        const totals = convCats.map(k=> baseByClass.get(k).length);
+        const won = convCats.map(k=> baseByClass.get(k).filter(x=> x.status==='WON').length);
+        const convRate = convCats.map((_,i)=> totals[i]? +(won[i]*100/totals[i]).toFixed(2) : 0);
+        
+        const avgValue = average(convRate, totals);
+
+        setOptionEnhanced(charts.conversion, {
+          backgroundColor: 'transparent',
+          toolbox: {
+            right: 10,
+            iconStyle:{borderColor:'#94a3b8'},
+            feature: { saveAsImage: { show:true, name:'conversao_por_faixa' } }
+          },
+          tooltip:{
+            trigger:'axis',
+            axisPointer:{type:'shadow'},
+            formatter: (params) => {
+              const i = params[0].dataIndex;
+              const cls = convCats[i];
+              const t = totals[i] ?? 0;
+              const w = won[i] ?? 0;
+              const l = baseByClass.get(cls).filter(x=> x.status==='LOST').length;
+              const o = baseByClass.get(cls).filter(x=> x.status==='OPEN').length;
+              const rate = convRate[i] ?? 0;
+              return [
+                `<b>${cls}</b>`,
+                `Conversão: <b>${rate}%</b>`,
+                `Ganhos: ${fmt.format(w)}`,
+                `Perdas: ${fmt.format(l)}`,
+                `Abertos: ${fmt.format(o)}`,
+                `Total: ${fmt.format(t)}`
+              ].join('<br/>');
+            }
+          },
+          xAxis:{ 
+            type:'category', 
+            data: convCats, 
+            axisLabel:{
+              color:'#cbd5e1',
+              interval: 0,
+              fontSize: 11
+            } 
+          },
+          yAxis:{
+            type:'value',
+            axisLabel:{color:'#cbd5e1', formatter:'{value}%'},
+            splitLine:{lineStyle:{color:'#1f2937'}}
+          },
+          series:[{
+            name:'Conversão %',
+            type:'bar',
+            data: convRate.map((v,i)=>({ value: v, itemStyle:{ color: getClassColor(convCats[i]) } })),
+            label:{
+              show:true,
+              position:'top',
+              color:'#94a3b8',
+              formatter: (p)=>{
+                const i = p.dataIndex;
+                const wv = won[i] ?? 0;
+                const tv = totals[i] ?? 0;
+                return `${p.value}% (${fmt.format(wv)}/${fmt.format(tv)})`;
+              }
+            },
+            emphasis:{ focus:'series' },
+            markLine: showAvg ? {
+              symbol:'none',
+              lineStyle:{type:'dashed', color:'#94a3b8'},
+              label:{ color:'#cbd5e1', formatter: (p)=> `Média ${Number(p.value).toFixed(1)}%` },
+              data: [{ yAxis: avgValue }]
+            } : { data: [] },
+            markPoint: showHighlight ? {
+              data:[{type:'max', name:'Maior'},{type:'min', name:'Menor'}],
+              label:{color:'#0b1220'},
+              itemStyle:{color:'#eab308'}
+            } : { data: [] }
+          }],
+          grid:{left:60,right:12,top:50,bottom:35,containLabel:true},
+          animationDuration: 400
+        });
+      }
+
+      const rerenderConversion = ()=> renderConversion({ showAvg: chkAvg?.checked, showHighlight: chkHighlight?.checked });
+      chkAvg?.addEventListener('change', rerenderConversion);
+      chkHighlight?.addEventListener('change', rerenderConversion);
+      convDateRangeSelect?.addEventListener('change', rerenderConversion);
+      rerenderConversion();
+
+      // Adicionar filtro ao clicar em uma barra de faixa
+      charts.conversion.off('click');
+      charts.conversion.on('click', (params) => {
+        if (params.componentType === 'series' && params.name) {
+          addGlobalFilter({
+            type: 'klass',
+            value: params.name,
+            label: params.name
+          });
+        }
+      });
+
+      // ----- Distribuição por Faixa -----
+      const chkDistAvg = document.getElementById('opt_dist_avg');
+      const chkDistHighlight = document.getElementById('opt_dist_highlight');
+      const distDateRangeSelect = document.getElementById('dist_date_range');
+
+      function renderDistribution(opts) {
+        const showAvg = !!opts.showAvg;
+        const showHighlight = !!opts.showHighlight;
+        const dateRange = distDateRangeSelect?.value || 'all';
+
+        // Determina a data de corte baseada no filtro selecionado
+        const cutoffDate = getCutoffDate(dateRange);
+
+        const filteredSource = filterByDate(applyGlobalFilters(data), cutoffDate);
+
+        // Agrupa dados por mês e classe
+        const monthlyData = new Map();
+        filteredSource.forEach(d => {
+          const monthKey = toLocalDateString(d.created)?.slice(0, 7); // YYYY-MM
+          if (!monthKey) return; // Skip se data inválida
+          if (!monthlyData.has(monthKey)) {
+            monthlyData.set(monthKey, new Map(CLASSES.map(k => [k, 0])));
+          }
+          const monthMap = monthlyData.get(monthKey);
+          monthMap.set(d.klass, monthMap.get(d.klass) + 1);
+        });
+
+        // Ordena meses e prepara dados para o gráfico
+        const months = Array.from(monthlyData.keys()).sort();
+        distributionMonths = months;
+        
+        // Função para formatar mês com nome
+        const formatMonthName = (monthKey) => {
+          const [year, month] = monthKey.split('-');
+          const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+          const monthIndex = parseInt(month) - 1;
+          const shortYear = year.slice(2); // Últimos 2 dígitos do ano
+          return `${monthNames[monthIndex]}/${shortYear}`;
+        };
+        
+        // Calcula médias mensais
+        const monthlyTotals = months.map(month => 
+          Array.from(monthlyData.get(month).values()).reduce((a, b) => a + b, 0)
+        );
+        const simpleAvgValue = monthlyTotals.length > 0 ? 
+          monthlyTotals.reduce((a, b) => a + b, 0) / monthlyTotals.length : 0;
+
+        const series = CLASSES.map((className, idx) => {
+          const baseSeries = {
+            name: className,
+            type: 'bar',
+            stack: 'total',
+            emphasis: { focus: 'series' },
+            itemStyle: { color: getClassColor(className) },
+            data: months.map(month => monthlyData.get(month).get(className))
+          };
+
+          // Adiciona markLine (média) e markPoint (destaque) apenas na última série
+          if (idx === CLASSES.length - 1) {
+            baseSeries.markLine = showAvg ? {
+              symbol: 'none',
+              lineStyle: { type: 'dashed', color: '#94a3b8' },
+              label: { color: '#cbd5e1', formatter: (p) => `Média ${fmt.format(Math.round(p.value))}` },
+              data: [{ yAxis: simpleAvgValue }]
+            } : { data: [] };
+
+            baseSeries.markPoint = showHighlight ? {
+              data: [
+                { type: 'max', name: 'Maior', coord: [months.indexOf(months[monthlyTotals.indexOf(Math.max(...monthlyTotals))]), Math.max(...monthlyTotals)] },
+                { type: 'min', name: 'Menor', coord: [months.indexOf(months[monthlyTotals.indexOf(Math.min(...monthlyTotals))]), Math.min(...monthlyTotals)] }
+              ],
+              label: { color: '#0b1220' },
+              itemStyle: { color: '#eab308' }
+            } : { data: [] };
+          }
+
+          return baseSeries;
+        });
+
+        setOptionEnhanced(charts.distribution, {
+          backgroundColor: 'transparent',
+          toolbox: {
+            right: 10,
+            iconStyle: {borderColor: '#94a3b8'},
+            feature: { saveAsImage: { show: true, name: 'distribuicao_por_faixa' } }
+          },
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            formatter: (params) => {
+              const monthLabel = params[0].axisValue;
+              const monthIndex = params[0].dataIndex;
+              const monthKey = months[monthIndex];
+              
+              // Formatar como "Mês/Ano" para o tooltip
+              const [year, month] = monthKey.split('-');
+              const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+              const monthName = monthNames[parseInt(month) - 1];
+              
+              let tooltip = `<b>${monthName}/${year}</b><br/>`;
+              let total = 0;
+              params.forEach(param => {
+                tooltip += `${param.seriesName}: ${fmt.format(param.value)}<br/>`;
+                total += param.value;
+              });
+              tooltip += `<b>Total: ${fmt.format(total)}</b>`;
+              return tooltip;
+            }
+          },
+          legend: {
+            data: CLASSES,
+            textStyle: { color: '#cbd5e1' },
+            top: 10,
+            right: 60
+          },
+          xAxis: {
+            type: 'category',
+            data: months.map(m => formatMonthName(m)),
+            axisLabel: {
+              color: '#cbd5e1',
+              interval: months.length > 12 ? 1 : 0,  // Pula labels se muitos meses
+              rotate: months.length > 6 ? 30 : 0,
+              fontSize: 11
+            }
+          },
+          yAxis: {
+            type: 'value',
+            axisLabel: { color: '#cbd5e1' },
+            splitLine: { lineStyle: { color: '#1f2937' } }
+          },
+          series: series,
+          grid: {
+            left: 60,
+            right: 60,
+            top: 50,
+            bottom: 32,
+            containLabel: true
+          },
+          animationDuration: 400
+        });
+      }
+
+      const rerenderDistribution = () => renderDistribution({ 
+        showAvg: chkDistAvg?.checked, 
+        showHighlight: chkDistHighlight?.checked 
+      });
+
+      // Adiciona listener para o filtro de data
+      distDateRangeSelect?.addEventListener('change', rerenderDistribution);
+      
+      chkDistAvg?.addEventListener('change', rerenderDistribution);
+      chkDistHighlight?.addEventListener('change', rerenderDistribution);
+      rerenderDistribution();
+
+      // Adicionar filtro ao clicar em barras da distribuição
+      charts.distribution.off('click');
+      charts.distribution.on('click', (params) => {
+        if (params.componentType === 'series' && params.seriesName) {
+          // Filtro por faixa quando clica na série
+          addGlobalFilter({
+            type: 'klass',
+            value: params.seriesName,
+            label: params.seriesName
+          });
+        } else if (params.componentType === 'xAxis' && distributionMonths[params.dataIndex]) {
+          // Filtro por mês quando clica no eixo X
+          const monthValue = distributionMonths[params.dataIndex];
+          addGlobalFilter({
+            type: 'month',
+            value: monthValue,
+            label: formatMonthLabel(monthValue)
+          });
+        }
+      });
+
+      // ----- Status empilhado -----
+      const statusDateRangeSelect = document.getElementById('status_date_range');
+
+      function renderStatus() {
+        const cutoff = getCutoffDate(statusDateRangeSelect.value);
+        const filteredData = filterByDate(applyGlobalFilters(data), cutoff);
+
+        const baseByClass = new Map(CLASSES.map(k=> [k, []]));
+        filteredData.forEach(d=>{ if(baseByClass.has(d.klass)) baseByClass.get(d.klass).push(d); });
+
+        const won = CLASSES.map(k=> baseByClass.get(k).filter(x=> x.status==='WON').length);
+        const lost = CLASSES.map(k=> baseByClass.get(k).filter(x=> x.status==='LOST').length);
+        const open = CLASSES.map(k=> baseByClass.get(k).filter(x=> x.status==='OPEN').length);
+
+        const statuses = ['WON','LOST','OPEN'];
+        const seriesStatus = [
+          {name:'WON', type:'bar', stack:'x', data: won, itemStyle: { color: '#22c55e' }},
+          {name:'LOST', type:'bar', stack:'x', data: lost, itemStyle: { color: '#ef4444' }},
+          {name:'OPEN', type:'bar', stack:'x', data: open, itemStyle: { color: '#64748b' }},
+        ];
+        setOptionEnhanced(charts.status, {
+          backgroundColor:'transparent',
+          toolbox: {
+            right: 10,
+            iconStyle:{borderColor:'#94a3b8'},
+            feature: { saveAsImage: { show:true, name:'status_por_faixa' } }
+          },
+          tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+          legend:{
+            data:statuses, 
+            textStyle:{color:'#cbd5e1'},
+            top: 5
+          },
+          xAxis:{
+            type:'category', 
+            data: CLASSES, 
+            axisLabel:{
+              color:'#cbd5e1',
+              interval: 0,  // Mostra todas as labels
+              rotate: 0,    // Sem rotação
+              fontSize: 11
+            }
+          },
+          yAxis:{type:'value', axisLabel:{color:'#cbd5e1'}, splitLine:{lineStyle:{color:'#1f2937'}}},
+          series: seriesStatus,
+          grid:{left:50,right:20,top:45,bottom:35}  // Mais espaço para labels
+        });
+      }
+      statusDateRangeSelect?.addEventListener('change', renderStatus);
+      renderStatus();
+
+      // Adicionar filtros ao clicar em status
+      charts.status.off('click');
+      charts.status.on('click', (params) => {
+        if (params.componentType === 'series' && params.seriesName) {
+          // Filtro por status (WON/LOST/OPEN)
+          addGlobalFilter({
+            type: 'status',
+            value: params.seriesName,
+            label: params.seriesName
+          });
+        }
+        if (params.componentType === 'xAxis' && CLASSES[params.value]) {
+          // Filtro por faixa
+          addGlobalFilter({
+            type: 'klass',
+            value: CLASSES[params.value],
+            label: CLASSES[params.value]
+          });
+        }
+      });
+
+      // ----- Scores -----
+      const scoresDateRangeSelect = document.getElementById('scores_date_range');
+      function renderScores() {
+        const cutoff = getCutoffDate(scoresDateRangeSelect.value);
+        const filteredData = filterByDate(applyGlobalFilters(data), cutoff);
+
+        const baseByClass = new Map(CLASSES.map(k=> [k, []]));
+        filteredData.forEach(d=>{ if(baseByClass.has(d.klass)) baseByClass.get(d.klass).push(d); });
+
+        const scoreData = CLASSES.map(k => {
+            const classScores = baseByClass.get(k).map(d => d.score).filter(Number.isFinite);
+            const avgScore = classScores.length ? classScores.reduce((a, b) => a + b, 0) / classScores.length : 0;
+            return {
+                value: avgScore,
+                itemStyle: { color: getClassColor(k) }
+            };
+        });
+        setOptionEnhanced(charts.scores, {
+          backgroundColor:'transparent',
+          toolbox: {
+            right: 10,
+            iconStyle:{borderColor:'#94a3b8'},
+            feature: { saveAsImage: { show:true, name:'distribuicao_scores' } }
+          },
+          tooltip:{trigger:'axis', axisPointer: {type: 'shadow'}},
+          xAxis:{type:'category', data: CLASSES, axisLabel:{color:'#cbd5e1'}},
+          yAxis:{type:'value', axisLabel:{color:'#cbd5e1'}, splitLine:{lineStyle:{color:'#1f2937'}}},
+          series:[{
+              name: 'Score Médio',
+              type:'bar',
+              data: scoreData,
+              label:{
+                  show:true,
+                  position:'top',
+                  color:'#94a3b8',
+                  formatter: p => p.value.toFixed(1)
+              }
+          }],
+          grid:{left:40,right:10,top:40,bottom:30}
+        });
+      }
+      scoresDateRangeSelect?.addEventListener('change', renderScores);
+      renderScores();
+
+      // Adicionar filtro ao clicar em score por faixa
+      charts.scores.off('click');
+      charts.scores.on('click', (params) => {
+        if (params.componentType === 'series' && params.name) {
+          addGlobalFilter({
+            type: 'klass',
+            value: params.name,
+            label: params.name
+          });
+        }
+      });
+
+      // ----- Top Tags por Faixa (Gráfico de Pizza Aninhado) -----
+      const tagsDateRangeSelect = document.getElementById('tags_date_range');
+      function renderTags() {
+        const TOP_N_TAGS = 5;
+        const cutoff = getCutoffDate(tagsDateRangeSelect.value);
+        const filteredData = filterByDate(applyGlobalFilters(data), cutoff);
+
+        const baseByClass = new Map(CLASSES.map(k=> [k, []]));
+        filteredData.forEach(d=>{ if(baseByClass.has(d.klass)) baseByClass.get(d.klass).push(d); });
+        
+        // 1. Agrega as Top N tags para cada classe
+        const tagsByClass = new Map();
+        for (const k of CLASSES) {
+          const counts = new Map();
+          baseByClass.get(k).forEach(d => d.tags.forEach(t => counts.set(t, (counts.get(t) || 0) + 1)));
+          const topTags = topN(counts, TOP_N_TAGS)
+            .filter(([t]) => t && t !== 'nan')
+            .map(([name, value]) => ({ name, value }));
+          if (topTags.length > 0) {
+            tagsByClass.set(k, topTags);
+          }
+        }
+
+        // 2. Prepara os dados para os anéis interno e externo
+        const innerData = [];
+        const outerData = [];
+        const legendData = [];
+
+        for (const [className, tags] of tagsByClass.entries()) {
+          legendData.push(className);
+          let classTotal = 0;
+          const classColor = getClassColor(className);
+          
+          tags.forEach(tag => {
+            classTotal += tag.value;
+            legendData.push(tag.name);
+            outerData.push({
+              ...tag,
+              itemStyle: { color: classColor },
+              metaClass: className
+            });
+          });
+          
+          innerData.push({
+            name: className,
+            value: classTotal,
+            itemStyle: { color: classColor }
+          });
+        }
+
+        // 3. Configura e renderiza o gráfico
+        setOptionEnhanced(charts.tags, {
+          backgroundColor: 'transparent',
+          toolbox: {
+            right: 10,
+            iconStyle:{borderColor:'#94a3b8'},
+            feature: { saveAsImage: { show:true, name:'top_tags_por_faixa' } }
+          },
+          tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/><b>{b}</b>: {c} ({d}%)'
+          },
+          legend: {
+            show: false // A legenda pode poluir muito, o tooltip é mais eficaz aqui
+          },
+          series: [
+            {
+              name: 'Faixa',
+              type: 'pie',
+              selectedMode: 'single',
+              radius: [0, '35%'],
+              label: {
+                position: 'inner',
+                fontSize: 13,
+                color: '#0b1220', // Texto escuro para contrastar com o fundo colorido
+                formatter: '{b}'
+              },
+              labelLine: {
+                show: false
+              },
+              data: innerData
+            },
+            {
+              name: 'Tag',
+              type: 'pie',
+              radius: ['45%', '65%'],
+              labelLine: {
+                length: 20,
+                lineStyle: { color: '#9ca3af' }
+              },
+              label: {
+                color: '#e5e7eb',
+                formatter: '{b|{b}} {per|{d}%}',
+                backgroundColor: '#111827', // Cor de fundo do painel
+                borderColor: '#334155',
+                borderWidth: 1,
+                borderRadius: 4,
+                padding: [4, 6],
+                rich: {
+                  b: {
+                    color: '#e5e7eb',
+                    fontSize: 12,
+                    lineHeight: 18
+                  },
+                  per: {
+                    color: '#111827',
+                    backgroundColor: '#9ca3af',
+                    padding: [2, 4],
+                    borderRadius: 3
+                  }
+                }
+              },
+              data: outerData
+            }
+          ]
+        }); // `true` para garantir que a opção antiga seja descartada
+      }
+      tagsDateRangeSelect?.addEventListener('change', renderTags);
+      renderTags();
+
+      // Adicionar filtros ao clicar em tags
+      charts.tags.off('click');
+      charts.tags.on('click', (params) => {
+        if (params.componentType === 'series') {
+          if (params.seriesName === 'Faixa' && params.name) {
+            // Clicou na faixa (anel interno)
+            addGlobalFilter({
+              type: 'klass',
+              value: params.name,
+              label: params.name
+            });
+          } else if (params.seriesName === 'Tag' && params.name) {
+            // Clicou em uma tag (anel externo)
+            addGlobalFilter({
+              type: 'tag',
+              value: params.name,
+              label: params.name
+            });
+          }
+        }
+      });
+
+      // ----- Funil de Conversão por Faixa -----
+      const funnelDateRangeSelect = document.getElementById('funnel_date_range');
+      const funnelPercentCheck = document.getElementById('opt_funnel_percent');
+      
+      function renderFunnel() {
+        const cutoff = getCutoffDate(funnelDateRangeSelect?.value || 'all');
+        const filteredData = filterByDate(applyGlobalFilters(data), cutoff);
+        const showPercent = funnelPercentCheck?.checked !== false;
+
+        const baseByClass = new Map(CLASSES.map(k=> [k, []]));
+        filteredData.forEach(d=>{ if(baseByClass.has(d.klass)) baseByClass.get(d.klass).push(d); });
+
+        // Criar série de funil para cada faixa
+        const funnelSeries = CLASSES.map((klass, idx) => {
+          const classData = baseByClass.get(klass);
+          const total = classData.length;
+          const won = classData.filter(d => d.status === 'WON').length;
+          const lost = classData.filter(d => d.status === 'LOST').length;
+          const open = classData.filter(d => d.status === 'OPEN').length;
+
+          const convRate = total > 0 ? ((won / total) * 100).toFixed(1) : 0;
+
+          return {
+            name: klass,
+            type: 'funnel',
+            left: `${idx * 25 + 2}%`,
+            width: '22%',
+            height: '70%',
+            top: '18%',
+            min: 0,
+            max: Math.max(total, 1),
+            minSize: '15%',
+            maxSize: '100%',
+            sort: 'descending',
+            gap: 10,
+            funnelAlign: 'center',
+            label: {
+              show: true,
+              position: 'inside',
+              formatter: (params) => {
+                const percent = total > 0 ? ((params.value / total) * 100).toFixed(0) : 0;
+                if (showPercent) {
+                  // Formato mais compacto
+                  return `{b|${params.name}}\n{val|${percent}%}`;
+                }
+                return `{b|${params.name}}\n{count|${fmt.format(params.value)}}`;
+              },
+              rich: {
+                b: {
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: '#fff',
+                  lineHeight: 16
+                },
+                val: {
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color: '#fff',
+                  lineHeight: 20
+                },
+                count: {
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#fff',
+                  lineHeight: 18
+                }
+              }
+            },
+            labelLine: {
+              show: false
+            },
+            itemStyle: {
+              borderWidth: 2,
+              borderColor: '#0a0f1d'
+            },
+            emphasis: {
+              label: {
+                fontSize: 14
+              },
+              itemStyle: {
+                shadowBlur: 20,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            },
+            data: [
+              { 
+                value: total, 
+                name: 'Total',
+                itemStyle: { 
+                  color: getClassColor(klass),
+                  opacity: 1
+                }
+              },
+              { 
+                value: won + open, 
+                name: 'Em Jogo',
+                itemStyle: { 
+                  color: '#3b82f6',
+                  opacity: 0.95
+                }
+              },
+              { 
+                value: won, 
+                name: 'WON',
+                itemStyle: { 
+                  color: '#22c55e',
+                  opacity: 1
+                }
+              }
+            ]
+          };
+        });
+
+        setOptionEnhanced(charts.funnel, {
+          backgroundColor: 'transparent',
+          title: CLASSES.map((klass, idx) => {
+            const classData = baseByClass.get(klass);
+            const total = classData.length;
+            const won = classData.filter(d => d.status === 'WON').length;
+            const convRate = total > 0 ? ((won / total) * 100).toFixed(1) : 0;
+            
+            return {
+              text: klass,
+              subtext: `${convRate}% conv.`,
+              left: `${idx * 25 + 2 + 11}%`,
+              top: '3%',
+              textAlign: 'center',
+              textStyle: {
+                color: '#cbd5e1',
+                fontSize: 14,
+                fontWeight: 700
+              },
+              subtextStyle: {
+                color: '#f97316',
+                fontSize: 12,
+                fontWeight: 600
+              }
+            };
+          }),
+          toolbox: {
+            right: 10,
+            top: 0,
+            iconStyle:{borderColor:'#94a3b8'},
+            feature: { saveAsImage: { show:true, name:'funil_conversao' } }
+          },
+          tooltip: {
+            trigger: 'item',
+            formatter: (params) => {
+              const classData = baseByClass.get(params.seriesName);
+              const total = classData.length;
+              const percent = total > 0 ? ((params.value / total) * 100).toFixed(1) : 0;
+              return `
+                <b>${params.seriesName}</b><br/>
+                ${params.name}: <b>${fmt.format(params.value)}</b> (${percent}%)
+              `;
+            }
+          },
+          series: funnelSeries
+        });
+      }
+
+      funnelDateRangeSelect?.addEventListener('change', renderFunnel);
+      funnelPercentCheck?.addEventListener('change', renderFunnel);
+      renderFunnel();
+
+      // Adicionar filtros ao clicar no funil
+      charts.funnel.off('click');
+      charts.funnel.on('click', (params) => {
+        if (params.seriesName) {
+          addGlobalFilter({
+            type: 'klass',
+            value: params.seriesName,
+            label: params.seriesName
+          });
+        }
+      });
+
+      // ----- Principais Origens -----
+      const origemDateRangeSelect = document.getElementById('origem_date_range');
+      const origemTopNSelect = document.getElementById('origem_top_n');
+      const origemSortCheck = document.getElementById('opt_origem_sort');
+      
+      function renderOrigins() {
+        const cutoff = getCutoffDate(origemDateRangeSelect.value);
+        const filteredData = filterByDate(applyGlobalFilters(data), cutoff);
+        const topNValue = parseInt(origemTopNSelect?.value || '5');
+        const sortByVolume = origemSortCheck?.checked || false;
+
+        const baseByClass = new Map(CLASSES.map(k=> [k, []]));
+        filteredData.forEach(d=>{ if(baseByClass.has(d.klass)) baseByClass.get(d.klass).push(d); });
+
+        let originBars = [];
+        for(const k of CLASSES){
+          const counts = new Map();
+          baseByClass.get(k).forEach(d=> counts.set(d.origin, (counts.get(d.origin)||0)+1));
+          for(const [o,c] of topN(counts, topNValue)) {
+            originBars.push({
+              name:`${k} · ${o}`, 
+              value:c, 
+              klass: k,
+              origin: o
+            });
+          }
+        }
+
+        // Ordenar se checkbox marcado
+        if (sortByVolume) {
+          originBars.sort((a, b) => b.value - a.value);
+        }
+
+        // Usar cores por faixa
+        const barData = originBars.map(bar => ({
+          value: bar.value,
+          itemStyle: { color: getClassColor(bar.klass) }
+        }));
+
+        setOptionEnhanced(charts.origins, {
+          backgroundColor: 'transparent',
+          toolbox: {
+            right: 10,
+            iconStyle:{borderColor:'#94a3b8'},
+            feature: { saveAsImage: { show:true, name:'principais_origens' } }
+          },
+          tooltip: {
+            trigger: 'item',
+            formatter: (params) => {
+              const bar = originBars[params.dataIndex];
+              return `<b>${bar.klass}</b><br/>${bar.origin}<br/>Total: <b>${fmt.format(params.value)}</b>`;
+            }
+          },
+          xAxis: {
+            type: 'value',
+            position: 'top',
+            axisLabel: {
+              color: '#cbd5e1',
+              margin: 12,
+              fontSize: 12
+            },
+            splitLine: {
+              lineStyle: {color: '#1f2937'}
+            }
+          },
+          yAxis: {
+            type: 'category',
+            data: originBars.map(b => b.name),
+            axisLabel: {
+              color: '#cbd5e1',
+              width: 280,
+              overflow: 'truncate',
+              lineHeight: 18,
+              interval: 0,
+              padding: [0, 12, 0, 0],
+              fontSize: 12,
+              formatter: (value) => {
+                const [faixa, ...origem] = value.split(' · ');
+                const origemText = origem.join(' · ');
+                // Truncar origem se muito longa
+                const maxLen = 35;
+                const displayOrigem = origemText.length > maxLen 
+                  ? origemText.substring(0, maxLen) + '...' 
+                  : origemText;
+                return `{b|${faixa}} {a|${displayOrigem}}`;
+              },
+              rich: {
+                a: {
+                  color: '#94a3b8',
+                  fontSize: 11,
+                  lineHeight: 18
+                },
+                b: {
+                  color: '#cbd5e1',
+                  fontSize: 12,
+                  lineHeight: 18,
+                  fontWeight: 'bold',
+                  padding: [0, 6, 0, 0]
+                }
+              }
+            },
+            axisLine: {
+              lineStyle: { color: '#1f2937' }
+            },
+            axisTick: {
+              show: false
+            }
+          },
+          series: [{
+            type: 'bar',
+            data: barData,
+            label: {
+              show: true,
+              position: 'right',
+              color: '#cbd5e1',
+              formatter: p => fmt.format(p.value),
+              distance: 10,
+              fontSize: 12,
+              fontWeight: 600
+            },
+            barWidth: '60%',
+            barCategoryGap: '20%'
+          }],
+          grid: {
+            top: 60,
+            bottom: 30,
+            left: 300,
+            right: 100,
+            containLabel: false
+          }
+        });
+      }
+      
+      origemDateRangeSelect?.addEventListener('change', renderOrigins);
+      origemTopNSelect?.addEventListener('change', renderOrigins);
+      origemSortCheck?.addEventListener('change', renderOrigins);
+      renderOrigins();
+
+      // Adicionar filtro ao clicar em origens
+      charts.origins.off('click');
+      charts.origins.on('click', (params) => {
+        if (params.componentType === 'series' && params.name) {
+          // Parse "Faixa · Origem"
+          const [faixa, ...origemParts] = params.name.split(' · ');
+          const origem = origemParts.join(' · ');
+          
+          if (origem) {
+            addGlobalFilter({
+              type: 'origin',
+              value: origem,
+              label: origem
+            });
+          }
+        }
+      });
+
+      // ----- Heatmap dinâmico e robusto -----
+      const heatmapDaysSelect = document.getElementById('heatmap_days');
+      const heatmapLabelsCheck = document.getElementById('opt_heatmap_labels');
+      const heatmapScaleSelect = document.getElementById('heatmap_scale');
+      const heatmapPaletteSelect = document.getElementById('heatmap_palette');
+      
+      let heatmapViewMode = 'heatmap'; // 'heatmap' ou 'lines'
+
+      function renderHeatmap() {
+        const maxDays = parseInt(heatmapDaysSelect?.value || '90');
+        const showLabels = heatmapLabelsCheck?.checked || false;
+        const scaleType = heatmapScaleSelect?.value || 'linear';
+        const palette = heatmapPaletteSelect?.value || 'blue';
+        const userMin = parseFloat(document.getElementById('heatmap_min')?.value) || 0;
+        const userMaxInput = document.getElementById('heatmap_max')?.value;
+        const userMax = userMaxInput ? parseFloat(userMaxInput) : null;
+
+        const filteredData = applyGlobalFilters(data);
+
+        // Paletas de cores
+        const palettes = {
+          blue: ['#0a0f1d', '#1e3a8a', '#3b82f6', '#60a5fa', '#93c5fd'],
+          purple: ['#0a0f1d', '#581c87', '#7c3aed', '#a78bfa', '#c4b5fd'],
+          green: ['#0a0f1d', '#065f46', '#10b981', '#34d399', '#6ee7b7'],
+          warm: ['#0a0f1d', '#991b1b', '#f59e0b', '#fbbf24', '#fde68a']
+        };
+
+        // Agregar dados por data e classe
+        const byDateClass = new Map();
+        let minDate = null;
+        let maxDate = null;
+
+        filteredData.forEach(d => {
+          const yyyy_mm_dd = toLocalDateString(d.created);
+          if (!yyyy_mm_dd) return; // Skip se data inválida
+          const key = `${yyyy_mm_dd}|${d.klass}`;
+          byDateClass.set(key, (byDateClass.get(key) || 0) + 1);
+          if (!minDate || d.created < minDate) minDate = d.created;
+          if (!maxDate || d.created > maxDate) maxDate = d.created;
+        });
+
+        // Debug: Log das primeiras datas processadas
+        const debugDates = Array.from(byDateClass.keys()).slice(0, 10);
+        console.log('🔍 DEBUG Heatmap - Primeiras datas no byDateClass:', debugDates);
+        console.log('🔍 DEBUG Heatmap - minDate:', minDate, '→', toLocalDateString(minDate));
+        console.log('🔍 DEBUG Heatmap - maxDate:', maxDate, '→', toLocalDateString(maxDate));
+
+        if (!minDate || !maxDate) {
+          setOptionEnhanced(charts.heatmap, {
+            title: {
+              text: 'Sem dados para exibir',
+              left: 'center',
+              top: 'center',
+              textStyle: { color: '#94a3b8', fontSize: 16 }
+            }
+          });
+          return;
+        }
+
+        const msPerDay = 86400000;
+        let days = Math.floor((maxDate - minDate) / msPerDay) + 1;
+
+        // Limitar ao período selecionado
+        if (days > maxDays) {
+          minDate = new Date(maxDate.getTime() - (maxDays - 1) * msPerDay);
+          days = maxDays;
+        }
+
+        // Gerar array de datas
+        const dates = [];
+        for (let i = 0; i < days; i++) {
+          const d = new Date(minDate.getTime() + i * msPerDay);
+          dates.push(toLocalDateString(d));
+        }
+
+        // Debug: Log das datas geradas
+        console.log('🔍 DEBUG Heatmap - Total de dias:', days);
+        console.log('🔍 DEBUG Heatmap - Primeiras 10 datas geradas:', dates.slice(0, 10));
+        console.log('🔍 DEBUG Heatmap - Últimas 5 datas geradas:', dates.slice(-5));
+
+        // Preparar dados do heatmap
+        const heatData = [];
+        const rawValues = [];
+        for (let j = 0; j < CLASSES.length; j++) {
+          for (let i = 0; i < dates.length; i++) {
+            const count = byDateClass.get(`${dates[i]}|${CLASSES[j]}`) || 0;
+            heatData.push([i, j, count]);
+            if (count > 0) rawValues.push(count);
+          }
+        }
+
+        // Calcular min/max automáticos
+        const autoMaxValue = rawValues.length > 0 ? Math.max(...rawValues) : 1;
+        const autoMinValue = 0;
+
+        // Usar valores do usuário ou automáticos
+        const minValue = userMin;
+        const maxValue = userMax !== null ? userMax : autoMaxValue;
+
+        // Atualizar placeholder do input max com o valor automático
+        const maxInput = document.getElementById('heatmap_max');
+        if (maxInput) {
+          maxInput.placeholder = autoMaxValue.toString();
+        }
+
+        // Aplicar transformação de escala e limitar valores ao range definido
+        let transformedData = heatData.map(item => {
+          const [x, y, val] = item;
+          
+          // Limitar o valor ao range definido pelo usuário
+          const clampedVal = Math.min(Math.max(val, minValue), maxValue);
+          
+          let transformedVal = clampedVal;
+          
+          if (scaleType === 'sqrt' && clampedVal > 0) {
+            transformedVal = Math.sqrt(clampedVal);
+          } else if (scaleType === 'log' && clampedVal > 0) {
+            transformedVal = Math.log10(clampedVal + 1);
+          }
+          
+          return [x, y, val, transformedVal, clampedVal]; // [x, y, valorReal, valorTransformado, valorLimitado]
+        });
+
+        // Calcular maxTransformed baseado nos valores limitados
+        const maxTransformedValue = maxValue;
+        let maxTransformed = maxTransformedValue;
+        if (scaleType === 'sqrt' && maxTransformedValue > 0) {
+          maxTransformed = Math.sqrt(maxTransformedValue);
+        } else if (scaleType === 'log' && maxTransformedValue > 0) {
+          maxTransformed = Math.log10(maxTransformedValue + 1);
+        }
+
+        // Formatar datas para exibição (mostrar apenas alguns labels)
+        const dateLabels = dates.map((date, idx) => {
+          // Parse date string (YYYY-MM-DD) em fuso local
+          const [year, month, day] = date.split('-').map(Number);
+          const d = new Date(year, month - 1, day);
+          // Mostrar label a cada 7 dias ou se for o primeiro/último
+          if (idx === 0 || idx === dates.length - 1 || idx % 7 === 0) {
+            return `${d.getDate()}/${d.getMonth() + 1}`;
+          }
+          return '';
+        });
+
+        // Renderizar baseado no modo selecionado
+        if (heatmapViewMode === 'lines') {
+          // ==== MODO LINHAS ====
+          // Cores fixas por classe
+          const classColors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#94a3b8'];
+          
+          // Verificar se deve remover outliers
+          const removeOutliersCheck = document.getElementById('opt_remove_outliers');
+          const removeOutliers = removeOutliersCheck?.checked || false;
+          
+          let filteredByDateClass = byDateClass;
+          
+          if (removeOutliers) {
+            // Calcular threshold usando IQR (Interquartile Range)
+            const allCounts = Array.from(byDateClass.values());
+            
+            if (allCounts.length > 0) {
+              // Ordenar valores
+              const sorted = allCounts.slice().sort((a, b) => a - b);
+              
+              // Calcular Q1 (25º percentil) e Q3 (75º percentil)
+              const q1Index = Math.floor(sorted.length * 0.25);
+              const q3Index = Math.floor(sorted.length * 0.75);
+              const q1 = sorted[q1Index];
+              const q3 = sorted[q3Index];
+              
+              // Calcular IQR e threshold
+              const iqr = q3 - q1;
+              const threshold = q3 + 1.5 * iqr;
+              
+              // Filtrar outliers
+              filteredByDateClass = new Map();
+              for (const [key, count] of byDateClass) {
+                if (count <= threshold) {
+                  filteredByDateClass.set(key, count);
+                }
+              }
+              
+              console.log(`Outliers removed: Q1=${q1}, Q3=${q3}, IQR=${iqr}, Threshold=${threshold.toFixed(1)}`);
+            }
+          }
+          
+          // Agregar dados por data e classe para gráfico de linhas
+          const linesSeries = CLASSES.map((klass, klassIdx) => {
+            const data = dates.map((date, dateIdx) => {
+              return filteredByDateClass.get(`${date}|${klass}`) || 0;
+            });
+            
+            return {
+              name: klass,
+              type: 'line',
+              data: data,
+              smooth: true,
+              symbol: 'circle',
+              symbolSize: 6,
+              lineStyle: { width: 2, color: classColors[klassIdx] },
+              itemStyle: { color: classColors[klassIdx] },
+              emphasis: {
+                focus: 'series',
+                lineStyle: { width: 3, color: classColors[klassIdx] }
+              }
+            };
+          });
+          
+          const fullDateLabels = dates.map((date) => {
+            const [year, month, day] = date.split('-').map(Number);
+            const d = new Date(year, month - 1, day);
+            return `${d.getDate()}/${d.getMonth() + 1}`;
+          });
+          
+          charts.heatmap.setOption({
+            backgroundColor: 'transparent',
+            color: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#94a3b8'],
+            toolbox: {
+              right: 10,
+              iconStyle: { borderColor: '#94a3b8' },
+              feature: { 
+                saveAsImage: { show: true, name: 'leads_por_dia_linhas' },
+                restore: { show: true, title: 'Restaurar' }
+              }
+            },
+            tooltip: {
+              trigger: 'axis',
+              axisPointer: { type: 'cross' },
+              formatter: (params) => {
+                let result = `<b>${params[0].axisValueLabel}</b><br/>`;
+                params.forEach(p => {
+                  result += `${p.marker} ${p.seriesName}: <b>${fmt.format(p.value)}</b><br/>`;
+                });
+                return result;
+              }
+            },
+            legend: {
+              data: CLASSES,
+              textStyle: { color: '#cbd5e1' },
+              top: 10,
+              left: 'center'
+            },
+            grid: {
+              left: '3%',
+              right: '4%',
+              bottom: '3%',
+              top: 60,
+              containLabel: true
+            },
+            xAxis: {
+              type: 'category',
+              data: fullDateLabels,
+              boundaryGap: false,
+              axisLabel: {
+                color: '#cbd5e1',
+                rotate: 45,
+                fontSize: 10,
+                interval: dates.length > 30 ? Math.floor(dates.length / 15) : 0
+              },
+              axisLine: { lineStyle: { color: '#334155' } },
+              splitLine: { show: false }
+            },
+            yAxis: {
+              type: 'value',
+              name: 'Leads',
+              nameTextStyle: { color: '#cbd5e1' },
+              axisLabel: { color: '#cbd5e1' },
+              axisLine: { lineStyle: { color: '#334155' } },
+              splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } }
+            },
+            series: linesSeries
+          }, true);
+        } else {
+          // ==== MODO HEATMAP (ORIGINAL) ====
+
+        charts.heatmap.setOption({
+          backgroundColor: 'transparent',
+          toolbox: {
+            right: 10,
+            iconStyle: { borderColor: '#94a3b8' },
+            feature: { 
+              saveAsImage: { show: true, name: 'heatmap_leads' },
+              restore: { show: true, title: 'Restaurar' }
+            }
+          },
+          tooltip: {
+            position: 'top',
+            formatter: (params) => {
+              if (!params || !params.value || !Array.isArray(params.value)) {
+                return '';
+              }
+              const dateIdx = params.value[0];
+              const classIdx = params.value[1];
+              const count = params.value[3] || params.value[2] || 0; // Valor real está na posição 3
+              
+              if (dateIdx === undefined || classIdx === undefined || !dates[dateIdx] || !CLASSES[classIdx]) {
+                return '';
+              }
+              
+              const date = dates[dateIdx];
+              const klass = CLASSES[classIdx];
+              // Parse date string (YYYY-MM-DD) em fuso local
+              const [year, month, day] = date.split('-').map(Number);
+              const dateObj = new Date(year, month - 1, day);
+              const dateStr = dateObj.toLocaleDateString('pt-BR', { 
+                weekday: 'short', 
+                day: '2-digit', 
+                month: 'short' 
+              });
+              
+              return `
+                <b>${dateStr}</b><br/>
+                ${klass}<br/>
+                Leads: <b style="color: #38bdf8">${fmt.format(count)}</b>
+              `;
+            }
+          },
+          grid: {
+            height: '65%',
+            top: '12%',
+            left: 100,
+            right: 60,
+            bottom: '18%'
+          },
+          xAxis: {
+            type: 'category',
+            data: dateLabels,
+            splitArea: { show: true },
+            axisLabel: {
+              color: '#cbd5e1',
+              rotate: 45,
+              fontSize: 10,
+              interval: dates.length > 30 ? Math.floor(dates.length / 15) : 0,
+              overflow: 'truncate',
+              width: 60
+            },
+            axisLine: {
+              lineStyle: { color: '#334155' }
+            }
+          },
+          yAxis: {
+            type: 'category',
+            data: CLASSES,
+            splitArea: { show: true },
+            axisLabel: {
+              color: '#cbd5e1',
+              fontSize: 12,
+              fontWeight: 600
+            },
+            axisLine: {
+              lineStyle: { color: '#334155' }
+            }
+          },
+          visualMap: {
+            min: minValue,
+            max: maxTransformed,
+            calculable: true,
+            orient: 'horizontal',
+            left: 'center',
+            bottom: '3%',
+            text: [maxValue.toString(), minValue.toString()],
+            inRange: {
+              color: palettes[palette]
+            },
+            textStyle: {
+              color: '#cbd5e1',
+              fontSize: 12
+            },
+            formatter: (value) => {
+              // Reverter a transformação para mostrar valor real
+              let realValue = value;
+              if (scaleType === 'sqrt') {
+                realValue = Math.pow(value, 2);
+              } else if (scaleType === 'log') {
+                realValue = Math.pow(10, value) - 1;
+              }
+              return Math.round(Math.min(realValue, maxValue));
+            }
+          },
+          series: [{
+            name: 'Leads',
+            type: 'heatmap',
+            data: transformedData.map(item => [item[0], item[1], item[3], item[2]]), // [x, y, valorTransformado, valorReal]
+            label: {
+              show: showLabels,
+              color: '#e5e7eb',
+              fontSize: 10,
+              fontWeight: 600,
+              formatter: (params) => {
+                const originalValue = params.value[3]; // Usar o valor real da posição 3
+                return originalValue > 0 ? originalValue : '';
+              }
+            },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 15,
+                shadowColor: 'rgba(56, 189, 248, 0.8)',
+                borderColor: '#38bdf8',
+                borderWidth: 2
+              }
+            },
+            itemStyle: {
+              borderWidth: 1,
+              borderColor: '#0a0f1d'
+            }
+          }]
+        }, true);
+        } // Fim do else (modo heatmap)
+
+        const fmtDate = d => d.toLocaleDateString('pt-BR');
+        const heatmapH2 = document.querySelector('#heatmap h2');
+        if (heatmapH2) {
+          const scaleLabel = scaleType === 'sqrt' ? ' · Escala √' : scaleType === 'log' ? ' · Escala log' : '';
+          const rangeLabel = (userMax !== null || userMin !== 0) ? ` · Range: ${minValue}-${maxValue}` : '';
+          const viewModeLabel = heatmapViewMode === 'lines' ? ' (Linhas)' : '';
+          heatmapH2.innerHTML = `Heatmap – Leads por Dia e Faixa <small>(${fmtDate(minDate)} → ${fmtDate(maxDate)}${scaleLabel}${rangeLabel}${viewModeLabel})</small>`;
+        }
+
+        // Adicionar filtro ao clicar no heatmap (apenas no modo heatmap)
+        charts.heatmap.off('click');
+        if (heatmapViewMode === 'heatmap') {
+        charts.heatmap.on('click', (params) => {
+          if (params.componentType === 'series' && params.value) {
+            const dateIndex = params.value[0];
+            const date = dates[dateIndex];
+
+            if (date) {
+              // Criar data no fuso horário local para label correto
+              const [year, month, day] = date.split('-').map(Number);
+              const dateObj = new Date(year, month - 1, day);
+              
+              addGlobalFilter({
+                type: 'day',
+                value: date,
+                label: dateObj.toLocaleDateString('pt-BR')
+              });
+            }
+          }
+        });
+        } // Fim do if (modo heatmap click)
+      }
+
+      heatmapDaysSelect?.addEventListener('change', renderHeatmap);
+      heatmapLabelsCheck?.addEventListener('change', renderHeatmap);
+      heatmapScaleSelect?.addEventListener('change', renderHeatmap);
+      heatmapPaletteSelect?.addEventListener('change', renderHeatmap);
+      
+      // Event listeners para controles de range
+      document.getElementById('heatmap_min')?.addEventListener('input', renderHeatmap);
+      document.getElementById('heatmap_max')?.addEventListener('input', renderHeatmap);
+      
+      // Botão de reset para valores automáticos
+      document.getElementById('heatmap_reset_range')?.addEventListener('click', () => {
+        document.getElementById('heatmap_min').value = '0';
+        document.getElementById('heatmap_max').value = '';
+        renderHeatmap();
+      });
+      
+      // Event listener para toggle de visualização
+      document.getElementById('heatmap_view_mode')?.addEventListener('change', (e) => {
+        heatmapViewMode = e.target.value;
+        renderHeatmap();
+      });
+      
+      // Event listener para remover outliers
+      document.getElementById('opt_remove_outliers')?.addEventListener('change', renderHeatmap);
+      
+      renderHeatmap();
+
+      // ----- Matriz de Performance: Conversão vs Volume -----
+      const convvolDateRangeSelect = document.getElementById('convvol_date_range');
+      const convvolViewTypeSelect = document.getElementById('convvol_view_type');
+      const convvolQuadrantsCheck = document.getElementById('opt_convvol_quadrants');
+      const convvolLabelsCheck = document.getElementById('opt_convvol_labels');
+      
+      function renderConvVol() {
+        const cutoff = getCutoffDate(convvolDateRangeSelect?.value || 'all');
+        const filteredData = filterByDate(applyGlobalFilters(data), cutoff);
+        const viewType = convvolViewTypeSelect?.value || 'scatter';
+        const showQuadrants = convvolQuadrantsCheck?.checked !== false;
+        const showLabels = convvolLabelsCheck?.checked !== false;
+
+        const baseByClass = new Map(CLASSES.map(k=> [k, []]));
+        filteredData.forEach(d=>{ if(baseByClass.has(d.klass)) baseByClass.get(d.klass).push(d); });
+
+        const totals = CLASSES.map(k=> baseByClass.get(k).length);
+        const won = CLASSES.map(k=> baseByClass.get(k).filter(x=> x.status==='WON').length);
+        const lost = CLASSES.map(k=> baseByClass.get(k).filter(x=> x.status==='LOST').length);
+        const open = CLASSES.map(k=> baseByClass.get(k).filter(x=> x.status==='OPEN').length);
+        const convRate = CLASSES.map((_,i)=> totals[i]? +(won[i]*100/totals[i]).toFixed(2) : 0);
+
+        // Calcular médias para quadrantes
+        const avgVolume = totals.reduce((a,b)=>a+b,0) / totals.filter(t=>t>0).length || 0;
+        const avgConvRate = convRate.reduce((a,b)=>a+b,0) / convRate.filter(r=>r>0).length || 0;
+
+        // Determinar melhor e pior performance
+        const performances = CLASSES.map((k, i) => ({
+          klass: k,
+          volume: totals[i],
+          convRate: convRate[i],
+          won: won[i],
+          score: (convRate[i] / 100) * totals[i] // Score ponderado
+        }));
+        const best = performances.reduce((max, p) => p.score > max.score ? p : max);
+        const worst = performances.reduce((min, p) => p.score < min.score && p.volume > 0 ? p : min);
+
+        const insightEl = document.getElementById('convvol_insight');
+        if (insightEl) {
+          insightEl.innerHTML = `<strong>🎯 Melhor:</strong> ${best.klass} (${best.won} ganhos, ${best.convRate}%) · <strong>⚠️ Atenção:</strong> ${worst.klass} (${worst.convRate}% conv.) · `;
+        }
+
+        if (viewType === 'scatter') {
+          // Visualização de Bolhas (Scatter)
+          const scatterData = CLASSES.map((k, i) => ({
+            name: k,
+            value: [totals[i], convRate[i], totals[i]], // [x, y, tamanho]
+            itemStyle: { color: getClassColor(k) }
+          }));
+
+          const markLineData = [];
+          if (showQuadrants) {
+            markLineData.push(
+              { xAxis: avgVolume, label: { formatter: 'Vol. Médio', position: 'insideEndTop' } },
+              { yAxis: avgConvRate, label: { formatter: 'Conv. Média', position: 'insideEndRight' } }
+            );
+          }
+
+          setOptionEnhanced(charts.convvol, {
+            backgroundColor: 'transparent',
+            toolbox: {
+              right: 10,
+              iconStyle: { borderColor: '#94a3b8' },
+              feature: { 
+                saveAsImage: { show: true, name: 'matriz_performance' },
+                restore: { show: true }
+              }
+            },
+            tooltip: {
+              trigger: 'item',
+              formatter: (params) => {
+                const idx = CLASSES.indexOf(params.name);
+                return `
+                  <b>${params.name}</b><br/>
+                  Volume: <b>${fmt.format(totals[idx])}</b><br/>
+                  Ganhos: <b style="color: #22c55e">${fmt.format(won[idx])}</b><br/>
+                  Perdas: <b style="color: #ef4444">${fmt.format(lost[idx])}</b><br/>
+                  Abertos: <b style="color: #64748b">${fmt.format(open[idx])}</b><br/>
+                  Taxa Conversão: <b style="color: #f97316">${convRate[idx]}%</b>
+                `;
+              }
+            },
+            legend: {
+              data: CLASSES,
+              textStyle: { color: '#cbd5e1' },
+              top: 10
+            },
+            grid: {
+              left: 80,
+              right: 80,
+              top: 80,
+              bottom: 80,
+              containLabel: true
+            },
+            xAxis: {
+              type: 'value',
+              name: 'Volume de Leads',
+              nameLocation: 'middle',
+              nameGap: 40,
+              nameTextStyle: {
+                color: '#cbd5e1',
+                fontSize: 13,
+                fontWeight: 600
+              },
+              axisLabel: {
+                color: '#cbd5e1',
+                formatter: (val) => fmt.format(val)
+              },
+              splitLine: {
+                lineStyle: { color: '#1f2937', type: 'dashed' }
+              }
+            },
+            yAxis: {
+              type: 'value',
+              name: 'Taxa de Conversão (%)',
+              nameLocation: 'middle',
+              nameGap: 50,
+              nameTextStyle: {
+                color: '#cbd5e1',
+                fontSize: 13,
+                fontWeight: 600
+              },
+              axisLabel: {
+                color: '#cbd5e1',
+                formatter: '{value}%'
+              },
+              splitLine: {
+                lineStyle: { color: '#1f2937', type: 'dashed' }
+              }
+            },
+            series: [{
+              name: 'Performance',
+              type: 'scatter',
+              symbolSize: (data) => {
+                const size = Math.sqrt(data[2]) * 8;
+                return Math.max(30, Math.min(size, 120));
+              },
+              data: scatterData,
+              label: {
+                show: showLabels,
+                position: 'top',
+                formatter: '{b}',
+                color: '#e5e7eb',
+                fontSize: 11,
+                fontWeight: 600,
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                padding: [3, 6],
+                borderRadius: 4
+              },
+              labelLayout: {
+                hideOverlap: true,
+                moveOverlap: 'shiftY'
+              },
+              emphasis: {
+                scale: true,
+                focus: 'self',
+                label: {
+                  show: true,
+                  fontSize: 14
+                }
+              },
+              markLine: showQuadrants ? {
+                silent: true,
+                symbol: 'none',
+                lineStyle: {
+                  color: '#475569',
+                  width: 2,
+                  type: 'solid'
+                },
+                label: {
+                  color: '#94a3b8',
+                  fontSize: 11
+                },
+                data: markLineData
+              } : undefined
+            }]
+          });
+
+        } else if (viewType === 'bar') {
+          // Visualização de Barras Duplas
+          setOptionEnhanced(charts.convvol, {
+            backgroundColor: 'transparent',
+            toolbox: {
+              right: 10,
+              iconStyle: { borderColor: '#94a3b8' },
+              feature: { saveAsImage: { show: true, name: 'conversao_volume_barras' } }
+            },
+            tooltip: {
+              trigger: 'axis',
+              axisPointer: { type: 'shadow' }
+            },
+            legend: {
+              data: ['Volume Total', 'Ganhos (WON)', 'Taxa Conv. %'],
+              textStyle: { color: '#cbd5e1' },
+              top: 10
+            },
+            grid: {
+              left: 60,
+              right: 60,
+              top: 60,
+              bottom: 40
+            },
+            xAxis: {
+              type: 'category',
+              data: CLASSES,
+              axisLabel: { color: '#cbd5e1', fontSize: 12 }
+            },
+            yAxis: [
+              {
+                type: 'value',
+                name: 'Quantidade',
+                axisLabel: { color: '#cbd5e1' },
+                splitLine: { lineStyle: { color: '#1f2937' } }
+              },
+              {
+                type: 'value',
+                name: 'Taxa %',
+                axisLabel: { color: '#cbd5e1', formatter: '{value}%' },
+                splitLine: { show: false }
+              }
+            ],
+            series: [
+              {
+                name: 'Volume Total',
+                type: 'bar',
+                data: totals.map((v, i) => ({
+                  value: v,
+                  itemStyle: { color: getClassColor(CLASSES[i]), opacity: 0.4 }
+                })),
+                barGap: 0
+              },
+              {
+                name: 'Ganhos (WON)',
+                type: 'bar',
+                data: won.map((v, i) => ({
+                  value: v,
+                  itemStyle: { color: '#22c55e' }
+                }))
+              },
+              {
+                name: 'Taxa Conv. %',
+                type: 'line',
+                yAxisIndex: 1,
+                data: convRate,
+                smooth: true,
+                lineStyle: { width: 3, color: '#f97316' },
+                symbol: 'circle',
+                symbolSize: 8,
+                itemStyle: { color: '#f97316' },
+                label: {
+                  show: showLabels,
+                  position: 'top',
+                  formatter: '{c}%',
+                  color: '#f97316',
+                  fontSize: 11,
+                  fontWeight: 600
+                }
+              }
+            ]
+          });
+
+        } else if (viewType === 'radar') {
+          // Visualização Radar
+          const maxVol = Math.max(...totals, 1);
+          const maxConv = Math.max(...convRate, 1);
+          
+          setOptionEnhanced(charts.convvol, {
+            backgroundColor: 'transparent',
+            toolbox: {
+              right: 10,
+              iconStyle: { borderColor: '#94a3b8' },
+              feature: { saveAsImage: { show: true, name: 'radar_performance' } }
+            },
+            tooltip: {
+              trigger: 'item'
+            },
+            legend: {
+              data: CLASSES,
+              textStyle: { color: '#cbd5e1' },
+              bottom: 10
+            },
+            radar: {
+              indicator: [
+                { name: 'Volume', max: maxVol },
+                { name: 'Ganhos', max: Math.max(...won, 1) },
+                { name: 'Conv. %', max: 100 },
+                { name: 'Perdas', max: Math.max(...lost, 1) },
+                { name: 'Abertos', max: Math.max(...open, 1) }
+              ],
+              shape: 'polygon',
+              splitNumber: 4,
+              name: {
+                textStyle: {
+                  color: '#cbd5e1',
+                  fontSize: 12
+                }
+              },
+              splitLine: {
+                lineStyle: { color: '#334155' }
+              },
+              splitArea: {
+                areaStyle: {
+                  color: ['rgba(56, 189, 248, 0.05)', 'rgba(56, 189, 248, 0.1)']
+                }
+              },
+              axisLine: {
+                lineStyle: { color: '#334155' }
+              }
+            },
+            series: [{
+              name: 'Performance',
+              type: 'radar',
+              data: CLASSES.map((k, i) => ({
+                value: [totals[i], won[i], convRate[i], lost[i], open[i]],
+                name: k,
+                areaStyle: {
+                  color: getClassColor(k),
+                  opacity: 0.3
+                },
+                lineStyle: {
+                  color: getClassColor(k),
+                  width: 2
+                },
+                itemStyle: {
+                  color: getClassColor(k)
+                }
+              }))
+            }]
+          });
+        }
+      }
+
+      convvolDateRangeSelect?.addEventListener('change', renderConvVol);
+      convvolViewTypeSelect?.addEventListener('change', renderConvVol);
+      convvolQuadrantsCheck?.addEventListener('change', renderConvVol);
+      convvolLabelsCheck?.addEventListener('change', renderConvVol);
+      renderConvVol();
+
+      // Adicionar filtro ao clicar
+      charts.convvol.off('click');
+      charts.convvol.on('click', (params) => {
+        if (params.name && CLASSES.includes(params.name)) {
+          addGlobalFilter({
+            type: 'klass',
+            value: params.name,
+            label: params.name
+          });
+        }
+      });
+      
+      // ----- Calendário com Gráficos de Pizza por FAIXA -----
+      const calendarMonthSelect = document.getElementById('calendar_month');
+      let selectedCalendarMonth = null;
+      
+      // Populate available months
+      function populateCalendarMonths() {
+        if (!calendarMonthSelect) return;
+        
+        const monthsSet = new Set();
+        data.forEach(d => {
+          const ymd = toLocalDateString(d.created);
+          if (ymd) {
+            monthsSet.add(ymd.slice(0, 7)); // YYYY-MM
+          }
+        });
+        
+        const months = Array.from(monthsSet).sort().reverse(); // Mais recente primeiro
+        calendarMonthSelect.innerHTML = months.map(m => {
+          const [year, month] = m.split('-');
+          const date = new Date(year, month - 1, 1);
+          const label = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+          return `<option value="${m}">${label.charAt(0).toUpperCase() + label.slice(1)}</option>`;
+        }).join('');
+        
+        selectedCalendarMonth = months[0] || null; // Seleciona o mais recente
+        if (calendarMonthSelect) {
+          calendarMonthSelect.value = selectedCalendarMonth;
+        }
+      }
+      
+      function renderCalendar() {
+        if (!selectedCalendarMonth) return;
+        
+        const targetMonth = selectedCalendarMonth;
+        
+        // 1. Agrega dados por dia e por CLASSE (A, B, C, D)
+        const dailyClassCount = new Map();
+        const initialCounts = CLASSES.reduce((acc, cls) => ({ ...acc, [cls]: 0 }), { total: 0 });
+
+        data.forEach(d => {
+          const ymd = toLocalDateString(d.created);
+          if (!ymd) return; // Skip se data inválida
+          if (ymd.startsWith(targetMonth)) {
+            if (!dailyClassCount.has(ymd)) {
+              dailyClassCount.set(ymd, { ...initialCounts });
+            }
+            const entry = dailyClassCount.get(ymd);
+            if (entry.hasOwnProperty(d.klass)) {
+              entry[d.klass]++;
+            }
+            entry.total++;
+          }
+        });
+
+        // 2. Prepara os dados para o ECharts
+        const scatterData = Array.from(dailyClassCount.entries())
+          .map(([date, counts]) => [date, counts.total]);
+        
+        const pieSeries = scatterData.map(([date, total]) => {
+          const counts = dailyClassCount.get(date);
+          return {
+            type: 'pie',
+            coordinateSystem: 'calendar',
+            center: date,
+            radius: ['0', '40'],
+            label: { show: false },
+            tooltip: {
+                trigger: 'item',
+                formatter: () => {
+                    let tooltipText = `<b>${date}</b><br/>`;
+                    CLASSES.forEach(cls => {
+                        tooltipText += `${cls}: ${counts[cls]}<br/>`;
+                    });
+                    tooltipText += `<b>Total: ${counts.total}</b>`;
+                    return tooltipText;
+                }
+            },
+            data: CLASSES.map(cls => ({
+              name: cls,
+              value: counts[cls],
+              itemStyle: { color: getClassColor(cls) }
+            })).filter(d => d.value > 0)
+          };
+        });
+        
+        // 3. Configura e renderiza o gráfico
+        setOptionEnhanced(charts.calendarPies, {
+          backgroundColor: 'transparent',
+          toolbox: {
+            right: 10,
+            iconStyle:{borderColor:'#94a3b8'},
+            feature: { saveAsImage: { show:true, name:'atividade_diaria' } }
+          },
+          tooltip: {},
+          legend: {
+            data: CLASSES, // <-- Alterado para usar as classes
+            bottom: 10,
+            textStyle: { color: '#cbd5e1' }
+          },
+          calendar: {
+            top: 100, left: 'center', orient: 'vertical', cellSize: 90, range: targetMonth,
+            itemStyle: { color: '#0b1220', borderWidth: 1, borderColor: '#1f2937' },
+            yearLabel: { show: false },
+            monthLabel: { nameMap: 'auto', color: '#cbd5e1', position: 'end', align: 'left', fontSize: 16, padding: [0, 0, 20, 20] },
+            dayLabel: { firstDay: 1, nameMap: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], color: '#9ca3af' },
+            splitLine: { show: false }
+          },
+          series: [
+            {
+              type: 'scatter', 
+              coordinateSystem: 'calendar', 
+              symbolSize: 0,
+              label: {
+                show: true,
+                formatter: (params) => echarts.time.format(params.value[0], '{dd}', false),
+                color: '#9ca3baf', 
+                fontSize: 16,
+                position: 'top'
+              },
+              data: scatterData
+            },
+            ...pieSeries
+          ]
+        });
+        
+        const calendarH2 = document.querySelector('#calendario h2');
+        if (calendarH2) {
+            const [year, month] = targetMonth.split('-');
+            const date = new Date(year, month - 1, 1);
+            const monthName = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            calendarH2.innerHTML = `Atividade Diária por Faixa (ABCD) <small>(${monthName.charAt(0).toUpperCase() + monthName.slice(1)})</small>`;
+        }
+
+        // Adicionar filtro ao clicar no calendário
+        charts.calendarPies.off('click');
+        charts.calendarPies.on('click', (params) => {
+          if (params.componentType === 'series') {
+            if (params.seriesType === 'pie' && params.name) {
+              // Clicou em uma fatia da pizza (faixa)
+              addGlobalFilter({
+                type: 'klass',
+                value: params.name,
+                label: params.name
+              });
+            } else if (params.seriesType === 'scatter' && params.value && params.value[0]) {
+              // Clicou em um dia
+              const date = params.value[0];
+              // Criar data no fuso horário local para label correto
+              const [year, month, day] = date.split('-').map(Number);
+              const dateObj = new Date(year, month - 1, day);
+              
+              addGlobalFilter({
+                type: 'day',
+                value: date,
+                label: dateObj.toLocaleDateString('pt-BR')
+              });
+            }
+          }
+        });
+      }
+      
+      // Event listener para mudança de mês
+      calendarMonthSelect?.addEventListener('change', (e) => {
+        selectedCalendarMonth = e.target.value;
+        renderCalendar();
+      });
+      
+      // Inicializar calendário
+      populateCalendarMonths();
+      renderCalendar();
+
+      // ----- Tabelas -----
+      const tbl = document.getElementById('tables');
+      
+      function renderTables() {
+        // Recalcular com dados filtrados
+        const filteredDataForTables = filterByDate(applyGlobalFilters(data), null);
+        
+        const tableBaseByClass = new Map(CLASSES.map(k => [k, []]));
+        filteredDataForTables.forEach(d => {
+          if (tableBaseByClass.has(d.klass)) {
+            tableBaseByClass.get(d.klass).push(d);
+          }
+        });
+        const tableTotals = CLASSES.map(k => tableBaseByClass.get(k).length);
+        const tableWon = CLASSES.map(k => tableBaseByClass.get(k).filter(x => x.status === 'WON').length);
+        const tableLost = CLASSES.map(k => tableBaseByClass.get(k).filter(x => x.status === 'LOST').length);
+        const tableOpen = CLASSES.map(k => tableBaseByClass.get(k).filter(x => x.status === 'OPEN').length);
+        const tableConvRate = CLASSES.map((_, i) => tableTotals[i] ? +(tableWon[i] * 100 / tableTotals[i]).toFixed(2) : 0);
+        
+        tbl.innerHTML = '';
+        
+        function renderTable(title, headers, rows){
+          const container = document.createElement('div');
+          container.className = 'table-container';
+          
+          const header = document.createElement('div');
+          header.className = 'table-header';
+          
+          const titleEl = document.createElement('h3');
+          titleEl.textContent = title;
+          
+          const toggleBtn = document.createElement('button');
+          toggleBtn.className = 'table-toggle';
+          toggleBtn.innerHTML = '▼';
+          toggleBtn.title = 'Minimizar/Expandir';
+          
+          header.appendChild(titleEl);
+          header.appendChild(toggleBtn);
+          
+          const content = document.createElement('div');
+          content.className = 'table-content';
+          
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          thead.innerHTML = '<tr>' + headers.map(h=> `<th>${h}</th>`).join('') + '</tr>';
+          table.appendChild(thead);
+          const tbody = document.createElement('tbody');
+          for(const r of rows){
+            const tr = document.createElement('tr');
+            for(const h of headers){ tr.innerHTML += `<td>${r[h] ?? ''}</td>`; }
+            tbody.appendChild(tr);
+          }
+          table.appendChild(tbody);
+          content.appendChild(table);
+          
+          container.appendChild(header);
+          container.appendChild(content);
+          
+          // Toggle functionality
+          header.addEventListener('click', () => {
+            container.classList.toggle('collapsed');
+          });
+          
+          tbl.appendChild(container);
+        }
+        
+        renderTable('Conversão por Faixa', ['Faixa','Leads','Ganhos','Conversão %'], CLASSES.map((k,i)=>({
+          'Faixa': k, 'Leads': fmt.format(tableTotals[i]), 'Ganhos': fmt.format(tableWon[i]), 'Conversão %': (tableConvRate[i] ?? 0).toLocaleString('pt-BR')
+        })));
+        renderTable('Status por Faixa', ['Faixa','WON','LOST','OPEN','Total'], CLASSES.map((k,i)=>({
+          'Faixa':k,'WON':fmt.format(tableWon[i]), 'LOST':fmt.format(tableLost[i]), 'OPEN':fmt.format(tableOpen[i]), 'Total':fmt.format(tableTotals[i])
+        })));
+        
+        const tagRows = [];
+        for(const k of CLASSES){
+          const counts = new Map();
+          tableBaseByClass.get(k).forEach(d=> d.tags.forEach(t=> counts.set(t,(counts.get(t)||0)+1)));
+          for(const [t,c] of topN(counts, 10)) tagRows.push({'Faixa':k, 'Tag': t, 'Ocorrências': fmt.format(c)});
+        }
+        renderTable('Top 10 Tags por Faixa', ['Faixa','Tag','Ocorrências'], tagRows);
+        
+        const origRows = [];
+        for(const k of CLASSES){
+          const counts = new Map();
+          tableBaseByClass.get(k).forEach(d=> counts.set(d.origin, (counts.get(d.origin)||0)+1));
+          for(const [o,c] of topN(counts, 5)) origRows.push({'Faixa':k,'Origem':o,'Leads':fmt.format(c)});
+        }
+        renderTable('Principais Origens por Faixa', ['Faixa','Origem','Leads'], origRows);
+      }
+      
+      // Renderizar tabelas inicialmente
+      renderTables();
+
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+    
+    // ----- Controle Global de Data -----
+    const globalDateStartInput = document.getElementById('globalDateStart');
+    const globalDateEndInput = document.getElementById('globalDateEnd');
+    const applyGlobalDateBtn = document.getElementById('applyGlobalDate');
+    const clearGlobalDateBtn = document.getElementById('clearGlobalDate');
+    const globalDateInfo = document.getElementById('globalDateInfo');
+    
+    // Lista de todos os selects de data individuais
+    const individualDateSelects = [
+      'conv_date_range',
+      'dist_date_range',
+      'status_date_range',
+      'scores_date_range',
+      'tags_date_range',
+      'funnel_date_range',
+      'origem_date_range',
+      'convvol_date_range'
+    ];
+    
+    function updateIndividualDateControls() {
+      const isGlobalActive = globalDateStart && globalDateEnd;
+      
+      individualDateSelects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+          select.disabled = isGlobalActive;
+          
+          // Adicionar/remover hint visual
+          const parent = select.parentElement;
+          let hint = parent.querySelector('.date-filter-disabled-hint');
+          
+          if (isGlobalActive) {
+            if (!hint) {
+              hint = document.createElement('span');
+              hint.className = 'date-filter-disabled-hint';
+              hint.textContent = '(filtro global ativo)';
+              parent.appendChild(hint);
+            }
+          } else {
+            if (hint) {
+              hint.remove();
+            }
+          }
+          
+          // Atualizar label
+          const label = parent.querySelector('.date-filter-label');
+          if (label) {
+            if (isGlobalActive) {
+              label.classList.add('disabled');
+            } else {
+              label.classList.remove('disabled');
+            }
+          }
+        }
+      });
+    }
+    
+    function updateGlobalDateInfo() {
+      if (globalDateStart && globalDateEnd) {
+        // Criar datas no fuso horário local para formatação correta
+        const [startYear, startMonth, startDay] = globalDateStart.split('-').map(Number);
+        const [endYear, endMonth, endDay] = globalDateEnd.split('-').map(Number);
+        
+        const start = new Date(startYear, startMonth - 1, startDay);
+        const end = new Date(endYear, endMonth - 1, endDay);
+        
+        const startFormatted = start.toLocaleDateString('pt-BR');
+        const endFormatted = end.toLocaleDateString('pt-BR');
+        
+        globalDateInfo.textContent = `Filtro ativo: ${startFormatted} até ${endFormatted}`;
+        globalDateInfo.style.color = '#22c55e';
+      } else {
+        globalDateInfo.textContent = '';
+      }
+      
+      updateIndividualDateControls();
+      renderFilterPanel(); // Atualizar painel de filtros
+    }
+    
+    applyGlobalDateBtn?.addEventListener('click', () => {
+      const startVal = globalDateStartInput?.value;
+      const endVal = globalDateEndInput?.value;
+      
+      if (!startVal || !endVal) {
+        alert('Por favor, selecione as datas de início e fim.');
+        return;
+      }
+      
+      // Validar datas usando fuso horário local
+      const [startYear, startMonth, startDay] = startVal.split('-').map(Number);
+      const [endYear, endMonth, endDay] = endVal.split('-').map(Number);
+      
+      const startDate = new Date(startYear, startMonth - 1, startDay);
+      const endDate = new Date(endYear, endMonth - 1, endDay);
+      
+      if (startDate > endDate) {
+        alert('A data de início não pode ser posterior à data de fim.');
+        return;
+      }
+      
+      globalDateStart = startVal;
+      globalDateEnd = endVal;
+      
+      updateGlobalDateInfo();
+      renderAllChartsRef();
+    });
+    
+    clearGlobalDateBtn?.addEventListener('click', () => {
+      globalDateStart = null;
+      globalDateEnd = null;
+      globalDateStartInput.value = '';
+      globalDateEndInput.value = '';
+      updateGlobalDateInfo();
+      renderAllChartsRef();
+    });
+    
+    // Inicializar estado dos controles
+    updateIndividualDateControls();
+    
+  </script>
+
+  <!-- Modal Metodologia -->
+  <div class="modal-overlay" id="modalMetodologia">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📊 Metodologia - Lead Scoring ABCD</h2>
+        <button class="modal-close" onclick="closeMetodologiaModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h3>📂 Como usar este dashboard:</h3>
+        <p style="background: rgba(153,41,234,0.15); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
+          📁 <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">leadscoring.csv</code><br>
+          <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar dados de leads com pontuação IA do sistema.</span>
+        </p>
+        <ul style="margin-bottom: 16px;">
+          <li><strong>Faça upload de um arquivo CSV</strong> contendo leads com as seguintes colunas:
+            <ul style="margin-top: 4px;">
+              <li><strong>Obrigatórias:</strong>
+                <ul style="margin-left: 20px; font-size: 11px;">
+                  <li><code>deal_created_at</code> ou <code>created_at</code> - Data de criação do lead</li>
+                  <li><code>ia_score</code> ou <code>score</code> - Pontuação do lead (0-100)</li>
+                </ul>
+              </li>
+              <li><strong>Opcionais:</strong>
+                <ul style="margin-left: 20px; font-size: 11px;">
+                  <li><code>deal_status</code> - Status (WON, LOST, OPEN)</li>
+                  <li><code>c_tags</code> ou <code>contact_tags</code> - Tags do contato</li>
+                  <li><code>origin_name</code> ou <code>origin_group_name</code> - Origem do lead</li>
+                  <li><code>deal_id</code> ou <code>contact_id</code> - Identificador único</li>
+                  <li><code>segment</code> ou <code>segmento</code> - Segmento de mercado</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>🎯 Classificação ABCD:</h3>
+        <ul>
+          <li><strong>A - Hot:</strong> Score ≥ 80 (leads quentes, alta prioridade)</li>
+          <li><strong>B - Warm:</strong> Score 60-79 (leads mornos, média prioridade)</li>
+          <li><strong>C - Cold:</strong> Score 40-59 (leads frios, baixa prioridade)</li>
+          <li><strong>D - Low:</strong> Score < 40 (leads muito frios)</li>
+          <li>💡 <em>Thresholds podem ser ajustados automaticamente por quantis (P75, P50, P25)</em></li>
+        </ul>
+
+        <h3>⚙️ Processamento automático:</h3>
+        <ul>
+          <li>✅ <strong>Normalização de scores:</strong> Converte valores decimais (ex: 0.85 → 85)</li>
+          <li>✅ <strong>Normalização de status:</strong> Agrupa variações (ganho/won/ganha → WON)</li>
+          <li>✅ <strong>Parseamento de datas:</strong> Suporta formatos brasileiros e ISO</li>
+          <li>✅ <strong>Detecção de colunas:</strong> Reconhece aliases automaticamente</li>
+          <li>✅ <strong>Validação de dados:</strong> Diagnóstico de valores nulos/inválidos</li>
+          <li>📅 <strong>Filtro global de datas:</strong> Analise períodos específicos</li>
+        </ul>
+
+        <h3>📊 Visualizações disponíveis:</h3>
+        <ul>
+          <li><strong>Distribuição ABCD:</strong> Quantidade e proporção por classe</li>
+          <li><strong>Taxa de Conversão:</strong> Performance de cada classe (WON%)</li>
+          <li><strong>Evolução Temporal:</strong> Tendências de score ao longo do tempo</li>
+          <li><strong>Heatmap Origem × Classe:</strong> Correlação entre fontes e qualidade</li>
+          <li><strong>Análise por Segmento:</strong> Performance por setor/indústria</li>
+          <li><strong>Tag Cloud:</strong> Principais tags por classe de lead</li>
+          <li><strong>Tabelas Detalhadas:</strong> Listagem completa com filtros</li>
+        </ul>
+
+        <h3>💡 Dicas de uso:</h3>
+        <ul>
+          <li>📌 Use <strong>filtros globais</strong> no painel lateral para análises focadas</li>
+          <li>🔍 Clique em barras/pontos dos gráficos para aplicar filtros automaticamente</li>
+          <li>📅 Configure <strong>janelas de tempo</strong> nos selects de cada gráfico</li>
+          <li>🎨 Visualizações usam <strong>cores consistentes</strong>: verde (A), azul (B), laranja (C), vermelho (D)</li>
+          <li>📥 Baixe dados filtrados como CSV para análises externas</li>
+        </ul>
+
+        <h3>⚠️ Notas importantes:</h3>
+        <ul>
+          <li>🔒 <strong>100% seguro:</strong> Nenhum dado é enviado para servidores (processamento local)</li>
+          <li>⚡ <strong>Performance:</strong> Otimizado para datasets com até 50.000 registros</li>
+          <li>🧹 <strong>Limpeza automática:</strong> Registros com score nulo são ignorados</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ========== FUNÇÕES DO MODAL METODOLOGIA ==========
+  function openMetodologiaModal() {
+    const modal = document.getElementById('modalMetodologia');
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMetodologiaModal() {
+    const modal = document.getElementById('modalMetodologia');
+    modal.classList.remove('active');
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 200);
+    document.body.style.overflow = '';
+  }
+
+  // Fechar modal com ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeMetodologiaModal();
+    }
+  });
+
+  // Fechar modal clicando fora do conteúdo
+  document.getElementById('modalMetodologia')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeMetodologiaModal();
+    }
+  });
+  </script>
+
+
+<script>
+/* DEMO MODE — dados fictícios para portfólio */
+(function(){
+  var ORIGINS = ['Facebook Ads','Google Ads','LinkedIn Ads','Indica\u00e7\u00e3o','Org\u00e2nico','Instagram Ads','Webinar','Evento'];
+  var STATUSES = ['WON','WON','LOST','LOST','OPEN','OPEN','OPEN'];
+  var TAGS = ['PME,B2B','Startup,Tech','Varejo,B2C','Educa\u00e7\u00e3o,M\u00e9dio porte','Sa\u00fade,Grande porte','Fintech,Enterprise'];
+
+  function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function addDays(dateStr,days){
+    var d=new Date(dateStr); d.setDate(d.getDate()+days);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  var data=[];
+  for(var i=0;i<500;i++){
+    var status=rand(STATUSES);
+    var score = status==='WON'?randInt(55,100):status==='LOST'?randInt(10,60):randInt(20,80);
+    data.push({
+      deal_created_at: addDays('2025-01-01',randInt(0,330)),
+      ia_score: String(score),
+      deal_status: status,
+      c_tags: rand(TAGS),
+      origin_name: rand(ORIGINS)
+    });
+  }
+
+  function initDemo(){
+    if(typeof buildReport!=='function'){ setTimeout(initDemo,300); return; }
+    try {
+      buildReport(data);
+      document.querySelectorAll('.uploader').forEach(function(el){ el.style.display='none'; });
+      var b=document.createElement('div');
+      b.style.cssText='position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#38bdf8,#0ea5e9);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(56,189,248,0.5);pointer-events:none';
+      b.textContent='\uD83D\uDCCA Demo \u2014 dados fict\u00edcios';
+      document.body.appendChild(b);
+    } catch(e){ console.error('[DEMO] Erro:',e); }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initDemo);
+  else setTimeout(initDemo,600);
+})();
+</script>
+
+</body>
+</html>

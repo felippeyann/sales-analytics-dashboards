@@ -1,0 +1,2635 @@
+<!DOCTYPE html>
+<!--
+  ╔═══════════════════════════════════════════════════════════╗
+  ║  Analytics Dashboard - Análise de Agendamentos           ║
+  ║  Versão: v1.0                                            ║
+  ║  Última atualização: 31/10/2025                          ║
+  ║  Descrição: Dashboard interativo para análise de         ║
+  ║             agendamentos com filtros e insights IA       ║
+  ╚═══════════════════════════════════════════════════════════╝
+-->
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Análise de Agendamentos (Filtros Interativos)</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script><script src="../RESOURCES/echarts-v6-enhancements.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+#geminiPanel{
+  position:fixed;top:90px;right:14px;width:300px;max-width:340px;height:60vh;min-height:320px;
+  display:flex;flex-direction:column;gap:8px;z-index:72;pointer-events:auto;
+  background:linear-gradient(180deg,#101a2c 0%,#0c1322 100%);
+  border:1px solid rgba(255,255,255,0.10);border-radius:12px;
+  box-shadow:0 6px 22px -6px rgba(0,0,0,0.55);
+  padding:10px 12px 12px;
+  transform:translateX(340px);transition:transform .25s ease;
+}
+#geminiPanel.show{transform:translateX(0)}
+#geminiPanel.minimized{
+  height:auto;min-height:auto;
+}
+#geminiPanel.minimized #geminiOutput,
+#geminiPanel.minimized #geminiActions{
+  display:none;
+}
+#geminiPanel.hidden{display:none}
+#geminiPanel .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:8px;}
+#geminiPanel .panel-head h3{margin:0;font-size:15px;font-weight:600;color:#e5e7eb;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+#geminiPanel .panel-head h3 .dot{width:8px;height:8px;background:var(--accent);border-radius:50%;box-shadow:0 0 0 4px rgba(153,41,234,0.18)}
+#geminiPanel .panel-head-actions{display:flex;gap:4px;}
+#geminiPanel .panelBtn{background:transparent;border:1px solid rgba(255,255,255,0.18);color:#e2e8f0;font-size:12px;padding:4px 8px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:4px;font-weight:500;min-width:28px;justify-content:center;}
+#geminiPanel .panelBtn:hover{background:#1e293b}
+#geminiOutput{white-space:pre-wrap;font-size:12.5px;line-height:1.5;color:#e5e7eb;overflow-y:auto;flex:1;background:#0e172b;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:8px}
+#geminiActions{display:flex;flex-direction:column;gap:8px}
+#geminiActions button{width:100%;}
+
+/* --- Suggestions Box Minimize --- */
+#suggestionsBox.minimized #suggestionsContent{
+  display:none;
+}
+#suggestionsBox .panelBtn{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.18);
+  color:#e2e8f0;
+  font-size:14px;
+  padding:4px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  min-width:32px;
+  height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#suggestionsBox .panelBtn:hover{background:#1e293b}
+
+  :root{
+    --bg:#0b0f1a; 
+    --panel:#0f172a;
+    --card:#0e1424;
+    --muted:#9ca3af; 
+    --text:#e6e6e6;
+    --accent:#38bdf8;
+    --accent-glow:rgba(56,189,248,0.15);
+    --accent-2:#0ea5e9;
+    --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif}
+  a{color:var(--accent);text-decoration:none}
+  header{
+    position: fixed; 
+    top: 0;
+    width: 100%; 
+    z-index: 50;
+    background:linear-gradient(180deg, rgba(9,11,20,0.95) 0%, rgba(9,11,20,0.80) 100%);
+    backdrop-filter: blur(6px);
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    transition: transform 0.3s ease-in-out; 
+  }
+  .header-hidden {
+    transform: translateY(-100%); 
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding:16px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{
+    width:28px;height:28px;border-radius:8px;
+    background: radial-gradient(120% 120% at 0% 0%, var(--accent) 0%, var(--accent-2) 60%, #0c4a6e 100%);
+    box-shadow:0 6px 22px var(--accent-glow), inset 0 0 18px rgba(255,255,255,0.05);
+  }
+  h1{font-size:18px;margin:0;font-weight:700;letter-spacing:0.3px}
+  .desc{color:var(--muted);font-size:12px}
+
+  .toolbar{
+    margin-top:12px;display:flex;flex-wrap:wrap;gap:12px;align-items:center
+  }
+  .card{
+    background:linear-gradient(180deg, rgba(17,24,39,0.9) 0%, rgba(10,14,26,0.9) 100%);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:16px;padding:14px 14px;
+    box-shadow:0 10px 24px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.02);
+  }
+  .grid{
+    display:grid; gap:16px; 
+    grid-template-columns: repeat(12, 1fr);
+  }
+  .col-12{grid-column:span 12}
+  .col-6{grid-column:span 6}
+  .col-4{grid-column:span 4}
+  .col-8{grid-column:span 8}
+  @media (max-width: 980px){
+    .col-6,.col-4,.col-8{grid-column:span 12}
+  }
+
+  .panel{margin-top:18px}
+  .panel h2{
+    margin:0 0 4px 0;font-size:16px;font-weight:700;
+    display:flex;align-items:center;justify-content:space-between;gap:12px
+  }
+  .panel .sub{color:var(--muted);font-size:12px;margin-bottom:10px}
+  .kpis{display:flex;gap:10px;flex-wrap:wrap}
+  .kpi{
+    flex:1;min-width:160px;background:linear-gradient(180deg, #111930 0%, #0b1120 100%);
+    border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:12px
+  }
+  .kpi .label{color:var(--muted);font-size:11px}
+  .kpi .value{font-size:22px;font-weight:700;margin-top:4px}
+  .btn, button{
+    background:linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
+    border:none;color:white;padding:8px 12px;font-weight:600;border-radius:10px;
+    cursor:pointer;transition:all .15s ease; font-size:12px
+  }
+  .btn.secondary{
+    background:transparent;border:1px solid rgba(255,255,255,0.14);color:var(--text)
+  }
+  .topic-actions .btn.secondary.active {
+    background: var(--accent-2);
+    color: white;
+    border-color: var(--accent);
+  }
+  .dl-btn{background:transparent!important;border:1px solid rgba(255,255,255,0.16)!important;color:#cbd5e1!important;font-size:12px;padding:5px 8px;border-radius:8px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;min-width:34px}
+  .dl-btn:hover{color:#fff!important;border-color:var(--accent)!important;box-shadow:0 0 0 1px var(--accent-glow)}
+  .dl-btn span{font-size:13px}
+  .topic-head.tight{align-items:flex-start}
+  .topic-head.tight h2{margin-top:2px}
+  .topic-head.tight .topic-actions{padding-top:2px}
+  .topic-actions .dl-btn{height:28px;width:34px;padding:0}
+  /* --- Menu de Ações (⋮) --- */
+  .chart-menu-wrap{position:relative;display:inline-block}
+  .chart-menu-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#e5e7eb;border-radius:8px;padding:4px 8px;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:34px;transition:.18s}
+  .chart-menu-btn:hover{background:rgba(255,255,255,0.15)}
+  .chart-menu-btn:focus{outline:2px solid var(--accent);outline-offset:2px}
+  .chart-menu{position:absolute;top:110%;right:0;min-width:170px;background:#0f172a;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:6px 6px;display:flex;flex-direction:column;gap:2px;box-shadow:0 12px 28px -8px rgba(0,0,0,.55);z-index:40;opacity:0;pointer-events:none;transform:translateY(-4px);transition:.2s ease}
+  .chart-menu.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+  .chart-menu button{all:unset;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:12px;cursor:pointer;color:#cbd5e1;line-height:1.2;white-space:nowrap}
+  .chart-menu button:hover{background:#1e293b;color:#fff}
+  .chart-menu button span.icon{width:16px;text-align:center;font-size:13px;color:var(--accent)}
+  .chart-menu hr{border:none;height:1px;background:rgba(255,255,255,0.08);margin:4px 0}
+
+  /* Overlay removido */
+
+  /* --- Botão Flutuante IA --- */
+  #geminiFab{
+    position:fixed;bottom:18px;right:18px;z-index:80;
+    width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 30% 30%, var(--accent) 0%, var(--accent-2) 70%);
+    border:1px solid rgba(255,255,255,0.18);box-shadow:0 8px 22px -6px rgba(0,0,0,0.55),0 0 0 3px var(--accent-glow);
+    cursor:pointer;font-size:13px;font-weight:600;color:#fff;letter-spacing:.5px;
+    transition:transform .2s ease, box-shadow .25s ease;
+  }
+  #geminiFab:hover{transform:translateY(-3px);box-shadow:0 12px 28px -6px rgba(0,0,0,0.65),0 0 0 4px rgba(153,41,234,0.25)}
+  #geminiFab.on{box-shadow:0 0 0 4px rgba(255,255,255,0.08),0 0 0 8px var(--accent-glow)}
+
+  /* --- Handle de Resize do Painel Gemini --- */
+  #geminiPanel{position:fixed;}
+  #geminiPanel .resize-handle{
+    position:absolute;left:-6px;top:0;width:8px;height:100%;cursor:ew-resize;
+    background:linear-gradient(90deg,transparent 0%,var(--accent-glow) 60%);
+    opacity:0;transition:opacity .25s ease;
+    border-top-left-radius:8px;border-bottom-left-radius:8px;
+  }
+  #geminiPanel:hover .resize-handle{opacity:1}
+  #geminiPanel.resizing .resize-handle{opacity:1;background:linear-gradient(90deg,var(--accent-glow) 0%,var(--accent) 100%)}
+  button:hover{transform:translateY(-1px)}
+  button:disabled{background:var(--panel);color:var(--muted);cursor:not-allowed;transform:none}
+  input,select{
+    background:#0f172a;border:1px solid rgba(255,255,255,0.12);
+    color:var(--text);padding:8px 10px;border-radius:10px;font-size:12px
+  }
+  /* Estilo para o seletor de data */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+  }
+  .chart{width:100%;height:360px; cursor:pointer;}
+  .chart.tall{height:420px}
+  .chart.extra-tall{height:550px}
+  
+  /* Info Icon Tooltip */
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-left: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #3a3a45;
+    border-radius: 50%;
+    cursor: help;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 100;
+  }
+  
+  .info-icon:hover {
+    color: var(--accent);
+    background: var(--accent-glow);
+    border-color: var(--accent);
+    transform: scale(1.1);
+    z-index: 10000;
+  }
+  
+  .info-icon .tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(28,28,34,0.98);
+    color: #DADAE3;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--accent);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 1.5;
+    z-index: 10001;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    min-width: 200px;
+  }
+  
+  .info-icon .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--accent);
+  }
+  
+  .info-icon:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+  
+  .topic-head{
+    display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;row-gap:4px;margin-bottom:6px;
+  }
+  .topic-head h2{align-self:center}
+  .topic-head.multi-line{align-items:start}
+  .topic-head.multi-line h2{margin-top:0;align-self:start}
+  .topic-head.multi-line .topic-actions{align-self:start;padding-top:2px}
+  @media (max-width:760px){
+    .topic-head{grid-template-columns:1fr;}
+    .topic-head .topic-actions{justify-content:flex-start}
+  }
+  /* Tooltip leve */
+  .dl-btn[data-tip]{position:relative}
+  .dl-btn[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:4px 6px;font-size:10px;border-radius:6px;white-space:nowrap;box-shadow:0 4px 10px -2px rgba(0,0,0,.5);opacity:1;pointer-events:none}
+  .dl-btn[data-tip]::after{opacity:0;transition:opacity .18s ease}
+  .topic-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .topic-actions.nowrap{flex-wrap:nowrap;white-space:nowrap}
+  .toggle-label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;}
+  .toggle-label input[type="checkbox"]{cursor:pointer;accent-color:var(--accent);width:16px;height:16px;}
+  .toggle-label span{color:#cbd5e1;font-weight:500;}
+  .footnote{color:var(--muted);font-size:12px;margin-top:10px}
+  .pill{display:inline-block;border:1px solid rgba(255,255,255,0.12);padding:4px 8px;border-radius:999px;font-size:11px;margin-right:6px;color:#cbd5e1}
+  .version-badge{display:inline-block;background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent);font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;margin-left:10px;letter-spacing:0.5px}
+  .toast{
+    position:fixed;right:16px;bottom:16px;background:#101827;color:#e5e7eb;padding:10px 12px;border:1px solid rgba(255,255,255,0.12);
+    border-radius:10px;opacity:0;transform:translateY(6px);transition:all .25s ease;pointer-events:none
+  }
+  .toast.show{opacity:1;transform:none}
+  .used-cols{font-size:12px;line-height:1.6}
+  .muted{color:var(--muted)}
+
+  .suggestions-list {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .suggestions-list a {
+    background: rgba(255,255,255,0.04);
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 13px;
+    transition: background .2s ease;
+    display: block;
+    color: var(--text);
+  }
+  .suggestions-list a:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.15);
+  }
+  .suggestions-list a::before {
+    content: '🔎';
+    margin-right: 8px;
+  }
+
+  /* --- Painel de Filtros Ativos (padrão global) --- */
+  .filter-panel {
+    position: fixed; top: 140px; right: 20px; z-index: 100;
+    display: flex; flex-direction: column; gap: 0;
+    min-width: 280px; max-width: 360px;
+    color: var(--text,#e5e7eb);
+    background: linear-gradient(135deg, rgba(17,24,39,0.98) 0%, rgba(11,18,32,0.98) 100%);
+    border: 1px solid rgba(56,189,248,0.25); border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(15,23,42,0.6), 0 0 0 1px rgba(56,189,248,0.1) inset, 0 8px 24px rgba(56,189,248,0.15);
+    backdrop-filter: saturate(140%) blur(12px);
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1); overflow: hidden;
+  }
+  .filter-panel.collapsed { transform: translateX(calc(100% - 56px)); box-shadow: 0 10px 25px rgba(15,23,42,0.4); }
+  .filter-panel.collapsed .filter-body { display: none; }
+  .filter-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 14px 16px; border: none;
+    background: linear-gradient(90deg, rgba(56,189,248,0.08) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(56,189,248,0.15);
+    color: var(--text,#e5e7eb); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+  }
+  .filter-toggle:hover { background: linear-gradient(90deg, rgba(56,189,248,0.14) 0%, rgba(56,189,248,0.04) 100%); }
+  .filter-toggle-icon { display: flex; align-items: center; gap: 8px; color: #38bdf8; }
+  .filter-count-badge {
+    background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+    color: #0a0f1d; border-radius: 10px; padding: 2px 8px; font-size: 11px;
+    font-weight: 700; min-width: 20px; text-align: center; box-shadow: 0 2px 8px rgba(56,189,248,0.4);
+  }
+  .filter-body {
+    padding: 16px; display: flex; flex-direction: column; gap: 14px;
+    max-height: 60vh; overflow-y: auto;
+  }
+  .filter-body::-webkit-scrollbar { width: 6px; }
+  .filter-body::-webkit-scrollbar-track { background: rgba(31,41,55,0.4); border-radius: 3px; }
+  .filter-body::-webkit-scrollbar-thumb { background: rgba(56,189,248,0.3); border-radius: 3px; }
+  .filter-body::-webkit-scrollbar-thumb:hover { background: rgba(56,189,248,0.5); }
+  .filter-chip-list { display: flex; flex-direction: column; gap: 8px; }
+  .filter-chip {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: linear-gradient(135deg, rgba(56,189,248,0.12) 0%, rgba(56,189,248,0.06) 100%);
+    border: 1px solid rgba(56,189,248,0.35); border-radius: 10px; padding: 10px 12px;
+    font-size: 13px; transition: all 0.2s ease; animation: chipSlideIn 0.3s ease;
+  }
+  @keyframes chipSlideIn { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:translateX(0); } }
+  .filter-chip:hover { background: linear-gradient(135deg, rgba(56,189,248,0.18) 0%, rgba(56,189,248,0.1) 100%); border-color: rgba(56,189,248,0.5); transform: translateX(2px); }
+  .filter-chip-label { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .filter-chip strong { color: #38bdf8; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .filter-chip-value { color: #e5e7eb; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip-remove {
+    border: none; background: rgba(239,68,68,0.2); color: #fca5a5;
+    border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 11px;
+    font-weight: 600; transition: all 0.2s ease; flex-shrink: 0;
+  }
+  .chip-remove:hover { background: rgba(239,68,68,0.35); color: #f87171; transform: scale(1.05); }
+  .filter-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .filter-empty-text { color: #64748b; font-size: 12px; font-style: italic; }
+  .filter-clear {
+    padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(239,68,68,0.3);
+    background: rgba(239,68,68,0.1); color: #f87171; font-size: 12px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+  }
+  .filter-clear:hover:not(:disabled) { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.5); }
+  .filter-clear:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* --- Squads Insights & Table --- */
+  .squad-insights{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:10px;margin-top:6px;padding:4px 2px 2px;
+  }
+  .squad-insights .si-card{
+    background:linear-gradient(180deg,#111b2f 0%,#0d1525 100%);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:10px;padding:8px 9px;font-size:11px;line-height:1.35;position:relative;overflow:hidden;
+  }
+  .squad-insights .si-card b{display:block;font-size:12px;margin-bottom:2px;color:#fff}
+  .squad-insights .si-card .val{font-size:15px;font-weight:700;margin-top:2px;color:#fff}
+  .squad-insights .si-badge{position:absolute;top:6px;right:6px;background:var(--accent-2);color:#fff;font-size:10px;padding:2px 6px;border-radius:999px;letter-spacing:.5px;font-weight:600}
+  .squad-insights .warn{background:#b91c1c}
+  .squad-insights .ok{background:#166534}
+  .squad-table-wrap{margin-top:10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:auto;max-height:260px;background:#0e1424;padding:8px}
+  .squad-table{width:100%;border-collapse:collapse;font-size:11px}
+  .squad-table th{position:sticky;top:0;background:#162238;font-weight:600;font-size:11px;padding:6px 8px;text-align:left;color:#e5e7eb}
+  .squad-table td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.06);color:#cbd5e1;white-space:nowrap}
+  .squad-table tr:last-child td{border-bottom:none}
+  .metric-bad{color:#f87171;font-weight:600}
+  .metric-good{color:#4ade80;font-weight:600}
+
+  /* --- Filtros Rápidos TA (Visualizador 3) --- */
+  .ta-quick-filters{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px;padding:4px 2px 2px}
+  .ta-filter-btn{background:#1d2738;color:#cbd5e1;border:1px solid rgba(255,255,255,0.14);font-size:11px;padding:4px 6px;border-radius:6px;cursor:pointer;line-height:1.1;transition:.18s ease;border-top-color:rgba(255,255,255,0.25)}
+  .ta-filter-btn:hover{background:#253448;color:#fff}
+  .ta-filter-btn.on{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);color:#fff;border-color:var(--accent-2);font-weight:600;box-shadow:0 0 0 1px rgba(255,255,255,0.12),0 2px 6px -2px rgba(0,0,0,.6)}
+  .ta-filter-clear{background:#3b1e54;color:#fff;font-size:11px;border:1px solid var(--accent);padding:4px 8px;border-radius:20px;cursor:pointer;margin-left:auto;transition:.18s}
+  .ta-filter-clear:hover{background:#4c2470}
+
+
+  /* Modal de Metodologia */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    animation: fadeIn 0.2s ease;
+  }
+  
+  .modal-overlay.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .modal-content {
+    background: linear-gradient(135deg, #0F0F12 0%, #1a1a1f 100%);
+    border: 1px solid rgba(153, 41, 234, 0.3);
+    border-radius: 16px;
+    max-width: 800px;
+    max-height: 85vh;
+    width: 100%;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(153, 41, 234, 0.2);
+    animation: slideUp 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(153, 41, 234, 0.05);
+  }
+  
+  .modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .modal-close {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.2s ease;
+    padding: 0;
+  }
+  
+  .modal-close:hover {
+    background: rgba(239, 68, 68, 0.25);
+    transform: scale(1.1);
+  }
+  
+  .modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  
+  .modal-body h3 {
+    color: #fff;
+    font-size: 16px;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .modal-body ul {
+    margin: 0 0 16px 0;
+    padding-left: 20px;
+    color: #C9C9D1;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  
+  .modal-body li {
+    margin-bottom: 8px;
+  }
+  
+  .modal-body code {
+    background: var(--accent-glow);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+  }
+  
+  .btn-metodologia {
+    background: rgba(153, 41, 234, 0.15);
+    border: 1px solid rgba(153, 41, 234, 0.35);
+    color: #E5D6F7;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .btn-metodologia:hover {
+    background: rgba(153, 41, 234, 0.25);
+    border-color: rgba(153, 41, 234, 0.5);
+    transform: translateY(-1px);
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+</style>
+<style>.uploader,.upload-section{display:none!important}</style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <h1>Análise de Agendamentos <span class="version-badge">v1.0</span></h1>
+        <div class="desc">Agendamentos ><span class="pill">title=Agendamento de reunião</span> <span class="pill">type=SCHEDULE</span></div>
+      </div>
+    </div>
+
+    <div class="toolbar grid">
+      <div class="col-12 card">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <label class="muted">CSV:</label>
+          <input id="file" type="file" accept=".csv"/>
+
+          <label class="muted">Modelo IA:</label>
+          <select id="modelSelect" class="select" title="Escolha o modelo do Gemini para as análises de IA">
+              <option value="models/gemini-2.5-flash">Gemini 2.5 Flash (+ rápido)</option>
+              <option value="models/gemini-2.5-pro" selected>Gemini 2.5 Pro (+ inteligente)</option>
+          </select>
+
+          <button id="exportPdfBtn" class="btn accent" style="margin-left:10px;" title="Exportar dashboard em PDF">Exportar PDF</button>
+          
+          <button class="btn-metodologia" onclick="openMetodologiaModal()">
+            📖 Metodologia
+          </button>
+        </div>
+        
+        <div class="opts" style="margin-top: 12px; padding: 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+          <label style="color: #cbd5e1; font-weight: 600;">📅 Filtro de Data:</label>
+          <label style="color: #cbd5e1;">
+            Início:
+            <input id="globalDateStart" type="date" class="date-filter" style="width: 140px; padding: 6px; border-radius: 6px; border: 1px solid #334155; background: #0b1220; color: #e5e7eb;">
+          </label>
+          <label style="color: #cbd5e1;">
+            Fim:
+            <input id="globalDateEnd" type="date" class="date-filter" style="width: 140px; padding: 6px; border-radius: 6px; border: 1px solid #334155; background: #0b1220; color: #e5e7eb;">
+          </label>
+          <button id="applyGlobalDate" class="btn accent" style="padding: 6px 14px;">Aplicar</button>
+          <button id="clearGlobalDate" class="btn secondary" style="padding: 6px 14px;">Limpar</button>
+          <span id="globalDateInfo" style="color: #94a3b8; font-size: 12px; font-style: italic;"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div id="filter-panel" class="filter-panel collapsed">
+  <button id="filter-toggle" class="filter-toggle">
+    <span class="filter-toggle-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+      </svg>
+      Filtros Ativos
+    </span>
+    <span id="filter-count" class="filter-count-badge">0</span>
+  </button>
+  <div class="filter-body">
+    <div id="filter-chips" class="filter-chip-list"></div>
+    <div class="filter-actions">
+      <span id="filter-empty-text" class="filter-empty-text">Nenhum filtro aplicado</span>
+      <button id="filter-clear" class="filter-clear" type="button" disabled>Limpar Tudo</button>
+    </div>
+  </div>
+</div>
+
+<button id="geminiFab" type="button" onclick="toggleGemini(true)" title="Abrir IA">IA</button>
+<script>
+// --- Exportação PDF do dashboard ---
+document.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('exportPdfBtn');
+  if(btn) {
+    btn.onclick = function() {
+      // Seleciona o painel principal do dashboard
+      const dashboard = document.querySelector('main.wrap.panel');
+      if(!dashboard) { alert('Dashboard não encontrado!'); return; }
+      // Configuração para dark mode e melhor quebra de página
+      html2pdf()
+        .set({
+          margin: [0,0,0,0],
+          filename: 'dashboard-agendamentos.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { backgroundColor: '#0b0f1a', scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        })
+        .from(dashboard)
+        .save();
+    };
+  }
+});
+</script>
+
+
+<main class="wrap panel">
+
+  <section class="card col-12" id="suggestionsBox" style="margin-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:start;">
+      <div style="flex:1;">
+        <h2>Principais Ações e Pesquisas Sugeridas</h2>
+        <div class="sub">Clique no botão para gerar uma lista de pesquisas e ações recomendadas pela IA, com base nos dados que você carregou.</div>
+      </div>
+      <button class="panelBtn" id="minimizeSuggestionsBox" title="Minimizar" style="margin-left:8px;">−</button>
+    </div>
+    <div id="suggestionsContent">
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button id="generateSuggestionsBtn" class="btn" disabled>Gerar Sugestões de Pesquisa com IA</button>
+      </div>
+      <div id="suggestionsOutput" class="suggestions-list"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="topic-head">
+      <h2>Visão Geral</h2>
+      <div class="topic-actions">
+        <button class="btn secondary" onclick="sendGemini('kpi', this)">Analisar com IA</button>
+      </div>
+    </div>
+    <div class="sub">Indicadores gerais, status dos agendamentos e a qualidade (score) de cada status.</div>
+    <div class="kpis" id="kpis"></div>
+    
+    <div class="grid" style="margin-top: 16px;">
+      <div class="col-6">
+        <div id="chartStatusDonut" class="chart"></div>
+      </div>
+      <div class="col-6">
+        <div id="chartQualityByStatus" class="chart"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid panel">
+    <section class="col-6 card">
+      <div class="topic-head">
+        <h2>1) Squads — Volume & Mix de Score
+          <span class="info-icon">ⓘ<span class="tooltip">Comparação de volume e distribuição de score entre squads (Alpha, Beta, Gamma, Delta)</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <div class="chart-menu-wrap" data-chart="chartSquadScore" data-kind="squad" data-csv="squad_volume_score.csv">
+            <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
+            <div class="chart-menu" role="menu">
+              <button role="menuitem" onclick="sendGemini('squad', this)"><span class="icon">🤖</span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartSquadScore','squads_volume_score')"><span class="icon">⬇</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartSquadScore','squads_volume_score')"><span class="icon">📄</span> Exportar CSV</button>
+              <hr/>
+              <button role="menuitem" id="toggleSquadTableBtn" onclick="document.getElementById('toggleSquadTableBtn').click()"><span class="icon">📊</span> Ver/Esconder Insights</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sub">Comparação entre os squads Alpha, Beta, Gamma e Delta.</div>
+      <div id="chartSquadScore" class="chart"></div>
+  <div id="squadInsights" class="squad-insights" style="display:none"></div>
+  <div id="squadTableWrap" class="squad-table-wrap"></div>
+    </section>
+
+    <section class="col-6 card">
+      <div class="topic-head">
+        <h2>2) Velocidade — TA x Squad
+          <span class="info-icon">ⓘ<span class="tooltip">Análise de tempo de resposta (TA) por squad, mostrando velocidade de agendamento</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <div class="chart-menu-wrap" data-chart="chartHeatTASquad" data-kind="ta_squad" data-csv="velocidade_ta_squad.csv">
+            <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
+            <div class="chart-menu" role="menu">
+              <button role="menuitem" onclick="sendGemini('ta_squad', this)"><span class="icon">🤖</span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartHeatTASquad','velocidade_ta_squad')"><span class="icon">⬇</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartHeatTASquad','velocidade_ta_squad')"><span class="icon">📄</span> Exportar CSV</button>
+              <hr/>
+              <button role="menuitem" onclick="document.getElementById('toggleTASquadBtn').click()"><span class="icon">📊</span> Ver/Esconder Insights</button>
+            </div>
+          </div>
+          <button id="toggleTASquadBtn" class="btn secondary" style="display:none">Ver Insights</button>
+        </div>
+      </div>
+      <div class="sub">Heatmap de rapidez (Até 1,5 / 3 / 5 / 10 / 20 / 30 / &gt;30 dias) por squad.</div>
+      <div id="chartHeatTASquad" class="chart"></div>
+      <div id="taSquadTableWrap" class="squad-table-wrap"></div>
+      <div id="taSquadInsights" class="squad-insights" style="display:none"></div>
+    </section>
+
+    <section class="col-6 card">
+      <div class="topic-head">
+        <h2>3) SDRs — Top produtividade & rapidez
+          <span class="info-icon">ⓘ<span class="tooltip">Ranking de SDRs por volume de agendamentos e percentual com TA ≤ 3 dias</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <div class="chart-menu-wrap" data-chart="chartSDR" data-kind="sdr" data-csv="sdr_produtividade.csv">
+            <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
+            <div class="chart-menu" role="menu">
+              <button role="menuitem" onclick="sendGemini('sdr', this)"><span class="icon">🤖</span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartSDR','sdr_produtividade')"><span class="icon">⬇</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartSDR','sdr_produtividade')"><span class="icon">📄</span> Exportar CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sub">Ranking de SDRs por volume e fração com TA ≤ 3 dias.</div>
+  <div id="taQuickFilters" class="ta-quick-filters"></div>
+      <div id="chartSDR" class="chart"></div>
+    </section>
+
+    <section class="col-6 card">
+      <div class="topic-head">
+        <h2>4) Closers — Volume e Mix de Score
+          <span class="info-icon">ⓘ<span class="tooltip">Distribuição de scores (A/B/C/D) por closer, mostrando qualidade dos agendamentos recebidos</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <div class="chart-menu-wrap" data-chart="chartCloserScore" data-kind="closer" data-csv="closers_score.csv">
+            <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
+            <div class="chart-menu" role="menu">
+              <button role="menuitem" onclick="sendGemini('closer', this)"><span class="icon">🤖</span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartCloserScore','closers_score')"><span class="icon">⬇</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartCloserScore','closers_score')"><span class="icon">📄</span> Exportar CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sub">Quem recebeu mais A/B/C/D no período.</div>
+      <div id="chartCloserScore" class="chart"></div>
+    </section>
+
+    <section class="col-6 card">
+      <div class="topic-head">
+        <h2>5) Fontes (UTM Source) — Volume
+          <span class="info-icon">ⓘ<span class="tooltip">Comparação de volume de agendamentos por canal de origem (Facebook Ads, Google Ads, Outbound, etc.)</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <div class="chart-menu-wrap" data-chart="chartSource" data-kind="source" data-csv="fontes_volume.csv">
+            <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
+            <div class="chart-menu" role="menu">
+              <button role="menuitem" onclick="sendGemini('source', this)"><span class="icon">🤖</span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartSource','fontes_volume')"><span class="icon">⬇</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartSource','fontes_volume')"><span class="icon">📄</span> Exportar CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sub">Comparação de volume por canal (UTM Source).</div>
+      <div id="chartSource" class="chart"></div>
+      </section>
+
+    <section class="col-6 card">
+      <div class="topic-head">
+        <h2>6) Campanhas — Top 10 e Score
+          <span class="info-icon">ⓘ<span class="tooltip">Top 10 campanhas com mais agendamentos e composição de scores A/B/C/D</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <label class="toggle-label" style="margin-right: 8px;">
+            <input type="checkbox" id="hideSemValorCampaign" onchange="applyAndRender()">
+            <span style="font-size: 11px;">Ocultar "sem valor"</span>
+          </label>
+          <div class="chart-menu-wrap" data-chart="chartCampaign" data-kind="campaign" data-csv="campanhas_top10_score.csv">
+            <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
+            <div class="chart-menu" role="menu">
+              <button role="menuitem" onclick="sendGemini('campaign', this)"><span class="icon">🤖</span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartCampaign','campanhas_top10_score')"><span class="icon">⬇</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartCampaign','campanhas_top10_score')"><span class="icon">📄</span> Exportar CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sub">As campanhas com mais agendamentos e sua composição A/B/C/D.</div>
+      <div id="chartCampaign" class="chart"></div>
+    </section>
+
+    <section class="col-6 card">
+      <div class="topic-head">
+        <h2>7) Score — Distribuição geral
+          <span class="info-icon">ⓘ<span class="tooltip">Visão geral da distribuição de scores (A/B/C/D) em todos os agendamentos</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <div class="chart-menu-wrap" data-chart="chartScore" data-kind="score" data-csv="score_distribuicao.csv">
+            <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
+            <div class="chart-menu" role="menu">
+              <button role="menuitem" onclick="sendGemini('score', this)"><span class="icon">🤖</span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartScore','score_distribuicao')"><span class="icon">⬇</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartScore','score_distribuicao')"><span class="icon">📄</span> Exportar CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sub">Distribuição das faixas A/B/C/D no dia.</div>
+      <div id="chartScore" class="chart"></div>
+    </section>
+
+    <section class="col-6 card">
+      <div class="topic-head tight">
+        <h2>8) Tempo até Agendamento (TA) — Distribuição
+          <span class="info-icon">ⓘ<span class="tooltip">Distribuição de frequência do tempo entre primeiro contato e agendamento confirmado</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <div class="chart-menu-wrap" data-chart="chartTADist" data-kind="ta_dist" data-csv="ta_distribuicao.csv">
+            <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
+            <div class="chart-menu" role="menu">
+              <button role="menuitem" onclick="sendGemini('ta_dist', this)"><span class="icon">🤖</span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartTADist','ta_distribuicao')"><span class="icon">⬇</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartTADist','ta_distribuicao')"><span class="icon">📄</span> Exportar CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sub">Quantos agendamentos caem em cada faixa de TA.</div>
+      <div id="chartTADist" class="chart"></div>
+    </section>
+
+    <section class="col-12 card">
+      <div class="topic-head">
+        <div>
+          <h2>9) Análise de Composição das Tags
+            <span class="info-icon">ⓘ<span class="tooltip">Distribuição e composição de tags por status ou score, mostrando padrões de classificação</span></span>
+          </h2>
+          <div class="sub" style="margin-bottom:0">Explore a distribuição das tags agrupadas por diferentes dimensões.</div>
+        </div>
+        <div class="topic-actions nowrap">
+          <span class="muted" style="font-size:12px;">Agrupar por:</span>
+          <button id="groupTagsByStatusBtn" class="btn secondary active">Status</button>
+          <button id="groupTagsByScoreBtn" class="btn secondary">Score</button>
+          <div class="chart-menu-wrap" data-chart="chartNestedTags" data-kind="tags_composition" data-csv="tags_composicao.csv">
+            <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
+            <div class="chart-menu" role="menu">
+              <button role="menuitem" onclick="sendGemini('tags_composition', this)"><span class="icon">🤖</span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartNestedTags','tags_composicao')"><span class="icon">⬇</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartNestedTags','tags_composicao')"><span class="icon">📄</span> Exportar CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="chartNestedTags" class="chart extra-tall"></div>
+    </section>
+
+    <section class="col-12 card">
+        <h2>10) Análise Comparativa de Squads (Radar)</h2>
+        <div class="sub" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+          <span>Comparação de performance entre squads em volume, qualidade, conversão e velocidade. Use a legenda para selecionar.</span>
+          <div class="chart-menu-wrap" data-chart="chartSquadRadar" data-kind="squads_radar" data-csv="squads_radar.csv">
+            <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
+            <div class="chart-menu" role="menu">
+              <button role="menuitem" onclick="sendGemini('squad_radar', this)"><span class="icon">🤖</span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartSquadRadar','squad_radar')"><span class="icon">⬇</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartSquadRadar','squad_radar')"><span class="icon">📄</span> Exportar CSV</button>
+            </div>
+          </div>
+        </div>
+        <div id="chartSquadRadar" class="chart tall"></div>
+    </section>
+  </div>
+
+  <section class="card panel">
+    <h2>Colunas utilizadas na análise</h2>
+    <div class="used-cols" id="usedCols">
+      </div>
+  </section>
+</main>
+
+<div id="toast" class="toast">Copiado para a área de transferência.</div>
+
+<div id="geminiPanel" class="hidden" aria-label="Painel Gemini" aria-hidden="true">
+  <div class="resize-handle" title="Arraste para redimensionar"></div>
+  <div class="panel-head">
+    <h3><span class="dot"></span>Resposta Gemini</h3>
+    <div class="panel-head-actions">
+      <button class="panelBtn" id="minimizePanel" title="Minimizar">−</button>
+      <button class="panelBtn" id="closePanel" title="Fechar">×</button>
+    </div>
+  </div>
+  <div id="geminiOutput" role="log" aria-live="polite">...</div>
+  <div id="geminiActions"></div>
+</div>
+
+<script>
+// =============================
+// Configuração de Pesos de Qualidade
+// Ajuste aqui os pesos relativos para cada score. Objetivo: sintetizar a distribuição A/B/C/D em um índice único 0–100.
+// Fórmula: Índice de Qualidade = (A*wA + B*wB + C*wC + D*wD) / (A+B+C+D) * 100
+// Interpretação: Se 100% dos leads fossem Score A => índice = 100. Uma mistura reduz o valor conforme pesos menores.
+// Recomendação: manter wA >= wB >= wC >= wD para coerência semântica.
+// Ajuste rápido de sensibilidade:
+//  - Para punir mais scores baixos, reduza wC e wD.
+//  - Para tornar o índice mais "inclusivo", aproxime wB de wA.
+//  - Para testar cenários, crie presets e alterne (ex: QUALITY_PRESET_STRICT, QUALITY_PRESET_LENIENT).
+const QUALITY_WEIGHTS = { A: 1.0, B: 0.7, C: 0.4, D: 0.1 };
+// =============================
+
+/* ---------- Utilidades ---------- */
+const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+function paraDataISO(dataString){if(!dataString||typeof dataString!=='string')return'';const parteData=dataString.split(' ')[0];if(parteData.includes('/')){const partes=parteData.split('/');if(partes.length===3){const[dia,mes,ano]=partes;return`${ano}-${mes.padStart(2,'0')}-${dia.padStart(2,'0')}`;}} return parteData;}
+function getScoreBand(score){const num=parseInt(score,10);if(isNaN(num))return'D';if(num>=80)return'A';if(num>=60)return'B';if(num>=40)return'C';return'D';}
+function calcularDiasTA(dataTaskStr,dataDealStr){if(!dataTaskStr||!dataDealStr)return null;try{const dataTask=new Date(dataTaskStr.split(' ')[0]);const dataDeal=new Date(dataDealStr.split(' ')[0]);const diffTime=Math.abs(dataTask-dataDeal);const diffDays=Math.ceil(diffTime/(1000*60*60*24));return diffDays;}catch(e){return null;}}
+function buckTA(days){if(days===null||isNaN(days))return'desconhecido';if(days<=1.5)return'Até 1,5 dia';if(days<=3)return'Até 3 dias';if(days<=5)return'Até 5 dias';if(days<=10)return'Até 10 dias';if(days<=20)return'Até 20 dias';if(days<=30)return'Até 30 dias';return'Acima de 30 dias';}
+function showToast(msg="Copiado para a área de transferência."){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);}
+function parseMaybeList(raw){if(raw==null)return[];const s=String(raw).trim();if(!s)return[];try{if((s.startsWith('[')&&s.endsWith(']'))||(s.startsWith('{')&&s.endsWith('}'))){const v=JSON.parse(s.replace(/'/g,'"'));if(Array.isArray(v))return v.map(x=>String(x).trim().toLowerCase()).filter(Boolean);if(v&&typeof v==='object')return Object.keys(v).filter(k=>v[k]).map(k=>k.toLowerCase());}}catch(e){} return s.split(/[,;|]/).map(x=>x.trim().toLowerCase()).filter(x=>x.length>1);}
+const TA_ORDER=['Até 1,5 dia','Até 3 dias','Até 5 dias','Até 10 dias','Até 20 dias','Até 30 dias','Acima de 30 dias'];
+const SCORE_ORDER=['A','B','C','D'];
+const STATUS_ORDER=['OPEN','WON','LOST'];
+const SAFE=(v)=>(v==null||v==='')?'sem valor':String(v);
+
+/* ---------- Normalização de Closers ---------- */
+const CLOSER_ALIAS_MAP={
+  '´Luana':'Luana','Luana':'Luana','Luana Castilho':'Luana','luana castilho':'Luana','luana':'Luana',
+  'victor':'Victor Sagaz','victor sagaz':'Victor Sagaz','sagaz':'Victor Sagaz','saga':'Victor Sagaz',
+  'lucas rangel':'Lucas Rangel','rangel':'Lucas Rangel',
+  'luis':'Luis Felipe','luis felipe':'Luis Felipe','felipe junqueira dos santos':'Luis Felipe','luis junqueira':'Luis Felipe',
+  'joe':'Jorge Molina','jorge':'Jorge Molina','jorge molina':'Jorge Molina','molina':'Jorge Molina',
+  'Guillherme':'Guilherme Viegas','Guilherme':'Guilherme Viegas','guilherme':'Guilherme Viegas','guilherme viegas':'Guilherme Viegas','viegas':'Guilherme Viegas',
+  'camile':'Camile Serrano','camile serrano':'Camile Serrano','serrano':'Camile Serrano',
+  'Isadora Sarmento':'Isadora Sarmento','isadora sarmento':'Isadora Sarmento','isadora salles':'Isadora Sarmento',
+  'maria clara':'Maria Clara Peixoto','maria clara peixoto':'Maria Clara Peixoto','peixoto':'Maria Clara Peixoto',
+  'pedro crespo':'Pedro Crespo','pedro crespo ia':'Pedro Crespo','pedro crespo[ia]':'Pedro Crespo',
+  'danielle barreto campo':'Danielle Barreto','danielle barreto ia':'Danielle Barreto','danielle barreto [ia]':'Danielle Barreto','danielle barreto':'Danielle Barreto',
+  'rafael garcez':'Rafael Garcez','rafael':'Rafael Garcez','garcez':'Rafael Garcez','Garcez':'Rafael Garcez',
+  'vitoria cortez':'Vitoria Cortez','vitoria@demo.com':'Vitoria Cortez','Vitoria@demo.com':'Vitoria Cortez','vitoria':'Vitoria Cortez','Vitoria Cortez':'Vitoria Cortez','Vitoria':'Vitoria Cortez',
+  'isa':'Isadora Sarmento','isa sarmento':'Isadora Sarmento'
+};
+function stripAcc(str){return str?str.normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/[^a-z0-9\s]/gi,' ').replace(/\s+/g,' ').toLowerCase().trim():'';}
+function titleCase(str){return str.replace(/\w\S*/g,s=>s.charAt(0).toUpperCase()+s.slice(1).toLowerCase());}
+function normalizeCloser(raw){
+  if(!raw)return'sem valor';
+  // Trate e-mails diretos de Vitoria
+  if(/vitoria@demo\.com/i.test(raw)) return 'Vitoria Cortez';
+  const base=stripAcc(raw);
+  if(CLOSER_ALIAS_MAP[base])return CLOSER_ALIAS_MAP[base];
+  const tokens=base.split(' ').filter(Boolean);
+  if(tokens.includes('victor')&&(tokens.includes('sagaz')||tokens.includes('saga')))return'Victor Sagaz';
+  if(tokens.includes('lucas')&&tokens.includes('rangel'))return'Lucas Rangel';
+  if(tokens.includes('guilherme')&&tokens.includes('viegas'))return'Guilherme Viegas';
+  if(tokens.includes('guilherme')&&!tokens.includes('viegas'))return'Guilherme Viegas'; // fallback se vier só "guilherme"
+  if(tokens.includes('jorge')&&tokens.includes('molina'))return'Jorge Molina';
+  if(tokens.includes('luis')&&tokens.includes('felipe'))return'Luis Felipe';
+  if(tokens.includes('vitoria'))return'Vitoria Cortez';
+  for(const key in CLOSER_ALIAS_MAP){if(key.split(' ').length>1)continue;if(base===key)return CLOSER_ALIAS_MAP[key];}
+  const cleaned=raw.replace(/[,]+/g,' ').replace(/\s+/g,' ').trim();
+  return titleCase(cleaned);
+} 
+function applyCloserNormalization(data){for(const r of data){r.closer_norm=normalizeCloser(r.closer);}}
+
+/* ---------- Normalização de Fontes (UTM Source) ---------- */
+// Consolida variações (fbads / FB_ads / meta / facebookads) em rótulos canônicos.
+// Para expandir, adicione a versão sanitizada (letras/números sem espaços) ao mapa.
+const SOURCE_ALIAS_MAP={
+  // Facebook / Meta
+  'fb':'Facebook Ads','fbads':'Facebook Ads','fbad':'Facebook Ads','face':'Facebook Ads','facebook':'Facebook Ads','facebookads':'Facebook Ads','facebookad':'Facebook Ads','meta':'Facebook Ads','metaads':'Facebook Ads','metaad':'Facebook Ads','faceads':'Facebook Ads',
+  // Instagram
+  'ig':'Instagram Ads','igads':'Instagram Ads','igad':'Instagram Ads','instagram':'Instagram Ads','instagramads':'Instagram Ads','instagramad':'Instagram Ads',
+  // Google
+  'google':'Google Ads','googleads':'Google Ads','googlead':'Google Ads','gads':'Google Ads','adwords':'Google Ads','googleadwords':'Google Ads','goads':'Google Ads',
+  // LinkedIn
+  'linkedin':'LinkedIn','linkedinads':'LinkedIn','linkedinad':'LinkedIn','li':'LinkedIn',
+  // YouTube
+  'youtube':'YouTube','youtubeads':'YouTube','youtubead':'YouTube','yt':'YouTube',
+  // TikTok
+  'tiktok':'TikTok Ads','tiktokads':'TikTok Ads','tiktokad':'TikTok Ads','tt':'TikTok Ads',
+  // Bing
+  'bing':'Bing Ads','bingads':'Bing Ads','bingad':'Bing Ads',
+  // Email
+  'email':'Email Marketing','emailmarketing':'Email Marketing','mail':'Email Marketing','mktemail':'Email Marketing','newsletter':'Email Marketing',
+  // Orgânico / SEO
+  'organic':'Organic Search','organicsearch':'Organic Search','seo':'Organic Search',
+  // Direct
+  'direct':'Direct','direto':'Direct','acessodireto':'Direct',
+  // Referral
+  'referral':'Referral','referencia':'Referral','indicacao':'Referral',
+  // Outros
+  'taboola':'Taboola','outbrain':'Outbrain','rdstation':'RD Station','hubspot':'HubSpot'
+};
+function normalizeSource(raw){
+  if(!raw||raw==='sem valor')return 'sem valor';
+  const original=String(raw).trim();
+  const base=stripAcc(original).replace(/[^a-z0-9]/g,'');
+  if(!base)return 'sem valor';
+  if(SOURCE_ALIAS_MAP[base])return SOURCE_ALIAS_MAP[base];
+  // Heurísticas genéricas
+  if(/^fb|^face|^meta/.test(base))return 'Facebook Ads';
+  if(/^ig|^insta/.test(base))return 'Instagram Ads';
+  if(/^google|^gads|^adwords/.test(base))return 'Google Ads';
+  if(/^yt|^you?tu?b/.test(base))return 'YouTube';
+  if(/^tt|^tiktok/.test(base))return 'TikTok Ads';
+  if(/^li(nk)?/.test(base))return 'LinkedIn';
+  if(/^seo/.test(base))return 'Organic Search';
+  if(/^dir/.test(base))return 'Direct';
+  if(/^ref/.test(base))return 'Referral';
+  return original; // fallback mantém para futura análise
+}
+
+/* ---------- Estado ---------- */
+let rawRows = [];        // linhas originais do CSV
+let DATA = [];           // dados processados e exibidos
+let currentData = [];    // dados filtrados (seleção atual)
+const globalFilters = new Map();
+let usedColumns = new Set();
+let chartDataStore = {};
+let keyInsights = {};
+let nestedTagsChart = null;
+// Filtro global de data
+let globalDateStart = null;
+let globalDateEnd = null;
+// Controle de exibição de rótulos completos
+window.fullLabelsMode = false;
+document.addEventListener('click',(e)=>{
+  // (removido toggle de nomes completos)
+});
+
+
+/* ---------- Leitura CSV ---------- */
+function loadCSV(file){return new Promise((resolve,reject)=>{Papa.parse(file,{header:true,skipEmptyLines:true,download:false,encoding:"utf-8",complete:(res)=>resolve(res.data),error:(err)=>reject(err)});});}
+
+/* ---------- Processamento ---------- */
+function process({rows}){
+  if(!rows||!rows.length) throw new Error("CSV vazio ou inválido.");
+  
+  const needed=['title','type','ta_created_at','deal_created_at','lead_score','deal_status','origin_group_name','sdr','closer','d_utm_source','d_utm_campaign','contact_tags','tags_ia','email','deal_id','contact_id'];
+  needed.forEach(c=>usedColumns.add(c));
+  
+  // Filtra apenas por tipo de atividade
+  const dayRows=rows.filter(r=>{
+    return(String(r.title).trim()==='Agendamento de reunião'&&String(r.type).trim()==='SCHEDULE');
+  });
+  
+  const emailFree=new Set(['gmail.com','hotmail.com','outlook.com','yahoo.com','icloud.com','bol.com.br','uol.com.br','terra.com.br','live.com','msn.com','proton.me','aol.com','gmx.com','yandex.com']);
+  
+  const data=dayRows.map(r=>{
+    const tagsAll=[...parseMaybeList(r.contact_tags),...parseMaybeList(r.tags_ia)];
+    const email=String(r.email||'').toLowerCase();
+    const domain=email.includes('@')?email.split('@').pop():'';
+    const diasTA=calcularDiasTA(r.ta_created_at,r.deal_created_at);
+    const faixaTA=buckTA(diasTA);
+    const faixaScore=getScoreBand(r.lead_score);
+    const rawSource=SAFE(r.d_utm_source);
+    const sourceNorm=normalizeSource(rawSource);
+    
+    return{
+      deal_status:SAFE(r.deal_status),
+      origin_group_name:SAFE(r.origin_group_name),
+      sdr:SAFE(r.sdr),
+      closer:SAFE(r.closer),
+      d_utm_source:sourceNorm,
+      d_utm_campaign:SAFE(r.d_utm_campaign),
+      score:faixaScore,
+      ta:faixaTA,
+      tagsAll,
+      email_domain:domain||'desconhecido',
+      provider_class:emailFree.has(domain)?'email_free':(domain?'email_corporate':'desconhecido'),
+      deal_id:r.deal_id||'',
+      contact_id:r.contact_id||'',
+      ta_created_at:r.ta_created_at||'' // Data de criação da atividade (para filtro)
+    }
+  });
+  
+  return data;
+}
+
+/* ---------- Agregações ---------- */
+function countBy(arr,key){const m={};for(const r of arr){const k=r[key]??'sem valor';m[k]=(m[k]||0)+1;} return m;}
+function countTags(arr){const m={};for(const r of arr){for(const t of r.tagsAll){m[t]=(m[t]||0)+1;}} return m;}
+function ctab(rows,rowKey,colKey,rowOrder=null,colOrder=null){const rowsSet=rowOrder||Array.from(new Set(rows.map(r=>r[rowKey])));const colsSet=colOrder||Array.from(new Set(rows.map(r=>r[colKey])));const mat=rowsSet.map(()=>colsSet.map(()=>0));const rIndex=Object.fromEntries(rowsSet.map((v,i)=>[v,i]));const cIndex=Object.fromEntries(colsSet.map((v,i)=>[v,i]));for(const r of rows){const ri=rIndex[r[rowKey]];const ci=cIndex[r[colKey]];if(ri!=null&&ci!=null)mat[ri][ci]+=1;} return{rows:rowsSet,cols:colsSet,mat};}
+
+/* ---------- KPIs & Cards ---------- */
+function renderKPIs(data){const wrap=document.getElementById('kpis');wrap.innerHTML='';const total=data.length;const status=countBy(data,'deal_status');const free=data.filter(d=>d.provider_class==='email_free').length;const corp=data.filter(d=>d.provider_class==='email_corporate').length;const fast=data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias').length;const kpis=[{label:'Agendamentos (seleção)',value:total},{label:'OPEN',value:status['OPEN']||0},{label:'WON',value:status['WON']||0},{label:'LOST',value:status['LOST']||0},{label:'E-mail corporativo',value:corp},{label:'E-mail gratuito',value:free},{label:'TA ≤ 3 dias',value:`${(fast/Math.max(1,total)*100).toFixed(1)}%`},];for(const k of kpis){const el=document.createElement('div');el.className='kpi';el.innerHTML=`<div class="label">${k.label}</div><div class="value">${k.value}</div>`;wrap.appendChild(el);}}
+
+/* ---------- LÓGICA DE FILTROS CRUZADOS ---------- */
+const FILTER_DEFINITIONS = {
+  status:   { label: 'Status',          predicate: (item, v) => item.deal_status === v },
+  squad:    { label: 'Squad',           predicate: (item, v) => item.origin_group_name === v },
+  sdr:      { label: 'SDR',             predicate: (item, v) => item.sdr === v },
+  closer:   { label: 'Closer',          predicate: (item, v) => item.closer_norm === v },
+  source:   { label: 'Fonte',           predicate: (item, v) => item.d_utm_source === v },
+  campaign: { label: 'Campanha',        predicate: (item, v) => item.d_utm_campaign === v },
+  score:    { label: 'Score',           predicate: (item, v) => item.score === v },
+  ta:       { label: 'Velocidade (TA)', predicate: (item, v) => item.ta === v },
+  tag:      { label: 'Tag',             predicate: (item, v) => Array.isArray(item.tagsAll) && item.tagsAll.includes(v) }
+};
+
+function makeFilterKey(type, value){ return `${type}:${value}`; }
+
+function addGlobalFilter(filter){
+  const def = FILTER_DEFINITIONS[filter.type];
+  if(!def) return;
+  const key = makeFilterKey(filter.type, filter.value);
+  if(globalFilters.has(key)) return;
+  globalFilters.set(key, { ...filter, key });
+  renderFilterPanel();
+  document.getElementById('filter-panel')?.classList.remove('collapsed');
+  applyAndRender();
+}
+
+function removeGlobalFilter(key){
+  if(!globalFilters.delete(key)) return;
+  renderFilterPanel();
+  applyAndRender();
+}
+
+function clearGlobalFilters(){
+  const hadFilters = globalFilters.size > 0 || (globalDateStart && globalDateEnd);
+  if(!hadFilters) return;
+  globalFilters.clear();
+  if(globalDateStart || globalDateEnd){
+    globalDateStart = null; globalDateEnd = null;
+    const s=document.getElementById('globalDateStart');
+    const e=document.getElementById('globalDateEnd');
+    const i=document.getElementById('globalDateInfo');
+    if(s) s.value=''; if(e) e.value=''; if(i) i.textContent='';
+  }
+  renderFilterPanel();
+  applyAndRender();
+}
+
+function renderFilterPanel(){
+  const chipsContainer = document.getElementById('filter-chips');
+  const filterCountEl  = document.getElementById('filter-count');
+  const filterClearBtn = document.getElementById('filter-clear');
+  const filterEmptyText= document.getElementById('filter-empty-text');
+  if(!chipsContainer) return;
+  chipsContainer.innerHTML = '';
+
+  let totalFilters = globalFilters.size;
+  const hasDateFilter = globalDateStart && globalDateEnd;
+  if(hasDateFilter) totalFilters++;
+  if(filterCountEl)  filterCountEl.textContent = String(totalFilters);
+  if(filterClearBtn) filterClearBtn.disabled = totalFilters === 0;
+  if(filterEmptyText) filterEmptyText.style.display = totalFilters ? 'none' : 'block';
+
+  if(hasDateFilter){
+    const chip = document.createElement('div'); chip.className = 'filter-chip';
+    chip.style.background = 'linear-gradient(135deg,rgba(249,115,22,0.15) 0%,rgba(249,115,22,0.05) 100%)';
+    chip.style.borderColor = 'rgba(249,115,22,0.3)';
+    const lc = document.createElement('div'); lc.className = 'filter-chip-label';
+    const lt = document.createElement('strong'); lt.textContent = '📅 Período'; lt.style.color = '#fb923c';
+    const [sy,sm,sd] = globalDateStart.split('-').map(Number);
+    const [ey,em,ed] = globalDateEnd.split('-').map(Number);
+    const startFmt = new Date(sy,sm-1,sd).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const endFmt   = new Date(ey,em-1,ed).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const lv = document.createElement('div'); lv.className = 'filter-chip-value';
+    lv.textContent = `${startFmt} → ${endFmt}`;
+    lc.appendChild(lt); lc.appendChild(lv);
+    const rb = document.createElement('button'); rb.type='button'; rb.className='chip-remove'; rb.innerHTML='✕';
+    rb.addEventListener('click', ()=>{
+      globalDateStart=null; globalDateEnd=null;
+      const s=document.getElementById('globalDateStart'); if(s) s.value='';
+      const e=document.getElementById('globalDateEnd');   if(e) e.value='';
+      const i=document.getElementById('globalDateInfo');  if(i) i.textContent='';
+      renderFilterPanel(); applyAndRender();
+    });
+    chip.appendChild(lc); chip.appendChild(rb); chipsContainer.appendChild(chip);
+  }
+
+  globalFilters.forEach(filter => {
+    const def = FILTER_DEFINITIONS[filter.type];
+    const chip = document.createElement('div'); chip.className = 'filter-chip';
+    const lc = document.createElement('div'); lc.className = 'filter-chip-label';
+    const lt = document.createElement('strong'); lt.textContent = def ? def.label : filter.type;
+    const lv = document.createElement('div'); lv.className = 'filter-chip-value';
+    lv.textContent = filter.label || filter.value; lv.title = filter.label || filter.value;
+    lc.appendChild(lt); lc.appendChild(lv);
+    const rb = document.createElement('button'); rb.type='button'; rb.className='chip-remove'; rb.innerHTML='✕';
+    rb.addEventListener('click', ()=> removeGlobalFilter(filter.key));
+    chip.appendChild(lc); chip.appendChild(rb); chipsContainer.appendChild(chip);
+  });
+}
+
+/* ---------- Filtros rápidos TA (Visualizador 3) ---------- */
+function renderTAQuickFilters(){
+  const wrap=document.getElementById('taQuickFilters');
+  if(!wrap) return;
+  const active = new Set(Array.from(globalFilters.values()).filter(f=>f.type==='ta').map(f=>f.value));
+  const html = TA_ORDER.map(f=>{
+    const on = active.has(f);
+    return `<button class="ta-filter-btn${on?' on':''}" data-ta="${f}" title="Filtrar faixa: ${f}">${f.replace('Até ','≤ ').replace('Acima de ','> ')}</button>`;
+  }).join('');
+  wrap.innerHTML = html + (active.size? `<button class="ta-filter-clear" title="Remover filtros de TA">Limpar</button>`:'');
+  wrap.querySelectorAll('.ta-filter-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      const k=makeFilterKey('ta',btn.dataset.ta);
+      if(globalFilters.has(k)) removeGlobalFilter(k);
+      else addGlobalFilter({type:'ta',value:btn.dataset.ta,label:btn.dataset.ta});
+    };
+  });
+  const clear=wrap.querySelector('.ta-filter-clear');
+  if(clear){clear.onclick=()=>{
+    Array.from(globalFilters.keys()).filter(k=>k.startsWith('ta:')).forEach(k=>globalFilters.delete(k));
+    renderFilterPanel(); applyAndRender();
+  };}
+}
+
+/* ---------- Filtro de Data ---------- */
+function filterByDate(dataset) {
+  if (!globalDateStart || !globalDateEnd) return dataset;
+  
+  // Criar datas no fuso horário local
+  const [startYear, startMonth, startDay] = globalDateStart.split('-').map(Number);
+  const [endYear, endMonth, endDay] = globalDateEnd.split('-').map(Number);
+  
+  const start = new Date(startYear, startMonth - 1, startDay, 0, 0, 0, 0);
+  const end = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999);
+  
+  return dataset.filter(d => {
+    if (!d.ta_created_at) return false;
+    const dataISO = paraDataISO(String(d.ta_created_at).trim());
+    if (!dataISO) return false;
+    
+    const [year, month, day] = dataISO.split('-').map(Number);
+    const itemDate = new Date(year, month - 1, day);
+    
+    return itemDate >= start && itemDate <= end;
+  });
+}
+
+function applyAndRender() {
+  let data = [...DATA];
+  data = filterByDate(data);
+  if(globalFilters.size){
+    data = data.filter(item => Array.from(globalFilters.values()).every(f => {
+      const def = FILTER_DEFINITIONS[f.type];
+      return def ? def.predicate(item, f.value) : true;
+    }));
+  }
+  buildAll(data);
+  renderFilterPanel();
+}
+
+
+/* ---------- ECharts Helpers ---------- */
+function baseOpts(title){return{backgroundColor:'transparent',title:{text:title,left:'center',textStyle:{color:'#e5e7eb',fontSize:14,fontWeight:700}},grid:{left:10,right:10,top:36,bottom:36,containLabel:true},tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},textStyle:{fontFamily:'Montserrat'}};}
+function addResize(chart){window.addEventListener('resize',()=>chart.resize());}
+
+// ====== ECharts 6.0 Enhanced setOption ======
+function setOptionEnhanced(chart, option) {
+  if (!chart) return;
+  const enhanced = window.EChartsV6 ? window.EChartsV6.enhance(option) : option;
+  const updateOpts = window.EChartsV6 ? window.EChartsV6.UPDATE_OPTIONS : { replaceMerge: ['series'], lazyUpdate: true };
+  chart.setOption(enhanced, updateOpts);
+}
+
+function renderBarStack(domId,categories,seriesMap,filterKey,palette=['#0ea5e9','#38bdf8','#7dd3fc','#bae6fd','#e0f2fe']){
+  const el=document.getElementById(domId);if(!el)return;echarts.dispose(el);const chart=echarts.init(el);
+  const series=Object.keys(seriesMap).map((name,idx)=>({name,type:'bar',stack:'sum',emphasis:{focus:'series'},itemStyle:{borderRadius:[4,4,0,0]},data:seriesMap[name],animationDuration:700}));
+  const isSquad = domId === 'chartSquadScore';
+  const isCloser = domId === 'chartCloserScore';
+  const wrapLabel = (label)=>{
+    if(!(isSquad||isCloser)) return label;
+    if(window.fullLabelsMode){ return label; }
+    // Para squads mantemos quebra multiline como antes; para closers aplicaremos truncamento + rotação
+    if(isCloser){
+      const maxLen = 16;
+      if(label.length<=maxLen) return label;
+      return label.slice(0,maxLen-1)+'…';
+    }
+    const limit = 14;
+    const parts = String(label).split(/\s+/);
+    const lines=[]; let current='';
+    for(const p of parts){
+      if((current+' '+p).trim().length>limit){ if(current) lines.push(current.trim()); current=p; }
+      else { current += ' '+p; }
+    }
+    if(current) lines.push(current.trim());
+    return lines.slice(0,3).join('\n');
+  };
+  let xFont=12; let rotate=0; let margin=8;
+  if(isCloser){
+    const n=categories.length; if(n>8) xFont=11; if(n>12) xFont=10; if(n>18) xFont=9; rotate=45; margin=14;
+  }
+  chart.setOption({
+    ...baseOpts(''),
+    grid:{left:10,right:10,top:40,bottom:isSquad?70:(isCloser?80:36),containLabel:true},
+    legend:{top:4,textStyle:{color:'#cbd5e1'}},
+    xAxis:{type:'category',data:categories,axisLabel:{color:'#cbd5e1',interval:0,formatter:wrapLabel,fontSize:xFont,rotate,margin},axisTick:{alignWithLabel:true}},
+    yAxis:{type:'value',axisLabel:{color:'#cbd5e1'}},
+    series
+  });
+  addResize(chart);
+  if(filterKey){chart.on('click',p=>{if(p.componentType==='series'&&p.name)addGlobalFilter({type:filterKey,value:p.name,label:p.name});});}
+}
+
+/* ---------- Squads Insights & Table ---------- */
+function computeSquadMetrics(data){
+  const per={};
+  for(const r of data){
+    const s=r.origin_group_name; if(!per[s]) per[s]={rows:0,A:0,B:0,C:0,D:0,fast:0,won:0};
+    per[s].rows++; per[s][r.score]=(per[s][r.score]||0)+1;
+    if(r.ta==='Até 1,5 dia'||r.ta==='Até 3 dias') per[s].fast++;
+    if(r.deal_status==='WON') per[s].won++;
+  }
+  const metrics=Object.keys(per).map(s=>{const o=per[s];const t=o.rows||1;return{ squad:s, volume:o.rows, A:o.A,B:o.B,C:o.C,D:o.D, abPct:((o.A+o.B)/t*100), cdPct:((o.C+o.D)/t*100), fastPct:(o.fast/t*100), wonPct:(o.won/t*100) };});
+  return {raw:per, list:metrics};
+}
+
+/* ---------- TA x Squad Insights & Table ---------- */
+function computeTASquadMetrics(data){
+  const per={};
+  for(const r of data){
+    const s=r.origin_group_name; if(!per[s]) per[s]={rows:0,fast:0,mid:0,slow:0};
+    per[s].rows++; // fast: Até 1,5 + Até 3; mid: Até 5 + Até 10; slow: >10
+    if(r.ta==='Até 1,5 dia' || r.ta==='Até 3 dias') per[s].fast++; else if(r.ta==='Até 5 dias' || r.ta==='Até 10 dias') per[s].mid++; else per[s].slow++;
+  }
+  const list=Object.keys(per).map(s=>{const o=per[s];const t=o.rows||1;return{ squad:s, volume:o.rows, fastPct:(o.fast/t*100), midPct:(o.mid/t*100), slowPct:(o.slow/t*100) };});
+  return {raw:per,list};
+}
+function updateTASquadTable(data){
+  const wrap=document.getElementById('taSquadTableWrap'); if(!wrap) return;
+  const {list}=computeTASquadMetrics(data); if(!list.length){wrap.innerHTML=''; return;}
+  list.sort((a,b)=>b.fastPct-a.fastPct);
+  const rows=list.map(m=>`<tr><td>${m.squad}</td><td>${m.volume}</td><td>${m.fastPct.toFixed(1)}%</td><td>${m.midPct.toFixed(1)}%</td><td>${m.slowPct.toFixed(1)}%</td></tr>`).join('');
+  wrap.innerHTML=`<table class="squad-table"><thead><tr><th>Squad</th><th>Vol</th><th>Rápido (≤3d)%</th><th>Médio (≤10d)%</th><th>Lento (&gt;10d)%</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function updateTASquadInsights(data){
+  const wrap=document.getElementById('taSquadInsights'); if(!wrap) return;
+  const {list}=computeTASquadMetrics(data); if(!list.length){wrap.innerHTML=''; return;}
+  const maxBy=(k)=>list.reduce((m,c)=>c[k]>m[k]?c:m,list[0]);
+  const minBy=(k)=>list.reduce((m,c)=>c[k]<m[k]?c:m,list[0]);
+  const fastest=maxBy('fastPct');
+  const slowest=maxBy('slowPct');
+  const balanced=list.slice().sort((a,b)=> Math.abs((a.fastPct+a.midPct)/2 - a.slowPct) - Math.abs((b.fastPct+b.midPct)/2 - b.slowPct))[0];
+  const lowVolume=minBy('volume');
+  const cards=[
+    {title:'Maior % Rápido (≤3d)',badge:'SPEED',value:`${fastest.fastPct.toFixed(1)}%`,extra:`Vol ${fastest.volume}`,squad:fastest.squad},
+    {title:'Maior % Lento (>10d)',badge:'ALERTA',value:`${slowest.slowPct.toFixed(1)}%`,extra:`Rápido ${slowest.fastPct.toFixed(1)}%`,squad:slowest.squad,warn:true},
+    {title:'Mais Balanceado',badge:'BALANCE',value:`F:${balanced.fastPct.toFixed(0)} M:${balanced.midPct.toFixed(0)} L:${balanced.slowPct.toFixed(0)}`,extra:`Vol ${balanced.volume}`,squad:balanced.squad},
+    {title:'Menor Volume',badge:'VOL',value:`${lowVolume.volume}`,extra:`Rápido ${lowVolume.fastPct.toFixed(1)}%`,squad:lowVolume.squad}
+  ];
+  wrap.innerHTML=cards.map(c=>`<div class="si-card"><span class="si-badge ${c.warn?'warn':'ok'}">${c.badge}</span><b>${c.title}</b><div class="val">${c.value}</div><div style="margin-top:4px;color:#9ca3af;">${c.squad}</div><div style="margin-top:2px;font-size:10px;color:#cbd5e1">${c.extra||''}</div></div>`).join('');
+}
+document.addEventListener('click',(e)=>{
+  if(e.target && e.target.id==='toggleTASquadBtn'){
+    const btn=e.target; const mode=btn.dataset.mode||'table';
+    const tableWrap=document.getElementById('taSquadTableWrap');
+    const insights=document.getElementById('taSquadInsights');
+    if(mode==='table'){
+      updateTASquadInsights(window.currentData||[]);
+      if(insights) insights.style.display='grid';
+      if(tableWrap) tableWrap.style.display='none';
+      btn.dataset.mode='insights'; btn.textContent='Ver Tabela';
+    } else {
+      if(insights) insights.style.display='none';
+      if(tableWrap) tableWrap.style.display='block';
+      btn.dataset.mode='table'; btn.textContent='Ver Insights';
+    }
+  }
+});
+
+function updateSquadInsights(data){
+  const wrap=document.getElementById('squadInsights'); if(!wrap) return;
+  const {raw,list}=computeSquadMetrics(data);
+  if(!list.length){wrap.innerHTML=''; return;}
+  const maxBy=(k)=>list.reduce((m,c)=>c[k]>m[k]?c:m,list[0]);
+  const totalVol=list.reduce((a,b)=>a+b.volume,0)||1;
+  const topVol=maxBy('volume');
+  const topQuali=maxBy('abPct');
+  const topSpeed=maxBy('fastPct');
+  const worstQuali=maxBy('cdPct');
+  const topWon=maxBy('wonPct');
+  const cards=[
+    {title:'Maior Volume',badge:'TOP',value:topVol.volume,extra:`${(topVol.volume/totalVol*100).toFixed(1)}% share`,squad:topVol.squad},
+    {title:'Melhor Qualidade (A+B)',badge:'QUALI',value:`${topQuali.abPct.toFixed(1)}%`,extra:`A ${(raw[topQuali.squad].A/topQuali.volume*100||0).toFixed(1)}%`,squad:topQuali.squad},
+    {title:'Mais Rápido (TA≤3d)',badge:'SPEED',value:`${topSpeed.fastPct.toFixed(1)}%`,extra:`WON ${topSpeed.wonPct.toFixed(1)}%`,squad:topSpeed.squad},
+    {title:'Alerta Qualidade (C+D)',badge:'ATENÇÃO',value:`${worstQuali.cdPct.toFixed(1)}%`,extra:`A+B ${worstQuali.abPct.toFixed(1)}%`,squad:worstQuali.squad,warn:true},
+  ];
+  if(topWon.wonPct>0){cards.push({title:'Maior Conversão (WON)',badge:'WON',value:`${topWon.wonPct.toFixed(1)}%`,extra:`Vol ${topWon.volume}`,squad:topWon.squad});}
+  wrap.innerHTML=cards.map(c=>`<div class="si-card"><span class="si-badge ${c.warn?'warn':'ok'}">${c.badge}</span><b>${c.title}</b><div class="val">${c.value}</div><div style="margin-top:4px;color:#9ca3af;">${c.squad}</div><div style="margin-top:2px;font-size:10px;color:#cbd5e1">${c.extra||''}</div></div>`).join('');
+}
+
+function updateSquadTable(data){
+  const wrap=document.getElementById('squadTableWrap'); if(!wrap) return;
+  const {list}=computeSquadMetrics(data); if(!list.length){wrap.style.display='none';return;}
+  list.sort((a,b)=>b.volume-a.volume);
+  const rows=list.map(m=>`<tr><td>${m.squad}</td><td>${m.volume}</td><td>${m.abPct.toFixed(1)}%</td><td>${m.cdPct.toFixed(1)}%</td><td>${m.fastPct.toFixed(1)}%</td><td>${m.wonPct.toFixed(1)}%</td></tr>`).join('');
+  wrap.innerHTML=`<table class="squad-table"><thead><tr><th>Squad</th><th>Vol</th><th>A+B%</th><th>C+D%</th><th>TA≤3d%</th><th>WON%</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+document.addEventListener('click',(e)=>{
+  if(e.target && e.target.id==='toggleSquadTableBtn'){
+    const btn=e.target;
+    const mode=btn.dataset.mode||'table';
+    const tableWrap=document.getElementById('squadTableWrap');
+    const insights=document.getElementById('squadInsights');
+    if(mode==='table'){
+      // Gerar insights sob demanda
+      updateSquadInsights(window.currentData||[]);
+      if(insights){insights.style.display='grid';}
+      if(tableWrap){tableWrap.style.display='none';}
+      btn.dataset.mode='insights';
+      btn.textContent='Ver Tabela';
+    } else {
+      if(insights){insights.style.display='none';}
+      if(tableWrap){tableWrap.style.display='block';}
+      btn.dataset.mode='table';
+      btn.textContent='Ver Insights';
+    }
+  }
+});
+function renderBar(domId,categories,values,horizontal=false,title='',filterKey){
+  const el=document.getElementById(domId);if(!el)return;echarts.dispose(el);const chart=echarts.init(el);
+
+  // Custom handling for SDR productivity (visualizador 3)
+  const isSDR = domId === 'chartSDR';
+  const isScore = domId === 'chartScore';
+  const isTADist = domId === 'chartTADist';
+  let rotate = 0; let fontSize = 12; let formatter = undefined; let rich = undefined; let margin = 8;
+  if(!horizontal){
+    if(isSDR){
+      rotate = 45; // força 45° para melhor leitura
+      // Ajuste de fonte baseado em quantidade de categorias
+      if(categories.length>18) fontSize=9; else if(categories.length>14) fontSize=10; else if(categories.length>10) fontSize=11;
+      // Truncamento opcional com tooltip via formatter
+      const maxLen = 16;
+      formatter = (val)=>{
+        if(window.fullLabelsMode) return val; if(val.length<=maxLen) return val; return val.slice(0,maxLen-1)+'…';
+      };
+      margin = 12;
+    } else if(isScore || isTADist){
+      // Ambos têm rótulos curtos, mas se crescerem em variedade aplicamos rotação leve
+      if(categories.length>6) rotate = 30;
+      const maxLen = 12;
+      formatter = (val)=> { if(window.fullLabelsMode) return val; return val.length<=maxLen? val : val.slice(0,maxLen-1)+'…'; };
+      if(categories.length>10) fontSize=11; if(categories.length>14) fontSize=10;
+    } else {
+      // lógica anterior: inclina um pouco apenas se muitas categorias
+      if(categories.length>8) rotate=30;
+    }
+  }
+
+  // Formatter especial para campanhas horizontais
+  let yFormatter = undefined; let yFont=12; let yMargin=8;
+  if(horizontal && domId==='chartCampaign'){
+    const maxLen=20;
+    yFormatter = (val)=> { if(window.fullLabelsMode) return val; return val.length<=maxLen? val : val.slice(0,maxLen-1)+'…'; };
+    if(categories.length>8) yFont=11; if(categories.length>12) yFont=10;
+    yMargin=10;
+  }
+
+  chart.setOption({
+    ...baseOpts(title),
+    tooltip: { // adiciona tooltip para mostrar label completo quando truncado
+      trigger: 'item',
+      formatter: (p)=>{
+        if(isSDR && p.componentType==='series'){
+          return `${p.name}: ${p.value}`;
+        }
+        return `${p.name}: ${p.value}`;
+      }
+    },
+    xAxis: horizontal ? {type:'value',axisLabel:{color:'#cbd5e1'}} : {
+      type:'category',
+      data:categories,
+      axisLabel:{color:'#cbd5e1',interval:0,rotate,formatter,fontSize,margin},
+      axisTick:{alignWithLabel:true}
+    },
+    yAxis: horizontal ? {type:'category',data:categories,axisLabel:{color:'#cbd5e1',formatter:yFormatter,fontSize:yFont,margin:yMargin}} : {type:'value',axisLabel:{color:'#cbd5e1'}},
+    series:[{type:'bar',data:values,itemStyle:{borderRadius:4,color:accent},animationDuration:700}]
+  });
+  addResize(chart);
+  if(filterKey){chart.on('click',p=>{if(p.componentType==='series'&&p.name)addGlobalFilter({type:filterKey,value:p.name,label:p.name});});}
+}
+function renderPie(domId,dataPairs,title='',totalValue=null,filterKey){
+  const el=document.getElementById(domId);if(!el)return;echarts.dispose(el);const chart=echarts.init(el);
+  const isSource = domId === 'chartSource';
+  const data = dataPairs.map(([name,value])=>({name,value}));
+  const total = data.reduce((a,b)=>a+b.value,0) || 1;
+  const legendFormatter = function(name){const item=data.find(d=>d.name===name);if(!item) return name;const pct=((item.value/total)*100).toFixed(1);return `${name}  ${item.value} (${pct}%)`;};
+  chart.setOption({
+    title: isSource ? {text:'',subtext:'',show:false} : {text:title,subtext:totalValue,left:'center',top:'center',itemGap:8,textStyle:{color:'#cbd5e1',fontSize:15,fontWeight:'normal'},subtextStyle:{fontSize:24,fontWeight:'bold',color:'#fff'}},
+    legend:{orient:'vertical',left:0,top:'middle',type:isSource?'scroll':'plain',textStyle:{color:'#cbd5e1',fontSize:12},
+      itemWidth:14,itemHeight:14,icon:'rect',
+      padding:0,
+      width:isSource?170:undefined,
+      formatter: isSource? legendFormatter: undefined
+    },
+    tooltip:{trigger:'item',formatter:'{b}: {c} ({d}%)'},
+    series:[{
+      type:'pie',
+      avoidLabelOverlap:true,
+      center: isSource? ['63%','52%'] : ['50%','50%'],
+      radius: isSource? ['62%','82%'] : ['55%','80%'],
+      label:{show:false},
+      labelLine:{show:false},
+      itemStyle:{borderRadius:10,borderColor:'#0e1424',borderWidth:4},
+      data:data,
+      animationDuration:700
+    }]
+  });
+  addResize(chart);
+  if(filterKey){chart.on('click',p=>{if(p.componentType==='series'&&p.name)addGlobalFilter({type:filterKey,value:p.name,label:p.name});});}
+}
+function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
+  const el=document.getElementById(domId); if(!el) return; echarts.dispose(el); const chart=echarts.init(el);
+  const data=[]; for(let i=0;i<rows.length;i++){for(let j=0;j<cols.length;j++){data.push([j,i,mat[i][j]||0]);}}
+  const isTASquad = domId === 'chartHeatTASquad';
+  // Dynamic font size: fewer columns -> bigger font
+  let xFont = 11; if(isTASquad){ if(cols.length>10) xFont=10; if(cols.length>14) xFont=9; if(cols.length>18) xFont=8; }
+  const wrapLabel = (label)=>{
+    if(!isTASquad) return label;
+    const maxPerLine = (cols.length>14)?8:12;
+    const parts = String(label).split(/\s+/);
+    const lines=[]; let current='';
+    for(const p of parts){
+      if((current+' '+p).trim().length>maxPerLine){ if(current) lines.push(current.trim()); current=p; }
+      else { current += ' '+p; }
+    }
+    if(current) lines.push(current.trim());
+    return lines.slice(0,3).join('\n');
+  };
+  chart.setOption({
+    ...baseOpts(''),
+    tooltip:{position:'top',formatter:(p)=>`${rows[p.data[1]]} × ${cols[p.data[0]]}: <b>${p.data[2]}</b>`},
+    grid:(()=>{ if(!isTASquad) return {left:60,right:10,top:26,bottom:40,containLabel:true};
+      const maxChars = Math.max(...rows.map(r=>r.length));
+      const leftPad = Math.min(70, Math.max(45, Math.round(maxChars*4.6))); // clamp 45-70
+      return {left:leftPad,right:70,top:26,bottom:40,containLabel:true}; })(),
+    xAxis:{type:'category',data:cols,axisLabel:{color:'#cbd5e1',interval:0,formatter:wrapLabel,fontSize:xFont}},
+  yAxis:{type:'category',data:rows,axisLabel:{color:'#cbd5e1',interval:0,fontSize:11,align:'right'}},
+    visualMap:(()=>{ if(!isTASquad) return {min:0,max:Math.max(1,...data.map(d=>d[2])),calculable:true,orient:'horizontal',left:'center',bottom:0,textStyle:{color:'#cbd5e1'},itemWidth:16};
+      return {min:0,max:Math.max(1,...data.map(d=>d[2])),calculable:true,orient:'vertical',right:10,top:20,textStyle:{color:'#cbd5e1'},itemWidth:14,itemHeight:120}; })(),
+    series:[{type:'heatmap',data,label:{show:false}}]
+  });
+  addResize(chart);
+  if(rowFilterKey&&colFilterKey){
+    chart.on('click',p=>{addGlobalFilter({type:rowFilterKey,value:rows[p.data[1]],label:rows[p.data[1]]});addGlobalFilter({type:colFilterKey,value:cols[p.data[0]],label:cols[p.data[0]]});});
+  }
+}
+
+
+/* ---------- GERAÇÃO DINÂMICA DE SUGESTÕES ---------- */
+const suggestionTemplates=["Quais são os hábitos e rotinas de SDRs de alta performance como [BEST_SDR]?","Como replicar as estratégias de agendamento rápido da squad '[FASTEST_SQUAD]' para o resto do time?","Estratégias para dobrar a aquisição de leads via '[TOP_SOURCE]'.","Framework para analisar e replicar o sucesso da campanha '[TOP_CAMPAIGN]'.","Como criar conteúdo de marketing de nicho focado no interesse '[PAIN_POINT_TAG]'?","Plano de ação para coaching e desenvolvimento da performance de '[WORST_PERFORMER]'.","Estratégias de marketing para atrair mais clientes com o perfil da tag '[GOLDEN_TAG]'.","Qual o impacto da velocidade de atendimento na conversão de leads no setor de '[PAIN_POINT_TAG]?'","Melhores práticas para o handoff de leads de alto valor (perfil '[GOLDEN_TAG]').","Análise comparativa de concorrentes que também atuam no nicho '[PAIN_POINT_TAG]'.","Como otimizar o Lead Scoring para identificar mais cedo leads com o perfil de '[GOLDEN_TAG]'?","Técnicas de prospecção outbound para o público interessado em '[PAIN_POINT_TAG]'.","Como usar o sucesso da campanha '[TOP_CAMPAIGN]' para criar campanhas de retargeting?"];
+function extractKeyInsights(data){if(!data||!data.length)return{};const getTop=(map)=>Object.entries(map).sort((a,b)=>b[1]-a[1])[0]?.[0]||'N/A';keyInsights.bestSDR=getTop(countBy(data,'sdr'));const fastData=data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias');keyInsights.fastestSquad=getTop(countBy(fastData,'origin_group_name'));keyInsights.topSource=getTop(countBy(data,'d_utm_source'));keyInsights.topCampaign=getTop(countBy(data,'d_utm_campaign'));const aLeads=data.filter(d=>d.score==='A');keyInsights.goldenTag=getTop(countTags(aLeads))||'leads de alto valor';keyInsights.painPointTag=getTop(countTags(data))||'mercado';const squadScore=ctab(data,'origin_group_name','score',null,SCORE_ORDER);const squadPerformance=squadScore.rows.map((squad,i)=>{const row=squadScore.mat[i];const total=row.reduce((a,b)=>a+b,0);if(total===0)return{squad,ratio:0};const bad=(row[2]||0)+(row[3]||0);return{squad,ratio:bad/total}}).sort((a,b)=>b.ratio-a.ratio);keyInsights.worstPerformer=squadPerformance[0]?.squad||'geral'}
+function generateSuggestions(){const output=document.getElementById('suggestionsOutput');if(!keyInsights.bestSDR){output.innerHTML="<p class='muted'>Dados insuficientes para gerar sugestões. Processe um arquivo CSV válido primeiro.</p>";return}const shuffled=[...suggestionTemplates].sort(()=>0.5-Math.random());const selectedTemplates=shuffled.slice(0,10);const html=selectedTemplates.map(template=>{const suggestion=template.replace(/\[BEST_SDR\]/g,keyInsights.bestSDR).replace(/\[FASTEST_SQUAD\]/g,keyInsights.fastestSquad).replace(/\[TOP_SOURCE\]/g,keyInsights.topSource).replace(/\[TOP_CAMPAIGN\]/g,keyInsights.topCampaign).replace(/\[PAIN_POINT_TAG\]/g,keyInsights.painPointTag).replace(/\[WORST_PERFORMER\]/g,keyInsights.worstPerformer).replace(/\[GOLDEN_TAG\]/g,keyInsights.goldenTag);const query=encodeURIComponent(suggestion);return`<a href="https://www.google.com/search?q=${query}" target="_blank">${suggestion}</a>`}).join('');output.innerHTML=html}
+
+/* ---------- GRÁFICO DE TAGS ANINHADO ---------- */
+function renderNestedTags(data, groupBy = 'deal_status') {
+  const dataset = data || currentData;
+  const el = document.getElementById('chartNestedTags');
+  if (!el) return;
+  if (!nestedTagsChart) {
+    nestedTagsChart = echarts.init(el);
+    addResize(nestedTagsChart);
+
+    nestedTagsChart.on('click', (p) => {
+        if (p.seriesIndex === 0) {
+            const currentGroupBy = document.getElementById('groupTagsByStatusBtn').classList.contains('active') ? 'status' : 'score';
+            addGlobalFilter({type: currentGroupBy, value: p.name, label: p.name});
+        } else {
+            addGlobalFilter({type: 'tag', value: p.name, label: p.name});
+        }
+    });
+  }
+
+  const categories = (groupBy === 'deal_status') ? STATUS_ORDER : SCORE_ORDER;
+  const categoryData = {};
+  categories.forEach(c => { categoryData[c] = { total: 0, tags: {} }; });
+  
+  const topTags = new Set(Object.entries(countTags(DATA)).sort((a,b)=>b[1]-a[1]).slice(0,40).map(e=>e[0]));
+
+  for (const row of dataset) {
+    const category = row[groupBy];
+    if (categoryData[category]) {
+      categoryData[category].total++;
+      for (const tag of row.tagsAll) {
+        if(topTags.has(tag)){
+            categoryData[category].tags[tag] = (categoryData[category].tags[tag] || 0) + 1;
+        }
+      }
+    }
+  }
+
+  const innerRingData = [];
+  const outerRingData = [];
+  for (const category of categories) {
+    if (categoryData[category].total > 0) {
+      innerRingData.push({ name: category, value: categoryData[category].total });
+      const sortedTags = Object.entries(categoryData[category].tags).sort((a, b) => b[1] - a[1]);
+      for (const [tagName, tagValue] of sortedTags) {
+        outerRingData.push({ name: tagName, value: tagValue });
+      }
+    }
+  }
+  chartDataStore.tags_composition = {groupBy, data: categoryData};
+
+  const isScoreMode = (groupBy === 'score');
+  const option = {backgroundColor:'transparent',
+    tooltip:{trigger:'item',formatter:(p)=>{
+      if(p.seriesName==='Categoria'){
+        return `${p.name}: <b>${p.value}</b>`;
+      }
+      if(isScoreMode){
+        // Apenas valor absoluto
+        return `${p.name}: <b>${p.value}</b>`;
+      }
+      return `${p.name}: <b>${p.value}</b> (${p.percent}%)`;
+    }},
+    legend:{show:false},
+    series:[
+      {name:'Categoria',type:'pie',selectedMode:'single',radius:[0,'30%'],label:{position:'inner',fontSize:14,color:'#fff',formatter:'{b}\n{c}'},labelLine:{show:false},data:innerRingData},
+      {name:'Tags',type:'pie',radius:['45%','65%'],labelLine:{length:20},label:{
+          formatter:(p)=>{
+            if(isScoreMode){
+              return `{b|${p.name}}  {per|${p.value}}`;
+            }
+            return `{b|${p.name}}  {per|${p.percent}%}`;
+          },
+          rich:{b:{color:'#e6e6e6',fontSize:12},per:{color:'#fff',backgroundColor:'#334155',padding:[2,4],borderRadius:4}}
+        },
+        data:outerRingData}
+    ]};
+  nestedTagsChart.setOption(option, true);
+}
+
+/* ---------- GRÁFICO DE RADAR ---------- */
+function prepareRadarData(allData) {
+  if (!allData || allData.length === 0) {
+    return { indicator: [], seriesData: [] };
+  }
+  const squads = {};
+  for (const row of allData) {
+    const squadName = row.origin_group_name;
+    if (!squads[squadName]) { squads[squadName] = []; }
+    squads[squadName].push(row);
+  }
+
+  const rawSeries = [];
+  for (const squadName in squads) {
+    const squadRows = squads[squadName];
+    const total = squadRows.length;
+    if (total === 0) continue;
+
+    const wonCount = squadRows.filter(r => r.deal_status === 'WON').length;
+    const a = squadRows.filter(r=>r.score==='A').length;
+    const b = squadRows.filter(r=>r.score==='B').length;
+    const c = squadRows.filter(r=>r.score==='C').length;
+    const d = squadRows.filter(r=>r.score==='D').length;
+    const totalSafe = Math.max(1,total);
+  // Índice de Qualidade ponderado usando QUALITY_WEIGHTS
+  const qualityIndex = ((a*QUALITY_WEIGHTS.A)+(b*QUALITY_WEIGHTS.B)+(c*QUALITY_WEIGHTS.C)+(d*QUALITY_WEIGHTS.D)) / totalSafe * 100; // escala 0-100
+    const metrics = {
+      volume: total,
+      quality_index: qualityIndex,
+      score_dist: {A:a,B:b,C:c,D:d},
+      won_count: wonCount,
+      fast_ta_pct: (squadRows.filter(r => r.ta === 'Até 1,5 dia' || r.ta === 'Até 3 dias').length / totalSafe) * 100,
+      corp_email_pct: (squadRows.filter(r => r.provider_class === 'email_corporate').length / totalSafe) * 100
+    };
+
+    rawSeries.push({
+      name: squadName,
+      raw: metrics,
+      value: [metrics.volume, metrics.quality_index, metrics.won_count, metrics.fast_ta_pct, metrics.corp_email_pct]
+    });
+  }
+  const maxVolume = rawSeries.length>0? Math.max(...rawSeries.map(s=>s.raw.volume)) : 1;
+  const maxWon = rawSeries.length>0? Math.max(...rawSeries.map(s=>s.raw.won_count)) : 1;
+  // Normalização 0-100 para volume e won_count
+  const normSeries = rawSeries.map(s=>({
+    name: s.name,
+    raw: s.raw,
+    value: [
+      (s.raw.volume/Math.max(1,maxVolume))*100,
+  s.raw.quality_index,
+      (s.raw.won_count/Math.max(1,maxWon))*100,
+      s.raw.fast_ta_pct,
+      s.raw.corp_email_pct
+    ]
+  }));
+  const indicator = [
+    { name: 'Volume (norm)', max: 100 },
+  { name: 'Qualidade (Índice)', max: 100 },
+    { name: 'Reuniões (WON norm)', max: 100 },
+    { name: 'Rapidez (TA ≤ 3d %)', max: 100 },
+    { name: 'Agendamentos (%)', max: 100 }
+  ];
+  return { indicator, seriesData: normSeries };
+}
+
+function renderSquadRadar(data) {
+    const chartDom = document.getElementById('chartSquadRadar');
+    if (!chartDom) return;
+    echarts.dispose(chartDom);
+    if (!data || data.length === 0) { return; }
+  const { indicator, seriesData } = prepareRadarData(data);
+    if (seriesData.length === 0) return;
+    const myChart = echarts.init(chartDom);
+    const option = {
+        backgroundColor: 'transparent',
+        title: { text: '', left: 'center', textStyle: { color: '#eee' } },
+        legend: {
+            bottom: 5, data: seriesData.map(s => s.name),
+            textStyle: { color: '#fff', fontSize: 14 },
+            selectedMode: 'multiple'
+        },
+        tooltip: { 
+            trigger: 'item',
+            formatter: (p)=>{
+              if(!p || !p.value) return '';
+              // Recupera referência crua via nome
+              const ref = seriesData.find(s=>s.name===p.name);
+              if(!ref) return p.name;
+              const r = ref.raw;
+              const dist = r.score_dist || {A:0,B:0,C:0,D:0};
+              const distTotal = Math.max(1, dist.A+dist.B+dist.C+dist.D);
+              const pct = x=> (x/distTotal*100).toFixed(1)+'%';
+              return `<b>${p.name}</b><br>`+
+                `Volume: ${r.volume} (norm ${(p.value[0]).toFixed(1)}%)<br>`+
+                `Qualidade (Índice): ${r.quality_index.toFixed(1)} (A ${pct(dist.A)} | B ${pct(dist.B)} | C ${pct(dist.C)} | D ${pct(dist.D)})<br>`+
+                `Reuniões (WON): ${r.won_count} (norm ${(p.value[2]).toFixed(1)}%)<br>`+
+                `Rapidez (TA ≤3d): ${r.fast_ta_pct.toFixed(1)}%<br>`+
+                `Agendamentos (Corp %): ${r.corp_email_pct.toFixed(1)}%`;
+            }
+        },
+        radar: {
+            indicator: indicator, shape: 'circle', splitNumber: 5,
+            axisName: { color: 'rgb(238, 197, 102)' },
+            splitLine: { lineStyle: { color: [
+                'rgba(238, 197, 102, 0.1)', 'rgba(238, 197, 102, 0.2)',
+                'rgba(238, 197, 102, 0.4)', 'rgba(238, 197, 102, 0.6)',
+                'rgba(238, 197, 102, 0.8)', 'rgba(238, 197, 102, 1)'
+            ].reverse() } },
+            splitArea: { show: false },
+            axisLine: { lineStyle: { color: 'rgba(238, 197, 102, 0.5)' } }
+        },
+        series: [{
+            name: 'Squads', type: 'radar', data: seriesData,
+            symbol: 'circle', symbolSize: 6,
+            lineStyle: { width: 2 }, areaStyle: { opacity: 0.1 }
+        }]
+    };
+    myChart.setOption(option, true);
+    addResize(myChart);
+}
+
+
+/* ---------- Renderização dos tópicos ---------- */
+function buildAll(data){
+  chartDataStore = {};
+  window.chartDataStore = chartDataStore; // expõe global para sendGemini
+  window.currentData = data;
+
+  const total = data.length;
+  const status = countBy(data,'deal_status');
+  const statusPairs = STATUS_ORDER.map(s => [s, status[s] || 0]);
+  chartDataStore.kpi = {total, status: status, ...countBy(data,'provider_class'), '% TA <= 3 dias': (data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias').length/Math.max(1,total)*100).toFixed(1)};
+  renderKPIs(data);
+  renderPie('chartStatusDonut', statusPairs, 'Status Geral', total, 'status');
+  
+  const qualityByStatus = ctab(data, 'deal_status', 'score', STATUS_ORDER, SCORE_ORDER);
+  const seriesMapQuality = {};
+  SCORE_ORDER.forEach((sc, i) => { seriesMapQuality[sc] = qualityByStatus.rows.map((_, ri) => qualityByStatus.mat[ri][i] || 0); });
+  renderBarStack('chartQualityByStatus', qualityByStatus.rows, seriesMapQuality, 'status');
+
+  const squadScore = ctab(data,'origin_group_name','score', null, SCORE_ORDER);
+  const seriesMapSquad = {};
+  SCORE_ORDER.forEach((sc, i)=>{ seriesMapSquad[sc] = squadScore.rows.map((_,ri)=> squadScore.mat[ri][i]||0); });
+  chartDataStore.squad = squadScore.rows.map((row, ri) => ({squad: row, A: seriesMapSquad.A[ri], B: seriesMapSquad.B[ri], C: seriesMapSquad.C[ri], D: seriesMapSquad.D[ri]}));
+  renderBarStack('chartSquadScore', squadScore.rows, seriesMapSquad, 'squad');
+  // Insights agora são lazy: tabela aberta, cards só quando usuário pedir
+  const insightsEl = document.getElementById('squadInsights');
+  if(insightsEl){insightsEl.innerHTML='';insightsEl.style.display='none';}
+  const toggleBtn = document.getElementById('toggleSquadTableBtn');
+  if(toggleBtn){toggleBtn.textContent='Ver Insights';toggleBtn.dataset.mode='table';}
+  updateSquadTable(data);
+
+  const taSquad = ctab(data,'ta','origin_group_name', TA_ORDER, null);
+  chartDataStore.ta_squad = {rows: taSquad.rows, cols: taSquad.cols, data: taSquad.mat};
+  renderHeat('chartHeatTASquad', taSquad.rows, taSquad.cols, taSquad.mat, 'ta', 'squad');
+  // Reset TA x Squad extra area
+  const taBtn = document.getElementById('toggleTASquadBtn');
+  if(taBtn){taBtn.textContent='Ver Insights';taBtn.dataset.mode='table';}
+  const taInsights = document.getElementById('taSquadInsights');
+  if(taInsights){taInsights.innerHTML=''; taInsights.style.display='none';}
+  updateTASquadTable(data);
+
+  const sdrCount = countBy(data,'sdr');
+  const sdrs = Object.entries(sdrCount).sort((a,b)=> b[1]-a[1]).slice(0,10);
+  chartDataStore.sdr = sdrs;
+  renderBar('chartSDR', sdrs.map(d=>d[0]), sdrs.map(d=>d[1]), false, 'Top 10 SDRs por Volume', 'sdr');
+  renderTAQuickFilters();
+
+  // Normalização de closers antes de montar o gráfico
+  applyCloserNormalization(data);
+  const closerScore = ctab(data,'closer_norm','score', null, SCORE_ORDER);
+  const seriesMapCloser = {};
+  SCORE_ORDER.forEach((sc, i)=>{ seriesMapCloser[sc] = closerScore.rows.map((_,ri)=> closerScore.mat[ri][i]||0); });
+  chartDataStore.closer = closerScore.rows.map((row, ri) => ({closer: row, A: seriesMapCloser.A[ri], B: seriesMapCloser.B[ri], C: seriesMapCloser.C[ri], D: seriesMapCloser.D[ri]}));
+  renderBarStack('chartCloserScore', closerScore.rows, seriesMapCloser, 'closer');
+
+  const srcCount = countBy(data,'d_utm_source');
+  const srcPairs = Object.entries(srcCount).sort((a,b)=> b[1]-a[1]);
+  chartDataStore.source = srcPairs;
+  renderPie('chartSource', srcPairs, 'Fontes (UTM Source)', null, 'source');
+
+  const campCount = countBy(data,'d_utm_campaign');
+  let campTop = Object.entries(campCount).sort((a,b)=> b[1]-a[1]).slice(0,10);
+  
+  // Filtrar "sem valor" se checkbox ativo
+  const hideSemValor = document.getElementById('hideSemValorCampaign')?.checked;
+  if(hideSemValor) {
+    campTop = campTop.filter(c => c[0]?.toLowerCase() !== 'sem valor');
+  }
+  
+  chartDataStore.campaign = campTop;
+  renderBar('chartCampaign', campTop.map(c=>c[0]), campTop.map(c=>c[1]), true, 'Top 10 Campanhas por Volume', 'campaign');
+
+  const scoreCount = SCORE_ORDER.map(sc => [sc, data.filter(d=> d.score===sc).length]);
+  chartDataStore.score = scoreCount;
+  renderBar('chartScore', scoreCount.map(d=>d[0]), scoreCount.map(d=>d[1]), false, 'Distribuição por Score', 'score');
+
+  const taCount = TA_ORDER.map(t => [t, data.filter(d=> d.ta===t).length]);
+  chartDataStore.ta_dist = taCount;
+  renderBar('chartTADist', taCount.map(d=>d[0]), taCount.map(d=>d[1]), false, 'Distribuição por Tempo de Agendamento', 'ta');
+
+  renderNestedTags(data, document.getElementById('groupTagsByStatusBtn').classList.contains('active') ? 'deal_status' : 'score');
+  
+  // Radar comparativo de squads
+  renderSquadRadar(data);
+  try {
+    const radarSnapshot = prepareRadarData(data);
+    chartDataStore.squad_radar = radarSnapshot;
+  } catch(e){ console.warn('Falha ao gerar snapshot de radar', e); }
+
+  document.getElementById('usedCols').innerHTML = Array.from(usedColumns).sort().map(c=> `<span class="pill">${c}</span>`).join(' ');
+  extractKeyInsights(data);
+  // Passa a habilitar via função que conecta ao Gemini
+  enableSuggestions();
+}
+
+/* ---------- Gemini & Discord API ---------- */
+// IMPORTANTE: Cole suas chaves aqui. Lembre-se de não compartilhar este arquivo publicamente com estas chaves.
+const GEMINI_API_KEY = "SUA_CHAVE_AQUI"; 
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/SEU_WEBHOOK_AQUI";
+
+async function callGemini(prompt) {
+    if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("SUA_CHAVE")) {
+      return "Erro: A Chave de API do Gemini não foi configurada no código-fonte.";
+    }
+    
+    // Pega o modelo escolhido no menu (ex: "models/gemini-1.5-pro-latest")
+    const selectedModel = document.getElementById('modelSelect').value;
+
+    // CORREÇÃO AQUI: Removemos o "models/" duplicado da URL
+    const url = `https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`;
+    
+    const body = {
+        contents: [{ parts: [{ text: prompt }] }]
+    };
+
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+            const errorData = await res.json();
+            console.error("Erro da API Gemini:", errorData);
+            return `Erro na API: ${errorData.error.message}`;
+        }
+        const data = await res.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "Sem resposta da API.";
+    } catch (error) {
+        console.error("Erro ao chamar a API Gemini:", error);
+        return "Falha na comunicação com a API Gemini. Verifique o console e sua conexão de rede para detalhes.";
+    }
+}
+
+async function sendToDiscord(textContent, buttonElement) {
+    if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.includes("SUA_URL")) {
+        alert("A URL do Webhook do Discord não está configurada no código.");
+        return;
+    }
+    const originalText = buttonElement.textContent;
+    buttonElement.disabled = true;
+    buttonElement.textContent = "Resumindo...";
+
+    const summaryPrompt = `Resuma o seguinte texto de análise em menos de 1800 caracteres. Organize em tópicos rápidos, com um "Diagnóstico" e "Recomendações" claros. Use bullet points (•).\n\nTEXTO ORIGINAL:\n${textContent}`;
+
+    try {
+        const summary = await callGemini(summaryPrompt);
+        if (summary.startsWith("Erro")) {
+            alert(summary);
+            return;
+        }
+        buttonElement.textContent = "Enviando...";
+        const response = await fetch(DISCORD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: summary })
+        });
+        if (response.ok) {
+            showToast("Resumo enviado para o Discord!");
+        } else {
+            alert(`Falha ao enviar para o Discord: ${response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Erro ao resumir ou enviar para o Discord:", error);
+        alert("Ocorreu um erro. Verifique o console.");
+    } finally {
+        buttonElement.disabled = false;
+        buttonElement.textContent = originalText;
+    }
+}
+
+// --- NOVA IMPLEMENTAÇÃO toggleGemini + sendGemini (snapshot genérico) ---
+function toggleGemini(show = true){
+  const panel = document.getElementById("geminiPanel");
+  const fab = document.getElementById("geminiFab");
+  if(!panel) return;
+  const willShow = !!show;
+  panel.classList.toggle("show", willShow);
+  if(willShow){
+    panel.classList.remove('hidden');
+    panel.setAttribute('aria-hidden','false');
+    fab && fab.classList.add('on');
+    // Foca output para leitura por screen readers
+    const out = document.getElementById('geminiOutput');
+    if(out){ out.focus && out.focus(); }
+  } else {
+    panel.setAttribute('aria-hidden','true');
+    fab && fab.classList.remove('on');
+    // Mantém no DOM para preservar conteúdo
+  }
+}
+
+// Toggle minimize/maximize Gemini Panel
+function toggleGeminiMinimize(){
+  const panel = document.getElementById('geminiPanel');
+  if(!panel) return;
+  const isMinimized = panel.classList.toggle('minimized');
+  const minimizeBtn = document.getElementById('minimizePanel');
+  if(minimizeBtn) {
+    minimizeBtn.textContent = isMinimized ? '+' : '−';
+    minimizeBtn.title = isMinimized ? 'Maximizar' : 'Minimizar';
+  }
+}
+
+
+// Toggle minimize/maximize Suggestions Box
+function toggleSuggestionsMinimize(){
+  const box = document.getElementById('suggestionsBox');
+  if(!box) return;
+  const isMinimized = box.classList.toggle('minimized');
+  const minimizeBtn = document.getElementById('minimizeSuggestionsBox');
+  if(minimizeBtn) {
+    minimizeBtn.textContent = isMinimized ? '+' : '−';
+    minimizeBtn.title = isMinimized ? 'Maximizar' : 'Minimizar';
+  }
+}
+
+// Resize Gemini Panel
+(function initGeminiResize(){
+  const panel = document.getElementById('geminiPanel');
+  const handle = panel?.querySelector('.resize-handle');
+  if(!panel || !handle) return;
+  const LS_KEY='geminiPanelWidth';
+  const minW=260, maxW=480; // reduzido para adequar ao novo layout mais compacto
+  // aplica largura salva
+  try{
+    const saved = parseInt(localStorage.getItem(LS_KEY)||'',10);
+    if(saved){
+      let applyW = saved;
+      if(saved < minW) applyW = minW; else if(saved > maxW) applyW = Math.min(maxW, 340); // clamp e não exagerar
+      panel.style.width = applyW+'px';
+      panel.style.maxWidth = applyW+'px';
+    }
+  }catch(e){}
+  let startX=0,startW=0,dragging=false;
+  function onMove(e){
+    if(!dragging) return; e.preventDefault();
+    const dx = startX - (e.clientX|| (e.touches?.[0]?.clientX||0)); // arrasta desde a direita
+    let newW = Math.min(maxW, Math.max(minW, startW + dx));
+    panel.style.width=newW+'px';
+    panel.style.maxWidth=newW+'px';
+  }
+  function onUp(){
+    if(!dragging) return; dragging=false;panel.classList.remove('resizing');
+    try{localStorage.setItem(LS_KEY, parseInt(panel.offsetWidth,10));}catch(e){}
+    window.removeEventListener('mousemove',onMove);window.removeEventListener('mouseup',onUp);
+    window.removeEventListener('touchmove',onMove);window.removeEventListener('touchend',onUp);
+  }
+  handle.addEventListener('mousedown',e=>{dragging=true;panel.classList.add('resizing');startX=e.clientX;startW=panel.offsetWidth;window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);});
+  handle.addEventListener('touchstart',e=>{const t=e.touches[0];dragging=true;panel.classList.add('resizing');startX=t.clientX;startW=panel.offsetWidth;window.addEventListener('touchmove',onMove,{passive:false});window.addEventListener('touchend',onUp);});
+})();
+
+// Garante store global
+window.chartDataStore = window.chartDataStore || {};
+
+async function sendGemini(kind, buttonElement){
+  // 1) Verificações
+  if(!window.chartDataStore || !Object.prototype.hasOwnProperty.call(window.chartDataStore, kind)){
+    alert("Dados deste gráfico ainda não estão prontos. Processe o CSV e aguarde o carregamento dos gráficos.");
+    return;
+  }
+
+  // 2) UX: desabilita botão e abre painel
+  const originalText = buttonElement ? buttonElement.textContent : "";
+  if (buttonElement) { buttonElement.disabled = true; buttonElement.textContent = "Analisando..."; }
+  toggleGemini(true);
+
+  // 3) Define elementos do painel
+  const out = document.getElementById("geminiOutput");
+  const actions = document.getElementById("geminiActions");
+  if (out) out.textContent = "Gerando análise com IA...";
+  if (actions) actions.innerHTML = "";
+
+  try {
+    // 4) Monta prompt a partir do snapshot do gráfico
+    const snapshot = window.chartDataStore[kind];
+    const model = document.getElementById('modelSelect')?.value || "models/gemini-1.5-pro";
+
+    const prompt = [
+      "Você é um analista sênior de MarTech e Vendas. Gere uma análise clara, direta e acionável.",
+      "Estruture em: {nome do visualizador analisado} • Breve resumo dos dados analisados • Insight(s) • Diagnóstico • Recomendações imediatas (prioridade alta) • Riscos/atenções.",
+      `Contexto de negócio: Agendamentos selecionados (seleção atual do dashboard).`,
+      `Visualização analisada: ${kind}`,
+      `Modelo: ${model}`,
+      `Dados sintetizados (JSON):`,
+      JSON.stringify(snapshot, null, 2)
+    ].join("\n");
+
+    const text = await callGemini(prompt);
+    if (out) out.textContent = text || "Sem conteúdo retornado.";
+
+    // 6) Ações rápidas (ex.: enviar pro Discord)
+    if (actions) {
+      const btn = document.createElement("button");
+      btn.textContent = "Resumir e enviar para o Discord";
+      btn.onclick = () => sendToDiscord(out.textContent, btn);
+      actions.appendChild(btn);
+    }
+  } catch (err) {
+    console.error(err);
+    if (out) out.textContent = "Ocorreu um erro durante a análise. Verifique o console.";
+  } finally {
+    if (buttonElement) {
+      buttonElement.disabled = false;
+      buttonElement.textContent = originalText;
+    }
+  }
+}
+
+// =============================
+// Download de gráfico como PNG
+// =============================
+function downloadChartPNG(domId, fileBase){
+  try{
+    const el = document.getElementById(domId);
+    if(!el){alert('Gráfico não encontrado: '+domId);return;}
+    const chart = echarts.getInstanceByDom(el);
+    if(!chart){alert('Instância ECharts não disponível ainda.');return;}
+    const dataURL = chart.getDataURL({ type:'png', pixelRatio:2, backgroundColor:'#0b0f1a' });
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().replace(/[:T]/g,'-').split('.')[0];
+    a.href = dataURL;
+    a.download = (fileBase||domId)+'_'+stamp+'.png';
+    document.body.appendChild(a);a.click();a.remove();
+  }catch(e){
+    console.error('Falha ao exportar gráfico', e);
+    alert('Falha ao gerar o PNG. Veja o console.');
+  }
+}
+
+// Exporta dados simples para CSV (usa chartDataStore se disponível)
+function exportChartDataCSV(domId, fileBase){
+  try{
+    let kindEntry = Object.entries(chartDataStore).find(([k,v])=> v && v.domId === domId || k===domId || (v && v.chartId===domId));
+    // fallback: se existir dataset específico conhecido
+    let dataObj = chartDataStore[domId] || (kindEntry? kindEntry[1]:null);
+    if(!dataObj){
+      alert('Não há dados estruturados para este gráfico.');
+      return;
+    }
+    // tentativa genérica: se for crosstab
+    let rows=[]; let header=[];
+    if(dataObj.rows && dataObj.mat){
+      header=['Categoria', ...(dataObj.cols||[])]
+      rows = dataObj.rows.map((r,i)=> [r, ...(dataObj.mat[i]||[])]);
+    } else if(Array.isArray(dataObj.data)){ // lista simples
+      const arr = dataObj.data;
+      if(arr.length && typeof arr[0]==='object'){
+        header = Object.keys(arr[0]);
+        rows = arr.map(o=> header.map(h=> o[h]));
+      } else {
+        header=['valor']; rows = arr.map(v=>[v]);
+      }
+    } else {
+      header=['chave','valor']; rows = Object.entries(dataObj).filter(e=>typeof e[1] !== 'object');
+    }
+    const csvLines=[header.join(',')].concat(rows.map(r=> r.map(x=> (x==null?'':String(x).replace(/"/g,'""')) ).map(x=> /[",\n]/.test(x)?`"${x}"`:x).join(',')));
+    const blob=new Blob(["\ufeff"+csvLines.join('\n')],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=(fileBase||domId)+'.csv';
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},200);
+  }catch(e){console.error('Falha export CSV',e);alert('Falha ao exportar CSV. Veja console.');}
+}
+
+// Menu de ações de gráfico
+function toggleChartMenu(btn){
+  const wrap = btn.closest('.chart-menu-wrap');
+  if(!wrap) return;
+  const menu = wrap.querySelector('.chart-menu');
+  const isOpen = menu.classList.contains('show');
+  closeAllChartMenus();
+  if(!isOpen){
+    menu.classList.add('show');
+    btn.setAttribute('aria-expanded','true');
+    // clique fora
+    setTimeout(()=>{
+      window.addEventListener('click',outsideHandler,{once:true});
+    },0);
+  } else {
+    menu.classList.remove('show');
+    btn.setAttribute('aria-expanded','false');
+  }
+  function outsideHandler(ev){
+    if(!wrap.contains(ev.target)){
+      closeAllChartMenus();
+    }
+  }
+}
+function closeAllChartMenus(){
+  document.querySelectorAll('.chart-menu.show').forEach(m=>{
+    m.classList.remove('show');
+    const btn = m.parentElement.querySelector('.chart-menu-btn');
+    btn && btn.setAttribute('aria-expanded','false');
+  });
+}
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAllChartMenus();}});
+
+// Detecta automaticamente cabeçalhos com quebra de linha e ajusta alinhamento
+function applyMultiLineHeadingAlignment(){
+  const heads = document.querySelectorAll('.topic-head');
+  heads.forEach(h=>{
+    const h2 = h.querySelector('h2');
+    if(!h2) return;
+    // mede altura vs line-height aproximada (18px base ~ 1.2em ajustado). Vamos inferir >1 linha se altura > 30.
+    const rect = h2.getBoundingClientRect();
+    if(rect.height > 30){
+      h.classList.add('multi-line');
+    } else {
+      h.classList.remove('multi-line');
+    }
+  });
+}
+window.addEventListener('load',()=>{setTimeout(applyMultiLineHeadingAlignment,50);});
+window.addEventListener('resize',()=>{applyMultiLineHeadingAlignment();});
+// --- FIM DAS FUNÇÕES NOVAS ---
+
+
+function makePrompt(kind,data){
+  const base=`Atue como um analista de Growth Sênior. Sua resposta deve ser estruturada em tópicos (bullet points), começando com um resumo objetivo (Diagnóstico) e terminando com ensinamentos e recomendações (Recomendações). Foco em agendamentos.`;
+  let dataPrompt="";
+  const formatData=(d)=>{
+    if(Array.isArray(d)){
+      return d.map(item=>`- ${Array.isArray(item)?item.join(': '):JSON.stringify(item)}`).join('\n');
+    } 
+    return JSON.stringify(d,null,2);
+  };
+  
+  switch(kind){
+    case'kpi':
+      dataPrompt=`Analise os seguintes KPIs do período. Qual o principal ponto de atenção e qual a principal fortaleza que esses números revelam?\n- Total de Agendamentos: ${data.total}\n- Status: ${JSON.stringify(data.status)}\n- E-mails Corporativos: ${data['email_corporate']||0}\n- E-mails Gratuitos: ${data['email_free']||0}\n- % Agendamentos Rápidos (até 3 dias): ${data['% TA <= 3 dias']}%`;
+      break;
+    case'squad':
+      dataPrompt=`Com base nos seguintes dados de volume e score por squad, identifique os squads com melhor e pior performance (tanto em volume quanto em qualidade de leads A/B). O que pode justificar essa diferença?\n${formatData(data)}`;
+      break;
+    case'ta_squad':
+      const heatMapData=data.rows.map((row,i)=>`  - ${row}: ${data.cols.map((col,j)=>`${col}(${data.data[i][j]})`).join(', ')}`).join('\n');
+      dataPrompt=`Analise o seguinte heatmap de Tempo de Agendamento (TA) por squad. Quais squads são mais eficientes (mais agendamentos em menos tempo)? Quais são os gargalos?\n${heatMapData}`;
+      break;
+    case'sdr':
+      dataPrompt=`Avalie a lista dos SDRs mais produtivos por volume. Com base nesses dados, que hipóteses podemos levantar sobre as estratégias que estão funcionando?\n${formatData(data)}`;
+      break;
+    case'closer':
+      dataPrompt=`Avalie quais closers estão recebendo mais leads de score A e B. A distribuição parece equilibrada? Existe alguma oportunidade de melhoria na passagem de bastão do SDR para o Closer?\n${formatData(data)}`;
+      break;
+    case'source':
+      dataPrompt=`Analise a performance das seguintes fontes de tráfego (UTM Source) por volume de agendamentos. Quais canais são mais relevantes?\n${formatData(data)}`;
+      break;
+    case'campaign':
+      dataPrompt=`Estas são as 10 principais campanhas por volume. Analise os nomes e a contagem. Que temas, ofertas ou padrões emergem como os mais eficazes?\n${formatData(data)}`;
+      break;
+    case'score':
+      dataPrompt=`Analise a distribuição de scores de agendamento abaixo. O que a proporção entre scores A/B e C/D nos diz sobre a qualidade dos leads gerados no período?\n${formatData(data)}`;
+      break;
+    case'ta_dist':
+      dataPrompt=`Analise a distribuição do Tempo até o Agendamento (TA). Onde se concentra a maior parte dos agendamentos? Estamos sendo rápidos o suficiente para aproveitar o interesse do lead?\n${formatData(data)}`;
+      break;
+    case'tags_composition':
+      let compData=`Dados de composição de tags agrupados por '${data.groupBy}':\n`;
+      for(const cat in data.data){
+        compData+=`- Categoria ${cat} (Total: ${data.data[cat].total}):\n`;
+        const topTags=Object.entries(data.data[cat].tags).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        for(const[tag,count] of topTags){
+          compData+=`  - ${tag}: ${count}\n`;
+        }
+      } 
+      dataPrompt=`Analise a composição de tags abaixo. Quais são as tags mais relevantes dentro de cada categoria? Identifique padrões ou insights importantes. Por exemplo, as tags dos leads 'WON' são diferentes das de 'LOST'? As tags de score 'A' indicam algum perfil específico?\n${compData}`;
+      break;
+    default:
+      dataPrompt="Analise os dados gerais e forneça insights.";
+      break;
+  } 
+  return`${base}\n\nDados para Análise:\n${dataPrompt}`;
+}
+
+
+
+/* ---------- Carregamento Automático do CSV ---------- */
+const fileInput = document.getElementById('file');
+fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+        console.log('📂 Carregando arquivo:', file.name);
+        
+        // Carrega e processa TODOS os dados
+        rawRows = await loadCSV(file);
+        usedColumns = new Set();
+        
+        const data = process({ rows: rawRows });
+
+        if (!data.length) {
+            alert('Nenhuma linha encontrada com title=Agendamento de reunião e type=SCHEDULE.');
+            return;
+        }
+
+        // Armazena dados processados
+        DATA = data;
+        currentData = data;
+        
+        // Limpa filtros ativos
+        globalFilters.clear();
+
+        // Renderiza dashboard com todos os dados
+        buildAll(DATA);
+        renderFilterPanel();
+        
+        console.log(`✅ Dashboard carregado: ${DATA.length} registros processados`);
+        
+    } catch (error) {
+        console.error("Erro ao processar:", error);
+        alert("Ocorreu um erro ao processar. Verifique o console para mais detalhes.");
+    }
+});
+
+document.getElementById('generateSuggestionsBtn').addEventListener('click', generateSuggestions);
+
+// Event listeners para filtro global de data
+document.getElementById('applyGlobalDate').addEventListener('click', () => {
+    const startInput = document.getElementById('globalDateStart');
+    const endInput = document.getElementById('globalDateEnd');
+    const infoEl = document.getElementById('globalDateInfo');
+    
+    const start = startInput.value.trim();
+    const end = endInput.value.trim();
+    
+    if (!start || !end) {
+        alert('Por favor, preencha ambas as datas (início e fim).');
+        return;
+    }
+    
+    if (start > end) {
+        alert('A data de início não pode ser maior que a data de fim.');
+        return;
+    }
+    
+    globalDateStart = start;
+    globalDateEnd = end;
+    
+    // Feedback visual
+    const [startYear, startMonth, startDay] = start.split('-').map(Number);
+    const [endYear, endMonth, endDay] = end.split('-').map(Number);
+    const startDateObj = new Date(startYear, startMonth - 1, startDay);
+    const endDateObj = new Date(endYear, endMonth - 1, endDay);
+    const startFormatted = startDateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const endFormatted = endDateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    
+    infoEl.textContent = `✓ Filtro ativo: ${startFormatted} → ${endFormatted}`;
+    infoEl.style.color = '#22c55e';
+    
+    applyAndRender();
+});
+
+document.getElementById('clearGlobalDate').addEventListener('click', () => {
+    globalDateStart = null;
+    globalDateEnd = null;
+    document.getElementById('globalDateStart').value = '';
+    document.getElementById('globalDateEnd').value = '';
+    document.getElementById('globalDateInfo').textContent = '';
+    applyAndRender();
+});
+
+const btnStatus = document.getElementById('groupTagsByStatusBtn');
+const btnScore = document.getElementById('groupTagsByScoreBtn');
+btnStatus.addEventListener('click',()=>{renderNestedTags(currentData, 'deal_status');btnStatus.classList.add('active');btnScore.classList.remove('active');});
+btnScore.addEventListener('click',()=>{renderNestedTags(currentData, 'score');btnScore.classList.add('active');btnStatus.classList.remove('active');});
+
+</script>
+
+<script>
+// --- Função para habilitar botão de Sugestões com IA (Gemini) ---
+function enableSuggestions(){
+  const btn = document.getElementById("generateSuggestionsBtn");
+  if(!btn) return;
+  btn.disabled = false;
+  btn.onclick = async () => {
+    toggleGemini(true);
+    const out = document.getElementById("geminiOutput");
+    const actions = document.getElementById("geminiActions");
+    if(out) out.textContent = "Gerando sugestões de pesquisa para aprofundar os achados...";
+    if(actions) actions.innerHTML = "";
+
+    const snap = {
+      kpi: window.chartDataStore?.kpi || {},
+      source: window.chartDataStore?.source || {},
+      campaign: window.chartDataStore?.campaign || {},
+      squad: window.chartDataStore?.squad || {}
+    };
+
+    const prompt = [
+      "Liste 8-12 ideias de pesquisas/ações para acelerar ganhos e reduzir atritos nos agendamentos do dia.",
+      "Priorize impacto alto e custo baixo de execução. Cada ideia deve vir com: objetivo, como executar em 3 passos e métrica de sucesso.",
+      "Baseie-se nos dados abaixo.",
+      JSON.stringify(snap, null, 2)
+    ].join('\n');
+
+    const text = await callGemini(prompt);
+    if(out) out.textContent = text || "Sem conteúdo retornado.";
+  };
+}
+</script>
+
+<script>
+  // ALTERAÇÃO FINAL: Lógica para mostrar o cabeçalho APENAS no topo.
+  const header = document.querySelector('header');
+  const scrollThreshold = 10; // Uma pequena margem para não esconder em rolagens mínimas
+  
+  window.addEventListener('scroll', function() {
+      // Pega a posição atual da rolagem
+      let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      // Se a rolagem for maior que o limiar, esconde o cabeçalho.
+      if (scrollTop > scrollThreshold) { 
+          header.classList.add('header-hidden');
+      } else { // Senão (se estiver no topo), mostra o cabeçalho.
+          header.classList.remove('header-hidden');
+      }
+  }, false);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Lógica para compensar a altura do cabeçalho fixo
+    const headerElement = document.querySelector('header');
+    const mainElement = document.querySelector('main');
+    if (headerElement && mainElement) {
+        const headerHeight = headerElement.offsetHeight;
+        mainElement.style.paddingTop = `${headerHeight}px`;
+    }
+    
+    // Event listeners para botões do painel Gemini
+    const closeBtn = document.getElementById('closePanel');
+    const minimizeBtn = document.getElementById('minimizePanel');
+    
+    if(closeBtn) closeBtn.addEventListener('click', () => toggleGemini(false));
+    if(minimizeBtn) minimizeBtn.addEventListener('click', toggleGeminiMinimize);
+    
+    // Event listeners do painel de filtros (padrão 04)
+    const filterToggleBtn = document.getElementById('filter-toggle');
+    const filterClearBtn  = document.getElementById('filter-clear');
+    if(filterToggleBtn) filterToggleBtn.addEventListener('click', ()=>{ document.getElementById('filter-panel')?.classList.toggle('collapsed'); });
+    if(filterClearBtn)  filterClearBtn.addEventListener('click', clearGlobalFilters);
+    renderFilterPanel();
+    
+    // Event listener para botão do Suggestions Box
+    const minimizeSuggestionsBtn = document.getElementById('minimizeSuggestionsBox');
+    if(minimizeSuggestionsBtn) minimizeSuggestionsBtn.addEventListener('click', toggleSuggestionsMinimize);
+  });
+</script>
+
+<!-- Modal Metodologia -->
+<div class="modal-overlay" id="modalMetodologia">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>📖 Metodologia - Análise de Agendamentos</h2>
+      <button class="modal-close" onclick="closeMetodologiaModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h3>📂 Como usar este dashboard:</h3>
+      <p style="background: rgba(153,41,234,0.15); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
+        📁 <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br>
+        <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar atividades de agendamentos do CRM (contém UTMs, Squad, TA).</span>
+      </p>
+      <ul style="margin-bottom: 16px;">
+        <li><strong>Faça upload de um arquivo CSV</strong> contendo agendamentos com as seguintes colunas:
+          <ul style="margin-top: 4px;">
+            <li><code>deal_id</code> ou <code>contact_id</code> - Identificador único</li>
+            <li><code>deal_created_at</code> ou <code>created_at</code> - Data de criação</li>
+            <li><code>origin_name</code> ou <code>origin_group_name</code> - Origem do lead</li>
+            <li><code>deal_status</code> - Status do agendamento (WON, LOST, OPEN)</li>
+            <li><strong>Colunas UTM (opcionais):</strong> <code>utm_source</code>, <code>utm_campaign</code>, <code>utm_content</code></li>
+            <li><strong>Colunas de Squad (opcionais):</strong> <code>sdr</code>, <code>closer</code>, <code>squad</code></li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>🔍 Funcionalidades principais:</h3>
+      <ul>
+        <li><strong>Filtro Global de Datas:</strong> Configure o período de análise desejado</li>
+        <li><strong>UTM Flow (Sankey):</strong> Visualize o fluxo de <code>utm_source → utm_campaign → utm_content</code></li>
+        <li><strong>Squad Insights:</strong> Performance por equipe (qualidade, velocidade, conversão)</li>
+        <li><strong>TA (Time to Assignment):</strong> Filtros rápidos por tempo de atribuição</li>
+        <li><strong>Análises IA:</strong> Insights automatizados via Google Gemini</li>
+      </ul>
+
+      <h3>⚙️ Processamento automático:</h3>
+      <ul>
+        <li>✅ <strong>Deduplicação:</strong> Remove registros duplicados por <code>deal_id</code></li>
+        <li>✅ <strong>Normalização de origens:</strong> Padroniza nomes (Facebook Ads, Google Ads, etc.)</li>
+        <li>✅ <strong>Normalização de status:</strong> Agrupa variações de WON/LOST/OPEN</li>
+        <li>✅ <strong>Parseamento de datas:</strong> Suporta formatos DD/MM/YYYY e ISO</li>
+        <li>✅ <strong>Cálculo de métricas:</strong> Taxa de conversão, qualidade, velocidade</li>
+      </ul>
+
+      <h3>📊 Visualizações disponíveis:</h3>
+      <ul>
+        <li><strong>Distribuição por Origem:</strong> Quantidade e taxa de conversão</li>
+        <li><strong>Tendência Temporal:</strong> Evolução de agendamentos ao longo do tempo</li>
+        <li><strong>Análise de Squad:</strong> Performance por equipe/SDR/Closer</li>
+        <li><strong>UTM Analysis:</strong> ROI e performance por campanha</li>
+        <li><strong>Heatmaps:</strong> Correlações entre dimensões</li>
+      </ul>
+
+      <h3>💡 Dicas de uso:</h3>
+      <ul>
+        <li>📌 Use <strong>filtros interativos</strong> no painel lateral para análises focadas</li>
+        <li>🤖 Clique em <strong>"🤖"</strong> nos gráficos para insights de IA contextualizados</li>
+        <li>📥 Exporte gráficos como <strong>PNG</strong> ou dados como <strong>CSV</strong></li>
+        <li>📄 Use <strong>"Exportar PDF"</strong> para relatórios completos</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== FUNÇÕES DO MODAL METODOLOGIA ==========
+function openMetodologiaModal() {
+  const modal = document.getElementById('modalMetodologia');
+  modal.classList.add('active');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMetodologiaModal() {
+  const modal = document.getElementById('modalMetodologia');
+  modal.classList.remove('active');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 200);
+  document.body.style.overflow = '';
+}
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeMetodologiaModal();
+  }
+});
+
+// Fechar modal clicando fora do conteúdo
+document.getElementById('modalMetodologia')?.addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeMetodologiaModal();
+  }
+});
+</script>
+
+
+<script>
+/* DEMO MODE — dados fictícios para portfólio */
+(function(){
+  var sdrs = ['Ana Souza','Bruno Lima','Carla Mendes','Diego Castro','Elisa Ramos'];
+  var closers = ['Fernanda Costa','Gabriel Nunes','Helena Dias','Igor Aguiar'];
+  var squads = ['Squad Alpha','Squad Beta','Squad Gamma','Squad Delta'];
+  var sources = ['facebook','google','instagram','linkedin','referral'];
+  var campaigns = ['camp_awareness_q4','camp_retargeting_out','camp_ebook_nov','camp_webinar_dec','camp_brand_q3'];
+  var statuses = ['WON','WON','WON','LOST','LOST','OPEN','OPEN','OPEN'];
+  var emails = ['joao@empresa.com','maria@firma.com.br','pedro@startup.io','ana@varejo.com.br'];
+
+  function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function addDays(base, days){
+    var d = new Date(base); d.setDate(d.getDate()+days);
+    return d.toISOString().split('T')[0]+'T'+String(randInt(8,18)).padStart(2,'0')+':00:00';
+  }
+
+  var rows = [];
+  var base = new Date('2025-07-01');
+  for(var i=0;i<150;i++){
+    var dealCreated = addDays(base, randInt(0,180));
+    var taCreated = addDays(base, randInt(0,180)+randInt(1,5));
+    rows.push({
+      title: 'Agendamento de reuni\u00e3o',
+      type: 'SCHEDULE',
+      ta_created_at: taCreated,
+      deal_created_at: dealCreated,
+      lead_score: String(randInt(30,100)),
+      deal_status: rand(statuses),
+      origin_group_name: rand(squads),
+      sdr: rand(sdrs),
+      closer: rand(closers),
+      d_utm_source: rand(sources),
+      d_utm_campaign: rand(campaigns),
+      contact_tags: JSON.stringify((function(){
+        var pool=['PME','Startup','Varejo','B2B','B2C','Tech','Indústria','Saúde','Educação',
+                  'Financeiro','Logística','Agronegócio','E-commerce','SaaS','Consultoria',
+                  'Franquia','Atacado','Serviços','Imobiliário','RH'];
+        var n=randInt(2,4); var tags=[]; var used={};
+        while(tags.length<n){ var t=rand(pool); if(!used[t]){used[t]=true;tags.push(t);} }
+        return tags;
+      })()),
+      tags_ia: JSON.stringify((function(){
+        var pool=['quente','morno','frio','urgente','retorno','qualificado','desqualificado',
+                  'follow-up','decisor','influenciador','orcamento-aprovado','longo-prazo',
+                  'concorrente','trial','demo-agendada'];
+        var n=randInt(1,3); var tags=[]; var used={};
+        while(tags.length<n){ var t=rand(pool); if(!used[t]){used[t]=true;tags.push(t);} }
+        return tags;
+      })()),
+      email: rand(emails),
+      deal_id: 'deal-'+String(i+1).padStart(4,'0'),
+      contact_id: 'cont-'+String(i+1).padStart(4,'0')
+    });
+  }
+
+  function initDemo(){
+    if(typeof process !== 'function' || typeof buildAll !== 'function'){ setTimeout(initDemo,300); return; }
+    try {
+      window.rawRows = rows; window.usedColumns = new Set();
+      var processedData = process({ rows: rows });
+      DATA = processedData;
+      currentData = processedData;
+      buildAll(processedData);
+      renderFilterPanel();
+      document.querySelectorAll('.uploader').forEach(function(el){ el.style.display='none'; });
+      addDemoBadge('#9929EA','#6B1FB1');
+    } catch(e){ console.error('[DEMO] Erro:',e); }
+  }
+
+  function addDemoBadge(c1,c2){
+    var b = document.createElement('div');
+    b.style.cssText = 'position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,'+c1+','+c2+');color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.4);pointer-events:none';
+    b.textContent = '\uD83D\uDCCA Demo \u2014 dados fict\u00edcios';
+    document.body.appendChild(b);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initDemo);
+  else setTimeout(initDemo,500);
+})();
+</script>
+
+</body>
+</html>

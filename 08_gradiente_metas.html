@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  GRADIENTE DE METAS — Dashboard Gamificado (TV 1920x1080)       ║
+  ║  Versão Portfólio: standalone com dados fictícios               ║
+  ║                                                                  ║
+  ║  INTEGRAÇÃO API ORIGINAL (substituir para novo CRM)              ║
+  ║    • GET /api/v1/deals?status=WON                                ║
+  ║    • GET /api/v1/origins                                         ║
+  ║    • Auth: Bearer token + api-token header                      ║
+  ║    • Backend: Google Apps Script (Code.gs)                      ║
+  ║                                                                  ║
+  ║  ADAPTAÇÃO AAWZ: Substituir os blocos marcados com              ║
+  ║    "// ── AAWZ: ADAPTAR ──" pelas chamadas reais                ║
+  ║    ao novo backend (Apps Script ou REST API direta)             ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gradiente de Metas — Demo</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+/* ============================================================================
+   GRADIENTE DE METAS — CSS (Dashboard TV 1920×1080)
+   ============================================================================ */
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:#0B0F1A; --bg-card:#1a1f2e; --bg-card-hover:#242a3d;
+  --accent:#38bdf8; --accent-light:#7dd3fc; --accent-dark:#0284c7;
+  --accent-glow:rgba(56,189,248,0.5); --accent-glow-strong:rgba(56,189,248,0.8);
+  --good:#22c55e; --good-glow:rgba(34,197,94,0.4);
+  --warn:#f59e0b; --warn-glow:rgba(245,158,11,0.4);
+  --bad:#ef4444; --bad-glow:rgba(239,68,68,0.4);
+  --future:rgba(56,189,248,0.4); --future-border:rgba(56,189,248,0.6);
+  --text-primary:#ffffff; --text-secondary:#94a3b8; --text-muted:#64748b;
+  --gradient-progress:linear-gradient(90deg,#38bdf8,#22c55e);
+  --gradient-card:linear-gradient(135deg,#1a1f2e 0%,#0f1320 100%);
+  --header-height:80px; --border-radius:16px; --border-radius-sm:8px;
+}
+
+html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Montserrat',sans-serif; color:var(--text-primary); }
+
+/* Loading */
+.loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; transition:opacity 0.3s ease; }
+.loading-overlay.hidden { opacity:0; pointer-events:none; }
+.loading-spinner { width:60px; height:60px; border:4px solid var(--bg-card); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@keyframes slideIn { from { transform:translateX(400px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+.loading-text { margin-top:20px; font-size:18px; color:var(--text-secondary); font-weight:500; }
+
+/* Container principal 1920×1080 */
+#app-container { position:absolute; top:0; left:0; width:1920px; height:1080px; transform-origin:top left; background:var(--bg); display:flex; flex-direction:column; padding:20px 40px; }
+
+/* Header */
+.header { height:var(--header-height); display:flex; justify-content:space-between; align-items:center; padding:0 20px; background:var(--gradient-card); border-radius:var(--border-radius); margin-bottom:20px; }
+.header-left { display:flex; align-items:center; }
+.logo { font-size:28px; font-weight:800; background:linear-gradient(90deg,var(--accent),var(--accent-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; letter-spacing:1px; }
+.header-center { text-align:center; }
+.mes-titulo { font-size:32px; font-weight:700; color:var(--text-primary); }
+.meta-valor { font-size:18px; color:var(--text-secondary); margin-top:4px; }
+.header-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+.header-controls { display:flex; gap:10px; align-items:center; }
+
+.strategy-select { background:var(--bg); border:1px solid var(--accent); color:var(--accent-light); padding:8px 14px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s ease; letter-spacing:0.3px; }
+.strategy-select:hover { border-color:var(--accent-light); background:rgba(56,189,248,0.1); }
+.strategy-select:focus { outline:none; box-shadow:0 0 0 2px var(--accent-glow); }
+.strategy-select option { background:var(--bg); color:var(--text-primary); }
+
+.data-source-badge { display:flex; align-items:center; gap:6px; background:var(--bg); border:1px solid var(--accent); padding:6px 12px; border-radius:var(--border-radius-sm); font-size:12px; color:var(--text-secondary); transition:all 0.2s ease; }
+.data-source-badge.api { border-color:var(--good); background:rgba(34,197,94,0.1); }
+.data-source-badge.api .badge-text { color:var(--good); }
+.data-source-badge.demo-mode { border-color:#f59e0b; background:rgba(245,158,11,0.1); }
+.data-source-badge.demo-mode .badge-text { color:#f59e0b; }
+.badge-text { font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; }
+
+.refresh-select { background:var(--bg); border:1px solid var(--accent); color:var(--text-primary); padding:8px 12px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:14px; cursor:pointer; }
+.refresh-btn,.fullscreen-btn { background:var(--accent); border:none; color:white; width:36px; height:36px; border-radius:var(--border-radius-sm); font-size:18px; cursor:pointer; transition:all 0.2s ease; }
+.refresh-btn:hover,.fullscreen-btn:hover { background:var(--accent-light); transform:scale(1.05); }
+.last-update { font-size:12px; color:var(--text-muted); }
+
+/* Main */
+.main-content { flex:1; display:flex; flex-direction:column; gap:20px; }
+
+/* Progress Section */
+.progress-section { background:var(--gradient-card); border-radius:var(--border-radius); padding:30px 40px; }
+.progress-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.progress-title { font-size:20px; font-weight:700; color:var(--text-secondary); letter-spacing:2px; }
+.progress-stats { font-size:24px; display:flex; align-items:baseline; gap:8px; }
+.stat-value { font-weight:700; color:var(--accent); }
+.stat-separator { color:var(--text-muted); font-weight:400; }
+.stat-meta { color:var(--text-secondary); font-weight:600; }
+.progress-bar-container { display:flex; align-items:center; gap:40px; }
+.progress-bar-bg { flex:1; height:60px; background:rgba(255,255,255,0.05); border-radius:30px; position:relative; overflow:hidden; border:2px solid rgba(255,255,255,0.1); }
+.progress-marker { position:absolute; top:0; bottom:0; width:2px; background:rgba(255,255,255,0.2); z-index:2; }
+.progress-marker::after { content:attr(data-label); position:absolute; bottom:-25px; left:50%; transform:translateX(-50%); font-size:12px; color:var(--text-muted); font-weight:600; }
+.progress-bar-fill { height:100%; background:var(--gradient-progress); border-radius:30px; position:relative; transition:width 1.2s cubic-bezier(0.4,0,0.2,1),background 0.5s ease; min-width:0; box-shadow:0 0 30px var(--accent); }
+.progress-glow { position:absolute; right:0; top:50%; transform:translateY(-50%); width:20px; height:80%; background:rgba(255,255,255,0.6); border-radius:10px; filter:blur(8px); animation:pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
+.progress-info { text-align:right; min-width:180px; }
+.progress-percent { display:flex; align-items:baseline; justify-content:flex-end; }
+.percent-value { font-size:64px; font-weight:800; background:var(--gradient-progress); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1; }
+.percent-symbol { font-size:32px; font-weight:700; color:var(--accent); margin-left:4px; }
+.faltante-info { font-size:16px; color:var(--text-secondary); margin-top:4px; }
+
+/* Weeks Grid */
+.weeks-section { flex:1; min-height:0; display:flex; flex-direction:column; }
+.weeks-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:20px; flex:1; }
+
+.week-card { background:var(--gradient-card); border-radius:var(--border-radius); padding:24px; display:flex; flex-direction:column; border:2px solid rgba(56,189,248,0.3); box-shadow:none; transition:all 0.3s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden; opacity:1; }
+@keyframes fadeInCard { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+.week-card:nth-child(1) { animation-delay:0.1s; } .week-card:nth-child(2) { animation-delay:0.2s; } .week-card:nth-child(3) { animation-delay:0.3s; } .week-card:nth-child(4) { animation-delay:0.4s; } .week-card:nth-child(5) { animation-delay:0.5s; }
+
+.week-card.batida { border-color:rgba(34,197,94,0.5)!important; box-shadow:none!important; background:linear-gradient(135deg,rgba(34,197,94,0.08) 0%,#0f1320 100%); }
+.week-card.passada { border-color:rgba(56,189,248,0.25)!important; box-shadow:none!important; background:linear-gradient(135deg,rgba(56,189,248,0.06) 0%,#0f1320 100%); opacity:0.85; }
+.week-card.em_andamento { border-color:var(--accent-light)!important; box-shadow:0 0 40px var(--accent-glow-strong)!important; animation:cardPulseStrong 2s ease-in-out infinite; transform:scale(1.02); z-index:10; }
+.week-card.futura { border-color:rgba(56,189,248,0.2)!important; box-shadow:none!important; background:linear-gradient(135deg,rgba(56,189,248,0.1) 0%,#0f1320 100%); opacity:0.7; }
+@keyframes cardPulseStrong { 0%,100% { box-shadow:0 0 40px var(--accent-glow-strong); transform:scale(1.02); } 50% { box-shadow:0 0 60px var(--accent-glow-strong),0 0 90px var(--accent-glow); transform:scale(1.03); } }
+
+.week-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+.week-title { font-size:20px; font-weight:700; }
+.week-periodo { font-size:14px; color:var(--text-muted); margin-top:4px; }
+.week-status-icon { font-size:32px; color:var(--accent); }
+.week-status-icon.batida { color:var(--good); }
+.week-status-icon.passada { color:var(--text-muted); opacity:0.8; }
+.week-status-icon.em_andamento { color:var(--accent-light); animation:iconPulse 2s ease-in-out infinite; }
+.week-status-icon.futura { opacity:0.5; }
+@keyframes iconPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.1); } }
+
+.week-progress-bar-container { margin:16px 0; display:flex; align-items:center; gap:12px; }
+.week-progress-bar-bg { flex:1; height:16px; background:rgba(255,255,255,0.05); border-radius:8px; overflow:hidden; position:relative; }
+.week-progress-bar-fill { height:100%; border-radius:8px; transition:width 0.5s ease; position:relative; overflow:hidden; }
+.week-progress-bar-fill.good { background:linear-gradient(90deg,var(--good),#16a34a); }
+.week-progress-bar-fill.progress { background:linear-gradient(90deg,#3b82f6,#2563eb); }
+.week-progress-bar-fill.future { background:var(--accent); opacity:0.3; }
+.week-progress-glow { position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent); animation:shimmer 2s infinite; }
+.week-progress-percent { font-size:18px; font-weight:700; color:#fff; min-width:50px; text-align:right; }
+@keyframes shimmer { 0% { transform:translateX(-100%); } 100% { transform:translateX(100%); } }
+
+.week-values { flex:1; display:flex; flex-direction:column; gap:12px; }
+.week-row { display:flex; justify-content:space-between; align-items:center; }
+.week-label { font-size:14px; color:var(--text-muted); font-weight:500; }
+.week-value { font-size:18px; font-weight:600; }
+.week-value.meta { color:var(--text-secondary); } .week-value.realizado { color:var(--text-primary); } .week-value.positivo { color:var(--good); } .week-value.negativo { color:var(--bad); }
+
+.week-sales { margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1); }
+.week-sales-title { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+.week-sale-item { display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:13px; }
+.week-sale-closer { color:var(--text-secondary); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+.week-sale-value { color:var(--accent); font-weight:700; margin-left:12px; }
+.week-sales-empty { font-size:12px; color:var(--text-muted); font-style:italic; text-align:center; padding:8px 0; }
+
+/* Timeline */
+.timeline-section { background:var(--gradient-card); border-radius:var(--border-radius); padding:20px 30px; height:180px; display:flex; flex-direction:column; position:relative; z-index:100; overflow:visible; }
+.timeline-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.timeline-title { font-size:14px; font-weight:700; color:var(--text-secondary); letter-spacing:1.5px; }
+.timeline-count { font-size:13px; color:var(--text-muted); font-weight:600; }
+.timeline-container { flex:1; position:relative; overflow-x:auto; overflow-y:visible; }
+.timeline-axis { position:relative; height:100%; display:flex; flex-direction:column; justify-content:center; }
+.timeline-line { width:100%; height:2px; background:linear-gradient(90deg,var(--accent),rgba(56,189,248,0.3)); position:relative; }
+.timeline-markers { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; }
+.timeline-marker { position:absolute; transform:translateX(-50%); z-index:50; transition:all 0.2s ease; }
+.timeline-marker:hover { transform:translateX(-50%) scale(1.15); }
+.timeline-point { width:2px; height:20px; background:rgba(56,189,248,0.7); cursor:pointer; transition:background 0.2s ease; position:absolute; bottom:-10px; }
+.timeline-marker:hover .timeline-point { background:rgba(56,189,248,1); }
+.timeline-value-label { position:absolute; top:-32px; left:50%; transform:translateX(-50%); font-size:10px; font-weight:500; color:rgba(255,255,255,0.75); white-space:nowrap; pointer-events:none; text-align:center; line-height:1.3; }
+.timeline-marker:hover .timeline-value-label { color:rgba(255,255,255,0.95); font-weight:600; }
+.timeline-day-labels { display:flex; justify-content:space-between; margin-top:8px; padding:0 10px; }
+.timeline-day-label { font-size:11px; color:var(--text-muted); font-weight:600; }
+.no-data { display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-muted); }
+.no-data-text { font-size:16px; }
+
+/* Config Modal */
+.config-btn { background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer; margin-left:12px; opacity:0.3; transition:opacity 0.3s,color 0.3s; padding:4px; }
+.config-btn:hover { opacity:1; color:var(--accent-light); }
+.config-modal { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; display:flex; align-items:center; justify-content:center; }
+.config-modal.hidden { display:none; }
+.config-backdrop { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); }
+.config-panel { position:relative; background:var(--bg-card); border:1px solid rgba(56,189,248,0.3); border-radius:var(--border-radius); width:700px; max-height:80vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+.config-header { display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.06); }
+.config-title { font-size:18px; font-weight:700; color:var(--text-primary); }
+.config-close { background:transparent; border:none; color:var(--text-muted); font-size:24px; cursor:pointer; padding:4px 8px; border-radius:4px; transition:all 0.2s; }
+.config-close:hover { color:var(--bad); background:rgba(239,68,68,0.1); }
+.config-body { flex:1; overflow-y:auto; padding:16px 24px; }
+.config-month-card { background:var(--bg); border:1px solid rgba(255,255,255,0.06); border-radius:var(--border-radius-sm); padding:16px; margin-bottom:12px; }
+.config-month-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.config-month-label { font-size:14px; font-weight:600; color:var(--accent-light); }
+.config-month-delete { background:transparent; border:1px solid rgba(239,68,68,0.3); color:var(--bad); font-size:11px; cursor:pointer; padding:3px 8px; border-radius:4px; transition:all 0.2s; }
+.config-month-delete:hover { background:rgba(239,68,68,0.15); border-color:var(--bad); }
+.config-row { display:flex; gap:10px; margin-bottom:8px; align-items:center; }
+.config-field { display:flex; flex-direction:column; gap:3px; flex:1; }
+.config-field label { font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+.config-field input,.config-field select { background:var(--bg-card); border:1px solid rgba(255,255,255,0.1); color:var(--text-primary); padding:8px 10px; border-radius:4px; font-family:inherit; font-size:13px; transition:border-color 0.2s; }
+.config-field input:focus,.config-field select:focus { outline:none; border-color:var(--accent); }
+.config-pct-row { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.config-pct-total { font-size:11px; color:var(--text-muted); text-align:right; margin-top:4px; }
+.config-pct-total.pct-ok { color:var(--good); } .config-pct-total.pct-warn { color:var(--warn); } .config-pct-total.pct-bad { color:var(--bad); }
+.config-footer { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid rgba(255,255,255,0.06); }
+.config-actions { display:flex; gap:10px; }
+.config-btn-add { background:transparent; border:1px dashed var(--accent); color:var(--accent-light); padding:8px 16px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.config-btn-add:hover { background:rgba(56,189,248,0.1); }
+.config-btn-cancel { background:transparent; border:1px solid rgba(255,255,255,0.15); color:var(--text-secondary); padding:8px 20px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.config-btn-cancel:hover { border-color:rgba(255,255,255,0.3); color:var(--text-primary); }
+.config-btn-save { background:var(--accent); border:none; color:white; padding:8px 24px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.config-btn-save:hover { background:var(--accent-light); box-shadow:0 4px 12px var(--accent-glow); }
+.config-btn-save:disabled { opacity:0.5; cursor:not-allowed; }
+.config-toast { position:fixed; bottom:30px; right:30px; background:var(--good); color:white; padding:12px 24px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:13px; font-weight:600; z-index:99999; opacity:0; transform:translateY(10px); transition:all 0.3s; }
+.config-toast.show { opacity:1; transform:translateY(0); }
+.config-toast.error { background:var(--bad); }
+
+/* Demo banner */
+.demo-banner {
+  position:fixed; bottom:18px; right:18px;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  color:#fff; padding:8px 18px; border-radius:20px;
+  font-size:12px; font-weight:700; z-index:9999;
+  box-shadow:0 4px 16px rgba(56,189,248,0.5);
+  pointer-events:none; font-family:'Montserrat',sans-serif;
+  letter-spacing:0.3px;
+}
+  </style>
+</head>
+<body>
+
+  <!-- Loading Overlay -->
+  <div id="loading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Carregando dados...</div>
+  </div>
+
+  <!-- Container principal 1920×1080 -->
+  <div id="app-container">
+
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">GRADIENTE DE METAS</div>
+        <button id="config-btn" class="config-btn" title="Configurar metas">&#9881;</button>
+      </div>
+      <div class="header-center">
+        <div id="mes-atual" class="mes-titulo">Março 2026</div>
+        <div id="meta-mensal" class="meta-valor">Meta: R$ 1.500.000</div>
+      </div>
+      <div class="header-right">
+        <div class="header-controls">
+          <select id="strategySelect" class="strategy-select" title="Como redistribuir déficits entre semanas">
+            <option value="diluir">Ideia Diluir</option>
+            <option value="seguinte">Ideia Seguinte</option>
+          </select>
+          <div id="data-source-indicator" class="data-source-badge demo-mode" title="Modo demo – dados fictícios">
+            <span id="data-source-text" class="badge-text">Demo</span>
+          </div>
+          <select id="autoRefreshSelect" class="refresh-select">
+            <option value="60000">1 min</option>
+            <option value="300000" selected>5 min</option>
+            <option value="600000">10 min</option>
+            <option value="0">Desligado</option>
+          </select>
+          <button id="refresh-btn" class="refresh-btn" title="Atualizar dados">↻</button>
+          <button id="fullscreen-btn" class="fullscreen-btn" title="Tela cheia">⛶</button>
+        </div>
+        <div id="last-update" class="last-update">Última atualização: --</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Progresso mensal -->
+      <section class="progress-section">
+        <div class="progress-header">
+          <div class="progress-title">PROGRESSO DO MÊS</div>
+          <div class="progress-stats">
+            <span id="realizado-valor" class="stat-value">R$ 0</span>
+            <span class="stat-separator">de</span>
+            <span id="meta-valor-display" class="stat-meta">R$ 1.500.000</span>
+          </div>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-bg">
+            <div class="progress-marker" style="left:18%;" data-label="S1"></div>
+            <div class="progress-marker" style="left:38%;" data-label="S2"></div>
+            <div class="progress-marker" style="left:60%;" data-label="S3"></div>
+            <div class="progress-marker" style="left:85%;" data-label="S4"></div>
+            <div id="progress-bar-fill" class="progress-bar-fill" style="width:0%;">
+              <div class="progress-glow"></div>
+            </div>
+          </div>
+          <div class="progress-info">
+            <div class="progress-percent">
+              <span id="percentual-total" class="percent-value">0</span>
+              <span class="percent-symbol">%</span>
+            </div>
+            <div id="faltante-info" class="faltante-info">Faltam: R$ 1.500.000</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cards de semana -->
+      <section class="weeks-section">
+        <div class="weeks-grid" id="weeks-grid"></div>
+      </section>
+
+      <!-- Timeline de vendas -->
+      <section class="timeline-section">
+        <div class="timeline-header">
+          <span class="timeline-title">TIMELINE DE VENDAS DO MÊS</span>
+          <span id="timeline-count" class="timeline-count">0 vendas</span>
+        </div>
+        <div class="timeline-container" id="timeline-container"></div>
+      </section>
+
+    </main>
+
+    <!-- Config Modal (admin) -->
+    <div id="config-modal" class="config-modal hidden">
+      <div class="config-backdrop" onclick="closeConfigModal()"></div>
+      <div class="config-panel">
+        <div class="config-header">
+          <h2 class="config-title">Configurar Metas</h2>
+          <button class="config-close" onclick="closeConfigModal()">&times;</button>
+        </div>
+        <div class="config-body" id="config-body"></div>
+        <div class="config-footer">
+          <button class="config-btn-add" onclick="addMetaMonth()">+ Adicionar Mês</button>
+          <div class="config-actions">
+            <button class="config-btn-cancel" onclick="closeConfigModal()">Cancelar</button>
+            <button class="config-btn-save" onclick="saveMetasConfig()">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Demo badge -->
+  <div class="demo-banner">📊 Demo — dados fictícios</div>
+
+<script>
+// ============================================================================
+// GRADIENTE DE METAS — JavaScript
+// Dashboard gamificado para TV (1920×1080)
+// ============================================================================
+
+let autoRefreshTimer = null;
+let gradienteData = null;
+
+// ============================================================================
+// UTILIDADES
+// ============================================================================
+
+const formatCurrency = (num) => {
+  if (num === null || num === undefined) return '—';
+  return 'R$ ' + Math.round(num).toLocaleString('pt-BR');
+};
+
+const formatCurrencyShort = (num) => {
+  if (num === null || num === undefined) return '—';
+  if (num >= 1000000) return 'R$ ' + (num / 1000000).toFixed(1).replace('.', ',') + 'M';
+  if (num >= 1000) return 'R$ ' + Math.round(num / 1000) + 'k';
+  return 'R$ ' + Math.round(num).toLocaleString('pt-BR');
+};
+
+const formatPercent = (num) => {
+  if (num === null || num === undefined) return '—';
+  return num.toFixed(1).replace('.', ',') + '%';
+};
+
+// ============================================================================
+// SCALING PARA TV
+// ============================================================================
+
+function scaleToFit() {
+  const container = document.getElementById('app-container');
+  const scaleX = window.innerWidth / 1920;
+  const scaleY = window.innerHeight / 1080;
+  container.style.transform = `scale(${scaleX}, ${scaleY})`;
+}
+window.addEventListener('resize', scaleToFit);
+window.addEventListener('load', scaleToFit);
+
+// ============================================================================
+// AUTO-REFRESH
+// ============================================================================
+
+function setupAutoRefresh() {
+  const select = document.getElementById('autoRefreshSelect');
+  const savedInterval = localStorage.getItem('gradienteAutoRefresh') || '300000';
+  select.value = savedInterval;
+  scheduleAutoRefresh(parseInt(savedInterval));
+  select.addEventListener('change', function() {
+    const interval = parseInt(this.value);
+    localStorage.setItem('gradienteAutoRefresh', interval);
+    scheduleAutoRefresh(interval);
+  });
+}
+
+function scheduleAutoRefresh(interval) {
+  if (autoRefreshTimer) { clearTimeout(autoRefreshTimer); autoRefreshTimer = null; }
+  if (interval > 0) autoRefreshTimer = setTimeout(() => loadData(), interval);
+}
+
+// ============================================================================
+// STRATEGY SELECTOR
+// ============================================================================
+
+function setupStrategySelector() {
+  const select = document.getElementById('strategySelect');
+  const savedStrategy = localStorage.getItem('gradienteStrategy') || 'diluir';
+  select.value = savedStrategy;
+  select.addEventListener('change', function() {
+    localStorage.setItem('gradienteStrategy', this.value);
+    loadData();
+  });
+}
+
+// ============================================================================
+// FULLSCREEN
+// ============================================================================
+
+function toggleFullscreen() {
+  const elem = document.documentElement;
+  if (!document.fullscreenElement) {
+    if (elem.requestFullscreen) elem.requestFullscreen();
+    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+  }
+}
+
+// ============================================================================
+// GERADOR DE DADOS FICTÍCIOS — DEMO MODE
+// ============================================================================
+// Estrutura dos dados fake espelha exatamente o retorno de
+// Code.gs → getGradienteData(strategy) para facilitar a adaptação AAWZ.
+
+function gerarDadosFake(strategy) {
+  const CLOSERS = ['Fernanda Costa', 'Gabriel Nunes', 'Helena Dias', 'Igor Aguiar', 'Juliana Melo'];
+  const META_MENSAL = 1500000;
+
+  // Percentuais por semana (configuráveis na versão real)
+  const PCT = { S1: 0.18, S2: 0.20, S3: 0.22, S4: 0.25, SF: 0.15 };
+
+  // Vendas brutas realizadas (S1 completa, S2 completa, S3 parcial)
+  const VENDAS_BRUTAS = {
+    S1: [
+      { dia: 3,  valor: 45000, closer: 'Fernanda Costa' },
+      { dia: 4,  valor: 62000, closer: 'Gabriel Nunes'  },
+      { dia: 5,  valor: 38000, closer: 'Helena Dias'    },
+      { dia: 5,  valor: 51000, closer: 'Fernanda Costa' },
+      { dia: 6,  valor: 29000, closer: 'Igor Aguiar'     },
+      { dia: 7,  valor: 45000, closer: 'Gabriel Nunes'  },
+      { dia: 7,  valor: 42000, closer: 'Helena Dias'    },
+    ], // total: 312.000
+    S2: [
+      { dia: 10, valor: 38000, closer: 'Igor Aguiar'     },
+      { dia: 10, valor: 55000, closer: 'Gabriel Nunes'  },
+      { dia: 11, valor: 42000, closer: 'Helena Dias'    },
+      { dia: 12, valor: 28000, closer: 'Juliana Melo'   },
+      { dia: 13, valor: 45000, closer: 'Fernanda Costa' },
+      { dia: 14, valor: 52000, closer: 'Gabriel Nunes'  },
+      { dia: 14, valor: 28000, closer: 'Helena Dias'    },
+    ], // total: 288.000
+    S3: [
+      { dia: 17, valor: 52000, closer: 'Fernanda Costa' },
+      { dia: 17, valor: 47000, closer: 'Gabriel Nunes'  },
+      { dia: 18, valor: 38000, closer: 'Helena Dias'    },
+      { dia: 18, valor: 61000, closer: 'Igor Aguiar'     },
+    ], // total: 198.000 (em andamento, dias 19-21 restantes)
+  };
+
+  const r = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  // Calcular realizados
+  const realS1 = VENDAS_BRUTAS.S1.reduce((s, v) => s + v.valor, 0); // 312.000
+  const realS2 = VENDAS_BRUTAS.S2.reduce((s, v) => s + v.valor, 0); // 288.000
+  const realS3 = VENDAS_BRUTAS.S3.reduce((s, v) => s + v.valor, 0); // 198.000
+
+  const metaS1 = META_MENSAL * PCT.S1; // 270.000
+  const metaS2 = META_MENSAL * PCT.S2; // 300.000
+  const metaS3 = META_MENSAL * PCT.S3; // 330.000
+  const metaS4 = META_MENSAL * PCT.S4; // 375.000
+  const metaSF = META_MENSAL * PCT.SF; // 225.000
+
+  // Déficit de S2 (S1 bateu, então apenas S2 tem déficit)
+  const deficitS2 = Math.max(0, metaS2 - realS2); // 12.000
+
+  // Ajuste de metas por estratégia
+  let metaS3Adj, metaS4Adj, metaSFAdj;
+  if (strategy === 'diluir') {
+    // Distribui o déficit igualmente entre S3, S4 e SF
+    const parcela = deficitS2 / 3;
+    metaS3Adj = metaS3 + parcela; // 334.000
+    metaS4Adj = metaS4 + parcela; // 379.000
+    metaSFAdj = metaSF + parcela; // 229.000
+  } else {
+    // Cascata: todo o déficit vai para S3
+    metaS3Adj = metaS3 + deficitS2; // 342.000
+    metaS4Adj = metaS4;
+    metaSFAdj = metaSF;
+  }
+
+  const totalRealizado = realS1 + realS2 + realS3;
+  const percentualTotal = (totalRealizado / META_MENSAL) * 100;
+  const faltanteTotal = META_MENSAL - totalRealizado;
+
+  // Semanas
+  const faltanteS3 = metaS3Adj - realS3;
+  const diasRestantesS3 = 3; // dias 19, 20, 21
+  const mediaDiariaS3 = faltanteS3 / diasRestantesS3;
+
+  const semanas = [
+    {
+      id: 'S1', nome: 'Semana 1', periodo: '03/03 a 07/03',
+      pct: '18', meta: metaS1, metaOriginal: metaS1, metaAjustada: false,
+      realizado: realS1, percentual: (realS1 / metaS1) * 100,
+      status: 'batida', faltante: metaS1 - realS1,
+      diasRestantes: 0, mediaDiaria: 0,
+      vendas: VENDAS_BRUTAS.S1
+    },
+    {
+      id: 'S2', nome: 'Semana 2', periodo: '10/03 a 14/03',
+      pct: '20', meta: metaS2, metaOriginal: metaS2, metaAjustada: false,
+      realizado: realS2, percentual: (realS2 / metaS2) * 100,
+      status: 'passada', faltante: metaS2 - realS2,
+      diasRestantes: 0, mediaDiaria: 0,
+      vendas: VENDAS_BRUTAS.S2
+    },
+    {
+      id: 'S3', nome: 'Semana 3', periodo: '17/03 a 21/03',
+      pct: '22', meta: metaS3Adj, metaOriginal: metaS3,
+      metaAjustada: metaS3Adj !== metaS3,
+      realizado: realS3, percentual: (realS3 / metaS3Adj) * 100,
+      status: 'em_andamento', faltante: faltanteS3,
+      diasRestantes: diasRestantesS3, mediaDiaria: mediaDiariaS3,
+      vendas: VENDAS_BRUTAS.S3
+    },
+    {
+      id: 'S4', nome: 'Semana 4', periodo: '24/03 a 28/03',
+      pct: '25', meta: metaS4Adj, metaOriginal: metaS4,
+      metaAjustada: metaS4Adj !== metaS4,
+      realizado: 0, percentual: 0,
+      status: 'futura', faltante: metaS4Adj,
+      diasRestantes: 5, mediaDiaria: 0, vendas: []
+    },
+    {
+      id: 'SF', nome: 'Sprint Final', periodo: '31/03',
+      pct: '15', meta: metaSFAdj, metaOriginal: metaSF,
+      metaAjustada: metaSFAdj !== metaSF,
+      realizado: 0, percentual: 0,
+      status: 'futura', faltante: metaSFAdj,
+      diasRestantes: 1, mediaDiaria: 0, vendas: []
+    }
+  ];
+
+  // Timeline: todas as vendas do mês
+  const todasVendas = [
+    ...VENDAS_BRUTAS.S1,
+    ...VENDAS_BRUTAS.S2,
+    ...VENDAS_BRUTAS.S3
+  ];
+
+  return {
+    mesAtual: {
+      nome: 'Março 2026',
+      metaMensal: META_MENSAL,
+      totalRealizado: totalRealizado,
+      percentual: percentualTotal,
+      faltante: faltanteTotal,
+      semanas: semanas,
+      todasVendas: todasVendas
+    },
+    dataSource: 'demo',
+    ultimaAtualizacao: '18/03/2026 às 10:30'
+  };
+}
+
+// ============================================================================
+// CARREGAMENTO DE DADOS
+// ============================================================================
+
+function loadData() {
+  const loading = document.getElementById('loading');
+  loading.classList.remove('hidden');
+
+  const strategy = localStorage.getItem('gradienteStrategy') || 'diluir';
+
+  // ── DEMO MODE ──────────────────────────────────────────────────────────────
+  // Simula latência da API e chama o gerador de dados fictícios
+  setTimeout(function() {
+    onDataLoaded(gerarDadosFake(strategy));
+  }, 600);
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // ── AAWZ: ADAPTAR ─────────────────────────────────────────────────────────
+  // Substituir o bloco acima pela chamada ao Apps Script da AAWZ:
+  //
+  // google.script.run
+  //   .withSuccessHandler(onDataLoaded)
+  //   .withFailureHandler(onDataError)
+  //   .getGradienteData(strategy);
+  //
+  // Estrutura esperada de retorno: ver função gerarDadosFake() acima.
+  // O backend deve retornar o mesmo shape de objeto.
+  //
+  // CONFIGURAÇÕES ORIGINAIS (CRM):
+  //   • API: /api/v1/deals?status=WON
+  //   • Auth: Bearer <API_KEY>  +  api-token: <API_KEY>
+  //   • owner_id: eb03aefc-67db-476c-a4c4-3d8eb3692490
+  //   • 97 origin_ids → origin_ids_comerciais.json
+  //   • Grupos comerciais: ver DASHBOARDS/GRADIENTE_METAS/Code.gs linha 10
+  // ──────────────────────────────────────────────────────────────────────────
+}
+
+function onDataLoaded(data) {
+  document.getElementById('loading').classList.add('hidden');
+  console.log('==== DADOS RECEBIDOS ====', data);
+  if (data.error) { showError(data.error); return; }
+  gradienteData = data;
+  updateDataSourceIndicator(data.dataSource || 'spreadsheet');
+  updateHeader(data);
+  updateProgressBar(data.mesAtual);
+  updateWeekCards(data.mesAtual.semanas);
+  updateTimeline(data.mesAtual.todasVendas);
+  updateLastUpdate(data.ultimaAtualizacao);
+  const select = document.getElementById('autoRefreshSelect');
+  scheduleAutoRefresh(parseInt(select.value));
+}
+
+function onDataError(error) {
+  console.error('Erro ao carregar dados:', error);
+  document.getElementById('loading').classList.add('hidden');
+  showError('Erro ao carregar dados. Tentando novamente em 30 segundos...');
+  setTimeout(() => loadData(), 30000);
+}
+
+function showError(message) {
+  let el = document.getElementById('error-overlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'error-overlay';
+    el.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(239,68,68,0.95);color:white;padding:20px;border-radius:8px;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:10000;font-size:14px;animation:slideIn 0.3s ease;';
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 5000);
+}
+
+// ============================================================================
+// ATUALIZAÇÃO DA INTERFACE
+// ============================================================================
+
+function updateDataSourceIndicator(dataSource) {
+  const badge = document.getElementById('data-source-indicator');
+  const text = document.getElementById('data-source-text');
+  badge.className = 'data-source-badge';
+  if (dataSource === 'api') {
+    badge.classList.add('api');
+    badge.title = 'Dados em tempo real via API';
+    text.textContent = 'API Live';
+  } else if (dataSource === 'demo') {
+    badge.classList.add('demo-mode');
+    badge.title = 'Modo demo – dados fictícios para portfólio';
+    text.textContent = 'Demo';
+  } else {
+    badge.title = 'Dados da planilha';
+    text.textContent = 'Planilha';
+  }
+}
+
+function updateHeader(data) {
+  document.getElementById('mes-atual').textContent = data.mesAtual.nome;
+  document.getElementById('meta-mensal').textContent = 'Meta: ' + formatCurrency(data.mesAtual.metaMensal);
+}
+
+function updateProgressBar(mesAtual) {
+  document.getElementById('realizado-valor').textContent = formatCurrency(mesAtual.totalRealizado);
+  document.getElementById('meta-valor-display').textContent = formatCurrency(mesAtual.metaMensal);
+  document.getElementById('percentual-total').textContent = mesAtual.percentual.toFixed(1).replace('.', ',');
+  const faltante = mesAtual.faltante;
+  document.getElementById('faltante-info').textContent = faltante > 0
+    ? 'Faltam: ' + formatCurrency(faltante)
+    : 'Meta superada em ' + formatCurrency(Math.abs(faltante));
+  const progressBar = document.getElementById('progress-bar-fill');
+  progressBar.style.width = Math.min(mesAtual.percentual, 100) + '%';
+  if (mesAtual.percentual >= 100) {
+    progressBar.style.background = 'linear-gradient(90deg, #38bdf8, #22c55e, #22c55e)';
+  } else if (mesAtual.percentual >= 75) {
+    progressBar.style.background = 'linear-gradient(90deg, #38bdf8, #22c55e)';
+  } else if (mesAtual.percentual >= 50) {
+    progressBar.style.background = 'linear-gradient(90deg, #38bdf8, #f59e0b)';
+  } else {
+    progressBar.style.background = 'linear-gradient(90deg, #38bdf8, #ef4444)';
+  }
+}
+
+function updateWeekCards(semanas) {
+  const grid = document.getElementById('weeks-grid');
+  if (!grid || !semanas || !semanas.length) return;
+  grid.innerHTML = '';
+  semanas.forEach(s => grid.appendChild(createWeekCard(s)));
+}
+
+function createWeekCard(semana) {
+  try {
+    const card = document.createElement('div');
+    card.className = 'week-card ' + semana.status;
+    const statusIcons = { batida: '✓', passada: '○', em_andamento: '→', futura: '·' };
+    let progressClass = semana.status === 'futura' ? 'future' : semana.percentual >= 100 ? 'good' : 'progress';
+    let faltanteText = '—', mediaDiariaText = '';
+    if (semana.status === 'em_andamento' && semana.diasRestantes > 0) {
+      faltanteText = semana.faltante > 0 ? formatCurrencyShort(semana.faltante) : 'Meta batida!';
+      if (semana.faltante > 0) mediaDiariaText = `${formatCurrencyShort(semana.mediaDiaria)}/dia`;
+    } else if (semana.status === 'batida') {
+      faltanteText = 'Concluída!';
+    } else if (semana.status === 'passada') {
+      faltanteText = formatCurrencyShort(semana.faltante);
+    }
+    card.innerHTML = `
+      <div class="week-header">
+        <div>
+          <div class="week-title">${semana.nome}</div>
+          <div class="week-periodo">${semana.periodo}</div>
+        </div>
+        <div class="week-status-icon ${semana.status}">${statusIcons[semana.status] || '·'}</div>
+      </div>
+      <div class="week-progress-bar-container">
+        <div class="week-progress-bar-bg">
+          <div class="week-progress-bar-fill ${progressClass}" style="width:${Math.min(semana.percentual, 100)}%;">
+            <div class="week-progress-glow"></div>
+          </div>
+        </div>
+        <div class="week-progress-percent">${semana.status === 'futura' ? '—' : Math.round(semana.percentual) + '%'}</div>
+      </div>
+      <div class="week-values">
+        <div class="week-row">
+          <span class="week-label">Meta (${semana.pct}%)${semana.metaAjustada ? ' *' : ''}</span>
+          <span class="week-value meta">${formatCurrencyShort(semana.meta)}</span>
+        </div>
+        ${semana.metaAjustada ? `
+        <div class="week-row">
+          <span class="week-label">Meta original</span>
+          <span class="week-value" style="color:var(--text-muted);font-size:13px;">${formatCurrencyShort(semana.metaOriginal)}</span>
+        </div>` : ''}
+        <div class="week-row">
+          <span class="week-label">Realizado</span>
+          <span class="week-value realizado">${semana.status === 'futura' ? '—' : formatCurrencyShort(semana.realizado)}</span>
+        </div>
+        <div class="week-row">
+          <span class="week-label">${semana.status === 'em_andamento' && semana.diasRestantes > 0 ? 'Falta' : 'Status'}</span>
+          <span class="week-value positivo">${faltanteText}</span>
+        </div>
+        ${mediaDiariaText ? `
+        <div class="week-row">
+          <span class="week-label">Média necessária (${semana.diasRestantes}d)</span>
+          <span class="week-value positivo">${mediaDiariaText}</span>
+        </div>` : ''}
+      </div>
+      ${semana.vendas && semana.vendas.length > 0 ? `
+      <div class="week-sales">
+        <div class="week-sales-title">📋 Vendas Recentes</div>
+        ${semana.vendas.map(v => `
+          <div class="week-sale-item">
+            <span class="week-sale-closer">${v.closer}</span>
+            <span class="week-sale-value">${formatCurrencyShort(v.valor)}</span>
+          </div>`).join('')}
+      </div>` : (semana.status !== 'futura' ? `
+      <div class="week-sales">
+        <div class="week-sales-empty">Nenhuma venda registrada</div>
+      </div>` : '')}
+    `;
+    return card;
+  } catch(e) {
+    console.error('Erro ao criar card:', e);
+    const div = document.createElement('div');
+    div.textContent = 'Erro ao renderizar semana';
+    return div;
+  }
+}
+
+function updateTimeline(todasVendas) {
+  const container = document.getElementById('timeline-container');
+  const countEl = document.getElementById('timeline-count');
+  if (!todasVendas || !todasVendas.length) {
+    container.innerHTML = '<div class="no-data"><div class="no-data-text">Nenhuma venda registrada ainda</div></div>';
+    countEl.textContent = '0 vendas';
+    return;
+  }
+  countEl.textContent = `${todasVendas.length} venda${todasVendas.length > 1 ? 's' : ''}`;
+  const vendasPorDia = {};
+  todasVendas.forEach(v => {
+    if (!vendasPorDia[v.dia]) vendasPorDia[v.dia] = { dia: v.dia, total: 0, count: 0 };
+    vendasPorDia[v.dia].total += v.valor;
+    vendasPorDia[v.dia].count++;
+  });
+  const hoje = new Date();
+  const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+  container.innerHTML = `
+    <div class="timeline-axis">
+      <div class="timeline-line">
+        <div class="timeline-markers" id="timeline-markers"></div>
+      </div>
+      <div class="timeline-day-labels">
+        <span class="timeline-day-label">Dia 1</span>
+        <span class="timeline-day-label">Dia ${Math.floor(ultimoDia / 2)}</span>
+        <span class="timeline-day-label">Dia ${ultimoDia}</span>
+      </div>
+    </div>`;
+  const markersContainer = document.getElementById('timeline-markers');
+  Object.values(vendasPorDia).forEach(dia => {
+    const posicao = (dia.dia / ultimoDia) * 100;
+    const diaF = String(dia.dia).padStart(2, '0');
+    const mesF = String(hoje.getMonth() + 1).padStart(2, '0');
+    const marker = document.createElement('div');
+    marker.className = 'timeline-marker';
+    marker.style.left = posicao + '%';
+    marker.innerHTML = `
+      <div class="timeline-point"></div>
+      <div class="timeline-value-label">${diaF}/${mesF}<br>${formatCurrencyShort(dia.total)}</div>`;
+    markersContainer.appendChild(marker);
+  });
+}
+
+function updateLastUpdate(timestamp) {
+  document.getElementById('last-update').textContent = 'Última atualização: ' + timestamp;
+}
+
+// ============================================================================
+// EVENT LISTENERS
+// ============================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  scaleToFit();
+  setupAutoRefresh();
+  setupStrategySelector();
+  document.getElementById('refresh-btn').addEventListener('click', loadData);
+  document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+  document.addEventListener('keydown', function(e) {
+    if ((e.key === 'f' || e.key === 'F') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+      e.preventDefault(); toggleFullscreen();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'r') { e.preventDefault(); loadData(); }
+    if (e.key === 'Escape') closeConfigModal();
+  });
+  document.getElementById('config-btn').addEventListener('click', openConfigModal);
+  loadData();
+});
+
+// ============================================================================
+// CONFIG MODAL — Painel Admin de Metas
+// ============================================================================
+
+const MESES_NOMES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+let configMetas = [];
+
+function openConfigModal() {
+  document.getElementById('config-modal').classList.remove('hidden');
+
+  // ── DEMO MODE ──────────────────────────────────────────────────────────────
+  // Carrega configuração padrão local (no modo demo, sem backend)
+  const hoje = new Date();
+  configMetas = [createDefaultMonth(hoje.getMonth() + 1, hoje.getFullYear())];
+  renderConfigMonths();
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // ── AAWZ: ADAPTAR ─────────────────────────────────────────────────────────
+  // Substituir o bloco acima pela chamada ao Apps Script:
+  //
+  // google.script.run
+  //   .withSuccessHandler(function(json) {
+  //     try { configMetas = json ? JSON.parse(json) : []; } catch(e) { configMetas = []; }
+  //     if (configMetas.length === 0) {
+  //       const hoje = new Date();
+  //       configMetas = [createDefaultMonth(hoje.getMonth() + 1, hoje.getFullYear())];
+  //     }
+  //     renderConfigMonths();
+  //   })
+  //   .withFailureHandler(function(err) {
+  //     console.error('Erro ao carregar metas:', err);
+  //     configMetas = [createDefaultMonth(new Date().getMonth() + 1, new Date().getFullYear())];
+  //     renderConfigMonths();
+  //   })
+  //   .getMetasConfigJSON();
+  // ──────────────────────────────────────────────────────────────────────────
+}
+
+function closeConfigModal() {
+  document.getElementById('config-modal').classList.add('hidden');
+}
+
+function createDefaultMonth(mes, ano) {
+  return {
+    MES: MESES_NOMES[mes] + ' ' + ano, ANO: String(ano), MES_NUM: String(mes),
+    META_MENSAL: '1500000', PCT_S1: '18', PCT_S2: '20', PCT_S3: '22', PCT_S4: '25', PCT_SF: '15'
+  };
+}
+
+function renderConfigMonths() {
+  const body = document.getElementById('config-body');
+  configMetas.sort((a, b) => {
+    const ya = parseInt(a.ANO), yb = parseInt(b.ANO);
+    if (ya !== yb) return yb - ya;
+    return parseInt(b.MES_NUM) - parseInt(a.MES_NUM);
+  });
+  body.innerHTML = configMetas.map((meta, i) => `
+    <div class="config-month-card" data-index="${i}">
+      <div class="config-month-header">
+        <span class="config-month-label">${meta.MES || MESES_NOMES[parseInt(meta.MES_NUM)] + ' ' + meta.ANO}</span>
+        <button class="config-month-delete" onclick="deleteMetaMonth(${i})">Remover</button>
+      </div>
+      <div class="config-row">
+        <div class="config-field" style="flex:0 0 100px;"><label>Mês</label>
+          <select onchange="onMonthFieldChange(${i},'MES_NUM',this.value)">
+            ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m =>
+              `<option value="${m}" ${parseInt(meta.MES_NUM)===m?'selected':''}>${MESES_NOMES[m]}</option>`
+            ).join('')}
+          </select></div>
+        <div class="config-field" style="flex:0 0 80px;"><label>Ano</label>
+          <input type="number" value="${meta.ANO}" min="2025" max="2030"
+                 onchange="onMonthFieldChange(${i},'ANO',this.value)"></div>
+        <div class="config-field"><label>Meta Mensal (R$)</label>
+          <input type="text" value="${formatMetaInput(meta.META_MENSAL)}"
+                 oninput="onMetaValueChange(${i},this)" placeholder="1.500.000"></div>
+      </div>
+      <div class="config-pct-row">
+        ${['S1','S2','S3','S4','SF'].map(s => `
+        <div class="config-field"><label>${s} %</label>
+          <input type="number" value="${meta['PCT_'+s]}" min="0" max="100" step="1"
+                 onchange="onPctChange(${i},'PCT_${s}',this.value)"></div>`).join('')}
+      </div>
+      <div class="config-pct-total ${getPctTotalClass(meta)}" id="pct-total-${i}">
+        Total: ${getPctTotal(meta)}%
+      </div>
+    </div>`).join('');
+}
+
+function formatMetaInput(val) {
+  const num = parseInt(String(val).replace(/\D/g, ''));
+  return isNaN(num) ? '' : num.toLocaleString('pt-BR');
+}
+function onMetaValueChange(index, input) {
+  const raw = input.value.replace(/\D/g, '');
+  configMetas[index].META_MENSAL = raw;
+  const num = parseInt(raw);
+  if (!isNaN(num)) { const pos = input.selectionStart, old = input.value.length; input.value = num.toLocaleString('pt-BR'); input.setSelectionRange(pos+(input.value.length-old),pos+(input.value.length-old)); }
+}
+function onMonthFieldChange(index, field, value) {
+  configMetas[index][field] = value;
+  const mesNum = parseInt(configMetas[index].MES_NUM), ano = configMetas[index].ANO;
+  configMetas[index].MES = MESES_NOMES[mesNum] + ' ' + ano;
+  const card = document.querySelector(`[data-index="${index}"] .config-month-label`);
+  if (card) card.textContent = configMetas[index].MES;
+}
+function onPctChange(index, field, value) {
+  configMetas[index][field] = value;
+  const el = document.getElementById('pct-total-' + index);
+  if (el) { el.textContent = 'Total: ' + getPctTotal(configMetas[index]) + '%'; el.className = 'config-pct-total ' + getPctTotalClass(configMetas[index]); }
+}
+function getPctTotal(meta) {
+  return ['S1','S2','S3','S4','SF'].reduce((s, k) => s + (parseInt(meta['PCT_'+k])||0), 0);
+}
+function getPctTotalClass(meta) {
+  const t = getPctTotal(meta); return t === 100 ? 'pct-ok' : (t >= 95 && t <= 105 ? 'pct-warn' : 'pct-bad');
+}
+function addMetaMonth() {
+  let mes, ano;
+  if (configMetas.length > 0) {
+    mes = parseInt(configMetas[0].MES_NUM) + 1; ano = parseInt(configMetas[0].ANO);
+    if (mes > 12) { mes = 1; ano++; }
+  } else { const h = new Date(); mes = h.getMonth()+1; ano = h.getFullYear(); }
+  configMetas.push(createDefaultMonth(mes, ano));
+  renderConfigMonths();
+}
+function deleteMetaMonth(index) {
+  if (configMetas.length <= 1) return;
+  configMetas.splice(index, 1);
+  renderConfigMonths();
+}
+
+function saveMetasConfig() {
+  for (let i = 0; i < configMetas.length; i++) {
+    const meta = configMetas[i];
+    if (getPctTotal(meta) !== 100) { showToast('Erro: ' + meta.MES + ' — percentuais somam ' + getPctTotal(meta) + '% (deve ser 100%)', true); return; }
+    if (!meta.META_MENSAL || parseInt(meta.META_MENSAL) <= 0) { showToast('Erro: ' + meta.MES + ' tem meta inválida', true); return; }
+  }
+
+  // ── DEMO MODE ──────────────────────────────────────────────────────────────
+  // No modo demo, apenas simula o salvamento localmente
+  showToast('Metas salvas (demo — sem persistência)');
+  closeConfigModal();
+  loadData();
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // ── AAWZ: ADAPTAR ─────────────────────────────────────────────────────────
+  // Substituir o bloco acima pela chamada ao Apps Script:
+  //
+  // const saveBtn = document.querySelector('.config-btn-save');
+  // saveBtn.disabled = true; saveBtn.textContent = 'Salvando...';
+  // google.script.run
+  //   .withSuccessHandler(function() {
+  //     saveBtn.disabled = false; saveBtn.textContent = 'Salvar';
+  //     showToast('Metas salvas com sucesso!');
+  //     closeConfigModal(); loadData();
+  //   })
+  //   .withFailureHandler(function(err) {
+  //     saveBtn.disabled = false; saveBtn.textContent = 'Salvar';
+  //     showToast('Erro ao salvar: ' + err.message, true);
+  //   })
+  //   .saveMetasConfig(JSON.stringify(configMetas));
+  // ──────────────────────────────────────────────────────────────────────────
+}
+
+function showToast(msg, isError) {
+  let toast = document.getElementById('config-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'config-toast';
+    toast.className = 'config-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.className = 'config-toast' + (isError ? ' error' : '');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+</script>
+
+</body>
+</html>

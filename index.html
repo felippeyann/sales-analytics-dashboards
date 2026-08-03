@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Analytics Dashboards | Portfólio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070d1a;
+  --surface:#0c1426;
+  --card:#101c35;
+  --card-hover:#152040;
+  --border:rgba(255,255,255,0.07);
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --accent:#38bdf8;
+  --accent2:#0ea5e9;
+  --ok:#22c55e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Montserrat',system-ui,sans-serif;}
+body{padding-bottom:80px;}
+
+/* ── HEADER ── */
+header{
+  position:relative;
+  padding:80px 24px 60px;
+  text-align:center;
+  overflow:hidden;
+}
+header::before{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% -10%, rgba(56,189,248,0.20) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(56,189,248,0.08) 0%, transparent 60%);
+  pointer-events:none;
+}
+.header-inner{position:relative;max-width:760px;margin:0 auto;}
+.tag{
+  display:inline-block;
+  background:rgba(56,189,248,0.15);
+  border:1px solid rgba(56,189,248,0.35);
+  color:#7dd3fc;
+  font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  padding:5px 14px;border-radius:20px;margin-bottom:24px;
+}
+h1{
+  font-size:clamp(28px,5vw,52px);
+  font-weight:800;line-height:1.1;
+  background:linear-gradient(135deg,#f1f5f9 30%,#38bdf8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:20px;
+}
+.subtitle{font-size:clamp(14px,2vw,17px);color:var(--muted);line-height:1.7;max-width:560px;margin:0 auto 40px;}
+.stats-row{
+  display:flex;gap:40px;justify-content:center;flex-wrap:wrap;
+  padding:24px 32px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:16px;margin-top:12px;
+}
+.stat{text-align:center;}
+.stat-num{font-size:28px;font-weight:800;color:#f1f5f9;}
+.stat-label{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* ── GRID ── */
+.section{max-width:1200px;margin:60px auto 0;padding:0 24px;}
+.section-title{
+  font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:28px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:20px;
+}
+
+/* ── CARD ── */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:24px;
+  transition:all .2s ease;
+  position:relative;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  cursor:pointer;text-decoration:none;color:inherit;
+}
+.card:hover{
+  background:var(--card-hover);
+  border-color:rgba(56,189,248,0.3);
+  transform:translateY(-3px);
+  box-shadow:0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(56,189,248,0.15);
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--card-accent, linear-gradient(90deg,var(--accent),var(--accent2)));
+  opacity:0;transition:opacity .2s;
+}
+.card:hover::before{opacity:1;}
+
+.card-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;margin-bottom:16px;flex-shrink:0;
+}
+.card-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;}
+.card-title{font-size:15px;font-weight:700;color:#f1f5f9;line-height:1.3;margin-bottom:4px;}
+.card-subtitle{font-size:11px;color:var(--muted);font-weight:500;}
+.card-desc{font-size:13px;color:#94a3b8;line-height:1.6;flex:1;margin-bottom:18px;}
+
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.pill{
+  font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+  color:var(--muted);
+}
+
+.card-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:auto;padding-top:16px;border-top:1px solid var(--border);
+}
+.open-btn{
+  font-size:12px;font-weight:600;color:var(--accent);
+  display:flex;align-items:center;gap:6px;
+}
+.open-btn svg{transition:transform .2s;}
+.card:hover .open-btn svg{transform:translateX(3px);}
+.version{font-size:10px;color:var(--muted);}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;padding:48px 24px 24px;
+  font-size:12px;color:var(--muted);
+  border-top:1px solid var(--border);
+  margin-top:80px;
+}
+.footer-note{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(56,189,248,0.10);border:1px solid rgba(56,189,248,0.2);
+  padding:10px 20px;border-radius:20px;margin-bottom:16px;font-size:13px;color:#7dd3fc;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="tag">Portfólio BI & Analytics</div>
+    <h1>Sales & Marketing<br>Analytics Dashboards</h1>
+    <p class="subtitle">
+      Coleção de dashboards interativos desenvolvidos para uma plataforma de CRM B2B: análise de funil de vendas, produtividade de SDRs, lead scoring e monitoramento de pipeline.
+    </p>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">8</div><div class="stat-label">Dashboards</div></div>
+      <div class="stat"><div class="stat-num">ECharts</div><div class="stat-label">Biblioteca de charts</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Front-end puro</div></div>
+      <div class="stat"><div class="stat-num">PT-BR</div><div class="stat-label">Idioma</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- DASHBOARDS GRID -->
+<div class="section">
+  <div class="section-title">Dashboards disponíveis</div>
+  <div class="grid">
+
+    <!-- 01 Agendamentos -->
+    <a href="01_agendamentos.html" class="card" style="--card-accent:linear-gradient(90deg,#38bdf8,#0284c7)">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--accent-glow);">📅</div>
+        <div>
+          <div class="card-title">Análise de Agendamentos</div>
+          <div class="card-subtitle">Funil de Topo · Atividades de SDR</div>
+        </div>
+      </div>
+      <p class="card-desc">
+        Mapeamento completo dos agendamentos de reunião: origem UTM, Squad, velocidade de atribuição (TA),
+        taxa de conversão por canal, filtros cruzados interativos e insights por AI.
+      </p>
+      <div class="tags">
+        <span class="pill">UTM Sankey</span>
+        <span class="pill">Filtros cruzados</span>
+        <span class="pill">Gemini AI</span>
+        <span class="pill">Exportar PDF</span>
+      </div>
+      <div class="card-footer">
+        <span class="open-btn">Abrir dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        <span class="version">v1.0</span>
+      </div>
+    </a>
+
+    <!-- 02 Produtividade SDR -->
+    <a href="02_produtividade_sdr.html" class="card" style="--card-accent:linear-gradient(90deg,#38bdf8,#0ea5e9)">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--accent-glow);">👥</div>
+        <div>
+          <div class="card-title">Produtividade SDR</div>
+          <div class="card-subtitle">Performance Individual · Atividades diárias</div>
+        </div>
+      </div>
+      <p class="card-desc">
+        Acompanhamento diário da produtividade de cada SDR: ligações, conexões, agendamentos,
+        WhatsApp, e-mails, tarefas. Ranking individual com média do time e metas configuráveis.
+      </p>
+      <div class="tags">
+        <span class="pill">Ranking SDRs</span>
+        <span class="pill">Heatmap diário</span>
+        <span class="pill">Metas</span>
+        <span class="pill">Multi-métrica</span>
+      </div>
+      <div class="card-footer">
+        <span class="open-btn">Abrir dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        <span class="version">v1.0</span>
+      </div>
+    </a>
+
+    <!-- 03 Stage Monitoring -->
+    <a href="03_stage_monitoring.html" class="card" style="--card-accent:linear-gradient(90deg,#38bdf8,#0ea5e9)">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--accent-glow);">🔄</div>
+        <div>
+          <div class="card-title">Stage Monitoring</div>
+          <div class="card-subtitle">Social Selling · Monitoramento de Pipeline</div>
+        </div>
+      </div>
+      <p class="card-desc">
+        Dashboard de BI para monitoramento em tempo real de mudanças de stage no pipeline
+        de Social Selling. Sankey de fluxo, tempo médio por stage, ranking e identificação de gargalos.
+      </p>
+      <div class="tags">
+        <span class="pill">Sankey Flow</span>
+        <span class="pill">Tempo por stage</span>
+        <span class="pill">Gargalos</span>
+        <span class="pill">Timeline</span>
+      </div>
+      <div class="card-footer">
+        <span class="open-btn">Abrir dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        <span class="version">v1.2 PRO</span>
+      </div>
+    </a>
+
+    <!-- 04 Lead Scoring -->
+    <a href="04_leadscoring.html" class="card" style="--card-accent:linear-gradient(90deg,#38bdf8,#0ea5e9)">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--accent-glow);">🏆</div>
+        <div>
+          <div class="card-title">Lead Scoring (ABCD)</div>
+          <div class="card-subtitle">Qualificação · Score IA · Conversão</div>
+        </div>
+      </div>
+      <p class="card-desc">
+        Relatório interativo de lead scoring com classificação ABCD baseada em IA.
+        Correlação score × conversão, distribuição por origem, análise temporal e segmentação por tags.
+      </p>
+      <div class="tags">
+        <span class="pill">Score IA</span>
+        <span class="pill">Classificação ABCD</span>
+        <span class="pill">Conversão</span>
+        <span class="pill">Segmentação</span>
+      </div>
+      <div class="card-footer">
+        <span class="open-btn">Abrir dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        <span class="version">v1.0</span>
+      </div>
+    </a>
+
+    <!-- 05 Primeiro Agendamento -->
+    <a href="05_primeiro_agendamento.html" class="card" style="--card-accent:linear-gradient(90deg,#22c55e,#0ea5e9)">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--accent-glow);">⚡</div>
+        <div>
+          <div class="card-title">Tempo ao 1º Agendamento</div>
+          <div class="card-subtitle">IA vs Humano · Velocidade de resposta</div>
+        </div>
+      </div>
+      <p class="card-desc">
+        Benchmark de velocidade de resposta comparando SDRs humanos com SDRs com IA.
+        Mede o tempo do lead até o primeiro agendamento, distribuição e análise de tendência.
+      </p>
+      <div class="tags">
+        <span class="pill">IA vs Humano</span>
+        <span class="pill">Benchmark</span>
+        <span class="pill">Distribuição</span>
+        <span class="pill">Tendência</span>
+      </div>
+      <div class="card-footer">
+        <span class="open-btn">Abrir dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        <span class="version">v1.0</span>
+      </div>
+    </a>
+
+    <!-- 06 NewsRadar -->
+    <a href="06_newsradar.html" class="card" style="--card-accent:linear-gradient(90deg,#38bdf8,#f59e0b)">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--accent-glow);">📰</div>
+        <div>
+          <div class="card-title">NewsRadar Editorial</div>
+          <div class="card-subtitle">Curadoria de notícias · Score por relevância</div>
+        </div>
+      </div>
+      <p class="card-desc">
+        Dashboard editorial para análise de curadoria de notícias com IA. Acompanha volume por fonte,
+        score de relevância, keywords mais frequentes e análise de tendências de conteúdo.
+      </p>
+      <div class="tags">
+        <span class="pill">Score IA</span>
+        <span class="pill">Fontes</span>
+        <span class="pill">Keywords</span>
+        <span class="pill">Tendências</span>
+      </div>
+      <div class="card-footer">
+        <span class="open-btn">Abrir dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        <span class="version">v1.0</span>
+      </div>
+    </a>
+
+    <!-- 07 Segmentação -->
+    <a href="07_segmentacao.html" class="card" style="--card-accent:linear-gradient(90deg,#38bdf8,#0ea5e9)">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--accent-glow);">🎯</div>
+        <div>
+          <div class="card-title">Segmentação de Mercado</div>
+          <div class="card-subtitle">ICP · Classificação de deals · Dicionário de termos</div>
+        </div>
+      </div>
+      <p class="card-desc">
+        Ferramenta de segmentação de deals por ICP com dicionário de termos canônicos.
+        Classifica automaticamente leads em segmentos e detecta conflitos e novos termos.
+      </p>
+      <div class="tags">
+        <span class="pill">ICP</span>
+        <span class="pill">Dicionário</span>
+        <span class="pill">Conflitos</span>
+        <span class="pill">Exportar CSV</span>
+      </div>
+      <div class="card-footer">
+        <span class="open-btn">Abrir dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        <span class="version">v1.0</span>
+      </div>
+    </a>
+
+    <!-- 08 Gradiente de Metas -->
+    <a href="08_gradiente_metas.html" class="card" style="--card-accent:linear-gradient(90deg,#38bdf8,#f59e0b)">
+      <div class="card-header">
+        <div class="card-icon" style="background:var(--accent-glow);">🎯</div>
+        <div>
+          <div class="card-title">Gradiente de Metas</div>
+          <div class="card-subtitle">TV Dashboard · Gamificado · 1920×1080</div>
+        </div>
+      </div>
+      <p class="card-desc">
+        Dashboard gamificado para TV exibindo o progresso de vendas por semana em tempo real.
+        Redistribuição de déficits entre semanas (Diluir ou Cascata), timeline de vendas por dia
+        e cards com pulsação animada na semana vigente.
+      </p>
+      <div class="tags">
+        <span class="pill">TV 1920×1080</span>
+        <span class="pill">Redistribuição de déficit</span>
+        <span class="pill">Timeline</span>
+        <span class="pill">Auto-refresh</span>
+        <span class="pill">API real-time</span>
+      </div>
+      <div class="card-footer">
+        <span class="open-btn">Abrir dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        <span class="version">v1.0</span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- STACK -->
+<div class="section" style="margin-top:60px">
+  <div class="section-title">Stack técnica</div>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;">
+    <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;">HTML5 / CSS3</span>
+    <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;">JavaScript ES6+</span>
+    <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;">ECharts 6.0</span>
+    <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;">PapaParse</span>
+    <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;">Google Apps Script</span>
+    <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;">Google Sheets API</span>
+    <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;">Gemini AI API</span>
+    <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;">BigQuery</span>
+    <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;">PostgreSQL</span>
+    <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;">Discord Webhooks</span>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-note">📊 Todos os dashboards abertos aqui exibem dados fictícios gerados para demonstração</div>
+  <p>Dashboards desenvolvidos para plataforma de CRM B2B · Stack: HTML + ECharts + Google Apps Script</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<!--
+  ╔═══════════════════════════════════════════════════════════╗
+  ║  Analytics Dashboard - Segmentação e Normalização        ║
+  ║  Versão: v1.0                                            ║
+  ║  Última atualização: 27/12/2025                          ║
+  ║  Descrição: Pipeline de normalização de segmentação      ║
+  ║             com dicionário e detecção de conflitos       ║
+  ╚═══════════════════════════════════════════════════════════╝
+-->
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Segmentação - Pipeline de Normalização</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --card:#0b1220; --muted:#9ca3af; --text:#e5e7eb;
+      --accent:#38bdf8; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --line:#1f2937;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      background:linear-gradient(180deg,#0a0f1d 0%,#0f172a 60%,#0a0f1d 100%);
+      color:var(--text);
+      font:400 14px/1.5 'Montserrat',system-ui,-apple-system,sans-serif;
+    }
+    .container{max-width:1400px;margin:0 auto;padding:20px}
+    
+    header{
+      background:linear-gradient(135deg,rgba(56,189,248,0.1),rgba(14,165,233,0.05));
+      border:1px solid rgba(56,189,248,0.2);
+      border-radius:12px;
+      padding:20px;
+      margin-bottom:24px;
+    }
+    h1{margin:0 0 8px 0;font-size:24px;color:#fff}
+    .subtitle{color:var(--muted);font-size:14px}
+    
+    .upload-section{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:20px;
+      margin-bottom:24px;
+    }
+    .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    @media(max-width:768px){.upload-grid{grid-template-columns:1fr}}
+    
+    .upload-box{
+      background:var(--card);
+      border:2px dashed #334155;
+      border-radius:8px;
+      padding:20px;
+      text-align:center;
+      transition:all 0.2s;
+    }
+    .upload-box:hover{border-color:var(--accent);background:rgba(56,189,248,0.05)}
+    .upload-box h3{margin:0 0 12px 0;font-size:16px}
+    .upload-box p{color:var(--muted);font-size:13px;margin:0 0 16px 0}
+    .upload-box input[type=file]{
+      background:var(--panel);
+      border:1px solid var(--line);
+      padding:10px;
+      border-radius:6px;
+      color:var(--text);
+      width:100%;
+      cursor:pointer;
+    }
+    .upload-box .status{
+      margin-top:12px;
+      font-size:13px;
+      padding:8px 12px;
+      border-radius:6px;
+      display:none;
+    }
+    .upload-box .status.loaded{
+      display:block;
+      background:rgba(34,197,94,0.1);
+      border:1px solid rgba(34,197,94,0.3);
+      color:var(--ok);
+    }
+    
+    .btn{
+      background:linear-gradient(135deg,var(--accent),#0ea5e9);
+      color:#fff;
+      border:none;
+      padding:12px 24px;
+      border-radius:8px;
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+      transition:all 0.2s;
+      margin-top:16px;
+    }
+    .btn:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(56,189,248,0.3)}
+    .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+    
+    .results{display:none}
+    .results.active{display:block}
+    
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:16px;
+      margin-bottom:24px;
+    }
+    .stat-card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:16px;
+    }
+    .stat-label{color:var(--muted);font-size:12px;margin-bottom:4px}
+    .stat-value{font-size:28px;font-weight:700;color:#fff}
+    .stat-badge{
+      display:inline-block;
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:12px;
+      margin-top:8px;
+    }
+    .stat-badge.ok{background:rgba(34,197,94,0.2);color:var(--ok)}
+    .stat-badge.warn{background:rgba(245,158,11,0.2);color:var(--warn)}
+    .stat-badge.danger{background:rgba(239,68,68,0.2);color:var(--danger)}
+    
+    .section{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:20px;
+      margin-bottom:24px;
+    }
+    .section h2{margin:0 0 16px 0;font-size:18px;color:#fff}
+    
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    table th{
+      background:var(--card);
+      padding:12px;
+      text-align:left;
+      font-weight:600;
+      color:var(--muted);
+      border-bottom:2px solid var(--line);
+    }
+    table td{
+      padding:12px;
+      border-bottom:1px solid var(--line);
+    }
+    table tr:hover{background:rgba(56,189,248,0.05)}
+    
+    .quality-badge{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:12px;
+      font-size:11px;
+      font-weight:600;
+    }
+    .quality-high{background:rgba(34,197,94,0.2);color:var(--ok)}
+    .quality-medium{background:rgba(245,158,11,0.2);color:var(--warn)}
+    .quality-low{background:rgba(100,116,139,0.2);color:var(--muted)}
+    .quality-conflict{background:rgba(239,68,68,0.2);color:var(--danger)}
+    
+    .export-buttons{
+      display:flex;
+      gap:12px;
+      margin-top:16px;
+    }
+    .export-buttons button{
+      background:var(--card);
+      color:var(--text);
+      border:1px solid var(--line);
+      padding:10px 20px;
+      border-radius:8px;
+      font-size:13px;
+      cursor:pointer;
+      transition:all 0.2s;
+    }
+    .export-buttons button:hover{
+      border-color:var(--accent);
+      background:rgba(56,189,248,0.1);
+    }
+  </style>
+  <style>.uploader,.upload-section{display:none!important}</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎯 Segmentação - Pipeline de Normalização</h1>
+      <div class="subtitle">Normalize múltiplas fontes de segmento usando dicionário canônico e detecte conflitos automaticamente</div>
+    </header>
+
+    <div class="upload-section">
+      <h2 style="margin:0 0 16px 0;font-size:18px">Upload de Arquivos</h2>
+      <div class="upload-grid">
+        <div class="upload-box">
+          <h3>📊 Base de Dados (CSV)</h3>
+          <p>Upload do export do sistema CRM com campos de segmentação</p>
+          <input type="file" id="csvFile" accept=".csv" />
+          <div class="status" id="csvStatus"></div>
+        </div>
+        <div class="upload-box">
+          <h3>📚 Dicionário (CSV)</h3>
+          <p>Mapeamento termo → canônico (raw_term,segmento_canonico)</p>
+          <input type="file" id="dictFile" accept=".csv" />
+          <div class="status" id="dictStatus"></div>
+        </div>
+      </div>
+      <button class="btn" id="processBtn" disabled>🚀 Processar Segmentação</button>
+    </div>
+
+    <div class="results" id="results">
+      <div class="stats-grid" id="statsGrid"></div>
+      
+      <div class="section">
+        <h2>📋 Base Enriquecida (preview)</h2>
+        <div style="overflow-x:auto">
+          <table id="enrichedTable"></table>
+        </div>
+        <div class="export-buttons">
+          <button onclick="exportCSV('enriched')">⬇️ Baixar Base Enriquecida (CSV)</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>⚠️ Fila de Conflitos</h2>
+        <div style="overflow-x:auto">
+          <table id="conflictsTable"></table>
+        </div>
+        <div class="export-buttons">
+          <button onclick="exportCSV('conflicts')">⬇️ Baixar Conflitos (CSV)</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>🆕 Termos Novos (não mapeados)</h2>
+        <div style="overflow-x:auto">
+          <table id="newTermsTable"></table>
+        </div>
+        <div class="export-buttons">
+          <button onclick="exportCSV('newterms')">⬇️ Baixar Termos Novos (CSV)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let csvData = null;
+    let dictData = null;
+    let enrichedData = [];
+    let conflictsData = [];
+    let newTermsData = [];
+
+    // Upload handlers
+    document.getElementById('csvFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      Papa.parse(file, {
+        header: true,
+        encoding: 'UTF-8',
+        complete: (results) => {
+          csvData = results.data.filter(row => row['ID do negócio']); // remove empty rows
+          document.getElementById('csvStatus').textContent = `✓ ${csvData.length} registros carregados`;
+          document.getElementById('csvStatus').classList.add('loaded');
+          checkReady();
+        }
+      });
+    });
+
+    document.getElementById('dictFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      Papa.parse(file, {
+        header: true,
+        encoding: 'UTF-8',
+        complete: (results) => {
+          dictData = results.data.filter(row => row.raw_term && row.segmento_canonico);
+          document.getElementById('dictStatus').textContent = `✓ ${dictData.length} mapeamentos carregados`;
+          document.getElementById('dictStatus').classList.add('loaded');
+          checkReady();
+        }
+      });
+    });
+
+    function checkReady() {
+      document.getElementById('processBtn').disabled = !(csvData && dictData);
+    }
+
+    document.getElementById('processBtn').addEventListener('click', processPipeline);
+
+    function processPipeline() {
+      console.log('Iniciando pipeline...');
+      
+      // Build dictionary map
+      const dictMap = new Map();
+      dictData.forEach(row => {
+        const key = normalizeTerm(row.raw_term);
+        dictMap.set(key, row.segmento_canonico);
+      });
+
+      enrichedData = [];
+      conflictsData = [];
+      const newTermsSet = new Set();
+      const stats = {total: csvData.length, high: 0, medium: 0, low: 0, conflict: 0};
+
+      csvData.forEach((row, idx) => {
+        const sources = {
+          segmento: parseTerm(row['segmento']),
+          segmento2: parseTerm(row['segmento_1']),  // segmento_1 no CSV
+          segmentoIA: parseTerm(row['segment']),     // segment (não segmento ia)
+          perfilNegocio: parseTerm(row['perfil_do_negocio_da'])
+        };
+
+        // Map to canonical
+        const mapped = {};
+        const foundTerms = [];
+        
+        for (const [key, terms] of Object.entries(sources)) {
+          if (!terms || terms.length === 0) continue;
+          
+          const canonicals = terms.map(t => {
+            const norm = normalizeTerm(t);
+            const canonical = dictMap.get(norm);
+            if (!canonical) newTermsSet.add(t);
+            return canonical;
+          }).filter(Boolean);
+          
+          if (canonicals.length > 0) {
+            mapped[key] = canonicals;
+            foundTerms.push(...canonicals);
+          }
+        }
+
+        // Resolve conflicts and quality
+        const result = resolveSegment(mapped, sources);
+        
+        enrichedData.push({
+          ...row,
+          'segmento_canonico': result.canonical || 'Sem Segmento',
+          'segmento_quality': result.quality,
+          'segmento_sources': result.sources.join(', '),
+          'subsegmentos': result.subsegmentos.join(', ') || '-'
+        });
+
+        stats[result.quality]++;
+
+        if (result.quality === 'conflict') {
+          conflictsData.push({
+            'ID do negócio': row['ID do negócio'],
+            'segmento 2': row['segmento 2'] || '-',
+            'perfil negócio': row['perfil negócio'] || '-',
+            'segmento': row['segmento'] || '-',
+            'segmento ia': row['segmento ia'] || '-',
+            'Ação': 'Validar manualmente'
+          });
+        }
+      });
+
+      newTermsData = Array.from(newTermsSet).map(term => ({
+        'Termo': term,
+        'Frequência': csvData.filter(r => 
+          [r['segmento'], r['segmento 2'], r['segmento ia'], r['perfil negócio']]
+            .some(f => f && f.includes(term))
+        ).length,
+        'Canônico Sugerido': ''
+      })).sort((a, b) => b.Frequência - a.Frequência);
+
+      displayResults(stats);
+    }
+
+    function parseTerm(value) {
+      if (!value || value === '-' || value.trim() === '') return [];
+      // Split by comma and trim
+      return value.split(',').map(t => t.trim()).filter(t => t && t !== '-');
+    }
+
+    function normalizeTerm(term) {
+      if (!term) return '';
+      return term.toLowerCase().trim()
+        .replace(/\s+/g, ' ')
+        .replace(/[áàãâä]/g, 'a')
+        .replace(/[éèêë]/g, 'e')
+        .replace(/[íìîï]/g, 'i')
+        .replace(/[óòõôö]/g, 'o')
+        .replace(/[úùûü]/g, 'u')
+        .replace(/[ç]/g, 'c');
+    }
+
+    function resolveSegment(mapped, sources) {
+      const seg2 = mapped.segmento2 || [];
+      const perfil = mapped.perfilNegocio || [];
+      const seg = mapped.segmento || [];
+      const ia = mapped.segmentoIA || [];
+
+      const allSources = [];
+      if (seg2.length > 0) allSources.push('segmento_2');
+      if (perfil.length > 0) allSources.push('perfil_negocio');
+      if (seg.length > 0) allSources.push('segmento');
+      if (ia.length > 0) allSources.push('segmento_ia');
+
+      // Check convergence
+      const allCanonicals = [...seg2, ...perfil, ...seg, ...ia];
+      const unique = [...new Set(allCanonicals)];
+
+      let canonical = null;
+      let quality = 'low';
+      let subsegmentos = [];
+
+      if (unique.length === 0) {
+        quality = 'low';
+      } else if (unique.length === 1) {
+        canonical = unique[0];
+        if (seg2.length > 0 || perfil.length > 0) {
+          quality = 'high'; // Strong source convergence
+        } else {
+          quality = 'medium';
+        }
+      } else {
+        // Conflict: multiple canonicals
+        if ((seg2.length > 0 && perfil.length > 0) && seg2[0] !== perfil[0]) {
+          quality = 'conflict';
+          canonical = seg2[0]; // Use precedence but mark conflict
+        } else {
+          // Use precedence: seg2 > perfil > seg > ia
+          canonical = seg2[0] || perfil[0] || seg[0] || ia[0];
+          quality = 'medium';
+        }
+      }
+
+      // Subsegments from all non-canonical sources
+      const rawTerms = [
+        ...(sources.segmento || []),
+        ...(sources.segmento2 || []),
+        ...(sources.segmentoIA || []),
+        ...(sources.perfilNegocio || [])
+      ];
+      subsegmentos = [...new Set(rawTerms)].slice(0, 3); // Top 3 unique
+
+      return {canonical, quality, sources: allSources, subsegmentos};
+    }
+
+    function displayResults(stats) {
+      const statsHTML = `
+        <div class="stat-card">
+          <div class="stat-label">Total Processado</div>
+          <div class="stat-value">${stats.total}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Alta Qualidade</div>
+          <div class="stat-value">${stats.high}</div>
+          <div class="stat-badge ok">${((stats.high/stats.total)*100).toFixed(1)}%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Média Qualidade</div>
+          <div class="stat-value">${stats.medium}</div>
+          <div class="stat-badge warn">${((stats.medium/stats.total)*100).toFixed(1)}%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Conflitos</div>
+          <div class="stat-value">${stats.conflict}</div>
+          <div class="stat-badge danger">${((stats.conflict/stats.total)*100).toFixed(1)}%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Termos Novos</div>
+          <div class="stat-value">${newTermsData.length}</div>
+        </div>
+      `;
+      document.getElementById('statsGrid').innerHTML = statsHTML;
+
+      // Tables
+      renderTable('enrichedTable', enrichedData.slice(0, 50), ['ID do negócio', 'segmento_canonico', 'segmento_quality', 'segmento_sources', 'subsegmentos']);
+      renderTable('conflictsTable', conflictsData, ['ID do negócio', 'segmento 2', 'perfil negócio', 'segmento', 'Ação']);
+      renderTable('newTermsTable', newTermsData.slice(0, 30), ['Termo', 'Frequência', 'Canônico Sugerido']);
+
+      document.getElementById('results').classList.add('active');
+    }
+
+    function renderTable(id, data, cols) {
+      if (data.length === 0) {
+        document.getElementById(id).innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">Nenhum registro</p>';
+        return;
+      }
+
+      let html = '<thead><tr>';
+      cols.forEach(col => html += `<th>${col}</th>`);
+      html += '</tr></thead><tbody>';
+
+      data.forEach(row => {
+        html += '<tr>';
+        cols.forEach(col => {
+          let val = row[col] || '-';
+          if (col === 'segmento_quality') {
+            val = `<span class="quality-badge quality-${val}">${val.toUpperCase()}</span>`;
+          }
+          html += `<td>${val}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody>';
+      document.getElementById(id).innerHTML = html;
+    }
+
+    function exportCSV(type) {
+      let data, filename;
+      
+      if (type === 'enriched') {
+        data = enrichedData;
+        filename = 'base_enriquecida_' + getDateStr() + '.csv';
+      } else if (type === 'conflicts') {
+        data = conflictsData;
+        filename = 'CONFLICTS_' + getDateStr() + '.csv';
+      } else if (type === 'newterms') {
+        data = newTermsData;
+        filename = 'NOVOS_TERMOS_' + getDateStr() + '.csv';
+      }
+
+      const csv = Papa.unparse(data);
+      const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+    }
+
+    function getDateStr() {
+      const d = new Date();
+      return d.getFullYear() + '-' + 
+        String(d.getMonth()+1).padStart(2,'0') + '-' + 
+        String(d.getDate()).padStart(2,'0');
+    }
+  </script>
+
+<script>
+/* DEMO MODE — dados fictícios para portfólio */
+(function(){
+  var SEG_RAW=['tecnologia','varejo','saude','educacao','industria','agronegocio','financeiro','servicos','logistica','e-commerce'];
+  var SEG_CAN=['Tecnologia','Varejo','Sa\u00fade','Educa\u00e7\u00e3o','Ind\u00fastria','Agroneg\u00f3cio','Financeiro','Servi\u00e7os','Log\u00edstica','E-commerce'];
+  var PERFIS=['pequena empresa','m\u00e9dio porte','grande empresa','startup','multinacional'];
+
+  function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+  var fakeCSV=[];
+  for(var i=0;i<300;i++){
+    var i1=randInt(0,SEG_RAW.length-1);
+    var i2=randInt(0,SEG_RAW.length-1);
+    var obj={'ID do neg\u00f3cio':'deal-'+String(i+1).padStart(4,'0')};
+    obj['segmento']=SEG_RAW[i1];
+    obj['segmento_1']=SEG_RAW[i2];
+    obj['segment']=SEG_CAN[randInt(0,9)];
+    obj['perfil_do_negocio_da']=rand(PERFIS);
+    fakeCSV.push(obj);
+  }
+
+  var fakeDict=SEG_RAW.map(function(r,i){ return {raw_term:r, segmento_canonico:SEG_CAN[i]}; });
+  fakeDict.push({raw_term:'tech',segmento_canonico:'Tecnologia'});
+  fakeDict.push({raw_term:'sa\u00fade',segmento_canonico:'Sa\u00fade'});
+  fakeDict.push({raw_term:'finance',segmento_canonico:'Financeiro'});
+
+  function initDemo(){
+    if(typeof processPipeline!=='function'){ setTimeout(initDemo,300); return; }
+    try {
+      window.csvData=fakeCSV; window.dictData=fakeDict;
+      processPipeline();
+      document.querySelectorAll('.upload-section').forEach(function(el){ el.style.display='none'; });
+      var b=document.createElement('div');
+      b.style.cssText='position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#38bdf8,#0ea5e9);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(56,189,248,0.5);pointer-events:none';
+      b.textContent='\uD83D\uDCCA Demo \u2014 dados fict\u00edcios';
+      document.body.appendChild(b);
+    } catch(e){ console.error('[DEMO] Erro:',e); }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initDemo);
+  else setTimeout(initDemo,500);
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,2628 @@
+<!DOCTYPE html>
+<!--
+  ╔═══════════════════════════════════════════════════════════╗
+  ║  NewsRadar - Dashboard Editorial                          ║
+  ║  Versão: v1.0                                            ║
+  ║  Última atualização: 31/10/2025                          ║
+  ║  Descrição: Dashboard editorial para análise de          ║
+  ║             conteúdo e métricas de produção              ║
+  ╚═══════════════════════════════════════════════════════════╝
+-->
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NewsRadar • Dashboard Editorial v3.8</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script><script src="../RESOURCES/echarts-v6-enhancements.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+<style>
+:root{
+  --bg:#0f172a;
+  --panel:#111827;
+  --card:#0b1220;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --accent:#38bdf8;
+  --accent-glow:rgba(56, 189, 248, 0.3);
+  --accent-2:#0ea5e9;
+  --good:#22c55e;
+  --warn:#f59e0b;
+  --bad:#ef4444;
+  --line:#1f2937;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{
+  scroll-behavior: smooth;
+}
+html,body{height:100%}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#0a0f1d 0%,#0f172a 60%,#0a0f1d 100%);
+  color:var(--text);
+  font:500 clamp(14px,1.5vw,16px)/1.5 'Montserrat', system-ui, -apple-system, sans-serif;
+}
+header{
+  position: fixed; 
+  top: 0;
+  width: 100%; 
+  z-index: 1000;
+  background:linear-gradient(180deg, rgba(10,15,29,0.95) 0%, rgba(10,15,29,0.80) 100%);
+  backdrop-filter: blur(6px);
+  border-bottom:1px solid var(--line);
+  transition: transform 0.3s ease-in-out; 
+}
+.header-hidden {
+  transform: translateY(-100%); 
+}
+.wrap{width:100%;max-width:1200px;margin:0 auto;padding:8px clamp(12px,3vw,16px)}
+.title{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.title h1{margin:0;font-size:14px;font-weight:600}
+.badge{font-size:10px;padding:2px 6px;border:1px solid var(--line);border-radius:20px;color:var(--muted)}
+
+.uploader{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.uploader input[type=file]{background:var(--panel);border:1px dashed #334155;padding:8px;border-radius:8px;color:var(--muted);width:100%;max-width:320px;font-size:11px}
+.hint{color:var(--muted);font-size:10px}
+
+/* Menu de navegação minimizável - REMOVIDO */
+
+.version-badge{
+  display:inline-block;
+  background:rgba(56, 189, 248, 0.15);
+  border:1px solid rgba(56, 189, 248, 0.4);
+  color:#7dd3fc;
+  font-size:clamp(10px,1.2vw,11px);
+  font-weight:600;
+  padding:4px 12px;
+  border-radius:12px;
+  margin-left:10px;
+  letter-spacing:0.5px;
+}
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:6px;
+  align-items:center;
+  padding:8px 10px;
+  background:rgba(15, 23, 42, 0.6);
+  border:1px solid #334155;
+  border-radius:8px;
+}
+.controls-label{
+  color:#cbd5e1;
+  font-weight:600;
+  font-size:10px;
+}
+.controls .btn, .controls label, .card-header button{
+  background:var(--panel);
+  border:1px solid #334155;
+  padding:6px 10px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:500;
+  cursor:pointer;
+  color:var(--text);
+  transition:all 0.2s ease;
+  min-height:32px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.controls .btn:hover, .controls label:hover, .card-header button:hover{
+  background:var(--accent-glow);
+  border-color:var(--accent);
+}
+.controls .btn:disabled, .card-header button:disabled{
+  background:rgba(255,255,255,.02);
+  color:var(--muted);
+  cursor:not-allowed;
+  opacity:0.5;
+}
+.controls input[type="file"]{display:none}
+
+/* Container principal do dashboard */
+body > .wrap {
+  padding-top: 240px;
+}
+
+#alerts{
+  margin-top:14px;
+}
+#active-filters{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+  min-height:28px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:clamp(16px,2vw,24px);
+  margin-top:clamp(16px,2vw,24px);
+}
+@media(min-width:640px){
+  .grid{grid-template-columns:repeat(6,1fr)}
+  .row-6{grid-column:span 6}
+  .row-4{grid-column:span 6}
+}
+@media(min-width:900px){
+  .grid{grid-template-columns:repeat(12,1fr)}
+  .row-6{grid-column:span 6}
+  .row-4{grid-column:span 4}
+}
+@media(min-width:1100px){
+  .grid-hero{grid-template-columns:1.2fr .8fr}
+  .grid-two{grid-template-columns:1fr 1fr}
+}
+@media(min-width:1280px){
+  .wrap{max-width:1280px}
+}
+.grid > div {margin-bottom:0}
+.card{
+  grid-column:1 / -1;
+  background:
+    radial-gradient(1200px 300px at 10% -10%,rgba(56, 189, 248, 0.06),transparent),
+    radial-gradient(900px 300px at 90% -20%,rgba(14, 165, 233, 0.06),transparent),
+    var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:clamp(16px,2.5vw,20px);
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  transition:all 0.3s ease;
+  scroll-margin-top: 120px;
+}
+.card:hover{
+  box-shadow:0 6px 24px rgba(56, 189, 248, 0.12);
+  border-color:rgba(56, 189, 248, 0.25);
+}
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  margin-bottom:clamp(14px,2vw,18px);
+  flex-wrap:wrap;
+}
+.card h2{
+  margin:0 0 8px 0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:clamp(15px,2vw,17px);
+  color:var(--text);
+  font-weight:600;
+  letter-spacing:.3px;
+}
+.card h2 small{
+  color:var(--muted);
+  font-weight:500;
+  font-size:clamp(12px,1.5vw,13px);
+}
+/* Numeração dos visualizadores */
+.card h2::before {
+  content: attr(data-number);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  color: #0f172a;
+  border-radius: 8px;
+  font-size: clamp(12px,1.5vw,14px);
+  font-weight: 700;
+  padding: 0 8px;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35);
+  flex-shrink: 0;
+}
+.card-header .actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.card-header .icon-btn{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  min-width:44px;
+  min-height:44px;
+  width:auto;
+  height:auto;
+  padding:10px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:clamp(16px,2vw,18px);
+  transition:all 0.2s ease;
+  position:relative;
+}
+.card-header .icon-btn:hover{
+  background:var(--accent-glow);
+  border-color:var(--accent);
+  transform:translateY(-2px);
+}
+.card-header .icon-btn.menu-btn{
+  font-weight:bold;
+}
+.chart-menu{
+  position:absolute;
+  top:calc(100% + 4px);
+  right:0;
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  padding:8px;
+  min-width:180px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  z-index:50;
+  display:none;
+}
+.chart-menu.show{
+  display:block;
+  animation:menuSlide 0.2s ease;
+}
+@keyframes menuSlide{
+  from{opacity:0;transform:translateY(-8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.chart-menu button{
+  width:100%;
+  background:transparent;
+  border:none;
+  padding:12px 14px;
+  text-align:left;
+  color:var(--text);
+  font-size:clamp(13px,1.5vw,14px);
+  border-radius:8px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-height:44px;
+}
+.chart-menu button:hover{
+  background:var(--accent-glow);
+  color:#bae6fd;
+}
+.chart{
+  width:100%;
+  height:clamp(280px,45vw,420px);
+  min-height:240px;
+}
+
+/* Info Icon Tooltip */
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #666;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #3a3a45;
+  border-radius: 50%;
+  cursor: help;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 100;
+}
+
+.info-icon:hover {
+  color: var(--accent);
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  transform: scale(1.1);
+  z-index: 10000;
+}
+
+.info-icon .tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(28,28,34,0.98);
+  color: #DADAE3;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 1.5;
+  z-index: 10001;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  min-width: 200px;
+}
+
+.info-icon .tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--accent);
+}
+
+.info-icon:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.table-container {
+    max-height: 500px;
+    overflow-y: auto;
+    border-radius: 8px;
+    position: relative;
+}
+
+.table-container thead {
+    position: sticky;
+    top: 0;
+    background: var(--panel);
+    z-index: 1;
+}
+
+.table-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.3);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(56, 189, 248, 0.5);
+}
+
+.table{width:100%;border-collapse:collapse;table-layout:fixed}
+.table th,.table td{padding:clamp(10px,1.5vw,12px);border-bottom:1px solid rgba(255,255,255,.06);font-size:clamp(13px,1.5vw,14px);vertical-align:top}
+.table td:nth-child(2){max-width:450px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.table th{text-align:left;color:var(--muted);font-weight:600}
+.table th.sortable{cursor:pointer;-webkit-user-select:none;user-select:none;min-height:44px;}
+.table th.sortable:hover{color:var(--text)}
+.table th.sortable span{margin-left:6px;display:inline-block;width:12px;}
+.footer{opacity:.7;font-size:clamp(11px,1.3vw,12px);margin:16px 0 40px;color:var(--muted)}
+.kpi{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+.kpi .pill{
+  background:var(--panel);
+  border:1px solid #334155;
+  padding:6px 10px;
+  border-radius:6px;
+  transition:all 0.2s ease;
+  min-width:80px;
+}
+.kpi .pill:hover{
+  background:var(--accent-glow);
+  border-color:var(--accent);
+  transform:translateY(-2px);
+}
+.kpi .num{
+  font-weight:700;
+  font-size:13px;
+  color:var(--accent);
+  margin-bottom:2px;
+  line-height:1.2;
+}
+.kpi .pill div:last-child{
+  font-size:10px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  background:rgba(56, 189, 248, 0.12);
+  border:1px solid rgba(56, 189, 248, 0.35);
+  color:#bae6fd;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:500;
+}
+.warn{
+  background:rgba(234,179,8,.12);
+  border:1px solid rgba(234,179,8,.4);
+  color:#fde68a;
+  padding:10px 14px;
+  border-radius:12px;
+  font-size:12px;
+  line-height:1.5;
+}
+.flex{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.select{
+  appearance:none;
+  background:#1f2937 url('data:image/svg+xml;utf8,<svg fill="%23cbd5e1" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 10px center;
+  border:1px solid #334155;
+  color:#cbd5e1;
+  padding:clamp(8px,1.2vw,10px) clamp(32px,4vw,38px) clamp(8px,1.2vw,10px) clamp(12px,1.5vw,14px);
+  border-radius:8px;
+  font-size:clamp(13px,1.5vw,14px);
+  font-weight:500;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  min-height:44px;
+}
+.select:hover{
+  background-color:var(--accent-glow);
+  border-color:var(--accent);
+}
+.select:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+.select option{
+  background:var(--panel);
+  color:var(--text);
+}
+.input{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  color:var(--text);
+  padding:clamp(10px,1.5vw,12px) clamp(12px,1.8vw,14px);
+  border-radius:10px;
+  font-size:clamp(13px,1.5vw,14px);
+  min-width:clamp(180px,25vw,240px);
+  transition:all 0.2s ease;
+  min-height:44px;
+}
+.input:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(56, 189, 248, 0.3);
+}
+.input:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+.input::placeholder{
+  color:var(--muted);
+  opacity:0.6;
+}
+.chips{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.chip{
+  padding:clamp(10px,1.5vw,12px) clamp(14px,2vw,16px);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;
+  font-size:clamp(12px,1.4vw,13px);
+  font-weight:500;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  background:rgba(255,255,255,.04);
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+}
+.chip:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(56, 189, 248, 0.3);
+  transform:translateY(-1px);
+}
+.chip.active{
+  background:var(--accent-glow);
+  border-color:var(--accent);
+  color:#bae6fd;
+  box-shadow:0 0 0 2px rgba(56, 189, 248, 0.1);
+}
+.filter-pill{
+  background:rgba(56, 189, 248, 15);
+  border:1px solid rgba(56, 189, 248, 0.5);
+  color:#bae6fd;
+  padding:clamp(8px,1.2vw,10px) clamp(12px,1.8vw,14px);
+  font-size:clamp(12px,1.4vw,13px);
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition:all 0.2s ease;
+  max-width:280px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .filter-pill{
+    animation:slideIn 0.3s ease;
+  }
+}
+.filter-pill:hover{
+  background:var(--accent-glow);
+  border-color:var(--accent);
+  transform:translateY(-1px);
+}
+.filter-pill .key{
+  font-weight:600;
+  opacity:0.8;
+}
+.filter-pill .value{
+  font-weight:500;
+}
+.filter-pill .close-btn{
+  background:transparent;
+  border:none;
+  color:#bae6fd;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  padding:0 4px;
+  margin-left:4px;
+  opacity:0.7;
+  transition:all 0.2s ease;
+  font-weight:bold;
+  min-width:auto;
+  min-height:auto;
+}
+.filter-pill .close-btn:hover{
+  opacity:1;
+  transform:scale(1.2);
+  color:#fff;
+}
+.filter-pill span{
+  cursor:pointer;
+  font-weight:bold;
+  font-size:14px;
+  line-height:1;
+  opacity:0.7;
+  transition:opacity 0.2s ease;
+}
+.filter-pill span:hover{
+  opacity:1;
+}
+.filter-counter{
+  background:rgba(56, 189, 248, 0.2);
+  border:1px solid rgba(56, 189, 248, 0.6);
+  color:#bae6fd;
+  padding:clamp(8px,1.2vw,10px) clamp(14px,2vw,16px);
+  font-size:clamp(12px,1.4vw,13px);
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+  letter-spacing:0.3px;
+}
+.filter-counter .icon{
+  font-size:clamp(14px,1.6vw,16px);
+}
+.filter-empty{
+  color:var(--muted);
+  font-size:clamp(12px,1.4vw,13px);
+  font-style:italic;
+  padding:8px 0;
+}
+@keyframes slideIn{
+  from{opacity:0;transform:translateX(-10px)}
+  to{opacity:1;transform:translateX(0)}
+}
+hr.sep{border:0;border-top:1px dashed rgba(255,255,255,.14);margin:12px 0}
+.table-filter-toggle{cursor:pointer;padding:4px;border-radius:6px;font-size:13px;color:var(--muted); margin-bottom:10px;}
+.table-filters{display:none; gap:10px; padding:10px; border:1px solid rgba(255,255,255,.08); border-radius:12px; margin-bottom:12px}
+#table-footer-note{font-size:12px;color:var(--muted);margin-top:10px;}
+
+/* CSS do Gemini - REMOVIDO */
+
+/* Botão Metodologia */
+.btn-metodologia:hover {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Loading Overlay */
+.loading-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(11,15,26,0.95);
+  backdrop-filter:blur(8px);
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  visibility:hidden;
+  transition:all 0.3s ease;
+}
+.loading-overlay.show{
+  opacity:1;
+  visibility:visible;
+}
+.loading-spinner{
+  text-align:center;
+}
+.spinner{
+  width:60px;
+  height:60px;
+  border:4px solid rgba(56, 189, 248, 0.2);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  margin:0 auto 20px;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+.loading-text{
+  color:var(--text);
+  font-size:clamp(14px,1.6vw,16px);
+  font-weight:500;
+  margin-top:16px;
+}
+
+/* Botão Metodologia (continuação) */
+.btn-metodologia {
+  background: var(--panel);
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  padding: clamp(10px,1.5vw,12px) clamp(14px,2vw,16px);
+  border-radius: 8px;
+  font-size: clamp(13px,1.5vw,14px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+.btn-metodologia:hover {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Modal de Metodologia */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-overlay.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #0F0F12 0%, #1a1a1f 100%);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 16px;
+  max-width: 800px;
+  max-height: 85vh;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(56, 189, 248, 0.2);
+  animation: slideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(56, 189, 248, 0.05);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: clamp(18px,2.2vw,22px);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-close {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: clamp(18px,2vw,22px);
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.modal-close:hover {
+  background: rgba(239, 68, 68, 0.25);
+  transform: scale(1.1);
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-body h3 {
+  color: #fff;
+  font-size: clamp(15px,2vw,17px);
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-body ul {
+  margin: 0 0 16px 0;
+  padding-left: 24px;
+  color: #C9C9D1;
+  font-size: clamp(13px,1.5vw,14px);
+  line-height: 1.7;
+}
+
+.modal-body li {
+  margin-bottom: 10px;
+}
+
+.modal-body code {
+  background: var(--accent-glow);
+  color: var(--accent);
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  font-size: clamp(11px,1.3vw,12px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scroll to top button */
+#scrollToTop {
+  position: fixed;
+  bottom: clamp(90px,12vw,110px);
+  right: clamp(20px,3vw,32px);
+  min-width: 48px;
+  min-height: 48px;
+  background: var(--panel);
+  border: 1px solid rgba(153, 41, 234, 0.4);
+  color: var(--accent);
+  border-radius: 50%;
+  font-size: clamp(20px,2.5vw,24px);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 140;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+#scrollToTop.show {
+  display: flex;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #scrollToTop:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px var(--accent-glow);
+    background: var(--accent-glow);
+  }
+}
+
+/* Acessibilidade - skip link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--accent);
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+  z-index: 1000;
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* Screen reader only (acessibilidade) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus indicators globais para acessibilidade */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible,
+.chip:focus-visible,
+.icon-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+/* Remove outline padrão quando usando :focus-visible */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+</style>
+<style>.uploader,.upload-section,#empty-state{display:none!important}</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Pular para conteúdo principal</a>
+<header>
+  <div class="wrap">
+    <div class="title">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" stroke="var(--accent)" stroke-width="1.5"/>
+        <path d="M8 7h8M8 11h8M8 15h5" stroke="var(--accent-2)" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <h1>📰 NewsRadar • Dashboard Editorial <span class="version-badge">v1.0</span></h1>
+      <span class="badge">ECharts + CSV</span>
+    </div>
+    
+    <div class="uploader">
+      <input id="file" type="file" accept=".csv" aria-label="Carregar arquivo CSV" />
+      <span class="hint">Carregue o arquivo CSV com artigos. Colunas esperadas: título, data, fonte (score, url, tags opcionais).</span>
+    </div>
+
+    <!-- Controles de modelo IA removidos -->
+
+    <div class="kpi">
+      <div class="pill"><div class="num" id="kpi_total">0</div><div>Artigos</div></div>
+      <div class="pill"><div class="num" id="kpi_fontes">0</div><div>Fontes</div></div>
+      <div class="pill"><div class="num" id="kpi_keywords">0</div><div>Palavras-chave</div></div>
+      <div class="pill"><div class="num" id="kpi_recente">—</div><div>Última publicação</div></div>
+    </div>
+
+    <div id="alerts" class="flex"></div>
+    <div id="active-filters"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="empty-state" class="card" style="text-align:center; padding:50px 20px;">
+    <h2 style="font-size:20px; color:var(--text)">Bem-vindo ao NewsRadar Dashboard</h2>
+    <p style="color:var(--muted); margin-top:8px;">Para começar, carregue um arquivo CSV de artigos usando o botão no canto superior esquerdo.</p>
+  </div>
+
+  <main id="dashboard-content" style="display:none;">
+    <div id="main-content"></div>
+    <div class="grid grid-hero">
+      <div id="keyword-explorer" class="card">
+        <div class="card-header">
+          <h2 data-number="01">Keyword Explorer
+            <span class="info-icon">ⓘ<span class="tooltip">Exploração visual de palavras-chave mais frequentes em nuvem, rede e heatmap</span></span>
+          </h2>
+          <div class="actions">
+            <div style="position:relative">
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
+              <div class="chart-menu">
+                <button onclick="downloadActiveKeywordChart()">📸 Download PNG</button>
+                <button onclick="exportActiveKeywordData()">📊 Exportar CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+         <div class="chips">
+            <div class="chip active" data-view="cloud">Word Cloud</div>
+            <div class="chip" data-view="graph">Rede</div>
+            <div class="chip" data-view="heatmap">Heatmap Semanal</div>
+          </div>
+        <div class="flex" style="margin:12px 0;">
+          <select id="sel-topN" class="select">
+            <option value="50">Top 50</option>
+            <option value="100" selected>Top 100</option>
+            <option value="150">Top 150</option>
+            <option value="200">Top 200</option>
+          </select>
+          <div id="keyword-filter-wrapper">
+            <input id="inp-keyword" class="input" placeholder="Filtrar por keyword...">
+          </div>
+          <select id="sel-date" class="select">
+            <option value="all" selected>Todo o período</option>
+            <option value="30">Últimos 30 dias</option>
+            <option value="60">Últimos 60 dias</option>
+            <option value="90">Últimos 90 dias</option>
+          </select>
+        </div>
+        <div id="chart_keyword_cloud" class="chart"></div>
+        <div id="chart_keyword_graph" class="chart" style="display:none"></div>
+        <div id="chart_keyword_heatmap" class="chart" style="display:none"></div>
+        <hr class="sep">
+        <div id="keyword-insights"></div>
+      </div>
+
+      <div id="theme-evolution" class="card">
+        <div class="card-header">
+            <h2 data-number="02">Evolução de Temas ao Longo do Tempo
+              <span class="info-icon">ⓘ<span class="tooltip">Série temporal mostrando tendências e sazonalidade dos principais temas editoriais</span></span>
+            </h2>
+            <div class="actions">
+              <button class="icon-btn" onclick="sendGemini('theme_evolution', this)" title="Analisar com IA">🤖</button>
+              <div style="position:relative">
+                <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
+                <div class="chart-menu">
+                  <button onclick="downloadChartPNG('chart_theme_evolution','evolucao_temas')">📸 Download PNG</button>
+                  <button onclick="exportChartDataCSV('chart_theme_evolution','evolucao_temas')">📊 Exportar CSV</button>
+                </div>
+              </div>
+            </div>
+        </div>
+        <div id="chart_theme_evolution" class="chart"></div>
+        <div class="flex">
+          <label for="sel-fonte" class="sr-only">Filtrar por fonte</label>
+          <select id="sel-fonte" class="select" aria-label="Filtrar artigos por fonte">
+            <option value="all" selected>Todas as fontes</option>
+          </select>
+          <button id="btn-clear" class="btn" aria-label="Limpar todos os filtros ativos">Limpar filtros</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-two">
+      <div id="sources" class="card">
+        <div class="card-header">
+          <h2 data-number="03">Fontes por Score Médio
+            <span class="info-icon">ⓘ<span class="tooltip">Ranking de fontes editoriais por score médio de relevância e engajamento</span></span>
+          </h2>
+          <div class="actions">
+            <button class="icon-btn" onclick="sendGemini('top_sources', this)" title="Analisar com IA">🤖</button>
+            <div style="position:relative">
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
+              <div class="chart-menu">
+                <button onclick="downloadChartPNG('chart_sources','top_fontes')">📸 Download PNG</button>
+                <button onclick="exportChartDataCSV('chart_sources','top_fontes')">📊 Exportar CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="chart_sources" class="chart"></div>
+      </div>
+    
+      <div class="card">
+        <div class="card-header">
+          <h2 data-number="04">Fluxo de temas por fonte <small>(Sankey)</small>
+            <span class="info-icon">ⓘ<span class="tooltip">Diagrama Sankey revelando relação entre fontes e temas mais abordados</span></span>
+          </h2>
+          <div class="actions">
+            <button class="icon-btn" onclick="sendGemini('sankey', this)" title="Analisar com IA">🤖</button>
+            <div style="position:relative">
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
+              <div class="chart-menu">
+                <button onclick="downloadChartPNG('chart_sankey','sankey_temas')">📸 Download PNG</button>
+                <button onclick="exportChartDataCSV('chart_sankey','sankey_temas')">📊 Exportar CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="chart_sankey" class="chart"></div>
+      </div>
+    </div>
+
+    <div id="top-articles" class="card">
+      <div class="card-header">
+        <h2 data-number="05">Top Artigos por Score
+          <span class="info-icon">ⓘ<span class="tooltip">Lista dos artigos com maior score de relevância, qualidade e engajamento</span></span>
+        </h2>
+        <button id="btn-download-clean" class="btn" disabled>Exportar dados (.csv)</button>
+      </div>
+      <div id="table-filter-toggle" class="table-filter-toggle">Filtros da Tabela ▼</div>
+      <div id="table-filters" class="table-filters flex">
+        <input id="table-title-filter" class="input" placeholder="Filtrar por título...">
+        <input id="table-tags-filter" class="input" placeholder="Filtrar por tags..." style="min-width:160px">
+        <input id="table-score-filter" type="number" class="input" placeholder="Pontuação mínima..." style="min-width:160px">
+      </div>
+      <div class="table-container" id="raw-data">
+        <table class="table" id="table_latest">
+          <thead>
+            <tr>
+              <th class="sortable" data-sort="data">Data<span></span></th>
+              <th class="sortable" data-sort="titulo">Título<span></span></th>
+              <th class="sortable" data-sort="fonte">Fonte<span></span></th>
+              <th class="sortable" data-sort="score">Score<span></span></th>
+              <th>Tags/Keywords</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="footer">* Clique no título para abrir o link (quando disponível). O texto de títulos longos é cortado.</div>
+      <div id="table-footer-note"></div>
+    </div>
+
+    <div class="footer">Gerado automaticamente · NewsRadar v3.8</div>
+  </main>
+</div>
+
+<!-- Painel Gemini e FAB removidos -->
+
+<button id="scrollToTop" onclick="scrollToTop()" title="Voltar ao topo" aria-label="Voltar ao topo">↑</button>
+
+<script>
+// ---------- Utils ----------
+const fmt = new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo'});
+const el = id => document.getElementById(id);
+const alerts = el('alerts');
+
+function addAlert(msg, type='warn'){
+  alerts.innerHTML = ''; // Clear previous alerts
+  const d = document.createElement('div');
+  d.className = type==='warn' ? 'warn' : 'badge';
+  d.textContent = msg;
+  alerts.appendChild(d);
+}
+
+// Estados de loading
+function showLoadingState(message = 'Carregando...'){
+  const loader = document.getElementById('loading-overlay') || createLoadingOverlay();
+  const loadingText = loader.querySelector('.loading-text');
+  if(loadingText) loadingText.textContent = message;
+  loader.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function hideLoadingState(){
+  const loader = document.getElementById('loading-overlay');
+  if(loader){
+    loader.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+}
+
+function updateLoadingProgress(message){
+  const loader = document.getElementById('loading-overlay');
+  if(loader){
+    const loadingText = loader.querySelector('.loading-text');
+    if(loadingText) loadingText.textContent = message;
+  }
+}
+
+function createLoadingOverlay(){
+  const overlay = document.createElement('div');
+  overlay.id = 'loading-overlay';
+  overlay.className = 'loading-overlay';
+  overlay.innerHTML = `
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <div class="loading-text">Carregando...</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function parseDateBr(s){
+  if(!s) return null;
+  s = (''+s).trim();
+  // Formato BR: DD/MM/YYYY ou DD-MM-YYYY
+  const m1 = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if(m1){
+    const d = String(m1[1]).padStart(2,'0'), mo = String(m1[2]).padStart(2,'0');
+    let y = m1[3]; if(y.length===2) y = '20'+y;
+    return new Date(`${y}-${mo}-${d}T12:00:00Z`); // Usar UTC para evitar erros de fuso
+  }
+  // Formato ISO: YYYY-MM-DD ou YYYY/MM/DD
+  const m2 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if(m2){
+    const y = m2[1], mo = String(m2[2]).padStart(2,'0'), d = String(m2[3]).padStart(2,'0');
+    return new Date(`${y}-${mo}-${d}T12:00:00Z`); // Usar UTC para evitar erros de fuso
+  }
+  const d = new Date(s);
+  return isNaN(+d) ? null : d;
+}
+
+function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+}
+
+function weekKey(d) {
+    if (!d || isNaN(+d)) return 'NA';
+    const year = d.getUTCFullYear();
+    const week = String(getWeekNumber(d)).padStart(2, '0');
+    return `${year}-W${week}`;
+}
+
+function saneUrl(u){
+  if(!u) return null;
+  u = (''+u).trim();
+  if(!u) return null;
+  if(/^https?:\/\//i.test(u)) return u;
+  if(/^\/\//.test(u)) return 'https:'+u;
+  return 'http://'+u;
+}
+
+function slug(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+
+// ---------- Column mapping ----------
+const expected = {titulo:['título','titulo','title','headline','manchete'],
+                  data:['data','date','publicado','publish','created','criado'],
+                  fonte:['fonte','source','veículo','veiculo','site','portal'],
+                  url:['url','link','endereco','endereço'],
+                  tags:['tags','tag','assunto','tema','categoria'],
+                  score:['score','pontuação','pontuacao']};
+
+function autoMapColumns(cols){
+  const map = {};
+  const low = cols.map(c=>c.toLowerCase());
+  for(const key in expected){
+    const opts = expected[key];
+    let idx = -1;
+    for(const o of opts){
+      idx = low.findIndex(x=>x.includes(o));
+      if(idx>=0) break;
+    }
+    map[key] = idx>=0 ? cols[idx] : null;
+  }
+  return map;
+}
+
+// ---------- Keyword helpers ----------
+const STOP = new Set(`a o os as um uma umas uns de da do das dos e em no na nos nas por para com sem sob sobre entre ate até ao aos à às que qual quais cujo cuja cujos cujas
+se seu sua seus suas nosso nossa nossos nossas vosso vossa vossos vossas dele dela deles delas este esta estes estas isso isto aquele aquela aqueles aquelas aqui ali la lá
+eu tu ele ela nos nós vós voces vocês eles elas me te se nos vos lhe lhes mim contigo consigo meu minha meus minhas teu tua teus tuas
+mais menos muito muita muitos muitas pouco pouca poucos poucas tambem também como quando quanto quantos quantas onde porque porquê porém porem porém entretanto
+todavia contudo portanto logo entao então ja já la lá cá debaixo acima abaixo dentro fora antes depois hoje ontem amanha amanhã agora sempre nunca talvez sim nao não`.split(/\s+/));
+
+function tokenize(text){
+  if(!text) return [];
+  const toks = (''+text).toLowerCase().match(/[a-zà-ÿ0-9]{3,}/g) || [];
+  return toks.filter(t=>!STOP.has(t) && !/^\d+$/.test(t));
+}
+
+function keyphrasesFromTitleAndTags(title, tags){
+  const toks = tokenize(title).slice(0,12);
+  const phrases = [];
+  for(let n=3;n>=2;n--){
+    for(let i=0;i+n<=toks.length;i++){
+      phrases.push(toks.slice(i,i+n).join(' '));
+    }
+  }
+  if(tags){
+    (''+tags).split(/[,\|\/;]+/).map(x=>x.trim().toLowerCase()).filter(Boolean).forEach(t=>phrases.push(t));
+  }
+  return phrases;
+}
+
+// ---------- Global state ----------
+let raw = [];
+let rows = []; // cleaned
+let colmap = {};
+let keywordCounts = new Map();
+let keywordByWeek = new Map();
+let keywordByDay = new Map();
+let coocc = new Map();
+let sourcesCounts = new Map();
+let keywordsAll = new Set();
+let sourcesAll = new Set();
+let chartDataStore = {};
+
+let filter = {keyword:null, fonte:'all', dateWin:'all'};
+let sortState = { column: 'data', order: 'desc' };
+
+function resetState(){
+  raw = []; rows = []; colmap = {};
+  keywordCounts = new Map(); keywordByWeek = new Map(); keywordByDay = new Map(); coocc = new Map();
+  sourcesCounts = new Map(); keywordsAll = new Set(); sourcesAll = new Set();
+  chartDataStore = {};
+  filter = {keyword:null, fonte:'all', dateWin:'all'};
+  sortState = { column: 'data', order: 'desc' };
+  alerts.innerHTML = '';
+  el('dashboard-content').style.display = 'none';
+  el('empty-state').style.display = 'block';
+  el('btn-download-clean').disabled = true;
+  el('table-footer-note').textContent = '';
+}
+
+// ---------- Build aggregates ----------
+function dayKey(d){ return d ? d.toISOString().slice(0,10) : 'NA'; }
+
+function buildAggregates(){
+  keywordCounts = new Map();
+  keywordByWeek = new Map();
+  keywordByDay = new Map();
+  coocc = new Map();
+  sourcesCounts = new Map();
+  keywordsAll = new Set();
+  sourcesAll = new Set();
+  const now = new Date();
+  const cutoff = (filter.dateWin==='all') ? null : new Date(now - Number(filter.dateWin)*24*3600*1000);
+
+  rows.forEach(r=>{
+    if(filter.fonte!=='all' && r.fonte!==filter.fonte) return;
+    if(filter.keyword && !(r.keywords||[]).includes(filter.keyword)) return;
+    if(cutoff && r.data && r.data<cutoff) return;
+
+    sourcesAll.add(r.fonte || '—');
+    sourcesCounts.set(r.fonte || '—', (sourcesCounts.get(r.fonte || '—')||0)+1);
+
+    const wk = weekKey(r.data);
+    const dk = dayKey(r.data);
+    
+    const ks = Array.from(new Set([...(r.keywords||[])]));
+    ks.forEach(k=>{
+      keywordsAll.add(k);
+      keywordCounts.set(k,(keywordCounts.get(k)||0)+1);
+
+      const weekMap = keywordByWeek.get(wk) || new Map();
+      weekMap.set(k,(weekMap.get(k)||0)+1);
+      keywordByWeek.set(wk,weekMap);
+
+      if(dk !== 'NA'){
+        const dayMap = keywordByDay.get(dk) || new Map();
+        dayMap.set(k,(dayMap.get(k)||0)+1);
+        keywordByDay.set(dk,dayMap);
+      }
+    });
+
+    for(let i=0;i<ks.length;i++){
+      for(let j=i+1;j<ks.length;j++){
+        const a = ks[i], b = ks[j];
+        const key = a<b ? a+'||'+b : b+'||'+a;
+        coocc.set(key,(coocc.get(key)||0)+1);
+      }
+    }
+  });
+}
+
+// ---------- Renderers ----------
+function make(instId){ return echarts.init(el(instId)); }
+let cloud, graph, heatmap, themeEvolution, sourcesBar, sankey;
+
+function showEmptyChartMessage(chartInstance, message = 'Não há dados suficientes para exibir este gráfico.') {
+    if(!chartInstance) return;
+    chartInstance.clear();
+    chartInstance.setOption({
+        graphic: {
+            type: 'text',
+            left: 'center',
+            top: 'center',
+            style: { text: message, fill: 'var(--muted)', font: '14px Montserrat' }
+        }
+    });
+}
+
+function renderKPIs(){
+  el('kpi_total').textContent = rows.length;
+  el('kpi_fontes').textContent = sourcesAll.size;
+  el('kpi_keywords').textContent = keywordsAll.size;
+  const last = rows.filter(r=>r.data).sort((a,b)=>b.data-a.data)[0];
+  el('kpi_recente').textContent = last? fmt.format(last.data) : '—';
+}
+
+function topEntries(map, topN){
+  return Array.from(map.entries()).sort((a,b)=>b[1]-a[1]).slice(0,topN);
+}
+
+function renderKeywordCloud(){
+  if(!cloud) cloud = make('chart_keyword_cloud');
+  const topN = Number(el('sel-topN').value);
+  const term = el('inp-keyword').value.trim().toLowerCase();
+  let arr = topEntries(keywordCounts, topN).map(([name,val])=>({name,value:val}));
+  if(term) arr = arr.filter(x=>x.name.includes(term));
+  chartDataStore.word_cloud = arr;
+  
+  if (arr.length === 0) {
+      showEmptyChartMessage(cloud);
+      return;
+  }
+
+  const option = {
+    graphic: {elements:[]}, // Clear empty message
+    tooltip:{formatter: p=>{
+      const kw = p.name; 
+      const total = keywordCounts.get(kw)||0;
+      const topSrc = topFontesForKeyword(kw).slice(0,3).map(x=>`${x[0]} (${x[1]})`).join(', ');
+      return `<b>${kw}</b><br>Total: ${total}<br>Top fontes: ${topSrc}`;
+    }},
+    series:[{
+      type:'wordCloud',
+      shape:'circle',
+      gridSize: 8,
+      sizeRange:[12,46],
+      rotationRange:[0,0],
+      textStyle:{fontFamily:'Montserrat'},
+      data: arr
+    }],
+    color:['#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe', '#0369a1']
+  };
+  cloud.setOption(option, true);
+  cloud.off('click');
+  cloud.on('click', p=>{ filter.keyword=p.name; syncFilters(); });
+}
+
+function renderKeywordGraph(){
+  if(!graph) graph = make('chart_keyword_graph');
+  const topN = Number(el('sel-topN').value);
+  const nodesMap = new Map(topEntries(keywordCounts, topN));
+  const nodes = Array.from(nodesMap, ([name,val])=>({name,value:val,symbolSize:Math.max(10,Math.min(60,8+val))}));
+  const edges = [];
+  
+  coocc.forEach((w,key)=>{
+    const [a,b] = key.split('||');
+    if(nodesMap.has(a) && nodesMap.has(b) && w >= 1){ 
+      edges.push({source:a,target:b,value:w});
+    }
+  });
+
+  chartDataStore.keyword_graph = {nodes, edges};
+  
+  if (nodes.length === 0) {
+      showEmptyChartMessage(graph, 'Não há keywords para exibir na rede.');
+      return;
+  }
+
+  const option = {
+    graphic: {elements:[]}, // Clear empty message
+    tooltip:{
+      show: true,
+      formatter: (params) => {
+        if (params.dataType === 'node') {
+          return `<strong>${params.data.name}</strong><br/>Ocorrências: ${params.data.value}`;
+        }
+        return `${params.data.source} → ${params.data.target}<br/>Co-ocorrências: ${params.data.value}`;
+      }
+    },
+    animation: true,
+    animationDurationUpdate: 1000,
+    animationEasingUpdate: 'cubicInOut',
+    series:[{
+      type: 'graph',
+      layout: 'force',
+      force: {
+        repulsion: 800,
+        edgeLength: 150,
+        gravity: 0.3,
+        friction: 0.2,
+        layoutAnimation: true
+      },
+      roam: true,
+      draggable: true,
+      zoom: 0.8,
+      center: ['50%', '50%'],
+      scaleLimit: {
+        min: 0.4,
+        max: 2
+      },
+      data: nodes,
+      links: edges,
+      label: {
+        show: true,
+        position: 'right',
+        formatter: '{b}',
+        color: '#fff',
+        textBorderColor: '#000',
+        textBorderWidth: 3,
+        fontSize: 14,
+        fontWeight: 'bold',
+        distance: 5
+      },
+      itemStyle: {
+        borderWidth: 2,
+        borderColor: '#fff',
+        shadowColor: 'rgba(0, 0, 0, 0.3)',
+        shadowBlur: 10
+      },
+      lineStyle: {
+        color: 'var(--accent)',
+        opacity: 0.4,
+        width: 3,
+        curveness: 0.2,
+        shadowColor: 'rgba(0, 0, 0, 0.2)',
+        shadowBlur: 5
+      },
+      emphasis: {
+        focus: 'adjacency',
+        scale: 1.2,
+        itemStyle: {
+          borderWidth: 3
+        },
+        lineStyle: {
+          width: 6,
+          opacity: 0.9
+        },
+        label: {
+          fontSize: 16,
+          fontWeight: 'bold'
+        }
+      }
+    }],
+    color:['#9929EA','#6f4bd9','#b37cf2','#d9b6ff','#a179e6','#caa4ff']
+  };
+  graph.setOption(option, true);
+  if(edges.length === 0) {
+      showEmptyChartMessage(graph, 'Keywords encontradas, mas sem co-ocorrências para criar uma rede.');
+  }
+  graph.off('click');
+  graph.on('click', p=>{ if(p.dataType==='node'){ filter.keyword=p.data.name; syncFilters(); } });
+}
+
+function renderKeywordHeatmap(){
+  if(!heatmap) heatmap = make('chart_keyword_heatmap');
+  const weeks = Array.from(keywordByWeek.keys()).filter(x=>x!=='NA').sort();
+  const topN = Number(el('sel-topN').value);
+  const topKw = topEntries(keywordCounts, topN).map(x=>x[0]);
+  const data = [];
+  
+  weeks.forEach((w,xi)=>{
+    const wMap = keywordByWeek.get(w) || new Map();
+    topKw.forEach((k,yi)=>{
+      const v = wMap.get(k)||0;
+      if(v>0) data.push([xi, yi, v]);
+    });
+  });
+  
+  chartDataStore.keyword_heatmap = {weeks, keywords: topKw, data};
+
+  if (data.length === 0) {
+      showEmptyChartMessage(heatmap, 'Não há dados semanais para as keywords selecionadas.');
+      return;
+  }
+  
+  const option = {
+    graphic: {elements:[]}, // Clear empty message
+    tooltip:{formatter: p=>{
+      const w = weeks[p.data[0]], k = topKw[p.data[1]], v = p.data[2];
+      return `<b>${k}</b><br>${w}: ${v}`;
+    }},
+    grid:{left:120, right:10, top:10, bottom:60},
+    xAxis:{type:'category', data:weeks, axisLabel:{color:'#a7b0c0'}},
+    yAxis:{type:'category', data:topKw, axisLabel:{color:'#a7b0c0', formatter: v => v.length > 18 ? v.slice(0,18)+'...' : v }},
+    visualMap:{
+      min:0, 
+      max:Math.max(1,...data.map(x=>x[2])), 
+      calculable:true, 
+      orient:'horizontal', 
+      left:'center', 
+      bottom:0,
+      inRange: {
+        color: ['#0c4a6e', '#075985', '#0369a1', '#0ea5e9', '#38bdf8', '#bae6fd']
+      },
+      textStyle: {
+        color: '#e5e7eb'
+      }
+    },
+    series:[{type:'heatmap', data:data}],
+    color:['#f0f9ff','#e0f2fe','#bae6fd','#7dd3fc','#38bdf8','#0ea5e9']
+  };
+  heatmap.setOption(option, true);
+  heatmap.off('click');
+  heatmap.on('click', p=>{ const k = topKw[p.data[1]]; filter.keyword=k; syncFilters(); });
+}
+
+function renderThemeEvolutionHeatmap() {
+  if(!themeEvolution) themeEvolution = make('chart_theme_evolution');
+  const topKw = topEntries(keywordCounts, 15).map(x => x[0]);
+  const days = Array.from(keywordByDay.keys()).filter(d => d !== 'NA').sort();
+  const data = [];
+  
+  days.forEach((d, xi) => {
+    const dayMap = keywordByDay.get(d) || new Map();
+    topKw.forEach((k, yi) => {
+      const v = dayMap.get(k) || 0;
+      if (v > 0) data.push([xi, yi, v]);
+    });
+  });
+
+  chartDataStore.theme_evolution = {days, keywords: topKw, data};
+
+  if (data.length === 0) {
+      showEmptyChartMessage(themeEvolution);
+      return;
+  }
+
+  const option = {
+    graphic: {elements:[]}, // Clear empty message
+    tooltip:{
+      formatter: p => {
+        const day = days[p.data[0]];
+        const kw = topKw[p.data[1]];
+        const count = p.data[2];
+        return `<b>${kw}</b><br>${day}: ${count} mençõe(s)`;
+      }
+    },
+    grid:{left:120, right:20, top:10, bottom:70},
+    xAxis:{type:'category', data:days, axisLabel:{
+      color:'#a7b0c0', 
+      rotate: 30,
+      formatter: val => val.slice(5)
+    }},
+    yAxis:{type:'category', data:topKw, axisLabel:{
+      color:'#a7b0c0',
+      formatter: val => val.length > 18 ? val.slice(0,18) + '...' : val
+    }},
+    visualMap:{
+      min: 0,
+      max: Math.max(1, ...data.map(x => x[2])),
+      calculable:true,
+      orient:'horizontal',
+      left:'center',
+      bottom:0,
+      inRange: { color: ['#0c4a6e', '#075985', '#0ea5e9', '#7dd3fc'] }
+    },
+    series:[{type:'heatmap', data: data}]
+  };
+  themeEvolution.setOption(option, true);
+}
+
+function topFontesForKeyword(kw){
+  const m = new Map();
+  rows.forEach(r=>{
+    if(!kw || (r.keywords||[]).includes(kw)){
+      const f = r.fonte || '—';
+      m.set(f,(m.get(f)||0)+1);
+    }
+  });
+  return Array.from(m.entries()).sort((a,b)=>b[1]-a[1]);
+}
+
+function renderSources(){
+  if(!sourcesBar) sourcesBar = make('chart_sources');
+  const arr = topEntries(sourcesCounts, 20).reverse();
+  chartDataStore.top_sources = arr.slice().reverse();
+
+  if (arr.length === 0) {
+      showEmptyChartMessage(sourcesBar);
+      return;
+  }
+
+  sourcesBar.setOption({
+    graphic: {elements:[]}, // Clear empty message
+    grid:{left:120, right:20, top:10, bottom:30},
+    tooltip:{trigger:'axis'},
+    xAxis:{type:'value', axisLabel:{color:'#a7b0c0'}},
+    yAxis:{type:'category', data:arr.map(x=>x[0]), 
+           axisLabel:{
+              color:'#a7b0c0', 
+              formatter: v => v.length > 20 ? v.slice(0,20)+'...' : v
+           }},
+    series:[{type:'bar', data:arr.map(x=>x[1]), barMaxWidth:22}],
+    color:['var(--accent)']
+  }, true);
+  sourcesBar.off('click');
+  sourcesBar.on('click', p=>{ filter.fonte = p.name; syncFilters(); });
+  const sel = el('sel-fonte');
+  sel.innerHTML = '<option value="all">Todas as fontes</option>' + Array.from(sourcesAll).sort().map(s=>`<option>${s}</option>`).join('');
+  sel.value = filter.fonte;
+}
+
+function renderSankey(){
+  if(!sankey) sankey = make('chart_sankey');
+  const nodes = new Map();
+  const links = [];
+  const topSrc = topEntries(sourcesCounts, 10).map(x=>x[0]);
+  topSrc.forEach(s=>nodes.set(s,{name:s}));
+
+  const topK = 8;
+  topSrc.forEach(s=>{
+    const m = new Map();
+    rows.forEach(r=>{
+      if(r.fonte===s){
+        (r.keywords||[]).forEach(k => m.set(k,(m.get(k)||0)+1));
+      }
+    });
+    const top = Array.from(m.entries()).sort((a,b)=>b[1]-a[1]).slice(0,topK);
+    top.forEach(([k,v])=>{ nodes.set(k,{name:k}); links.push({source:s,target:k,value:v}); });
+  });
+  chartDataStore.sankey = { nodes: Array.from(nodes.values()), links };
+  
+  if (links.length === 0) {
+      showEmptyChartMessage(sankey);
+      return;
+  }
+  
+  sankey.setOption({
+    graphic: {elements:[]}, // Clear empty message
+    tooltip:{trigger:'item'},
+    series:[{
+      type:'sankey',
+      data:Array.from(nodes.values()),
+      links:links,
+      nodeAlign:'left',
+      emphasis:{focus:'adjacency'},
+      lineStyle:{color:'gradient',opacity:0.5}
+    }],
+    color:['#9929EA','#6f4bd9','#b37cf2','#d9b6ff','#a179e6','#caa4ff']
+  }, true);
+  sankey.off('click');
+  sankey.on('click', p=>{
+    if(p.dataType==='node'){
+      if(sourcesAll.has(p.name)) { filter.fonte = p.name; syncFilters(); }
+      else { filter.keyword = p.name; syncFilters(); }
+    }
+  });
+}
+
+function updateSortIndicators() {
+  document.querySelectorAll('#table_latest .sortable span').forEach(span => span.textContent = '');
+  const activeTh = document.querySelector(`#table_latest .sortable[data-sort="${sortState.column}"]`);
+  if (activeTh) {
+    activeTh.querySelector('span').textContent = sortState.order === 'asc' ? '▲' : '▼';
+  }
+}
+
+function renderTable(){
+  updateSortIndicators();
+  const tb = document.querySelector('#table_latest tbody');
+  const footerNote = el('table-footer-note');
+  const titleFilter = el('table-title-filter').value.toLowerCase();
+  const tagsFilter = el('table-tags-filter').value.toLowerCase();
+  const scoreFilter = Number(el('table-score-filter').value || 0);
+  tb.innerHTML = '';
+  footerNote.textContent = '';
+  
+  let filteredRows = [...rows];
+  
+  // Filtros globais
+  if(filter.fonte !== 'all') filteredRows = filteredRows.filter(r => r.fonte === filter.fonte);
+  if(filter.keyword) filteredRows = filteredRows.filter(r => (r.keywords||[]).includes(filter.keyword));
+  
+  // Filtros da tabela
+  if(titleFilter) filteredRows = filteredRows.filter(r => r.titulo.toLowerCase().includes(titleFilter));
+  if(tagsFilter) filteredRows = filteredRows.filter(r => (r.keywords||[]).some(k => k.toLowerCase().includes(tagsFilter)));
+  if(scoreFilter > 0) filteredRows = filteredRows.filter(r => (r.score || 0) >= scoreFilter);
+  
+  filteredRows.sort((a, b) => {
+    const col = sortState.column;
+    const order = sortState.order;
+    const valA = a[col];
+    const valB = b[col];
+
+    let comparison = 0;
+    if (col === 'data') {
+      comparison = (valA?.getTime() || 0) - (valB?.getTime() || 0);
+    } else if (col === 'score') {
+      // Tratar scores nulos para ordenação
+      const scoreA = valA === null ? -Infinity : valA;
+      const scoreB = valB === null ? -Infinity : valB;
+      comparison = scoreA - scoreB;
+    } else { 
+      comparison = String(valA ?? '').localeCompare(String(valB ?? ''));
+    }
+    return order === 'asc' ? comparison : -comparison;
+  });
+  
+  const displayLimit = 50;
+  
+  const rowsToDisplay = filteredRows.filter(r => {
+    if (titleFilter && !r.titulo.toLowerCase().includes(titleFilter)) return false;
+    // Corrigido para ignorar filtro de score se o score do artigo for nulo
+    if (scoreFilter > 0 && (r.score === null || r.score < scoreFilter)) return false;
+    return true;
+  });
+
+  rowsToDisplay.slice(0, displayLimit).forEach(r=>{
+    const tr = document.createElement('tr');
+    const td0 = document.createElement('td'); td0.textContent = r.data? fmt.format(r.data): '—'; tr.appendChild(td0);
+    const td1 = document.createElement('td');
+    td1.title = r.titulo;
+    if(r.url){ const a = document.createElement('a'); a.href=r.url; a.textContent=r.titulo||'—'; a.target='_blank'; a.style.color='var(--text)'; td1.appendChild(a); }
+    else { td1.textContent = r.titulo || '—'; }
+    tr.appendChild(td1);
+    const td2 = document.createElement('td'); td2.textContent = r.fonte || '—'; tr.appendChild(td2);
+    const td3 = document.createElement('td'); 
+    td3.textContent = r.score !== null ? r.score : 'Sem Pontuação';
+    tr.appendChild(td3);
+    const td4 = document.createElement('td'); td4.textContent = (r.keywords||[]).slice(0,6).join(', '); tr.appendChild(td4);
+    tb.appendChild(tr);
+  });
+
+  if (rowsToDisplay.length > displayLimit) {
+    footerNote.textContent = `Mostrando os primeiros ${displayLimit} de ${rowsToDisplay.length} resultados. Use os filtros da tabela para refinar a busca.`;
+  }
+}
+
+function renderActiveFilters(){
+  const box = el('active-filters');
+  box.innerHTML = '';
+  
+  const activeFilters = [];
+  
+  if(filter.keyword){
+    activeFilters.push({
+      label: 'Keyword',
+      value: filter.keyword,
+      remove: ()=> { filter.keyword=null; syncFilters(); }
+    });
+  }
+  if(filter.fonte !== 'all'){
+    activeFilters.push({
+      label: 'Fonte',
+      value: filter.fonte,
+      remove: ()=> { filter.fonte='all'; el('sel-fonte').value='all'; syncFilters(); }
+    });
+  }
+  
+  if(activeFilters.length === 0){
+    box.innerHTML = '<div class="filter-empty">Nenhum filtro ativo</div>';
+    return;
+  }
+  
+  // Adicionar contador
+  const counter = document.createElement('div');
+  counter.className = 'filter-counter';
+  counter.innerHTML = `<span class="icon">🔍</span> ${activeFilters.length} filtro${activeFilters.length > 1 ? 's' : ''} ativo${activeFilters.length > 1 ? 's' : ''}`;
+  box.appendChild(counter);
+  
+  // Adicionar pills
+  activeFilters.forEach(({label, value, remove})=>{
+    const pill = document.createElement('div');
+    pill.className = 'filter-pill';
+    pill.innerHTML = `<span class="key">${label}:</span> <span class="value">${value}</span> <button class="close-btn" aria-label="Remover filtro ${label}">×</button>`;
+    pill.querySelector('.close-btn').addEventListener('click', remove);
+    box.appendChild(pill);
+  });
+}
+
+function syncFilters(){
+  renderActiveFilters();
+  buildAggregates();
+  renderKPIs();
+  renderThemeEvolutionHeatmap();
+  renderSources();
+  renderSankey();
+  updateAllKeywordViews();
+  renderKeywordInsights();
+  renderTable();
+}
+
+// ---------- CSV ingest ----------
+el('file').addEventListener('change', (ev)=>{
+  const f = ev.target.files[0];
+  if(!f) return;
+  resetState();
+  
+  // Mostrar loading spinner
+  showLoadingState('Carregando arquivo CSV...');
+  
+  Papa.parse(f,{
+    header:true, 
+    skipEmptyLines:true,
+    chunk: (results, parser) => {
+      // Processar em chunks para melhor performance
+      raw.push(...results.data);
+      updateLoadingProgress(`Processando: ${raw.length} linhas lidas...`);
+    },
+    complete: (res)=>{
+      if(!raw.length){ 
+        hideLoadingState();
+        addAlert('⚠️ CSV vazio ou inválido.','warn'); 
+        return; 
+      }
+      
+      updateLoadingProgress(`${raw.length} linhas carregadas. Processando dados...`);
+      
+      // Processar com pequeno delay para UI atualizar
+      setTimeout(() => {
+        processLoadedData();
+        hideLoadingState();
+        addAlert(`✅ ${raw.length} linhas processadas com sucesso!`, 'badge');
+      }, 100);
+    },
+    error: (err, file) => {
+      hideLoadingState();
+      addAlert(`❌ Erro ao processar o CSV: ${err.message}. Verifique o formato do arquivo.`, 'warn');
+    }
+  });
+});
+
+function processLoadedData(){
+  const cols = Object.keys(raw[0]);
+  colmap = autoMapColumns(cols);
+  const misses = ['titulo','data','fonte'].filter(k=>!colmap[k]);
+  
+  if(misses.length){
+    addAlert('⚠️ Mapeamento incompleto para: '+misses.join(', ')+'. Use cabeçalhos padrão.', 'warn');
+  }
+  
+  let ignoredNoDate = 0, fixedUrls = 0, duplicates = 0;
+  const seen = new Set();
+  
+  // ⚠️ IMPORTANTE: Deduplicação mantém APENAS a PRIMEIRA ocorrência de cada artigo
+  // Chave única: URL (se existir) ou título+data
+  // Garante que cada artigo seja analisado apenas UMA vez
+  rows = raw.map(r=>{
+    const scoreValue = r[colmap.score];
+    const score = (scoreValue && !isNaN(parseFloat(scoreValue))) ? parseFloat(scoreValue) : null;
+    
+    const row = {
+      titulo: r[colmap.titulo] ?? r.titulo ?? r.title ?? '',
+      data: parseDateBr(r[colmap.data] ?? r.data ?? r.date ?? ''),
+      fonte: (r[colmap.fonte] ?? r.fonte ?? r.source ?? '—') || '—',
+      url: saneUrl(r[colmap.url] ?? r.url ?? r.link ?? ''),
+      tags: (r[colmap.tags] ?? r.tags ?? '') || '',
+      score: score
+    };
+    const phrases = keyphrasesFromTitleAndTags(row.titulo, row.tags);
+    row.keywords = Array.from(new Set(phrases.concat(tokenize(row.titulo)).slice(0,12)));
+    if(row.url && !/^https?:\/\//i.test(r[colmap.url]||r.url||'')) fixedUrls++;
+    return row;
+  }).filter(r=>{
+    if(!r.data){ ignoredNoDate++; return false; }
+    // Cria chave única por URL ou título+data
+    const key = r.url ? 'u:'+r.url : 't:'+slug(r.titulo)+'@'+(r.data?r.data.toISOString().slice(0,10):'');
+    // Se já existe, é duplicata → bloqueia (mantém primeira ocorrência)
+    if(seen.has(key)){ duplicates++; return false; }
+    // Primeira vez → adiciona ao registro e permite
+    seen.add(key);
+    return true;
+  });
+
+  // Feedback final
+  let messages = [];
+  if(ignoredNoDate) messages.push(`${ignoredNoDate} linha(s) sem data ignoradas`);
+  if(duplicates) messages.push(`${duplicates} duplicata(s) removida(s) (mantida 1ª ocorrência)`);
+  if(fixedUrls) messages.push(`${fixedUrls} URL(s) corrigida(s)`);
+  
+  if(messages.length){
+    addAlert('ℹ️ ' + messages.join(' • '), 'badge');
+  } else {
+    addAlert(`✅ ${rows.length} artigos únicos processados com sucesso!`, 'badge');
+  }
+
+  el('btn-download-clean').disabled = false;
+  el('empty-state').style.display = 'none';
+  el('dashboard-content').style.display = 'block';
+  syncFilters();
+}
+
+// ---------- Controls ----------
+function updateAllKeywordViews() {
+    renderKeywordCloud();
+    renderKeywordGraph();
+    renderKeywordHeatmap();
+}
+
+document.querySelectorAll('.chip').forEach(ch=>{
+  ch.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+    ch.classList.add('active');
+    const view = ch.dataset.view;
+    el('chart_keyword_cloud').style.display = view === 'cloud' ? 'block' : 'none';
+    el('chart_keyword_graph').style.display = view === 'graph' ? 'block' : 'none';
+    el('chart_keyword_heatmap').style.display = view === 'heatmap' ? 'block' : 'none';
+    el('keyword-filter-wrapper').style.display = view === 'cloud' ? 'block' : 'none';
+    
+    if (view === 'graph' && graph) graph.resize();
+    if (view === 'heatmap' && heatmap) heatmap.resize();
+  });
+});
+
+// Função de análise com IA removida
+el('sel-topN').addEventListener('change', updateAllKeywordViews);
+el('inp-keyword').addEventListener('input', renderKeywordCloud);
+
+el('sel-date').addEventListener('change', ()=>{
+  filter.dateWin = el('sel-date').value;
+  syncFilters();
+});
+
+el('sel-fonte').addEventListener('change', ()=>{
+  filter.fonte = el('sel-fonte').value;
+  syncFilters();
+});
+
+el('btn-clear').addEventListener('click', ()=>{
+  filter = {keyword:null, fonte:'all', dateWin:'all'};
+  sortState = { column: 'data', order: 'desc' };
+  el('inp-keyword').value='';
+  el('sel-fonte').value='all';
+  el('sel-date').value='all';
+  el('table-title-filter').value = '';
+  el('table-score-filter').value = '';
+  syncFilters();
+});
+
+el('table-filter-toggle').addEventListener('click', (ev)=>{
+  const filters = el('table-filters');
+  const isVisible = filters.style.display === 'flex';
+  filters.style.display = isVisible ? 'none' : 'flex';
+  ev.target.textContent = isVisible ? 'Filtros da Tabela ▼' : 'Filtros da Tabela ▲';
+});
+
+['table-title-filter', 'table-tags-filter', 'table-score-filter'].forEach(id => {
+  el(id).addEventListener('input', renderTable);
+});
+
+el('table_latest').querySelector('thead').addEventListener('click', (ev) => {
+  const th = ev.target.closest('.sortable');
+  if (!th) return;
+
+  const newColumn = th.dataset.sort;
+  if (sortState.column === newColumn) {
+    sortState.order = sortState.order === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortState.column = newColumn;
+    sortState.order = (newColumn === 'data' || newColumn === 'score') ? 'desc' : 'asc';
+  }
+  renderTable();
+});
+
+
+el('btn-download-clean').addEventListener('click', ()=>{
+  if(!rows.length) return;
+  const header = ['titulo','data','fonte','url','tags','keywords', 'score'];
+  const lines = [header.join(',')];
+  rows.forEach(r=>{
+    const k = (r.keywords||[]).join('|');
+    const d = r.data ? r.data.toISOString().slice(0,10) : '';
+    const esc = x => `"${String(x ?? '').replace(/"/g,'""')}"`;
+    lines.push([esc(r.titulo), esc(d), esc(r.fonte), esc(r.url), esc(r.tags), esc(k), esc(r.score)].join(','));
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'newsradar_clean.csv';
+  a.click();
+});
+
+function renderKeywordInsights(){
+  const box = el('keyword-insights');
+  box.innerHTML = '';
+  const kw = filter.keyword;
+  if(!kw){ box.innerHTML = '<span class="note">Selecione uma keyword em um dos gráficos para ver insights.</span>'; return; }
+  const total = keywordCounts.get(kw)||0;
+  const topSrc = topFontesForKeyword(kw).slice(0,3);
+  const neigh = [];
+  coocc.forEach((w,key)=>{
+    const [a,b] = key.split('||');
+    if(a===kw) neigh.push([b,w]);
+    else if(b===kw) neigh.push([a,w]);
+  });
+  neigh.sort((a,b)=>b[1]-a[1]);
+  const topNeigh = neigh.slice(0,5);
+  const pill = (label,val)=>`<div class="pill"><div class="num">${val}</div><div>${label}</div></div>`;
+  const wrap = document.createElement('div');
+  wrap.className='kpi';
+  wrap.innerHTML = pill('Menções totais', total)
+    + (topSrc[0]? pill('Fonte líder', topSrc[0][0]+' ('+topSrc[0][1]+')'):'')
+    + (topNeigh[0]? pill('Co-ocorrência forte', topNeigh[0][0]+' ('+topNeigh[0][1]+')'):'');
+  box.appendChild(wrap);
+}
+
+// ---------- AI (Gemini & Discord) Integration ----------
+async function callGemini(prompt){
+    if (!GEMINI_API_KEY || GEMINI_API_KEY === "GEMINI_API_KEY") {
+        return "Erro: A constante GEMINI_API_KEY não está definida ou não foi substituída. Insira sua chave de API no topo do <script> para usar esta funcionalidade.";
+    }
+
+    // Mostrar loading durante chamada da API
+    showLoadingState('Consultando Gemini AI...');
+
+    // 1. Pega o valor do modelo selecionado no menu do header.
+    const selectedModel = el('modelSelect').value;
+
+    // 2. Monta a URL dinamicamente com o modelo escolhido.
+    // Note que `selectedModel` já contém o caminho completo, ex: "models/gemini-2.5-flash"
+    const url = `https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`;
+    
+    const body = {contents:[{parts:[{text:prompt}]}]};
+    try {
+        const res = await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+        hideLoadingState();
+        
+        if(!res.ok){
+            const errorData = await res.json();
+            console.error("Erro da API Gemini:",errorData);
+            return `Erro na API Gemini: ${errorData.error.message}`;
+        }
+        const data = await res.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "A API não retornou uma resposta válida.";
+    } catch(error) {
+        hideLoadingState();
+        console.error("Erro ao chamar a API Gemini:", error);
+        return "Falha na comunicação com a API Gemini. Verifique o console e sua conexão de rede para detalhes.";
+    }
+}
+
+async function sendToDiscord(textContent, buttonElement){
+    if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL === "SUA_URL_WEBHOOK_AQUI") {
+        alert("A URL do Webhook do Discord não está configurada no código.");
+        return;
+    }
+    const originalText = buttonElement.textContent;
+    buttonElement.disabled = true;
+    buttonElement.textContent = "Resumindo para o Discord...";
+    const summaryPrompt = `Você é um assistente de comunicação. Resuma o seguinte texto de análise de mídia em um formato claro e conciso para ser postado no Discord. Use bullet points (•) para os principais insights. O resumo deve ter menos de 1800 caracteres.\n\nTEXTO ORIGINAL:\n${textContent}`;
+    try {
+        const summary = await callGemini(summaryPrompt);
+        if (summary.startsWith("Erro:")) {
+            alert(summary); 
+            return;
+        }
+        buttonElement.textContent = "Enviando...";
+        const response = await fetch(DISCORD_WEBHOOK_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({content:summary})});
+        if(response.ok) {
+            alert("Resumo enviado para o Discord!");
+        } else {
+            alert(`Falha ao enviar para o Discord: ${response.statusText}`);
+        }
+    } catch(error) {
+        console.error("Erro ao resumir ou enviar para o Discord:", error);
+        alert("Ocorreu um erro. Verifique o console.");
+    } finally {
+        buttonElement.disabled = false;
+        buttonElement.textContent = originalText;
+    }
+}
+
+function toggleGemini(show = true){
+    document.getElementById("geminiPanel").classList.toggle("show", show);
+}
+
+// Resize Gemini Panel
+(function initGeminiResize(){
+  const panel = document.getElementById('geminiPanel');
+  const handle = panel.querySelector('.resize-handle');
+  let dragging = false;
+  let startX = 0;
+  let startW = 0;
+  
+  const onMove = (e) => {
+    if(!dragging) return;
+    e.preventDefault();
+    const clientX = e.clientX || e.touches?.[0]?.clientX;
+    const dx = startX - clientX;
+    const newW = Math.max(350, Math.min(800, startW + dx));
+    panel.style.width = newW + 'px';
+  };
+  
+  const onUp = () => {
+    if(!dragging) return;
+    dragging = false;
+    panel.classList.remove('resizing');
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+  };
+  
+  handle.addEventListener('mousedown', (e) => {
+    dragging = true;
+    panel.classList.add('resizing');
+    startX = e.clientX;
+    startW = panel.offsetWidth;
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+  
+  handle.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    dragging = true;
+    panel.classList.add('resizing');
+    startX = t.clientX;
+    startW = panel.offsetWidth;
+    document.addEventListener('touchmove', onMove, {passive:false});
+    document.addEventListener('touchend', onUp);
+  });
+})();
+
+async function sendGemini(kind, buttonElement){
+    if(!chartDataStore || !chartDataStore.hasOwnProperty(kind)){
+        alert("Dados para este gráfico não foram encontrados. Processe o arquivo primeiro.");
+        return;
+    }
+    
+    const originalText = buttonElement.textContent;
+    buttonElement.disabled = true;
+    buttonElement.textContent = "Analisando...";
+    
+    toggleGemini(true);
+    const geminiOutput = document.getElementById("geminiOutput");
+    const geminiActions = document.getElementById("geminiActions");
+    geminiOutput.textContent = "Consultando Gemini, por favor aguarde...";
+    geminiActions.innerHTML = "";
+    
+    try {
+        const specificData = chartDataStore[kind];
+        const prompt = makeNewsPrompt(kind, specificData);
+        const resp = await callGemini(prompt);
+        geminiOutput.textContent = resp;
+        
+        if(resp && !resp.startsWith("Erro")){
+            const discordBtn = document.createElement('button');
+            discordBtn.textContent = "Enviar resumo para o Discord";
+            discordBtn.className = "btn";
+            discordBtn.onclick = () => sendToDiscord(resp, discordBtn);
+            geminiActions.appendChild(discordBtn);
+        }
+    } finally {
+        buttonElement.disabled = false;
+        buttonElement.textContent = originalText;
+    }
+}
+
+function makeNewsPrompt(kind, data){
+    const base = `Atue como um analista de mídia e conteúdo sênior. Sua tarefa é analisar os dados extraídos de um conjunto de artigos de notícias e fornecer insights claros, concisos e acionáveis. Apresente sua análise em formato de bullet points (tópicos).`;
+    let dataPrompt = "";
+    
+    // Helper para truncar dados grandes
+    const truncate = (arr, max) => arr.length > max ? arr.slice(0, max) : arr;
+
+    switch(kind){
+        case 'top_sources':
+            if (!data || data.length === 0) return base + "\n\nNão há dados de fontes para analisar. Informe ao usuário que o gráfico de 'Top Fontes' está vazio.";
+            const sourcesText = truncate(data, 30).map(item => `- ${item[0]}: ${item[1]} artigos`).join('\n');
+            dataPrompt = `Estes são os dados de volume de artigos por fonte:\n${sourcesText}\n\nCom base nisso, identifique as fontes dominantes, a concentração de publicações e quaisquer padrões notáveis na distribuição de conteúdo entre os veículos.`;
+            break;
+        case 'sankey':
+            if (!data || data.links.length === 0) return base + "\n\nNão há dados de fluxo entre fontes e temas para analisar. Informe que não há conexões para gerar o gráfico Sankey.";
+            const sankeyText = truncate(data.links, 40).map(l => `- A fonte "${l.source}" publicou ${l.value} vez(es) sobre o tema "${l.target}".`).join('\n');
+            dataPrompt = `Este é um resumo das conexões entre fontes e os temas que elas mais cobrem:\n${sankeyText}\n\nAnalise essas conexões para identificar as especializações editoriais de cada fonte. Quais fontes são referência em quais assuntos? Existem temas que são cobertos por muitas fontes ou temas de nicho?`;
+            break;
+        case 'word_cloud':
+            if (!data || data.length === 0) return base + "\n\nNão há palavras-chave para analisar no Word Cloud. Informe ao usuário que não há dados para esta visualização.";
+            const cloudText = truncate(data, 40).map(item => `- ${item.name} (frequência: ${item.value})`).join('\n');
+            dataPrompt = `As palavras-chave mais frequentes no período analisado são:\n${cloudText}\n\nIdentifique os temas centrais da cobertura. Agrupe palavras-chave relacionadas em narrativas ou assuntos principais. O que esses termos dizem sobre o foco da mídia no período?`;
+            break;
+
+        case 'theme_evolution':
+             if (!data || data.data.length === 0) return base + "\n\nNão há dados sobre a evolução de temas para analisar.";
+             const evolutionText = truncate(data.data, 50).map(([dayIdx, kwIdx, value]) => `- No dia ${data.days[dayIdx]}, o tema "${data.keywords[kwIdx]}" teve ${value} menções.`).join('\n');
+             dataPrompt = `Os dados mostram a frequência de temas ao longo do tempo:\n${evolutionText}\n\nAnalise a ascensão e queda de diferentes temas. Identifique picos de interesse, tendências emergentes ou assuntos que perderam relevância. Existem padrões sazonais ou reações a eventos específicos?`;
+             break;
+
+        case 'keyword_graph':
+            if (!data || !data.edges || data.edges.length === 0) return base + "\n\nNão há dados de co-ocorrência para gerar um gráfico de rede. Informe ao usuário que não há conexões suficientes entre os temas para a análise.";
+            const graphText = truncate(data.edges, 50).map(edge => `- O tema "${edge.source}" apareceu junto com "${edge.target}" ${edge.value} vez(es).`).join('\n');
+            dataPrompt = `A análise de rede de palavras-chave mostra como os temas se conectam. As conexões mais fortes são:\n${graphText}\n\nAnalise os clusters (grupos) de temas. Quais assuntos são frequentemente discutidos em conjunto? Existem temas "ponte" que conectam diferentes grupos de discussão? O que essas conexões revelam sobre as narrativas da mídia?`;
+            break;
+
+        case 'keyword_heatmap':
+            if (!data || !data.data || data.data.length === 0) return base + "\n\nNão há dados para gerar um heatmap semanal. Informe ao usuário que não há dados de frequência semanal para as palavras-chave.";
+            const heatmapText = truncate(data.data, 50).map(([weekIdx, kwIdx, value]) => `- Na semana ${data.weeks[weekIdx]}, o tema "${data.keywords[kwIdx]}" teve ${value} menções.`).join('\n');
+            dataPrompt = `O heatmap mostra a intensidade de cobertura dos principais temas a cada semana:\n${heatmapText}\n\nAnalise a performance semanal dos temas. Identifique quais semanas tiveram maior volume de notícias sobre determinados assuntos. Existem temas com cobertura constante ou temas que aparecem apenas em picos específicos?`;
+            break;
+        default:
+            dataPrompt=`Analise os seguintes dados brutos e extraia os principais insights:\n${JSON.stringify(data,null,2)}`;
+            break;
+    }
+}
+
+// ---------- Funções de AI (Gemini & Discord) REMOVIDAS ----------
+
+// =============================
+// Download de gráfico como PNG
+// =============================
+function downloadChartPNG(domId, fileBase){
+  const chart = echarts.getInstanceByDom(document.getElementById(domId));
+  if(!chart) {
+    alert('Gráfico não encontrado');
+    return;
+  }
+  const url = chart.getDataURL({
+    type: 'png',
+    pixelRatio: 2,
+    backgroundColor: '#0F172A'
+  });
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${fileBase}_${new Date().toISOString().slice(0,10)}.png`;
+  a.click();
+}
+
+// Exporta dados do gráfico para CSV
+function exportChartDataCSV(domId, fileBase){
+  const kind = domId.replace('chart_', '');
+  let data = chartDataStore[kind];
+  
+  if(!data || (Array.isArray(data) && data.length === 0)){
+    alert('Nenhum dado disponível para exportar');
+    return;
+  }
+  
+  let lines = [];
+  
+  // Formatar baseado no tipo de dado
+  if(kind === 'sources' || kind === 'top_sources'){
+    lines.push('Fonte,Quantidade');
+    data.forEach(([fonte, qtd]) => {
+      lines.push(`"${fonte}",${qtd}`);
+    });
+  } else if(kind === 'sankey'){
+    lines.push('Origem,Destino,Valor');
+    data.links.forEach(link => {
+      lines.push(`"${link.source}","${link.target}",${link.value}`);
+    });
+  } else if(kind === 'word_cloud'){
+    lines.push('Palavra-chave,Frequência');
+    data.forEach(item => {
+      lines.push(`"${item.name}",${item.value}`);
+    });
+  } else if(kind === 'theme_evolution'){
+    lines.push('Data,Tema,Menções');
+    data.data.forEach(([dayIdx, kwIdx, count]) => {
+      const day = data.days[dayIdx];
+      const kw = data.keywords[kwIdx];
+      lines.push(`"${day}","${kw}",${count}`);
+    });
+  } else {
+    // Fallback: JSON
+    lines.push(JSON.stringify(data, null, 2));
+  }
+  
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${fileBase}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// Funções auxiliares para keywords (múltiplas visualizações)
+function downloadActiveKeywordChart(){
+  const activeView = document.querySelector('.chip.active')?.dataset.view || 'cloud';
+  const chartId = `chart_keyword_${activeView}`;
+  downloadChartPNG(chartId, `keywords_${activeView}`);
+}
+
+function exportActiveKeywordData(){
+  const activeView = document.querySelector('.chip.active')?.dataset.view || 'cloud';
+  let kind = 'word_cloud';
+  if(activeView === 'graph') kind = 'keyword_graph';
+  if(activeView === 'heatmap') kind = 'keyword_heatmap';
+  exportChartDataCSV(`chart_keyword_${activeView}`, `keywords_${activeView}`);
+}
+
+// Toggle menu de ações
+function toggleChartMenu(btn){
+  // Fechar outros menus
+  document.querySelectorAll('.chart-menu').forEach(m => {
+    if(m !== btn.nextElementSibling) m.classList.remove('show');
+  });
+  
+  const menu = btn.nextElementSibling;
+  menu.classList.toggle('show');
+}
+
+// Fechar menus ao clicar fora
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.menu-btn') && !e.target.closest('.chart-menu')){
+    document.querySelectorAll('.chart-menu').forEach(m => m.classList.remove('show'));
+  }
+});
+
+// Fechar menus com ESC
+window.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.chart-menu').forEach(m => m.classList.remove('show'));
+  }
+});
+
+window.addEventListener('resize', ()=>{
+  [cloud,graph,heatmap,themeEvolution,sourcesBar,sankey].forEach(c=>{ try{ c && c.resize(); }catch(e){} });
+});
+
+const header = document.querySelector('header');
+const shrinkThreshold = 50;
+if (header) {
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('shrunk', window.scrollY > shrinkThreshold);
+  });
+}
+</script>
+
+<!-- Modal Metodologia -->
+<div class="modal-overlay" id="modalMetodologia">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>📰 Metodologia - Dashboard Editorial NewsRadar</h2>
+      <button class="modal-close" onclick="closeMetodologiaModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h3>📂 Como usar este dashboard:</h3>
+      <p style="background: var(--accent-glow); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
+        📁 <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br>
+        <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar atividades da base de artigos do sistema.</span>
+      </p>
+      <ul style="margin-bottom: 16px;">
+        <li><strong>Faça upload de um arquivo CSV</strong> contendo artigos com as seguintes colunas:
+          <ul style="margin-top: 4px;">
+            <li><strong>Obrigatórias:</strong>
+              <ul style="margin-left: 20px; font-size: 11px;">
+                <li><code>título</code> ou <code>title</code> ou <code>headline</code> - Título do artigo</li>
+                <li><code>data</code> ou <code>date</code> ou <code>publicado_em</code> - Data de publicação</li>
+                <li><code>fonte</code> ou <code>source</code> ou <code>publisher</code> - Fonte/veículo</li>
+              </ul>
+            </li>
+            <li><strong>Opcionais:</strong>
+              <ul style="margin-left: 20px; font-size: 11px;">
+                <li><code>score</code> ou <code>relevância</code> - Score de relevância (0-100)</li>
+                <li><code>url</code> ou <code>link</code> - Link do artigo</li>
+                <li><code>tags</code> ou <code>keywords</code> - Palavras-chave (separadas por vírgula ou lista)</li>
+                <li><code>categoria</code> ou <code>category</code> - Categoria editorial</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>🔍 Funcionalidades principais:</h3>
+      <ul>
+        <li><strong>Keyword Explorer:</strong> Análise de palavras-chave com nuvem, grafo e heatmap</li>
+        <li><strong>Theme Evolution:</strong> Evolução de temas ao longo do tempo</li>
+        <li><strong>Source Analysis:</strong> Performance por fonte/veículo</li>
+        <li><strong>Sankey Flow:</strong> Fluxo de keywords → fontes → artigos</li>
+        <li><strong>Insights IA:</strong> Análises contextualizadas via Google Gemini</li>
+      </ul>
+
+      <h3>⚙️ Processamento automático:</h3>
+      <ul>
+        <li>✅ <strong>Tokenização inteligente:</strong> Remove stopwords e normaliza termos</li>
+        <li>✅ <strong>Detecção de keywords:</strong> Extração de título + tags</li>
+        <li>✅ <strong>Análise de co-ocorrência:</strong> Relacionamento entre palavras-chave</li>
+        <li>✅ <strong>Agregação temporal:</strong> Agrupamento por dia/semana/mês</li>
+        <li>✅ <strong>Parseamento de datas:</strong> Suporta DD/MM/YYYY, YYYY-MM-DD e ISO</li>
+        <li>🇧🇷 <strong>Stopwords em português:</strong> Filtragem automática de artigos, preposições, etc.</li>
+      </ul>
+
+      <h3>📊 Visualizações disponíveis:</h3>
+      <ul>
+        <li><strong>Keyword Cloud:</strong> Nuvem de palavras com frequência</li>
+        <li><strong>Keyword Network:</strong> Grafo de relacionamentos entre termos</li>
+        <li><strong>Keyword Heatmap:</strong> Matriz de co-ocorrência (top keywords)</li>
+        <li><strong>Theme Evolution Heatmap:</strong> Evolução de temas por período</li>
+        <li><strong>Source Bar Chart:</strong> Ranking de fontes por volume</li>
+        <li><strong>Sankey Diagram:</strong> Fluxo de dados multi-dimensional</li>
+        <li><strong>Latest Articles Table:</strong> Listagem completa com filtros</li>
+      </ul>
+
+      <h3>🎯 Filtros disponíveis:</h3>
+      <ul>
+        <li><strong>Keyword filter:</strong> Filtrar por palavra-chave específica</li>
+        <li><strong>Source filter:</strong> Filtrar por fonte/veículo</li>
+        <li><strong>Date window:</strong> Últimos 7 dias, 30 dias, 90 dias ou todos</li>
+        <li><strong>Top N:</strong> Ajustar quantidade de keywords exibidas (10-100)</li>
+        <li><strong>Table filters:</strong> Busca em título, tags e score</li>
+      </ul>
+
+      <h3>💡 Dicas de uso:</h3>
+      <ul>
+        <li>📌 Use <strong>filtros ativos</strong> (chips ciano) para refinar análises</li>
+        <li>🤖 Clique em <strong>"🤖"</strong> nos cards para insights de IA sobre cada visualização</li>
+        <li>📥 Exporte dados limpos via <strong>"CSV Limpo"</strong></li>
+        <li>🔍 Clique em <strong>nodes do grafo</strong> para aplicar filtro de keyword</li>
+        <li>📊 Use <strong>Discord webhook</strong> para enviar resumos automaticamente</li>
+      </ul>
+
+      <h3>⚠️ Notas técnicas:</h3>
+      <ul>
+        <li>🔒 <strong>100% local:</strong> Nenhum dado é enviado para servidores (exceto IA/Discord quando ativado)</li>
+        <li>⚡ <strong>Performance:</strong> Otimizado para até 10.000 artigos</li>
+        <li>🧹 <strong>Limpeza automática:</strong> Remove registros sem título ou data</li>
+        <li>🌐 <strong>Timezone:</strong> America/Sao_Paulo (UTC-3)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== FUNÇÕES DO MODAL METODOLOGIA ==========
+function openMetodologiaModal() {
+  const modal = document.getElementById('modalMetodologia');
+  modal.classList.add('active');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMetodologiaModal() {
+  const modal = document.getElementById('modalMetodologia');
+  modal.classList.remove('active');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 200);
+  document.body.style.overflow = '';
+}
+
+// ========== FUNÇÕES DE NAVEGAÇÃO ==========
+// Função toggleNav removida (menu de navegação descontinuado)
+
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+}
+
+// Mostra/esconde botão scroll to top
+window.addEventListener('scroll', () => {
+  const scrollBtn = document.getElementById('scrollToTop');
+  if (scrollBtn) {
+    if (window.scrollY > 300) {
+      scrollBtn.classList.add('show');
+    } else {
+      scrollBtn.classList.remove('show');
+    }
+  }
+});
+
+// Destaca link ativo na navegação
+function updateActiveNavLink() {
+  const sections = document.querySelectorAll('.card[id]');
+  const navLinks = document.querySelectorAll('nav a[href^="#"]');
+  
+  let currentSection = '';
+  
+  sections.forEach(section => {
+    const sectionTop = section.offsetTop - 150;
+    const sectionHeight = section.clientHeight;
+    
+    if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+      currentSection = section.getAttribute('id');
+    }
+  });
+  
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === `#${currentSection}`) {
+      link.classList.add('active');
+    }
+  });
+}
+
+window.addEventListener('scroll', updateActiveNavLink);
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeMetodologiaModal();
+  }
+});
+
+// Fechar modal clicando fora do conteúdo
+document.getElementById('modalMetodologia')?.addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeMetodologiaModal();
+  }
+});
+
+// Lógica para mostrar o cabeçalho APENAS no topo
+const headerElement = document.querySelector('header');
+const scrollThreshold = 10; // Uma pequena margem para não esconder em rolagens mínimas
+
+window.addEventListener('scroll', function() {
+    // Pega a posição atual da rolagem
+    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+    // Se a rolagem for maior que o limiar, esconde o cabeçalho.
+    if (scrollTop > scrollThreshold) { 
+        headerElement.classList.add('header-hidden');
+    } else { // Senão (se estiver no topo), mostra o cabeçalho.
+        headerElement.classList.remove('header-hidden');
+    }
+}, false);
+
+</script>
+
+
+<script>
+/* DEMO MODE — dados fictícios para portfólio */
+(function(){
+  var FONTES=['Folha de S.Paulo','Estad\u00e3o','Exame','InfoMoney','Valor Econ\u00f4mico','TechCrunch Brasil','Startups.com.br'];
+  var CATEGORIAS=['Tecnologia','Neg\u00f3cios','Inova\u00e7\u00e3o','Marketing','Vendas','IA & Automa\u00e7\u00e3o','Mercado'];
+  var TITULOS=[
+    'Como a intelig\u00eancia artificial est\u00e1 revolucionando o CRM',
+    'Tend\u00eancias de vendas B2B para 2025: o que esperar',
+    'Automa\u00e7\u00e3o no funil de vendas aumenta convers\u00e3o em 40%',
+    'Estrat\u00e9gias de lead scoring que realmente funcionam',
+    'O futuro do marketing digital no setor corporativo',
+    'Como estruturar um time de SDRs de alta performance',
+    'Pipeline de vendas: melhores pr\u00e1ticas para closers',
+    'Ferramentas de BI que est\u00e3o mudando a tomada de decis\u00e3o',
+    'WhatsApp Business como canal de vendas: cases reais',
+    'Social Selling no LinkedIn: guia pr\u00e1tico para SDRs',
+    'Inbound vs Outbound: qual estrat\u00e9gia funciona em 2025',
+    'M\u00e9tricas que todo gestor de vendas deve acompanhar',
+    'Customer Success e suas m\u00e9tricas de impacto no revenue',
+    'Chatbots com IA: aumentando efici\u00eancia no atendimento',
+    'Como a personaliza\u00e7\u00e3o em escala gera mais neg\u00f3cios',
+    'RevOps: alinhando marketing, vendas e CS',
+    'Precifica\u00e7\u00e3o baseada em valor para SaaS B2B',
+    'An\u00e1lise de churn: identificando padr\u00f5es de cancelamento',
+    'Framework MEDDIC na qualifica\u00e7\u00e3o de oportunidades',
+    'Gamifica\u00e7\u00e3o no time de vendas: motiva\u00e7\u00e3o e resultados'
+  ];
+  var TAGS=[['CRM','vendas'],['IA','automa\u00e7\u00e3o'],['marketing','leads'],['SaaS','mercado'],['sales','pipeline']];
+
+  function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function addDays(dateStr,days){
+    var d=new Date(dateStr); d.setDate(d.getDate()+days);
+    return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  }
+
+  var fakeRows=[];
+  for(var i=0;i<200;i++){
+    fakeRows.push({
+      titulo: TITULOS[i%TITULOS.length]+(i>=TITULOS.length?' ('+(Math.ceil(i/TITULOS.length)+1)+')':''),
+      data: addDays('2025-07-01',randInt(0,180)),
+      fonte: rand(FONTES),
+      score: String(randInt(30,98)),
+      url: 'https://demo.portfolio/artigo-'+String(i+1).padStart(4,'0'),
+      tags: rand(TAGS).join(','),
+      categoria: rand(CATEGORIAS)
+    });
+  }
+
+  function initDemo(){
+    if(typeof raw==='undefined'||typeof processLoadedData!=='function'){ setTimeout(initDemo,300); return; }
+    try {
+      if(typeof resetState==='function') resetState();
+      Array.prototype.push.apply(raw,fakeRows);
+      processLoadedData();
+      document.querySelectorAll('.uploader').forEach(function(el){ el.style.display='none'; });
+      var b=document.createElement('div');
+      b.style.cssText='position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(245,158,11,0.5);pointer-events:none';
+      b.textContent='\uD83D\uDCCA Demo \u2014 dados fict\u00edcios';
+      document.body.appendChild(b);
+    } catch(e){ console.error('[DEMO] Erro:',e); }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initDemo);
+  else setTimeout(initDemo,600);
+})();
+</script>
+
+</body>
+</html>
