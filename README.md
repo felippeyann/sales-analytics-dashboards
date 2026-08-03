@@ -4,6 +4,10 @@
 
 # Sales & Marketing Analytics Dashboards
 
+[![Live demo](https://img.shields.io/badge/live_demo-github_pages-2ea44f)](https://felippeyann.github.io/sales-analytics-dashboards/)
+![Stack](https://img.shields.io/badge/stack-vanilla_JS_+_ECharts_6-F7DF1E?logo=javascript&logoColor=black)
+![Data](https://img.shields.io/badge/data-100%25_synthetic-blue)
+
 **Live demo: [felippeyann.github.io/sales-analytics-dashboards](https://felippeyann.github.io/sales-analytics-dashboards/)**
 
 Eight interactive analytics dashboards built for the revenue operation of a B2B SaaS company (CRM platform). They ran in production on office TVs and in the browser, used daily by SDR teams, sales managers and marketing.
