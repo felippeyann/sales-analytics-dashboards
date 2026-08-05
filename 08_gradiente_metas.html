@@ -10,8 +10,8 @@
   ║    • Auth: Bearer token + api-token header                      ║
   ║    • Backend: Google Apps Script (Code.gs)                      ║
   ║                                                                  ║
-  ║  ADAPTAÇÃO AAWZ: Substituir os blocos marcados com              ║
-  ║    "// ── AAWZ: ADAPTAR ──" pelas chamadas reais                ║
+  ║  ADAPTAÇÃO AO CRM: Substituir os blocos marcados com            ║
+  ║    "// ── ADAPTAR ──" pelas chamadas reais                      ║
   ║    ao novo backend (Apps Script ou REST API direta)             ║
   ╚══════════════════════════════════════════════════════════════════╝
 -->
@@ -436,7 +436,7 @@ function toggleFullscreen() {
 // GERADOR DE DADOS FICTÍCIOS — DEMO MODE
 // ============================================================================
 // Estrutura dos dados fake espelha exatamente o retorno de
-// Code.gs → getGradienteData(strategy) para facilitar a adaptação AAWZ.
+// Code.gs → getGradienteData(strategy) para facilitar a adaptação ao CRM.
 
 function gerarDadosFake(strategy) {
   const CLOSERS = ['Fernanda Costa', 'Gabriel Nunes', 'Helena Dias', 'Igor Aguiar', 'Juliana Melo'];
@@ -596,8 +596,8 @@ function loadData() {
   }, 600);
   // ──────────────────────────────────────────────────────────────────────────
 
-  // ── AAWZ: ADAPTAR ─────────────────────────────────────────────────────────
-  // Substituir o bloco acima pela chamada ao Apps Script da AAWZ:
+  // ── ADAPTAR ───────────────────────────────────────────────────────────────
+  // Substituir o bloco acima pela chamada ao Apps Script do CRM:
   //
   // google.script.run
   //   .withSuccessHandler(onDataLoaded)
@@ -869,7 +869,7 @@ function openConfigModal() {
   renderConfigMonths();
   // ──────────────────────────────────────────────────────────────────────────
 
-  // ── AAWZ: ADAPTAR ─────────────────────────────────────────────────────────
+  // ── ADAPTAR ───────────────────────────────────────────────────────────────
   // Substituir o bloco acima pela chamada ao Apps Script:
   //
   // google.script.run
@@ -997,7 +997,7 @@ function saveMetasConfig() {
   loadData();
   // ──────────────────────────────────────────────────────────────────────────
 
-  // ── AAWZ: ADAPTAR ─────────────────────────────────────────────────────────
+  // ── ADAPTAR ───────────────────────────────────────────────────────────────
   // Substituir o bloco acima pela chamada ao Apps Script:
   //
   // const saveBtn = document.querySelector('.config-btn-save');
