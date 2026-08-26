@@ -15,7 +15,7 @@
 <title>NewsRadar • Dashboard Editorial v3.8</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script><script src="../RESOURCES/echarts-v6-enhancements.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
 <style>
 :root{
@@ -2110,12 +2110,14 @@ async function sendToDiscord(textContent, buttonElement){
 }
 
 function toggleGemini(show = true){
-    document.getElementById("geminiPanel").classList.toggle("show", show);
+    const p = document.getElementById("geminiPanel");
+    if (p) p.classList.toggle("show", show);
 }
 
 // Resize Gemini Panel
 (function initGeminiResize(){
   const panel = document.getElementById('geminiPanel');
+  if (!panel) return;
   const handle = panel.querySelector('.resize-handle');
   let dragging = false;
   let startX = 0;
@@ -2161,6 +2163,10 @@ function toggleGemini(show = true){
 })();
 
 async function sendGemini(kind, buttonElement){
+    if(!document.getElementById("geminiPanel")){
+        alert("A análise com IA não está disponível nesta demonstração pública.");
+        return;
+    }
     if(!chartDataStore || !chartDataStore.hasOwnProperty(kind)){
         alert("Dados para este gráfico não foram encontrados. Processe o arquivo primeiro.");
         return;

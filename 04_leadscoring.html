@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
-  <script src="../RESOURCES/echarts-v6-enhancements.js"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     :root{
@@ -1355,7 +1355,7 @@
         });
         dataCache.clear();
         
-        if (window.ResizeObserver && resizeObserver) {
+        if (window.ResizeObserver && typeof resizeObserver !== 'undefined' && resizeObserver) {
             resizeObserver.disconnect();
         }
     };
