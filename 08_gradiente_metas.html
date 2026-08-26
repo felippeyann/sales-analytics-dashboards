@@ -225,6 +225,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
   letter-spacing:0.3px;
 }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
 
@@ -337,8 +338,6 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 
   </div>
 
-  <!-- Demo badge -->
-  <div class="demo-banner">📊 Demo — dados fictícios</div>
 
 <script>
 // ============================================================================
@@ -1032,5 +1031,663 @@ function showToast(msg, isError) {
 }
 </script>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
+<script>
+/* ==========================================================================
+   DATAKIT (DK) — barra de dados compartilhada dos dashboards
+   --------------------------------------------------------------------------
+   Responsabilidades:
+     1. Toolbar no topo: "Preencher automaticamente" / "Enviar CSV" /
+        "Como montar o CSV".
+     2. Painel recolhivel com o contrato de dados (schema por arquivo) e
+        download de template CSV com cabecalhos corretos + linhas de exemplo.
+     3. Auto-preenchimento com dados sinteticos no primeiro load, para o demo
+        de portfolio nunca aparecer em branco.
+   Dados 100% sinteticos. O fluxo de upload de CSV real continua intacto:
+   a barra apenas aciona o <input type="file"> ja existente no dashboard.
+   ========================================================================== */
+(function () {
+  if (window.DK) return;
+
+  var CFG = null;
+  var els = {};
+  var mode = 'empty'; // 'empty' | 'demo' | 'user'
+
+  /* ---------- utilitarios ---------- */
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function csvCell(v) {
+    v = (v === null || v === undefined) ? '' : String(v);
+    return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
+
+  function sampleOf(file) {
+    if (!file._sample) {
+      var s = [];
+      try { s = file.sample() || []; } catch (e) { console.warn('[DK] sample:', e); }
+      file._sample = s.slice(0, file.max || 3);
+    }
+    return file._sample;
+  }
+
+  function buildTemplate(file) {
+    var head = file.cols.map(function (c) { return csvCell(c.n); }).join(',');
+    var body = sampleOf(file).map(function (r) {
+      return file.cols.map(function (c) { return csvCell(r[c.n]); }).join(',');
+    });
+    return [head].concat(body).join('\r\n') + '\r\n';
+  }
+
+  function download(name, text) {
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () {
+      if (a.parentNode) a.parentNode.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 200);
+  }
+
+  /* ---------- estilos (identidade do repositorio) ---------- */
+
+  var CSS = [
+    '@media print{.dk-bar,.dk-badge{display:none!important}}',
+    '.dk-bar,.dk-badge{',
+    '  --dk-bg:#0a0a0b;--dk-surface:#131316;--dk-surface2:#1a1a1e;',
+    '  --dk-ink:#f8f7f3;--dk-ink2:#d4d4d8;--dk-ink3:#a1a1aa;--dk-ink4:#8a8a94;',
+    '  --dk-accent:#2563eb;--dk-line:rgba(248,247,243,.14);--dk-line2:rgba(248,247,243,.24);',
+    '  --dk-sans:"Space Grotesk",system-ui,-apple-system,Segoe UI,sans-serif;',
+    '  --dk-mono:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;',
+    '  font-family:var(--dk-sans);color:var(--dk-ink2);box-sizing:border-box;',
+    '}',
+    '.dk-bar *,.dk-badge *{box-sizing:border-box}',
+    '.dk-bar{background:var(--dk-bg);border-bottom:1px solid var(--dk-line2);',
+    '  position:fixed;top:0;left:0;right:0;z-index:9000;width:100%;',
+    '  max-height:100vh;overflow-y:auto;overscroll-behavior:contain}',
+    '.dk-in{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 16px;max-width:1400px;margin:0 auto}',
+    '.dk-k{font-family:var(--dk-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dk-ink4);white-space:nowrap}',
+    '.dk-k b{color:var(--dk-accent);font-weight:700}',
+    '.dk-sep{flex:1 1 auto;min-width:0}',
+    '.dk-btn{font-family:var(--dk-mono);font-size:11.5px;font-weight:700;letter-spacing:.07em;',
+    '  text-transform:uppercase;padding:9px 14px;color:var(--dk-ink);background:var(--dk-surface);',
+    '  border:1px solid var(--dk-line2);border-radius:0;box-shadow:3px 3px 0 0 rgba(0,0,0,.6);',
+    '  cursor:pointer;transition:transform .1s ease,box-shadow .1s ease;line-height:1.2}',
+    '.dk-btn:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 0 rgba(0,0,0,.6)}',
+    '.dk-btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 0 rgba(0,0,0,.6)}',
+    '.dk-btn:focus-visible{outline:2px solid var(--dk-accent);outline-offset:2px}',
+    '.dk-btn.p{background:var(--dk-accent);border-color:var(--dk-accent);color:#fff;box-shadow:3px 3px 0 0 #1d4ed8}',
+    '.dk-btn.p:hover{box-shadow:5px 5px 0 0 #1d4ed8}',
+    '.dk-btn.g{background:transparent;color:var(--dk-ink3);box-shadow:none;border-color:var(--dk-line)}',
+    '.dk-btn.g:hover{color:var(--dk-ink);border-color:var(--dk-line2);transform:none;box-shadow:none}',
+    '.dk-btn.sm{padding:7px 11px;font-size:10.5px}',
+    '.dk-st{font-family:var(--dk-mono);font-size:11px;color:var(--dk-ink3);border:1px solid var(--dk-line);',
+    '  padding:6px 10px;background:var(--dk-surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}',
+    '.dk-st b{color:var(--dk-accent);font-weight:700}',
+    '.dk-panel{display:none;border-top:1px solid var(--dk-line);background:var(--dk-surface)}',
+    '.dk-panel.open{display:block}',
+    '.dk-pin{padding:18px 16px 22px;max-width:1400px;margin:0 auto}',
+    '.dk-h{font-family:var(--dk-sans);font-weight:700;text-transform:uppercase;letter-spacing:-.01em;',
+    '  font-size:15px;color:var(--dk-ink);margin:0 0 8px}',
+    '.dk-p{font-size:13px;color:var(--dk-ink3);margin:0 0 16px;max-width:78ch;line-height:1.6}',
+    '.dk-p code{font-family:var(--dk-mono);font-size:12px;color:var(--dk-ink2);background:var(--dk-surface2);padding:1px 5px}',
+    '.dk-file{border:1px solid var(--dk-line2);background:var(--dk-bg);margin-bottom:14px}',
+    '.dk-fh{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;',
+    '  padding:12px 14px;border-bottom:1px solid var(--dk-line)}',
+    '.dk-fn{font-family:var(--dk-mono);font-size:13px;font-weight:700;color:var(--dk-ink)}',
+    '.dk-fn::before{content:"> ";color:var(--dk-accent)}',
+    '.dk-fa{display:flex;gap:8px;flex-wrap:wrap}',
+    '.dk-fd{font-size:12.5px;color:var(--dk-ink3);padding:12px 14px 4px;margin:0;line-height:1.6}',
+    '.dk-scroll{overflow-x:auto;padding:10px 14px 14px;-webkit-overflow-scrolling:touch}',
+    '.dk-t{border-collapse:collapse;width:100%;min-width:560px;font-size:12px}',
+    '.dk-t th{font-family:var(--dk-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;',
+    '  color:var(--dk-ink4);text-align:left;padding:7px 10px;border-bottom:1px solid var(--dk-line2);font-weight:700}',
+    '.dk-t td{padding:7px 10px;border-bottom:1px solid var(--dk-line);color:var(--dk-ink2);vertical-align:top}',
+    '.dk-t tr:last-child td{border-bottom:0}',
+    '.dk-t td.c{font-family:var(--dk-mono);color:var(--dk-ink);white-space:nowrap;font-weight:700}',
+    '.dk-t td.t{font-family:var(--dk-mono);color:var(--dk-ink4);white-space:nowrap}',
+    '.dk-t td.x{font-family:var(--dk-mono);color:var(--dk-accent);max-width:280px;overflow-wrap:anywhere}',
+    '.dk-req{color:var(--dk-accent);font-weight:700}',
+    '.dk-badge{position:fixed;left:16px;bottom:16px;z-index:9998;background:var(--dk-surface);',
+    '  border:1px solid var(--dk-line2);box-shadow:4px 4px 0 0 rgba(0,0,0,.6);padding:8px 13px;',
+    '  font-family:var(--dk-mono);font-size:11px;color:var(--dk-ink3);pointer-events:none;max-width:min(92vw,420px)}',
+    '.dk-badge b{color:var(--dk-accent);font-weight:700}',
+    '@media (max-width:640px){',
+    '  .dk-in{padding:9px 12px;gap:8px}',
+    '  .dk-btn{font-size:10.5px;padding:8px 11px}',
+    '  .dk-k,.dk-badge{display:none}',
+    '}'
+  ].join('\n');
+
+  function injectHead() {
+    if (!document.getElementById('dk-fonts')) {
+      var l = document.createElement('link');
+      l.id = 'dk-fonts'; l.rel = 'stylesheet';
+      l.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap';
+      document.head.appendChild(l);
+    }
+    if (!document.getElementById('dk-css')) {
+      var s = document.createElement('style');
+      s.id = 'dk-css'; s.textContent = CSS;
+      document.head.appendChild(s);
+    }
+  }
+
+  /* ---------- markup ---------- */
+
+  function panelHTML() {
+    var out = '<div class="dk-pin">';
+    out += '<h2 class="dk-h">Como usar seus dados</h2>';
+    out += '<p class="dk-p">Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. '
+        + 'O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. '
+        + 'Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. '
+        + 'Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.</p>';
+
+    CFG.files.forEach(function (f, i) {
+      var s = sampleOf(f)[0] || {};
+      out += '<div class="dk-file">';
+      out += '<div class="dk-fh"><span class="dk-fn">' + esc(f.name) + '</span><span class="dk-fa">';
+      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">Baixar template CSV</button>';
+      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">Enviar este arquivo</button>';
+      out += '</span></div>';
+      out += '<p class="dk-fd">' + esc(f.desc) + '</p>';
+      out += '<div class="dk-scroll"><table class="dk-t"><thead><tr>'
+          + '<th>coluna</th><th>tipo</th><th>o que e</th><th>exemplo</th>'
+          + '</tr></thead><tbody>';
+      f.cols.forEach(function (c) {
+        out += '<tr><td class="c">' + esc(c.n) + (c.req ? '<span class="dk-req">*</span>' : '') + '</td>'
+            + '<td class="t">' + esc(c.t) + '</td>'
+            + '<td>' + esc(c.d) + '</td>'
+            + '<td class="x">' + esc(s[c.n]) + '</td></tr>';
+      });
+      out += '</tbody></table></div></div>';
+    });
+
+    out += '<p class="dk-p" style="margin:2px 0 0">Prefere so olhar? O botao '
+        + '<b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que '
+        + 'respeita exatamente esse contrato e renderiza todos os graficos na hora.</p>';
+    out += '</div>';
+    return out;
+  }
+
+  function build() {
+    var bar = document.createElement('div');
+    bar.className = 'dk-bar';
+    bar.setAttribute('role', 'region');
+    bar.setAttribute('aria-label', 'Dados do dashboard');
+
+    var many = CFG.files.filter(function (f) { return !!f.input; }).length > 1;
+    var upLabel = many ? 'Enviar CSVs' : 'Enviar CSV';
+    var hasInput = CFG.files.some(function (f) { return !!f.input; });
+
+    var inner = '<div class="dk-in">'
+      + '<span class="dk-k">[ <b>dados</b> ]</span>'
+      + '<button type="button" class="dk-btn p" data-dk="fill">Preencher automaticamente</button>'
+      + (hasInput ? '<button type="button" class="dk-btn" data-dk="upload">' + upLabel + '</button>' : '')
+      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">Como montar o CSV &#9656;</button>'
+      + '<span class="dk-sep"></span>'
+      + '<span class="dk-st" data-dk="status"></span>'
+      + '</div>'
+      + '<div class="dk-panel" data-dk="panel">' + panelHTML() + '</div>';
+
+    bar.innerHTML = inner;
+    els.bar = bar;
+    els.panel = bar.querySelector('[data-dk="panel"]');
+    els.status = bar.querySelector('[data-dk="status"]');
+    els.help = bar.querySelector('[data-dk="help"]');
+
+    bar.addEventListener('click', function (ev) {
+      var t = ev.target.closest ? ev.target.closest('button') : null;
+      if (!t) return;
+      var act = t.getAttribute('data-dk');
+      var tpl = t.getAttribute('data-dk-tpl');
+      var up = t.getAttribute('data-dk-up');
+      if (act === 'fill') { DK.fill(); }
+      else if (act === 'help') { toggleHelp(); }
+      else if (act === 'upload') { openUpload(); }
+      else if (tpl !== null) {
+        var f = CFG.files[+tpl];
+        download(f.name, buildTemplate(f));
+      } else if (up !== null) {
+        clickInput(CFG.files[+up]);
+      }
+    });
+
+    var badge = document.createElement('div');
+    badge.className = 'dk-badge';
+    badge.innerHTML = '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus';
+    els.badge = badge;
+
+    document.body.insertBefore(bar, document.body.firstChild);
+    document.body.appendChild(badge);
+
+    if (CFG.mount !== 'fixed') collectPinned();
+    reflow();
+    window.addEventListener('resize', reflow);
+    if (window.ResizeObserver) new ResizeObserver(reflow).observe(bar);
+    // graficos e paineis que so aparecem depois do render tambem podem se prender no topo
+    window.addEventListener('load', function () {
+      if (CFG.mount !== 'fixed') { collectPinned(); lastH = -1; }
+      reflow();
+    });
+
+    if (typeof CFG.onMount === 'function') {
+      try { CFG.onMount(bar); } catch (e) { console.warn('[DK] onMount:', e); }
+    }
+  }
+
+  /* ---------- layout: a barra e fixa, entao o resto precisa descer ---------- */
+
+  var pinned = [];
+
+  function collectPinned() {
+    // cabecalhos e paineis que o dashboard prende no topo da viewport
+    pinned = [];
+    var vh = window.innerHeight || 800;
+    var all = document.body.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) {
+      var e = all[i];
+      if (els.bar.contains(e) || e === els.bar || e === els.badge) continue;
+      var cs;
+      try { cs = getComputedStyle(e); } catch (err) { continue; }
+      if (cs.position !== 'fixed' && cs.position !== 'sticky') continue;
+      if (cs.top !== '0px') continue;
+      var r = e.getBoundingClientRect();
+      if (r.height > vh * 0.5) continue;   // overlay de tela cheia: nao mexer
+      pinned.push(e);
+    }
+  }
+
+  var lastH = -1;
+
+  function reflow() {
+    if (!els.bar || CFG.mount === 'fixed') return;  // no 08 o dashboard cuida do espaco
+    var h = els.bar.offsetHeight || 0;
+    if (h < 8) return;         // barra ainda sem layout: nao vale medir
+    if (h === lastH) return;   // guarda contra loop de ResizeObserver
+    lastH = h;
+    document.body.style.paddingTop = h + 'px';
+    pinned.forEach(function (e) { e.style.top = h + 'px'; });
+  }
+
+  function toggleHelp(force) {
+    var open = (force === undefined) ? !els.panel.classList.contains('open') : !!force;
+    els.panel.classList.toggle('open', open);
+    els.help.setAttribute('aria-expanded', String(open));
+    els.help.innerHTML = 'Como montar o CSV ' + (open ? '&#9662;' : '&#9656;');
+    reflow();
+    if (typeof CFG.onResize === 'function') CFG.onResize();
+  }
+
+  function clickInput(file) {
+    if (!file || !file.input) return;
+    var input = document.querySelector(file.input);
+    if (!input) { console.warn('[DK] input nao encontrado:', file.input); return; }
+    input.click();
+  }
+
+  function openUpload() {
+    var withInput = CFG.files.filter(function (f) { return !!f.input; });
+    if (withInput.length === 1) { clickInput(withInput[0]); return; }
+    toggleHelp(true);
+  }
+
+  function setStatus(html) { if (els.status) els.status.innerHTML = html; }
+
+  /* ---------- API publica ---------- */
+
+  var DK = {
+    init: function (cfg) {
+      CFG = cfg;
+      var start = function () {
+        injectHead();
+        build();
+        // liga o fluxo real de upload: qualquer envio marca a base como do usuario
+        CFG.files.forEach(function (f) {
+          if (!f.input) return;
+          var input = document.querySelector(f.input);
+          if (!input) return;
+          input.addEventListener('change', function (e) {
+            var file = e.target && e.target.files && e.target.files[0];
+            if (file) DK.markUserData(file.name);
+          });
+        });
+        if (CFG.autofill !== false) {
+          // espera o dashboard terminar de montar antes do primeiro preenchimento
+          waitReady(0);
+        } else {
+          setStatus('sem dados carregados');
+        }
+      };
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+      } else { start(); }
+    },
+
+    fill: function () {
+      try {
+        CFG.fill();
+        mode = 'demo';
+        if (els.badge) els.badge.style.display = '';
+        setStatus('<b>dados de exemplo</b> &middot; ' + (CFG.summary ? CFG.summary() : 'base sintetica'));
+      } catch (e) {
+        console.error('[DK] falha ao preencher:', e);
+        setStatus('falha ao gerar dados de exemplo');
+      }
+    },
+
+    markUserData: function (name) {
+      mode = 'user';
+      if (els.badge) els.badge.style.display = 'none';
+      setStatus('<b>seus dados</b> &middot; ' + esc(name || 'CSV enviado'));
+      toggleHelp(false);
+    },
+
+    mode: function () { return mode; }
+  };
+
+  function waitReady(tries) {
+    var ok = true;
+    try { ok = CFG.ready ? !!CFG.ready() : true; } catch (e) { ok = false; }
+    if (!ok && tries < 40) { setTimeout(function () { waitReady(tries + 1); }, 150); return; }
+    if (mode === 'user') return; // usuario ja enviou CSV antes do autofill
+    DK.fill();
+  }
+
+  window.DK = DK;
+})();
+</script>
+<script>
+/* DK — 08 Gradiente de Metas (dados sinteticos + leitura de CSV)
+   Este dashboard nasceu ligado a um backend. Aqui ele passa a aceitar o mesmo
+   contrato dos demais: um CSV de vendas ganhas, do qual o gradiente semanal
+   (metas, deficit e redistribuicao) e recalculado no navegador.                */
+(function () {
+  var CLOSERS = ['Fernanda Costa', 'Gabriel Nunes', 'Helena Dias', 'Igor Aguiar', 'Juliana Melo'];
+  var META_PADRAO = 1500000;
+  var PCT = [
+    { id: 'S1', nome: 'Semana 1', ini: 1, fim: 7, pct: 18 },
+    { id: 'S2', nome: 'Semana 2', ini: 8, fim: 14, pct: 20 },
+    { id: 'S3', nome: 'Semana 3', ini: 15, fim: 21, pct: 22 },
+    { id: 'S4', nome: 'Semana 4', ini: 22, fim: 28, pct: 25 },
+    { id: 'SF', nome: 'Sprint Final', ini: 29, fim: 31, pct: 15 }
+  ];
+  var MESES = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+               'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+  function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+  function rand(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  /* ---------- gerador sintetico ---------- */
+
+  function GEN() {
+    var hoje = new Date();
+    var ano = hoje.getFullYear(), mes = hoje.getMonth();
+    var ultimoDia = new Date(ano, mes + 1, 0).getDate();
+    var ate = Math.min(hoje.getDate(), ultimoDia);
+    var rows = [];
+    for (var dia = 1; dia <= ate; dia++) {
+      var d = new Date(ano, mes, dia);
+      if (d.getDay() === 0 || d.getDay() === 6) continue;
+      var n = randInt(0, 3);
+      for (var i = 0; i < n; i++) {
+        rows.push({
+          data: ano + '-' + pad(mes + 1) + '-' + pad(dia),
+          valor: String(randInt(22, 68) * 1000),
+          closer: rand(CLOSERS),
+          meta_mensal: String(META_PADRAO)
+        });
+      }
+    }
+    if (!rows.length) {
+      rows.push({ data: ano + '-' + pad(mes + 1) + '-01', valor: '45000', closer: CLOSERS[0], meta_mensal: String(META_PADRAO) });
+    }
+    return rows;
+  }
+
+  /* ---------- CSV -> shape que o dashboard renderiza ---------- */
+
+  function parseData(v) {
+    v = String(v || '').trim();
+    if (!v) return null;
+    var m = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+    m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+    if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+    var d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function parseValor(v) {
+    if (typeof v === 'number') return v;
+    v = String(v == null ? '' : v).replace(/[R$\s]/gi, '');
+    if (v.indexOf(',') > -1) v = v.replace(/\./g, '').replace(',', '.');
+    var n = parseFloat(v);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function build(rows, strategy) {
+    var vendas = [];
+    var metaMensal = 0;
+    rows.forEach(function (r) {
+      var d = parseData(r.data || r.date || r.data_venda);
+      var valor = parseValor(r.valor != null ? r.valor : r.value);
+      if (!metaMensal) metaMensal = parseValor(r.meta_mensal);
+      if (!d || valor <= 0) return;
+      vendas.push({ d: d, valor: valor, closer: String(r.closer || 'Sem closer').trim() || 'Sem closer' });
+    });
+    if (!vendas.length) return { error: 'Nenhuma venda valida no CSV. Confira as colunas data e valor.' };
+    if (!metaMensal) metaMensal = META_PADRAO;
+
+    // mes de referencia: o da venda mais recente
+    var maxD = vendas.reduce(function (a, b) { return b.d > a.d ? b : a; }).d;
+    var ano = maxD.getFullYear(), mes = maxD.getMonth();
+    vendas = vendas.filter(function (v) { return v.d.getFullYear() === ano && v.d.getMonth() === mes; });
+    var ultimoDia = new Date(ano, mes + 1, 0).getDate();
+    var hoje = new Date();
+    var diaCorrente = (hoje.getFullYear() === ano && hoje.getMonth() === mes)
+      ? Math.min(hoje.getDate(), ultimoDia)
+      : maxD.getDate();
+
+    var faixas = PCT.map(function (f) {
+      return { id: f.id, nome: f.nome, ini: f.ini, fim: Math.min(f.fim === 31 ? ultimoDia : f.fim, ultimoDia), pct: f.pct };
+    }).filter(function (f) { return f.ini <= ultimoDia; });
+
+    faixas.forEach(function (f) {
+      f.vendas = vendas
+        .filter(function (v) { var dia = v.d.getDate(); return dia >= f.ini && dia <= f.fim; })
+        .map(function (v) { return { dia: v.d.getDate(), valor: v.valor, closer: v.closer }; })
+        .sort(function (a, b) { return a.dia - b.dia; });
+      f.realizado = f.vendas.reduce(function (s, v) { return s + v.valor; }, 0);
+      f.metaOriginal = metaMensal * (f.pct / 100);
+      f.status = f.fim < diaCorrente ? 'passada'
+               : (f.ini <= diaCorrente && diaCorrente <= f.fim) ? 'em_andamento'
+               : 'futura';
+    });
+
+    // deficit acumulado das semanas ja encerradas, redistribuido nas que restam
+    var deficit = faixas.reduce(function (s, f) {
+      return s + (f.status === 'passada' ? Math.max(0, f.metaOriginal - f.realizado) : 0);
+    }, 0);
+    var restantes = faixas.filter(function (f) { return f.status !== 'passada'; });
+    faixas.forEach(function (f) { f.meta = f.metaOriginal; });
+    if (deficit > 0 && restantes.length) {
+      if (strategy === 'seguinte') {
+        restantes[0].meta = restantes[0].metaOriginal + deficit;
+      } else {
+        var parcela = deficit / restantes.length;
+        restantes.forEach(function (f) { f.meta = f.metaOriginal + parcela; });
+      }
+    }
+
+    var semanas = faixas.map(function (f) {
+      var diasRestantes = f.status === 'em_andamento' ? Math.max(0, f.fim - diaCorrente)
+                        : f.status === 'futura' ? (f.fim - f.ini + 1) : 0;
+      var faltante = f.meta - f.realizado;
+      var status = f.status;
+      if (status === 'passada' && f.realizado >= f.meta) status = 'batida';
+      return {
+        id: f.id, nome: f.nome,
+        periodo: pad(f.ini) + '/' + pad(mes + 1) + (f.ini === f.fim ? '' : ' a ' + pad(f.fim) + '/' + pad(mes + 1)),
+        pct: String(f.pct),
+        meta: f.meta, metaOriginal: f.metaOriginal,
+        metaAjustada: Math.round(f.meta) !== Math.round(f.metaOriginal),
+        realizado: f.realizado,
+        percentual: f.meta > 0 ? (f.realizado / f.meta) * 100 : 0,
+        status: status,
+        faltante: faltante,
+        diasRestantes: diasRestantes,
+        mediaDiaria: diasRestantes > 0 ? Math.max(0, faltante) / diasRestantes : 0,
+        vendas: f.vendas
+      };
+    });
+
+    var totalRealizado = vendas.reduce(function (s, v) { return s + v.valor; }, 0);
+    var agora = new Date();
+    return {
+      mesAtual: {
+        nome: MESES[mes + 1] + ' ' + ano,
+        metaMensal: metaMensal,
+        totalRealizado: totalRealizado,
+        percentual: (totalRealizado / metaMensal) * 100,
+        faltante: metaMensal - totalRealizado,
+        semanas: semanas,
+        todasVendas: vendas
+          .map(function (v) { return { dia: v.d.getDate(), valor: v.valor, closer: v.closer }; })
+          .sort(function (a, b) { return a.dia - b.dia; })
+      },
+      dataSource: 'demo',
+      ultimaAtualizacao: pad(agora.getDate()) + '/' + pad(agora.getMonth() + 1) + '/' + agora.getFullYear()
+        + ' às ' + pad(agora.getHours()) + ':' + pad(agora.getMinutes())
+    };
+  }
+
+  /* ---------- estado + integracao com o dashboard ---------- */
+
+  var STATE = { rows: null, source: 'demo' };
+
+  function render() {
+    if (!STATE.rows) return;
+    var strategy = localStorage.getItem('gradienteStrategy') || 'diluir';
+    var data = build(STATE.rows, strategy);
+    data.dataSource = STATE.source;
+    onDataLoaded(data);
+  }
+
+  // o botao de refresh, o seletor de estrategia e o auto-refresh chamam loadData():
+  // redirecionamos para o recalculo local, preservando a base atual (demo ou do usuario)
+  window.loadData = function () {
+    var loading = document.getElementById('loading');
+    if (loading) loading.classList.add('hidden');
+    render();
+  };
+
+  function readCSV(file) {
+    if (typeof Papa === 'undefined') { alert('Biblioteca de leitura de CSV nao carregou. Recarregue a pagina.'); return; }
+    Papa.parse(file, {
+      header: true, skipEmptyLines: true, encoding: 'UTF-8',
+      transformHeader: function (h) { return String(h).trim().toLowerCase(); },
+      complete: function (res) {
+        var rows = (res.data || []).filter(function (r) { return r && (r.data || r.date); });
+        if (!rows.length) { alert('CSV sem linhas validas. A coluna "data" e obrigatoria.'); return; }
+        STATE.rows = rows; STATE.source = 'csv';
+        render();
+      },
+      error: function (err) { alert('Erro ao ler o CSV: ' + err.message); }
+    });
+  }
+
+  DK.init({
+    mount: 'fixed',
+    files: [{
+      name: 'vendas.csv',
+      input: '#dkCsvFile',
+      desc: 'Vendas ganhas do mes. Uma linha por venda. O dashboard agrupa por semana '
+          + '(S1 dias 1-7, S2 8-14, S3 15-21, S4 22-28, Sprint Final 29 ao fim do mes), '
+          + 'compara com a meta de cada semana e redistribui o deficit das semanas encerradas '
+          + 'segundo a estrategia escolhida no cabecalho.',
+      cols: [
+        { n: 'data', t: 'data AAAA-MM-DD', d: 'Dia da venda. Tambem aceita DD/MM/AAAA. O mes de referencia e o da venda mais recente.', req: 1 },
+        { n: 'valor', t: 'numero', d: 'Valor da venda em reais. Aceita 45000 ou 45.000,00.', req: 1 },
+        { n: 'closer', t: 'texto', d: 'Quem fechou. Aparece na lista de vendas de cada semana.' },
+        { n: 'meta_mensal', t: 'numero', d: 'Meta do mes. Basta preencher na primeira linha. Vazio assume R$ 1.500.000.' }
+      ],
+      sample: function () { return GEN(); }
+    }],
+    ready: function () { return typeof onDataLoaded === 'function'; },
+    fill: function () {
+      STATE.rows = GEN(); STATE.source = 'demo';
+      render();
+    },
+    onMount: function (bar) {
+      // input real de upload (o dashboard nao tinha um) + reserva de espaco para a barra
+      var input = document.createElement('input');
+      input.type = 'file'; input.accept = '.csv'; input.id = 'dkCsvFile';
+      input.style.display = 'none';
+      input.addEventListener('change', function (e) {
+        var f = e.target.files && e.target.files[0];
+        if (f) readCSV(f);
+      });
+      document.body.appendChild(input);
+
+      var app = document.getElementById('app-container');
+      var ultimaAltura = 0;
+      function fit() {
+        var h = bar.offsetHeight || 0;
+        if (h < 8) h = ultimaAltura;   // barra ainda sem layout: mantem a ultima medida
+        ultimaAltura = h;
+        if (app) {
+          app.style.top = h + 'px';
+          app.style.transform = 'scale(' + (window.innerWidth / 1920) + ',' + ((window.innerHeight - h) / 1080) + ')';
+        }
+      }
+      window.scaleToFit = fit;   // o dashboard chama scaleToFit() no resize
+      window.addEventListener('resize', fit);
+      window.addEventListener('load', fit);
+      new MutationObserver(fit).observe(bar, { attributes: true, childList: true, subtree: true });
+      fit();
+      setTimeout(fit, 200);
+    },
+    summary: function () {
+      return STATE.rows ? STATE.rows.length + ' vendas' : 'base sintetica';
+    }
+  });
+})();
+</script>
+<!-- ==== /DATAKIT ==== -->
 </body>
 </html>

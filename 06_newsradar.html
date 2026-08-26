@@ -2557,72 +2557,511 @@ window.addEventListener('scroll', function() {
 </script>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
 <script>
-/* DEMO MODE — dados fictícios para portfólio */
-(function(){
-  var FONTES=['Folha de S.Paulo','Estad\u00e3o','Exame','InfoMoney','Valor Econ\u00f4mico','TechCrunch Brasil','Startups.com.br'];
-  var CATEGORIAS=['Tecnologia','Neg\u00f3cios','Inova\u00e7\u00e3o','Marketing','Vendas','IA & Automa\u00e7\u00e3o','Mercado'];
-  var TITULOS=[
-    'Como a intelig\u00eancia artificial est\u00e1 revolucionando o CRM',
-    'Tend\u00eancias de vendas B2B para 2025: o que esperar',
-    'Automa\u00e7\u00e3o no funil de vendas aumenta convers\u00e3o em 40%',
-    'Estrat\u00e9gias de lead scoring que realmente funcionam',
-    'O futuro do marketing digital no setor corporativo',
-    'Como estruturar um time de SDRs de alta performance',
-    'Pipeline de vendas: melhores pr\u00e1ticas para closers',
-    'Ferramentas de BI que est\u00e3o mudando a tomada de decis\u00e3o',
-    'WhatsApp Business como canal de vendas: cases reais',
-    'Social Selling no LinkedIn: guia pr\u00e1tico para SDRs',
-    'Inbound vs Outbound: qual estrat\u00e9gia funciona em 2025',
-    'M\u00e9tricas que todo gestor de vendas deve acompanhar',
-    'Customer Success e suas m\u00e9tricas de impacto no revenue',
-    'Chatbots com IA: aumentando efici\u00eancia no atendimento',
-    'Como a personaliza\u00e7\u00e3o em escala gera mais neg\u00f3cios',
-    'RevOps: alinhando marketing, vendas e CS',
-    'Precifica\u00e7\u00e3o baseada em valor para SaaS B2B',
-    'An\u00e1lise de churn: identificando padr\u00f5es de cancelamento',
-    'Framework MEDDIC na qualifica\u00e7\u00e3o de oportunidades',
-    'Gamifica\u00e7\u00e3o no time de vendas: motiva\u00e7\u00e3o e resultados'
-  ];
-  var TAGS=[['CRM','vendas'],['IA','automa\u00e7\u00e3o'],['marketing','leads'],['SaaS','mercado'],['sales','pipeline']];
+/* ==========================================================================
+   DATAKIT (DK) — barra de dados compartilhada dos dashboards
+   --------------------------------------------------------------------------
+   Responsabilidades:
+     1. Toolbar no topo: "Preencher automaticamente" / "Enviar CSV" /
+        "Como montar o CSV".
+     2. Painel recolhivel com o contrato de dados (schema por arquivo) e
+        download de template CSV com cabecalhos corretos + linhas de exemplo.
+     3. Auto-preenchimento com dados sinteticos no primeiro load, para o demo
+        de portfolio nunca aparecer em branco.
+   Dados 100% sinteticos. O fluxo de upload de CSV real continua intacto:
+   a barra apenas aciona o <input type="file"> ja existente no dashboard.
+   ========================================================================== */
+(function () {
+  if (window.DK) return;
 
-  function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
-  function addDays(dateStr,days){
-    var d=new Date(dateStr); d.setDate(d.getDate()+days);
-    return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  var CFG = null;
+  var els = {};
+  var mode = 'empty'; // 'empty' | 'demo' | 'user'
+
+  /* ---------- utilitarios ---------- */
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  var fakeRows=[];
-  for(var i=0;i<200;i++){
-    fakeRows.push({
-      titulo: TITULOS[i%TITULOS.length]+(i>=TITULOS.length?' ('+(Math.ceil(i/TITULOS.length)+1)+')':''),
-      data: addDays('2025-07-01',randInt(0,180)),
-      fonte: rand(FONTES),
-      score: String(randInt(30,98)),
-      url: 'https://demo.portfolio/artigo-'+String(i+1).padStart(4,'0'),
-      tags: rand(TAGS).join(','),
-      categoria: rand(CATEGORIAS)
+  function csvCell(v) {
+    v = (v === null || v === undefined) ? '' : String(v);
+    return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
+
+  function sampleOf(file) {
+    if (!file._sample) {
+      var s = [];
+      try { s = file.sample() || []; } catch (e) { console.warn('[DK] sample:', e); }
+      file._sample = s.slice(0, file.max || 3);
+    }
+    return file._sample;
+  }
+
+  function buildTemplate(file) {
+    var head = file.cols.map(function (c) { return csvCell(c.n); }).join(',');
+    var body = sampleOf(file).map(function (r) {
+      return file.cols.map(function (c) { return csvCell(r[c.n]); }).join(',');
     });
+    return [head].concat(body).join('\r\n') + '\r\n';
   }
 
-  function initDemo(){
-    if(typeof raw==='undefined'||typeof processLoadedData!=='function'){ setTimeout(initDemo,300); return; }
-    try {
-      if(typeof resetState==='function') resetState();
-      Array.prototype.push.apply(raw,fakeRows);
-      processLoadedData();
-      document.querySelectorAll('.uploader').forEach(function(el){ el.style.display='none'; });
-      var b=document.createElement('div');
-      b.style.cssText='position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(245,158,11,0.5);pointer-events:none';
-      b.textContent='\uD83D\uDCCA Demo \u2014 dados fict\u00edcios';
-      document.body.appendChild(b);
-    } catch(e){ console.error('[DEMO] Erro:',e); }
+  function download(name, text) {
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () {
+      if (a.parentNode) a.parentNode.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 200);
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initDemo);
-  else setTimeout(initDemo,600);
+
+  /* ---------- estilos (identidade do repositorio) ---------- */
+
+  var CSS = [
+    '@media print{.dk-bar,.dk-badge{display:none!important}}',
+    '.dk-bar,.dk-badge{',
+    '  --dk-bg:#0a0a0b;--dk-surface:#131316;--dk-surface2:#1a1a1e;',
+    '  --dk-ink:#f8f7f3;--dk-ink2:#d4d4d8;--dk-ink3:#a1a1aa;--dk-ink4:#8a8a94;',
+    '  --dk-accent:#2563eb;--dk-line:rgba(248,247,243,.14);--dk-line2:rgba(248,247,243,.24);',
+    '  --dk-sans:"Space Grotesk",system-ui,-apple-system,Segoe UI,sans-serif;',
+    '  --dk-mono:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;',
+    '  font-family:var(--dk-sans);color:var(--dk-ink2);box-sizing:border-box;',
+    '}',
+    '.dk-bar *,.dk-badge *{box-sizing:border-box}',
+    '.dk-bar{background:var(--dk-bg);border-bottom:1px solid var(--dk-line2);',
+    '  position:fixed;top:0;left:0;right:0;z-index:9000;width:100%;',
+    '  max-height:100vh;overflow-y:auto;overscroll-behavior:contain}',
+    '.dk-in{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 16px;max-width:1400px;margin:0 auto}',
+    '.dk-k{font-family:var(--dk-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dk-ink4);white-space:nowrap}',
+    '.dk-k b{color:var(--dk-accent);font-weight:700}',
+    '.dk-sep{flex:1 1 auto;min-width:0}',
+    '.dk-btn{font-family:var(--dk-mono);font-size:11.5px;font-weight:700;letter-spacing:.07em;',
+    '  text-transform:uppercase;padding:9px 14px;color:var(--dk-ink);background:var(--dk-surface);',
+    '  border:1px solid var(--dk-line2);border-radius:0;box-shadow:3px 3px 0 0 rgba(0,0,0,.6);',
+    '  cursor:pointer;transition:transform .1s ease,box-shadow .1s ease;line-height:1.2}',
+    '.dk-btn:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 0 rgba(0,0,0,.6)}',
+    '.dk-btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 0 rgba(0,0,0,.6)}',
+    '.dk-btn:focus-visible{outline:2px solid var(--dk-accent);outline-offset:2px}',
+    '.dk-btn.p{background:var(--dk-accent);border-color:var(--dk-accent);color:#fff;box-shadow:3px 3px 0 0 #1d4ed8}',
+    '.dk-btn.p:hover{box-shadow:5px 5px 0 0 #1d4ed8}',
+    '.dk-btn.g{background:transparent;color:var(--dk-ink3);box-shadow:none;border-color:var(--dk-line)}',
+    '.dk-btn.g:hover{color:var(--dk-ink);border-color:var(--dk-line2);transform:none;box-shadow:none}',
+    '.dk-btn.sm{padding:7px 11px;font-size:10.5px}',
+    '.dk-st{font-family:var(--dk-mono);font-size:11px;color:var(--dk-ink3);border:1px solid var(--dk-line);',
+    '  padding:6px 10px;background:var(--dk-surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}',
+    '.dk-st b{color:var(--dk-accent);font-weight:700}',
+    '.dk-panel{display:none;border-top:1px solid var(--dk-line);background:var(--dk-surface)}',
+    '.dk-panel.open{display:block}',
+    '.dk-pin{padding:18px 16px 22px;max-width:1400px;margin:0 auto}',
+    '.dk-h{font-family:var(--dk-sans);font-weight:700;text-transform:uppercase;letter-spacing:-.01em;',
+    '  font-size:15px;color:var(--dk-ink);margin:0 0 8px}',
+    '.dk-p{font-size:13px;color:var(--dk-ink3);margin:0 0 16px;max-width:78ch;line-height:1.6}',
+    '.dk-p code{font-family:var(--dk-mono);font-size:12px;color:var(--dk-ink2);background:var(--dk-surface2);padding:1px 5px}',
+    '.dk-file{border:1px solid var(--dk-line2);background:var(--dk-bg);margin-bottom:14px}',
+    '.dk-fh{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;',
+    '  padding:12px 14px;border-bottom:1px solid var(--dk-line)}',
+    '.dk-fn{font-family:var(--dk-mono);font-size:13px;font-weight:700;color:var(--dk-ink)}',
+    '.dk-fn::before{content:"> ";color:var(--dk-accent)}',
+    '.dk-fa{display:flex;gap:8px;flex-wrap:wrap}',
+    '.dk-fd{font-size:12.5px;color:var(--dk-ink3);padding:12px 14px 4px;margin:0;line-height:1.6}',
+    '.dk-scroll{overflow-x:auto;padding:10px 14px 14px;-webkit-overflow-scrolling:touch}',
+    '.dk-t{border-collapse:collapse;width:100%;min-width:560px;font-size:12px}',
+    '.dk-t th{font-family:var(--dk-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;',
+    '  color:var(--dk-ink4);text-align:left;padding:7px 10px;border-bottom:1px solid var(--dk-line2);font-weight:700}',
+    '.dk-t td{padding:7px 10px;border-bottom:1px solid var(--dk-line);color:var(--dk-ink2);vertical-align:top}',
+    '.dk-t tr:last-child td{border-bottom:0}',
+    '.dk-t td.c{font-family:var(--dk-mono);color:var(--dk-ink);white-space:nowrap;font-weight:700}',
+    '.dk-t td.t{font-family:var(--dk-mono);color:var(--dk-ink4);white-space:nowrap}',
+    '.dk-t td.x{font-family:var(--dk-mono);color:var(--dk-accent);max-width:280px;overflow-wrap:anywhere}',
+    '.dk-req{color:var(--dk-accent);font-weight:700}',
+    '.dk-badge{position:fixed;left:16px;bottom:16px;z-index:9998;background:var(--dk-surface);',
+    '  border:1px solid var(--dk-line2);box-shadow:4px 4px 0 0 rgba(0,0,0,.6);padding:8px 13px;',
+    '  font-family:var(--dk-mono);font-size:11px;color:var(--dk-ink3);pointer-events:none;max-width:min(92vw,420px)}',
+    '.dk-badge b{color:var(--dk-accent);font-weight:700}',
+    '@media (max-width:640px){',
+    '  .dk-in{padding:9px 12px;gap:8px}',
+    '  .dk-btn{font-size:10.5px;padding:8px 11px}',
+    '  .dk-k,.dk-badge{display:none}',
+    '}'
+  ].join('\n');
+
+  function injectHead() {
+    if (!document.getElementById('dk-fonts')) {
+      var l = document.createElement('link');
+      l.id = 'dk-fonts'; l.rel = 'stylesheet';
+      l.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap';
+      document.head.appendChild(l);
+    }
+    if (!document.getElementById('dk-css')) {
+      var s = document.createElement('style');
+      s.id = 'dk-css'; s.textContent = CSS;
+      document.head.appendChild(s);
+    }
+  }
+
+  /* ---------- markup ---------- */
+
+  function panelHTML() {
+    var out = '<div class="dk-pin">';
+    out += '<h2 class="dk-h">Como usar seus dados</h2>';
+    out += '<p class="dk-p">Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. '
+        + 'O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. '
+        + 'Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. '
+        + 'Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.</p>';
+
+    CFG.files.forEach(function (f, i) {
+      var s = sampleOf(f)[0] || {};
+      out += '<div class="dk-file">';
+      out += '<div class="dk-fh"><span class="dk-fn">' + esc(f.name) + '</span><span class="dk-fa">';
+      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">Baixar template CSV</button>';
+      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">Enviar este arquivo</button>';
+      out += '</span></div>';
+      out += '<p class="dk-fd">' + esc(f.desc) + '</p>';
+      out += '<div class="dk-scroll"><table class="dk-t"><thead><tr>'
+          + '<th>coluna</th><th>tipo</th><th>o que e</th><th>exemplo</th>'
+          + '</tr></thead><tbody>';
+      f.cols.forEach(function (c) {
+        out += '<tr><td class="c">' + esc(c.n) + (c.req ? '<span class="dk-req">*</span>' : '') + '</td>'
+            + '<td class="t">' + esc(c.t) + '</td>'
+            + '<td>' + esc(c.d) + '</td>'
+            + '<td class="x">' + esc(s[c.n]) + '</td></tr>';
+      });
+      out += '</tbody></table></div></div>';
+    });
+
+    out += '<p class="dk-p" style="margin:2px 0 0">Prefere so olhar? O botao '
+        + '<b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que '
+        + 'respeita exatamente esse contrato e renderiza todos os graficos na hora.</p>';
+    out += '</div>';
+    return out;
+  }
+
+  function build() {
+    var bar = document.createElement('div');
+    bar.className = 'dk-bar';
+    bar.setAttribute('role', 'region');
+    bar.setAttribute('aria-label', 'Dados do dashboard');
+
+    var many = CFG.files.filter(function (f) { return !!f.input; }).length > 1;
+    var upLabel = many ? 'Enviar CSVs' : 'Enviar CSV';
+    var hasInput = CFG.files.some(function (f) { return !!f.input; });
+
+    var inner = '<div class="dk-in">'
+      + '<span class="dk-k">[ <b>dados</b> ]</span>'
+      + '<button type="button" class="dk-btn p" data-dk="fill">Preencher automaticamente</button>'
+      + (hasInput ? '<button type="button" class="dk-btn" data-dk="upload">' + upLabel + '</button>' : '')
+      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">Como montar o CSV &#9656;</button>'
+      + '<span class="dk-sep"></span>'
+      + '<span class="dk-st" data-dk="status"></span>'
+      + '</div>'
+      + '<div class="dk-panel" data-dk="panel">' + panelHTML() + '</div>';
+
+    bar.innerHTML = inner;
+    els.bar = bar;
+    els.panel = bar.querySelector('[data-dk="panel"]');
+    els.status = bar.querySelector('[data-dk="status"]');
+    els.help = bar.querySelector('[data-dk="help"]');
+
+    bar.addEventListener('click', function (ev) {
+      var t = ev.target.closest ? ev.target.closest('button') : null;
+      if (!t) return;
+      var act = t.getAttribute('data-dk');
+      var tpl = t.getAttribute('data-dk-tpl');
+      var up = t.getAttribute('data-dk-up');
+      if (act === 'fill') { DK.fill(); }
+      else if (act === 'help') { toggleHelp(); }
+      else if (act === 'upload') { openUpload(); }
+      else if (tpl !== null) {
+        var f = CFG.files[+tpl];
+        download(f.name, buildTemplate(f));
+      } else if (up !== null) {
+        clickInput(CFG.files[+up]);
+      }
+    });
+
+    var badge = document.createElement('div');
+    badge.className = 'dk-badge';
+    badge.innerHTML = '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus';
+    els.badge = badge;
+
+    document.body.insertBefore(bar, document.body.firstChild);
+    document.body.appendChild(badge);
+
+    if (CFG.mount !== 'fixed') collectPinned();
+    reflow();
+    window.addEventListener('resize', reflow);
+    if (window.ResizeObserver) new ResizeObserver(reflow).observe(bar);
+    // graficos e paineis que so aparecem depois do render tambem podem se prender no topo
+    window.addEventListener('load', function () {
+      if (CFG.mount !== 'fixed') { collectPinned(); lastH = -1; }
+      reflow();
+    });
+
+    if (typeof CFG.onMount === 'function') {
+      try { CFG.onMount(bar); } catch (e) { console.warn('[DK] onMount:', e); }
+    }
+  }
+
+  /* ---------- layout: a barra e fixa, entao o resto precisa descer ---------- */
+
+  var pinned = [];
+
+  function collectPinned() {
+    // cabecalhos e paineis que o dashboard prende no topo da viewport
+    pinned = [];
+    var vh = window.innerHeight || 800;
+    var all = document.body.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) {
+      var e = all[i];
+      if (els.bar.contains(e) || e === els.bar || e === els.badge) continue;
+      var cs;
+      try { cs = getComputedStyle(e); } catch (err) { continue; }
+      if (cs.position !== 'fixed' && cs.position !== 'sticky') continue;
+      if (cs.top !== '0px') continue;
+      var r = e.getBoundingClientRect();
+      if (r.height > vh * 0.5) continue;   // overlay de tela cheia: nao mexer
+      pinned.push(e);
+    }
+  }
+
+  var lastH = -1;
+
+  function reflow() {
+    if (!els.bar || CFG.mount === 'fixed') return;  // no 08 o dashboard cuida do espaco
+    var h = els.bar.offsetHeight || 0;
+    if (h < 8) return;         // barra ainda sem layout: nao vale medir
+    if (h === lastH) return;   // guarda contra loop de ResizeObserver
+    lastH = h;
+    document.body.style.paddingTop = h + 'px';
+    pinned.forEach(function (e) { e.style.top = h + 'px'; });
+  }
+
+  function toggleHelp(force) {
+    var open = (force === undefined) ? !els.panel.classList.contains('open') : !!force;
+    els.panel.classList.toggle('open', open);
+    els.help.setAttribute('aria-expanded', String(open));
+    els.help.innerHTML = 'Como montar o CSV ' + (open ? '&#9662;' : '&#9656;');
+    reflow();
+    if (typeof CFG.onResize === 'function') CFG.onResize();
+  }
+
+  function clickInput(file) {
+    if (!file || !file.input) return;
+    var input = document.querySelector(file.input);
+    if (!input) { console.warn('[DK] input nao encontrado:', file.input); return; }
+    input.click();
+  }
+
+  function openUpload() {
+    var withInput = CFG.files.filter(function (f) { return !!f.input; });
+    if (withInput.length === 1) { clickInput(withInput[0]); return; }
+    toggleHelp(true);
+  }
+
+  function setStatus(html) { if (els.status) els.status.innerHTML = html; }
+
+  /* ---------- API publica ---------- */
+
+  var DK = {
+    init: function (cfg) {
+      CFG = cfg;
+      var start = function () {
+        injectHead();
+        build();
+        // liga o fluxo real de upload: qualquer envio marca a base como do usuario
+        CFG.files.forEach(function (f) {
+          if (!f.input) return;
+          var input = document.querySelector(f.input);
+          if (!input) return;
+          input.addEventListener('change', function (e) {
+            var file = e.target && e.target.files && e.target.files[0];
+            if (file) DK.markUserData(file.name);
+          });
+        });
+        if (CFG.autofill !== false) {
+          // espera o dashboard terminar de montar antes do primeiro preenchimento
+          waitReady(0);
+        } else {
+          setStatus('sem dados carregados');
+        }
+      };
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+      } else { start(); }
+    },
+
+    fill: function () {
+      try {
+        CFG.fill();
+        mode = 'demo';
+        if (els.badge) els.badge.style.display = '';
+        setStatus('<b>dados de exemplo</b> &middot; ' + (CFG.summary ? CFG.summary() : 'base sintetica'));
+      } catch (e) {
+        console.error('[DK] falha ao preencher:', e);
+        setStatus('falha ao gerar dados de exemplo');
+      }
+    },
+
+    markUserData: function (name) {
+      mode = 'user';
+      if (els.badge) els.badge.style.display = 'none';
+      setStatus('<b>seus dados</b> &middot; ' + esc(name || 'CSV enviado'));
+      toggleHelp(false);
+    },
+
+    mode: function () { return mode; }
+  };
+
+  function waitReady(tries) {
+    var ok = true;
+    try { ok = CFG.ready ? !!CFG.ready() : true; } catch (e) { ok = false; }
+    if (!ok && tries < 40) { setTimeout(function () { waitReady(tries + 1); }, 150); return; }
+    if (mode === 'user') return; // usuario ja enviou CSV antes do autofill
+    DK.fill();
+  }
+
+  window.DK = DK;
 })();
 </script>
+<script>
+/* DK — 06 NewsRadar Editorial (dados sinteticos) */
+(function () {
+  var FONTES = ['Folha de S.Paulo', 'Estadão', 'Exame', 'InfoMoney', 'Valor Econômico',
+                'TechCrunch Brasil', 'Startups.com.br'];
+  var CATEGORIAS = ['Tecnologia', 'Negócios', 'Inovação', 'Marketing', 'Vendas',
+                    'IA & Automação', 'Mercado'];
+  var TITULOS = [
+    'Como a inteligência artificial está revolucionando o CRM',
+    'Tendências de vendas B2B para 2025: o que esperar',
+    'Automação no funil de vendas aumenta conversão em 40%',
+    'Estratégias de lead scoring que realmente funcionam',
+    'O futuro do marketing digital no setor corporativo',
+    'Como estruturar um time de SDRs de alta performance',
+    'Pipeline de vendas: melhores práticas para closers',
+    'Ferramentas de BI que estão mudando a tomada de decisão',
+    'WhatsApp Business como canal de vendas: cases reais',
+    'Social Selling no LinkedIn: guia prático para SDRs',
+    'Inbound vs Outbound: qual estratégia funciona em 2025',
+    'Métricas que todo gestor de vendas deve acompanhar',
+    'Customer Success e suas métricas de impacto no revenue',
+    'Chatbots com IA: aumentando eficiência no atendimento',
+    'Como a personalização em escala gera mais negócios',
+    'RevOps: alinhando marketing, vendas e CS',
+    'Precificação baseada em valor para SaaS B2B',
+    'Análise de churn: identificando padrões de cancelamento',
+    'Framework MEDDIC na qualificação de oportunidades',
+    'Gamificação no time de vendas: motivação e resultados',
+    'Dados de intenção: comprando atenção no momento certo',
+    'Cadência de prospecção: quantos toques realmente convertem',
+    'Onboarding de SDR em 30 dias: o que priorizar',
+    'Forecast de vendas sem achismo: modelos simples que funcionam'
+  ];
+  var TAGS = [
+    ['CRM', 'vendas'], ['IA', 'automação'], ['marketing', 'leads'],
+    ['SaaS', 'mercado'], ['sales', 'pipeline'], ['RevOps', 'dados'],
+    ['prospecção', 'outbound'], ['inbound', 'conteúdo']
+  ];
 
+  function rand(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+  function addDays(dateStr, days) {
+    var d = new Date(dateStr + 'T12:00:00'); d.setDate(d.getDate() + days);
+    return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+  }
+
+  // A base sintetica termina hoje: os filtros de "ultimos N dias" precisam de dados recentes.
+  function inicio(diasAtras) {
+    var d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - diasAtras);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  var LAST = 0;
+
+  function GEN() {
+    var rows = [], INICIO = inicio(180);
+    for (var i = 0; i < 320; i++) {
+      var t = TITULOS[i % TITULOS.length];
+      var ciclo = Math.floor(i / TITULOS.length);
+      rows.push({
+        titulo: ciclo ? t + ' (parte ' + (ciclo + 1) + ')' : t,
+        data: addDays(INICIO, randInt(0, 180)),
+        fonte: rand(FONTES),
+        score: String(randInt(30, 98)),
+        url: 'https://exemplo.local/artigo-' + String(i + 1).padStart(4, '0'),
+        tags: rand(TAGS).join(','),
+        categoria: rand(CATEGORIAS)
+      });
+    }
+    return rows;
+  }
+
+  DK.init({
+    files: [{
+      name: 'newsradar_artigos.csv',
+      input: '#file',
+      desc: 'Export do monitoramento editorial. Uma linha por artigo capturado. '
+          + 'A deduplicacao usa a url (ou titulo + data quando nao ha url), mantendo a primeira ocorrencia.',
+      cols: [
+        { n: 'titulo', t: 'texto', d: 'Titulo do artigo. Alimenta a nuvem de palavras e a rede de keywords.', req: 1 },
+        { n: 'data', t: 'data DD/MM/AAAA', d: 'Data de publicacao. Artigos sem data sao descartados.', req: 1 },
+        { n: 'fonte', t: 'texto', d: 'Veiculo de origem.', req: 1 },
+        { n: 'score', t: 'inteiro 0-100', d: 'Pontuacao editorial do artigo.' },
+        { n: 'url', t: 'texto', d: 'Link do artigo. Usado como chave de deduplicacao.' },
+        { n: 'tags', t: 'lista separada por virgula', d: 'Tags do artigo.' },
+        { n: 'categoria', t: 'texto', d: 'Categoria editorial. Alimenta a evolucao de temas.' }
+      ],
+      sample: function () { return GEN(); }
+    }],
+    ready: function () {
+      return typeof raw !== 'undefined' && typeof processLoadedData === 'function';
+    },
+    fill: function () {
+      var rows = GEN();
+      if (typeof resetState === 'function') resetState();
+      raw.length = 0;              // binding real do dashboard (let raw)
+      Array.prototype.push.apply(raw, rows);
+      processLoadedData();
+      LAST = raw.length;
+    },
+    summary: function () { return LAST.toLocaleString('pt-BR') + ' artigos'; }
+  });
+})();
+</script>
+<!-- ==== /DATAKIT ==== -->
 </body>
 </html>

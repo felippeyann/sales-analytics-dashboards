@@ -541,49 +541,524 @@
     }
   </script>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
 <script>
-/* DEMO MODE — dados fictícios para portfólio */
-(function(){
-  var SEG_RAW=['tecnologia','varejo','saude','educacao','industria','agronegocio','financeiro','servicos','logistica','e-commerce'];
-  var SEG_CAN=['Tecnologia','Varejo','Sa\u00fade','Educa\u00e7\u00e3o','Ind\u00fastria','Agroneg\u00f3cio','Financeiro','Servi\u00e7os','Log\u00edstica','E-commerce'];
-  var PERFIS=['pequena empresa','m\u00e9dio porte','grande empresa','startup','multinacional'];
+/* ==========================================================================
+   DATAKIT (DK) — barra de dados compartilhada dos dashboards
+   --------------------------------------------------------------------------
+   Responsabilidades:
+     1. Toolbar no topo: "Preencher automaticamente" / "Enviar CSV" /
+        "Como montar o CSV".
+     2. Painel recolhivel com o contrato de dados (schema por arquivo) e
+        download de template CSV com cabecalhos corretos + linhas de exemplo.
+     3. Auto-preenchimento com dados sinteticos no primeiro load, para o demo
+        de portfolio nunca aparecer em branco.
+   Dados 100% sinteticos. O fluxo de upload de CSV real continua intacto:
+   a barra apenas aciona o <input type="file"> ja existente no dashboard.
+   ========================================================================== */
+(function () {
+  if (window.DK) return;
 
-  function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  var CFG = null;
+  var els = {};
+  var mode = 'empty'; // 'empty' | 'demo' | 'user'
 
-  var fakeCSV=[];
-  for(var i=0;i<300;i++){
-    var i1=randInt(0,SEG_RAW.length-1);
-    var i2=randInt(0,SEG_RAW.length-1);
-    var obj={'ID do neg\u00f3cio':'deal-'+String(i+1).padStart(4,'0')};
-    obj['segmento']=SEG_RAW[i1];
-    obj['segmento_1']=SEG_RAW[i2];
-    obj['segment']=SEG_CAN[randInt(0,9)];
-    obj['perfil_do_negocio_da']=rand(PERFIS);
-    fakeCSV.push(obj);
+  /* ---------- utilitarios ---------- */
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  var fakeDict=SEG_RAW.map(function(r,i){ return {raw_term:r, segmento_canonico:SEG_CAN[i]}; });
-  fakeDict.push({raw_term:'tech',segmento_canonico:'Tecnologia'});
-  fakeDict.push({raw_term:'sa\u00fade',segmento_canonico:'Sa\u00fade'});
-  fakeDict.push({raw_term:'finance',segmento_canonico:'Financeiro'});
-
-  function initDemo(){
-    if(typeof processPipeline!=='function'){ setTimeout(initDemo,300); return; }
-    try {
-      window.csvData=fakeCSV; window.dictData=fakeDict;
-      processPipeline();
-      document.querySelectorAll('.upload-section').forEach(function(el){ el.style.display='none'; });
-      var b=document.createElement('div');
-      b.style.cssText='position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#38bdf8,#0ea5e9);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(56,189,248,0.5);pointer-events:none';
-      b.textContent='\uD83D\uDCCA Demo \u2014 dados fict\u00edcios';
-      document.body.appendChild(b);
-    } catch(e){ console.error('[DEMO] Erro:',e); }
+  function csvCell(v) {
+    v = (v === null || v === undefined) ? '' : String(v);
+    return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initDemo);
-  else setTimeout(initDemo,500);
+
+  function sampleOf(file) {
+    if (!file._sample) {
+      var s = [];
+      try { s = file.sample() || []; } catch (e) { console.warn('[DK] sample:', e); }
+      file._sample = s.slice(0, file.max || 3);
+    }
+    return file._sample;
+  }
+
+  function buildTemplate(file) {
+    var head = file.cols.map(function (c) { return csvCell(c.n); }).join(',');
+    var body = sampleOf(file).map(function (r) {
+      return file.cols.map(function (c) { return csvCell(r[c.n]); }).join(',');
+    });
+    return [head].concat(body).join('\r\n') + '\r\n';
+  }
+
+  function download(name, text) {
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () {
+      if (a.parentNode) a.parentNode.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 200);
+  }
+
+  /* ---------- estilos (identidade do repositorio) ---------- */
+
+  var CSS = [
+    '@media print{.dk-bar,.dk-badge{display:none!important}}',
+    '.dk-bar,.dk-badge{',
+    '  --dk-bg:#0a0a0b;--dk-surface:#131316;--dk-surface2:#1a1a1e;',
+    '  --dk-ink:#f8f7f3;--dk-ink2:#d4d4d8;--dk-ink3:#a1a1aa;--dk-ink4:#8a8a94;',
+    '  --dk-accent:#2563eb;--dk-line:rgba(248,247,243,.14);--dk-line2:rgba(248,247,243,.24);',
+    '  --dk-sans:"Space Grotesk",system-ui,-apple-system,Segoe UI,sans-serif;',
+    '  --dk-mono:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;',
+    '  font-family:var(--dk-sans);color:var(--dk-ink2);box-sizing:border-box;',
+    '}',
+    '.dk-bar *,.dk-badge *{box-sizing:border-box}',
+    '.dk-bar{background:var(--dk-bg);border-bottom:1px solid var(--dk-line2);',
+    '  position:fixed;top:0;left:0;right:0;z-index:9000;width:100%;',
+    '  max-height:100vh;overflow-y:auto;overscroll-behavior:contain}',
+    '.dk-in{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 16px;max-width:1400px;margin:0 auto}',
+    '.dk-k{font-family:var(--dk-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dk-ink4);white-space:nowrap}',
+    '.dk-k b{color:var(--dk-accent);font-weight:700}',
+    '.dk-sep{flex:1 1 auto;min-width:0}',
+    '.dk-btn{font-family:var(--dk-mono);font-size:11.5px;font-weight:700;letter-spacing:.07em;',
+    '  text-transform:uppercase;padding:9px 14px;color:var(--dk-ink);background:var(--dk-surface);',
+    '  border:1px solid var(--dk-line2);border-radius:0;box-shadow:3px 3px 0 0 rgba(0,0,0,.6);',
+    '  cursor:pointer;transition:transform .1s ease,box-shadow .1s ease;line-height:1.2}',
+    '.dk-btn:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 0 rgba(0,0,0,.6)}',
+    '.dk-btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 0 rgba(0,0,0,.6)}',
+    '.dk-btn:focus-visible{outline:2px solid var(--dk-accent);outline-offset:2px}',
+    '.dk-btn.p{background:var(--dk-accent);border-color:var(--dk-accent);color:#fff;box-shadow:3px 3px 0 0 #1d4ed8}',
+    '.dk-btn.p:hover{box-shadow:5px 5px 0 0 #1d4ed8}',
+    '.dk-btn.g{background:transparent;color:var(--dk-ink3);box-shadow:none;border-color:var(--dk-line)}',
+    '.dk-btn.g:hover{color:var(--dk-ink);border-color:var(--dk-line2);transform:none;box-shadow:none}',
+    '.dk-btn.sm{padding:7px 11px;font-size:10.5px}',
+    '.dk-st{font-family:var(--dk-mono);font-size:11px;color:var(--dk-ink3);border:1px solid var(--dk-line);',
+    '  padding:6px 10px;background:var(--dk-surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}',
+    '.dk-st b{color:var(--dk-accent);font-weight:700}',
+    '.dk-panel{display:none;border-top:1px solid var(--dk-line);background:var(--dk-surface)}',
+    '.dk-panel.open{display:block}',
+    '.dk-pin{padding:18px 16px 22px;max-width:1400px;margin:0 auto}',
+    '.dk-h{font-family:var(--dk-sans);font-weight:700;text-transform:uppercase;letter-spacing:-.01em;',
+    '  font-size:15px;color:var(--dk-ink);margin:0 0 8px}',
+    '.dk-p{font-size:13px;color:var(--dk-ink3);margin:0 0 16px;max-width:78ch;line-height:1.6}',
+    '.dk-p code{font-family:var(--dk-mono);font-size:12px;color:var(--dk-ink2);background:var(--dk-surface2);padding:1px 5px}',
+    '.dk-file{border:1px solid var(--dk-line2);background:var(--dk-bg);margin-bottom:14px}',
+    '.dk-fh{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;',
+    '  padding:12px 14px;border-bottom:1px solid var(--dk-line)}',
+    '.dk-fn{font-family:var(--dk-mono);font-size:13px;font-weight:700;color:var(--dk-ink)}',
+    '.dk-fn::before{content:"> ";color:var(--dk-accent)}',
+    '.dk-fa{display:flex;gap:8px;flex-wrap:wrap}',
+    '.dk-fd{font-size:12.5px;color:var(--dk-ink3);padding:12px 14px 4px;margin:0;line-height:1.6}',
+    '.dk-scroll{overflow-x:auto;padding:10px 14px 14px;-webkit-overflow-scrolling:touch}',
+    '.dk-t{border-collapse:collapse;width:100%;min-width:560px;font-size:12px}',
+    '.dk-t th{font-family:var(--dk-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;',
+    '  color:var(--dk-ink4);text-align:left;padding:7px 10px;border-bottom:1px solid var(--dk-line2);font-weight:700}',
+    '.dk-t td{padding:7px 10px;border-bottom:1px solid var(--dk-line);color:var(--dk-ink2);vertical-align:top}',
+    '.dk-t tr:last-child td{border-bottom:0}',
+    '.dk-t td.c{font-family:var(--dk-mono);color:var(--dk-ink);white-space:nowrap;font-weight:700}',
+    '.dk-t td.t{font-family:var(--dk-mono);color:var(--dk-ink4);white-space:nowrap}',
+    '.dk-t td.x{font-family:var(--dk-mono);color:var(--dk-accent);max-width:280px;overflow-wrap:anywhere}',
+    '.dk-req{color:var(--dk-accent);font-weight:700}',
+    '.dk-badge{position:fixed;left:16px;bottom:16px;z-index:9998;background:var(--dk-surface);',
+    '  border:1px solid var(--dk-line2);box-shadow:4px 4px 0 0 rgba(0,0,0,.6);padding:8px 13px;',
+    '  font-family:var(--dk-mono);font-size:11px;color:var(--dk-ink3);pointer-events:none;max-width:min(92vw,420px)}',
+    '.dk-badge b{color:var(--dk-accent);font-weight:700}',
+    '@media (max-width:640px){',
+    '  .dk-in{padding:9px 12px;gap:8px}',
+    '  .dk-btn{font-size:10.5px;padding:8px 11px}',
+    '  .dk-k,.dk-badge{display:none}',
+    '}'
+  ].join('\n');
+
+  function injectHead() {
+    if (!document.getElementById('dk-fonts')) {
+      var l = document.createElement('link');
+      l.id = 'dk-fonts'; l.rel = 'stylesheet';
+      l.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap';
+      document.head.appendChild(l);
+    }
+    if (!document.getElementById('dk-css')) {
+      var s = document.createElement('style');
+      s.id = 'dk-css'; s.textContent = CSS;
+      document.head.appendChild(s);
+    }
+  }
+
+  /* ---------- markup ---------- */
+
+  function panelHTML() {
+    var out = '<div class="dk-pin">';
+    out += '<h2 class="dk-h">Como usar seus dados</h2>';
+    out += '<p class="dk-p">Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. '
+        + 'O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. '
+        + 'Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. '
+        + 'Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.</p>';
+
+    CFG.files.forEach(function (f, i) {
+      var s = sampleOf(f)[0] || {};
+      out += '<div class="dk-file">';
+      out += '<div class="dk-fh"><span class="dk-fn">' + esc(f.name) + '</span><span class="dk-fa">';
+      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">Baixar template CSV</button>';
+      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">Enviar este arquivo</button>';
+      out += '</span></div>';
+      out += '<p class="dk-fd">' + esc(f.desc) + '</p>';
+      out += '<div class="dk-scroll"><table class="dk-t"><thead><tr>'
+          + '<th>coluna</th><th>tipo</th><th>o que e</th><th>exemplo</th>'
+          + '</tr></thead><tbody>';
+      f.cols.forEach(function (c) {
+        out += '<tr><td class="c">' + esc(c.n) + (c.req ? '<span class="dk-req">*</span>' : '') + '</td>'
+            + '<td class="t">' + esc(c.t) + '</td>'
+            + '<td>' + esc(c.d) + '</td>'
+            + '<td class="x">' + esc(s[c.n]) + '</td></tr>';
+      });
+      out += '</tbody></table></div></div>';
+    });
+
+    out += '<p class="dk-p" style="margin:2px 0 0">Prefere so olhar? O botao '
+        + '<b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que '
+        + 'respeita exatamente esse contrato e renderiza todos os graficos na hora.</p>';
+    out += '</div>';
+    return out;
+  }
+
+  function build() {
+    var bar = document.createElement('div');
+    bar.className = 'dk-bar';
+    bar.setAttribute('role', 'region');
+    bar.setAttribute('aria-label', 'Dados do dashboard');
+
+    var many = CFG.files.filter(function (f) { return !!f.input; }).length > 1;
+    var upLabel = many ? 'Enviar CSVs' : 'Enviar CSV';
+    var hasInput = CFG.files.some(function (f) { return !!f.input; });
+
+    var inner = '<div class="dk-in">'
+      + '<span class="dk-k">[ <b>dados</b> ]</span>'
+      + '<button type="button" class="dk-btn p" data-dk="fill">Preencher automaticamente</button>'
+      + (hasInput ? '<button type="button" class="dk-btn" data-dk="upload">' + upLabel + '</button>' : '')
+      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">Como montar o CSV &#9656;</button>'
+      + '<span class="dk-sep"></span>'
+      + '<span class="dk-st" data-dk="status"></span>'
+      + '</div>'
+      + '<div class="dk-panel" data-dk="panel">' + panelHTML() + '</div>';
+
+    bar.innerHTML = inner;
+    els.bar = bar;
+    els.panel = bar.querySelector('[data-dk="panel"]');
+    els.status = bar.querySelector('[data-dk="status"]');
+    els.help = bar.querySelector('[data-dk="help"]');
+
+    bar.addEventListener('click', function (ev) {
+      var t = ev.target.closest ? ev.target.closest('button') : null;
+      if (!t) return;
+      var act = t.getAttribute('data-dk');
+      var tpl = t.getAttribute('data-dk-tpl');
+      var up = t.getAttribute('data-dk-up');
+      if (act === 'fill') { DK.fill(); }
+      else if (act === 'help') { toggleHelp(); }
+      else if (act === 'upload') { openUpload(); }
+      else if (tpl !== null) {
+        var f = CFG.files[+tpl];
+        download(f.name, buildTemplate(f));
+      } else if (up !== null) {
+        clickInput(CFG.files[+up]);
+      }
+    });
+
+    var badge = document.createElement('div');
+    badge.className = 'dk-badge';
+    badge.innerHTML = '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus';
+    els.badge = badge;
+
+    document.body.insertBefore(bar, document.body.firstChild);
+    document.body.appendChild(badge);
+
+    if (CFG.mount !== 'fixed') collectPinned();
+    reflow();
+    window.addEventListener('resize', reflow);
+    if (window.ResizeObserver) new ResizeObserver(reflow).observe(bar);
+    // graficos e paineis que so aparecem depois do render tambem podem se prender no topo
+    window.addEventListener('load', function () {
+      if (CFG.mount !== 'fixed') { collectPinned(); lastH = -1; }
+      reflow();
+    });
+
+    if (typeof CFG.onMount === 'function') {
+      try { CFG.onMount(bar); } catch (e) { console.warn('[DK] onMount:', e); }
+    }
+  }
+
+  /* ---------- layout: a barra e fixa, entao o resto precisa descer ---------- */
+
+  var pinned = [];
+
+  function collectPinned() {
+    // cabecalhos e paineis que o dashboard prende no topo da viewport
+    pinned = [];
+    var vh = window.innerHeight || 800;
+    var all = document.body.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) {
+      var e = all[i];
+      if (els.bar.contains(e) || e === els.bar || e === els.badge) continue;
+      var cs;
+      try { cs = getComputedStyle(e); } catch (err) { continue; }
+      if (cs.position !== 'fixed' && cs.position !== 'sticky') continue;
+      if (cs.top !== '0px') continue;
+      var r = e.getBoundingClientRect();
+      if (r.height > vh * 0.5) continue;   // overlay de tela cheia: nao mexer
+      pinned.push(e);
+    }
+  }
+
+  var lastH = -1;
+
+  function reflow() {
+    if (!els.bar || CFG.mount === 'fixed') return;  // no 08 o dashboard cuida do espaco
+    var h = els.bar.offsetHeight || 0;
+    if (h < 8) return;         // barra ainda sem layout: nao vale medir
+    if (h === lastH) return;   // guarda contra loop de ResizeObserver
+    lastH = h;
+    document.body.style.paddingTop = h + 'px';
+    pinned.forEach(function (e) { e.style.top = h + 'px'; });
+  }
+
+  function toggleHelp(force) {
+    var open = (force === undefined) ? !els.panel.classList.contains('open') : !!force;
+    els.panel.classList.toggle('open', open);
+    els.help.setAttribute('aria-expanded', String(open));
+    els.help.innerHTML = 'Como montar o CSV ' + (open ? '&#9662;' : '&#9656;');
+    reflow();
+    if (typeof CFG.onResize === 'function') CFG.onResize();
+  }
+
+  function clickInput(file) {
+    if (!file || !file.input) return;
+    var input = document.querySelector(file.input);
+    if (!input) { console.warn('[DK] input nao encontrado:', file.input); return; }
+    input.click();
+  }
+
+  function openUpload() {
+    var withInput = CFG.files.filter(function (f) { return !!f.input; });
+    if (withInput.length === 1) { clickInput(withInput[0]); return; }
+    toggleHelp(true);
+  }
+
+  function setStatus(html) { if (els.status) els.status.innerHTML = html; }
+
+  /* ---------- API publica ---------- */
+
+  var DK = {
+    init: function (cfg) {
+      CFG = cfg;
+      var start = function () {
+        injectHead();
+        build();
+        // liga o fluxo real de upload: qualquer envio marca a base como do usuario
+        CFG.files.forEach(function (f) {
+          if (!f.input) return;
+          var input = document.querySelector(f.input);
+          if (!input) return;
+          input.addEventListener('change', function (e) {
+            var file = e.target && e.target.files && e.target.files[0];
+            if (file) DK.markUserData(file.name);
+          });
+        });
+        if (CFG.autofill !== false) {
+          // espera o dashboard terminar de montar antes do primeiro preenchimento
+          waitReady(0);
+        } else {
+          setStatus('sem dados carregados');
+        }
+      };
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+      } else { start(); }
+    },
+
+    fill: function () {
+      try {
+        CFG.fill();
+        mode = 'demo';
+        if (els.badge) els.badge.style.display = '';
+        setStatus('<b>dados de exemplo</b> &middot; ' + (CFG.summary ? CFG.summary() : 'base sintetica'));
+      } catch (e) {
+        console.error('[DK] falha ao preencher:', e);
+        setStatus('falha ao gerar dados de exemplo');
+      }
+    },
+
+    markUserData: function (name) {
+      mode = 'user';
+      if (els.badge) els.badge.style.display = 'none';
+      setStatus('<b>seus dados</b> &middot; ' + esc(name || 'CSV enviado'));
+      toggleHelp(false);
+    },
+
+    mode: function () { return mode; }
+  };
+
+  function waitReady(tries) {
+    var ok = true;
+    try { ok = CFG.ready ? !!CFG.ready() : true; } catch (e) { ok = false; }
+    if (!ok && tries < 40) { setTimeout(function () { waitReady(tries + 1); }, 150); return; }
+    if (mode === 'user') return; // usuario ja enviou CSV antes do autofill
+    DK.fill();
+  }
+
+  window.DK = DK;
 })();
 </script>
+<script>
+/* DK — 07 Segmentacao, pipeline de normalizacao (dados sinteticos) */
+(function () {
+  var CANONICOS = ['Tecnologia', 'Varejo', 'Saúde', 'Educação', 'Indústria',
+                   'Agronegócio', 'Financeiro', 'Serviços', 'Logística', 'E-commerce'];
+  // termos crus, do jeito que chegam do CRM: minusculos, sem acento, com apelidos
+  var VARIANTES = {
+    'Tecnologia': ['tecnologia', 'tech', 'ti', 'software'],
+    'Varejo': ['varejo', 'retail', 'comercio'],
+    'Saúde': ['saude', 'saúde', 'health'],
+    'Educação': ['educacao', 'educação', 'ensino'],
+    'Indústria': ['industria', 'indústria', 'manufatura'],
+    'Agronegócio': ['agronegocio', 'agro', 'agribusiness'],
+    'Financeiro': ['financeiro', 'finance', 'fintech'],
+    'Serviços': ['servicos', 'serviços', 'services'],
+    'Logística': ['logistica', 'logística', 'transporte'],
+    'E-commerce': ['e-commerce', 'ecommerce', 'loja virtual']
+  };
+  var PERFIS = ['pequena empresa', 'médio porte', 'grande empresa', 'startup', 'multinacional'];
+  // termos que nao estao no dicionario: alimentam a fila de "termos novos"
+  var NAO_MAPEADOS = ['marketplace', 'energia solar', 'construcao civil', 'turismo', 'juridico'];
 
+  function rand(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+  function variante(canonico) { return rand(VARIANTES[canonico]); }
+
+  var LAST = 0;
+
+  function GEN_BASE() {
+    var out = [];
+    for (var i = 0; i < 400; i++) {
+      var principal = rand(CANONICOS);
+      // 18% dos registros divergem entre a fonte comercial e o perfil declarado:
+      // e exatamente isso que alimenta a fila de conflitos
+      var conflito = Math.random() < 0.18;
+      var doPerfil = conflito ? rand(CANONICOS.filter(function (c) { return c !== principal; })) : principal;
+      var novo = Math.random() < 0.08;
+      // 15% chegam so com a fonte fraca (sem segmento_1 e sem ramo no perfil):
+      // convergem, mas com qualidade media
+      var fraco = !conflito && Math.random() < 0.15;
+      out.push({
+        'ID do negócio': 'deal-' + String(i + 1).padStart(4, '0'),
+        'segmento': novo ? rand(NAO_MAPEADOS) : variante(principal),
+        'segmento_1': fraco ? '' : variante(principal),
+        'segment': Math.random() < 0.12 ? '' : principal,
+        'perfil_do_negocio_da': fraco ? rand(PERFIS) : rand(PERFIS) + ', ' + variante(doPerfil)
+      });
+    }
+    return out;
+  }
+
+  function GEN_DICT() {
+    var out = [];
+    CANONICOS.forEach(function (c) {
+      VARIANTES[c].forEach(function (v) { out.push({ raw_term: v, segmento_canonico: c }); });
+    });
+    return out;
+  }
+
+  function watchUpload() {
+    var tries = 0;
+    var timer = setInterval(function () {
+      tries++;
+      if (csvData && dictData) {
+        clearInterval(timer);
+        processPipeline();
+      } else if (tries > 80) { clearInterval(timer); }
+    }, 250);
+  }
+
+  DK.init({
+    files: [
+      {
+        name: 'base_segmentos.csv',
+        input: '#csvFile',
+        desc: 'Export do CRM com as multiplas fontes de segmento do mesmo negocio. '
+            + 'Uma linha por negocio. Quando as fontes discordam, o registro cai na fila de conflitos.',
+        cols: [
+          { n: 'ID do negócio', t: 'texto', d: 'Identificador do negocio. Linhas sem esse campo sao descartadas.', req: 1 },
+          { n: 'segmento', t: 'texto ou lista por virgula', d: 'Segmento preenchido pelo time comercial.' },
+          { n: 'segmento_1', t: 'texto ou lista por virgula', d: 'Segunda fonte de segmento (formulario, enriquecimento).' },
+          { n: 'segment', t: 'texto ou lista por virgula', d: 'Segmento sugerido pela classificacao automatica.' },
+          { n: 'perfil_do_negocio_da', t: 'texto ou lista por virgula', d: 'Perfil declarado do negocio (porte e ramo). Quando o ramo daqui discorda de segmento_1, o registro vira conflito.' }
+        ],
+        sample: function () { return GEN_BASE(); }
+      },
+      {
+        name: 'dicionario_segmentos.csv',
+        input: '#dictFile',
+        max: 12,
+        desc: 'Dicionario canonico: cada termo cru que aparece na base aponta para um segmento oficial. '
+            + 'Termos ausentes daqui viram a fila de "termos novos" para curadoria.',
+        cols: [
+          { n: 'raw_term', t: 'texto', d: 'Termo cru, como aparece no CRM. A comparacao ignora acento e caixa.', req: 1 },
+          { n: 'segmento_canonico', t: 'texto', d: 'Segmento oficial correspondente.', req: 1 }
+        ],
+        sample: function () { return GEN_DICT(); }
+      }
+    ],
+    ready: function () { return typeof processPipeline === 'function'; },
+    fill: function () {
+      var base = GEN_BASE();
+      csvData = base;             // bindings reais do dashboard (let csvData / let dictData)
+      dictData = GEN_DICT();
+      processPipeline();
+      LAST = base.length;
+    },
+    onMount: function () {
+      ['#csvFile', '#dictFile'].forEach(function (sel) {
+        var input = document.querySelector(sel);
+        if (input) input.addEventListener('change', watchUpload);
+      });
+    },
+    summary: function () { return LAST.toLocaleString('pt-BR') + ' negocios'; }
+  });
+})();
+</script>
+<!-- ==== /DATAKIT ==== -->
 </body>
 </html>
