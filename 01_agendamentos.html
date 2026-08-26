@@ -23,7 +23,7 @@
 <style>
 #geminiPanel{
   position:fixed;top:90px;right:14px;width:300px;max-width:340px;height:60vh;min-height:320px;
-  display:flex;flex-direction:column;gap:8px;z-index:72;pointer-events:auto;
+  display:flex;flex-direction:column;gap:8px;z-index:120;pointer-events:auto;
   background:linear-gradient(180deg,#101a2c 0%,#0c1322 100%);
   border:1px solid rgba(255,255,255,0.10);border-radius:12px;
   box-shadow:0 6px 22px -6px rgba(0,0,0,0.55);
@@ -1902,16 +1902,28 @@ function buildAll(data){
 const GEMINI_API_KEY = "SUA_CHAVE_AQUI"; 
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/SEU_WEBHOOK_AQUI";
 
+// Chave da API: usa a do código-fonte se configurada; senão, deixa o visitante
+// colar a dele (fica só no navegador, vai direto pro Google, nunca passa por nós).
+function getGeminiKey() {
+    if (GEMINI_API_KEY && !GEMINI_API_KEY.includes("SUA_CHAVE")) return GEMINI_API_KEY;
+    let k = null;
+    try { k = localStorage.getItem('demo_gemini_key'); } catch (e) {}
+    if (k) return k;
+    k = window.prompt("Demonstração: para testar a análise com IA, cole a sua chave da API Gemini (crie uma grátis em aistudio.google.com/apikey).\n\nEla fica só no seu navegador e vai direto para o Google, nunca passa por este site.");
+    if (k && k.trim()) { k = k.trim(); try { localStorage.setItem('demo_gemini_key', k); } catch (e) {} return k; }
+    return null;
+}
+
 async function callGemini(prompt) {
-    if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("SUA_CHAVE")) {
-      return "Erro: A Chave de API do Gemini não foi configurada no código-fonte.";
+    const apiKey = getGeminiKey();
+    if (!apiKey) {
+      return "Análise com IA cancelada. Cole uma chave da API Gemini para testar (ela fica só no seu navegador).";
     }
-    
+
     // Pega o modelo escolhido no menu (ex: "models/gemini-1.5-pro-latest")
     const selectedModel = document.getElementById('modelSelect').value;
 
-    // CORREÇÃO AQUI: Removemos o "models/" duplicado da URL
-    const url = `https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${apiKey}`;
     
     const body = {
         contents: [{ parts: [{ text: prompt }] }]
@@ -2093,13 +2105,9 @@ async function sendGemini(kind, buttonElement){
     const text = await callGemini(prompt);
     if (out) out.textContent = text || "Sem conteúdo retornado.";
 
-    // 6) Ações rápidas (ex.: enviar pro Discord)
-    if (actions) {
-      const btn = document.createElement("button");
-      btn.textContent = "Resumir e enviar para o Discord";
-      btn.onclick = () => sendToDiscord(out.textContent, btn);
-      actions.appendChild(btn);
-    }
+    // 6) Envio pro Discord removido nesta demonstração pública (ação de operador,
+    //    webhook não configurado). A análise com IA acima segue funcionando.
+    if (actions) { actions.innerHTML = ""; }
   } catch (err) {
     console.error(err);
     if (out) out.textContent = "Ocorreu um erro durante a análise. Verifique o console.";
