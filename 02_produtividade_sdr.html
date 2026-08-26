@@ -18,13 +18,13 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     :root {
-      --bg: #0b0b0f;
-      --card: #12121a;
-      --grid: #20202a;
+      --bg: #0a0a0b;
+      --card: #131316;
+      --grid: #232328;
       --text: #f4f4f5;
       --muted: #a9a9b3;
-      --accent: #38bdf8;
-      --accent-glow: rgba(56,189,248,0.15);
+      --accent: #2563eb;
+      --accent-glow: rgba(37,99,235,0.15);
       --ok: #22c55e;
       --warn: #f59e0b;
       --danger: #ef4444;
@@ -36,7 +36,7 @@
       margin: 0;
       background: linear-gradient(180deg, var(--bg) 0%, #060608 60%, var(--bg) 100%);
       color: var(--text);
-      font: 500 14px/1.5 'Montserrat', system-ui, -apple-system, sans-serif;
+      font: 500 14px/1.5 "Space Grotesk", system-ui, -apple-system, sans-serif;
     }
     
     /* Header */
@@ -229,7 +229,7 @@
     }
     #progressBar {
       height: 8px;
-      background: linear-gradient(90deg, var(--accent), #0ea5e9);
+      background: linear-gradient(90deg, var(--accent), #60a5fa);
       border-radius: 4px;
       transition: width 0.3s;
       box-shadow: 0 0 10px var(--accent-glow);
@@ -369,7 +369,7 @@
     .filter-pill {
       padding: 6px 12px;
       background: var(--accent-glow);
-      border: 1px solid rgba(56,189,248,0.3);
+      border: 1px solid rgba(37,99,235,0.3);
       border-radius: 20px;
       font-size: 11px;
       color: var(--accent);
@@ -442,7 +442,7 @@
     }
     .ranking-table .bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--accent), #0ea5e9);
+      background: linear-gradient(90deg, var(--accent), #60a5fa);
       border-radius: 3px;
       transition: width 0.3s;
     }
@@ -884,12 +884,12 @@
     
     // Métricas disponíveis
     const METRICS = [
-      { key: 'ligacoes', label: 'Ligações', color: '#0ea5e9' },       
-      { key: 'emails', label: 'Emails', color: '#38bdf8' },          
+      { key: 'ligacoes', label: 'Ligações', color: '#60a5fa' },       
+      { key: 'emails', label: 'Emails', color: '#2563eb' },          
       { key: 'tarefas', label: 'Tarefas', color: '#10B981' },        
-      { key: 'quantidade', label: 'Quantidade', color: '#0ea5e9' },  
+      { key: 'quantidade', label: 'Quantidade', color: '#60a5fa' },  
       { key: 'whatsapp', label: 'WhatsApp', color: '#22C55E' },      
-      { key: 'tentativas', label: 'Tentativas', color: '#38bdf8' },  
+      { key: 'tentativas', label: 'Tentativas', color: '#2563eb' },  
       { key: 'conexoes', label: 'Conexões', color: '#14B8A6' },      
       { key: 'duracao', label: 'Duração total (HH:MM)', color: '#0284c7' }, 
       { key: 'agendamentos', label: 'Agendamentos', color: '#EF4444' } 
@@ -1302,7 +1302,7 @@
       
       const content = document.createElement('div');
       content.style.cssText = `
-        background: #12121a; border: 1px solid #20202a; border-radius: 12px;
+        background: #131316; border: 1px solid #232328; border-radius: 12px;
         max-width: 800px; width: 100%; max-height: 80vh; overflow: auto;
         padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
       `;
@@ -1310,7 +1310,7 @@
       const header = document.createElement('div');
       header.style.cssText = `
         display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #20202a;
+        margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #232328;
       `;
       
       const title = document.createElement('h3');
@@ -1324,7 +1324,7 @@
       copyBtn.textContent = '📋 Copiar';
       copyBtn.style.cssText = `
         padding: 6px 12px; background: var(--accent-glow); 
-        color: var(--accent); border: 1px solid rgba(56,189,248,0.3); 
+        color: var(--accent); border: 1px solid rgba(37,99,235,0.3); 
         border-radius: 6px; cursor: pointer; font-weight: 600; 
         font-family: inherit; font-size: 13px;
       `;
@@ -1339,7 +1339,7 @@
             copyBtn.textContent = originalText;
             copyBtn.style.background = 'rgba(108,99,255,0.2)';
             copyBtn.style.color = 'var(--accent)';
-            copyBtn.style.borderColor = 'rgba(56,189,248,0.3)';
+            copyBtn.style.borderColor = 'rgba(37,99,235,0.3)';
           }, 2000);
         }).catch(err => {
           alert('Erro ao copiar: ' + err);
@@ -1873,8 +1873,8 @@
         backgroundColor: 'transparent',
         tooltip: {
           trigger: 'axis',
-          backgroundColor: '#12121a',
-          borderColor: '#20202a',
+          backgroundColor: '#131316',
+          borderColor: '#232328',
           textStyle: { color: '#f4f4f5' },
           formatter: (params) => {
             let result = `<b>${params[0].axisValueLabel}</b><br/>`;
@@ -1899,7 +1899,7 @@
           type: 'category',
           data: dates,
           axisLabel: { color: '#a9a9b3', rotate: 45 },
-          axisLine: { lineStyle: { color: '#20202a' } }
+          axisLine: { lineStyle: { color: '#232328' } }
         },
         yAxis: [
           {
@@ -1917,7 +1917,7 @@
                 return value;
               }
             },
-            splitLine: { lineStyle: { color: '#20202a', type: 'dashed' } }
+            splitLine: { lineStyle: { color: '#232328', type: 'dashed' } }
           },
           {
             type: 'value',
@@ -2272,7 +2272,7 @@
           left: 'center',
           bottom: '2%',
           inRange: {
-            color: ['#0b0f1a', '#0c4a6e', '#075985', '#0284c7', '#0ea5e9']
+            color: ['#0b0f1a', '#0c4a6e', '#075985', '#0284c7', '#60a5fa']
           },
           textStyle: { color: '#cbd5e1', fontSize: 11 }
         },

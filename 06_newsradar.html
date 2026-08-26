@@ -20,18 +20,18 @@
 <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
 <style>
 :root{
-  --bg:#0f172a;
-  --panel:#111827;
-  --card:#0b1220;
+  --bg:#0a0a0b;
+  --panel:#131316;
+  --card:#1a1a1e;
   --text:#e5e7eb;
   --muted:#9ca3af;
-  --accent:#38bdf8;
+  --accent:#2563eb;
   --accent-glow:rgba(56, 189, 248, 0.3);
-  --accent-2:#0ea5e9;
+  --accent-2:#60a5fa;
   --good:#22c55e;
   --warn:#f59e0b;
   --bad:#ef4444;
-  --line:#1f2937;
+  --line:#232328;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{
@@ -40,7 +40,7 @@ html{
 html,body{height:100%}
 body{
   margin:0;
-  background:linear-gradient(180deg,#0a0f1d 0%,#0f172a 60%,#0a0f1d 100%);
+  background:linear-gradient(180deg,#0a0f1d 0%,#0a0a0b 60%,#0a0f1d 100%);
   color:var(--text);
   font:500 clamp(14px,1.5vw,16px)/1.5 'Montserrat', system-ui, -apple-system, sans-serif;
 }
@@ -72,7 +72,7 @@ header{
   display:inline-block;
   background:rgba(56, 189, 248, 0.15);
   border:1px solid rgba(56, 189, 248, 0.4);
-  color:#7dd3fc;
+  color:#93c5fd;
   font-size:clamp(10px,1.2vw,11px);
   font-weight:600;
   padding:4px 12px;
@@ -211,7 +211,7 @@ body > .wrap {
   min-width: 32px;
   height: 32px;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-  color: #0f172a;
+  color: #0a0a0b;
   border-radius: 8px;
   font-size: clamp(12px,1.5vw,14px);
   font-weight: 700;
@@ -461,7 +461,7 @@ body > .wrap {
 }
 .select{
   appearance:none;
-  background:#1f2937 url('data:image/svg+xml;utf8,<svg fill="%23cbd5e1" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 10px center;
+  background:#232328 url('data:image/svg+xml;utf8,<svg fill="%23cbd5e1" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 10px center;
   border:1px solid #334155;
   color:#cbd5e1;
   padding:clamp(8px,1.2vw,10px) clamp(32px,4vw,38px) clamp(8px,1.2vw,10px) clamp(12px,1.5vw,14px);
@@ -1385,7 +1385,7 @@ function renderKeywordCloud(){
       textStyle:{fontFamily:'Montserrat'},
       data: arr
     }],
-    color:['#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe', '#0369a1']
+    color:['#60a5fa', '#2563eb', '#93c5fd', '#bae6fd', '#e0f2fe', '#0369a1']
   };
   cloud.setOption(option, true);
   cloud.off('click');
@@ -1488,7 +1488,7 @@ function renderKeywordGraph(){
         }
       }
     }],
-    color:['#9929EA','#6f4bd9','#b37cf2','#d9b6ff','#a179e6','#caa4ff']
+    color:['#2563eb','#1d4ed8','#3b82f6','#bfdbfe','#60a5fa','#93c5fd']
   };
   graph.setOption(option, true);
   if(edges.length === 0) {
@@ -1537,14 +1537,14 @@ function renderKeywordHeatmap(){
       left:'center', 
       bottom:0,
       inRange: {
-        color: ['#0c4a6e', '#075985', '#0369a1', '#0ea5e9', '#38bdf8', '#bae6fd']
+        color: ['#0c4a6e', '#075985', '#0369a1', '#60a5fa', '#2563eb', '#bae6fd']
       },
       textStyle: {
         color: '#e5e7eb'
       }
     },
     series:[{type:'heatmap', data:data}],
-    color:['#f0f9ff','#e0f2fe','#bae6fd','#7dd3fc','#38bdf8','#0ea5e9']
+    color:['#f0f9ff','#e0f2fe','#bae6fd','#93c5fd','#2563eb','#60a5fa']
   };
   heatmap.setOption(option, true);
   heatmap.off('click');
@@ -1599,7 +1599,7 @@ function renderThemeEvolutionHeatmap() {
       orient:'horizontal',
       left:'center',
       bottom:0,
-      inRange: { color: ['#0c4a6e', '#075985', '#0ea5e9', '#7dd3fc'] }
+      inRange: { color: ['#0c4a6e', '#075985', '#60a5fa', '#93c5fd'] }
     },
     series:[{type:'heatmap', data: data}]
   };
@@ -1683,7 +1683,7 @@ function renderSankey(){
       emphasis:{focus:'adjacency'},
       lineStyle:{color:'gradient',opacity:0.5}
     }],
-    color:['#9929EA','#6f4bd9','#b37cf2','#d9b6ff','#a179e6','#caa4ff']
+    color:['#2563eb','#1d4ed8','#3b82f6','#bfdbfe','#60a5fa','#93c5fd']
   }, true);
   sankey.off('click');
   sankey.on('click', p=>{

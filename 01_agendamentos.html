@@ -70,18 +70,18 @@
 #suggestionsBox .panelBtn:hover{background:#1e293b}
 
   :root{
-    --bg:#0b0f1a; 
-    --panel:#0f172a;
-    --card:#0e1424;
-    --muted:#9ca3af; 
-    --text:#e6e6e6;
-    --accent:#38bdf8;
-    --accent-glow:rgba(56,189,248,0.15);
-    --accent-2:#0ea5e9;
-    --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+    --bg:#0a0a0b;
+    --panel:#131316;
+    --card:#1a1a1e;
+    --muted:#8a8a94;
+    --text:#f8f7f3;
+    --accent:#2563eb;
+    --accent-glow:rgba(37,99,235,0.15);
+    --accent-2:#60a5fa;
+    --ok:#4ade80; --warn:#fbbf24; --bad:#f87171;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:"Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif}
   a{color:var(--accent);text-decoration:none}
   header{
     position: fixed; 
@@ -165,7 +165,7 @@
   .chart-menu-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#e5e7eb;border-radius:8px;padding:4px 8px;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:34px;transition:.18s}
   .chart-menu-btn:hover{background:rgba(255,255,255,0.15)}
   .chart-menu-btn:focus{outline:2px solid var(--accent);outline-offset:2px}
-  .chart-menu{position:absolute;top:110%;right:0;min-width:170px;background:#0f172a;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:6px 6px;display:flex;flex-direction:column;gap:2px;box-shadow:0 12px 28px -8px rgba(0,0,0,.55);z-index:40;opacity:0;pointer-events:none;transform:translateY(-4px);transition:.2s ease}
+  .chart-menu{position:absolute;top:110%;right:0;min-width:170px;background:#131316;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:6px 6px;display:flex;flex-direction:column;gap:2px;box-shadow:0 12px 28px -8px rgba(0,0,0,.55);z-index:40;opacity:0;pointer-events:none;transform:translateY(-4px);transition:.2s ease}
   .chart-menu.show{opacity:1;pointer-events:auto;transform:translateY(0)}
   .chart-menu button{all:unset;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:12px;cursor:pointer;color:#cbd5e1;line-height:1.2;white-space:nowrap}
   .chart-menu button:hover{background:#1e293b;color:#fff}
@@ -199,7 +199,7 @@
   button:hover{transform:translateY(-1px)}
   button:disabled{background:var(--panel);color:var(--muted);cursor:not-allowed;transform:none}
   input,select{
-    background:#0f172a;border:1px solid rgba(255,255,255,0.12);
+    background:#131316;border:1px solid rgba(255,255,255,0.12);
     color:var(--text);padding:8px 10px;border-radius:10px;font-size:12px
   }
   /* Estilo para o seletor de data */
@@ -340,8 +340,8 @@
     min-width: 280px; max-width: 360px;
     color: var(--text,#e5e7eb);
     background: linear-gradient(135deg, rgba(17,24,39,0.98) 0%, rgba(11,18,32,0.98) 100%);
-    border: 1px solid rgba(56,189,248,0.25); border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(15,23,42,0.6), 0 0 0 1px rgba(56,189,248,0.1) inset, 0 8px 24px rgba(56,189,248,0.15);
+    border: 1px solid rgba(37,99,235,0.25); border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(15,23,42,0.6), 0 0 0 1px rgba(37,99,235,0.1) inset, 0 8px 24px rgba(37,99,235,0.15);
     backdrop-filter: saturate(140%) blur(12px);
     transition: all 0.3s cubic-bezier(0.4,0,0.2,1); overflow: hidden;
   }
@@ -350,16 +350,16 @@
   .filter-toggle {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     padding: 14px 16px; border: none;
-    background: linear-gradient(90deg, rgba(56,189,248,0.08) 0%, transparent 100%);
-    border-bottom: 1px solid rgba(56,189,248,0.15);
+    background: linear-gradient(90deg, rgba(37,99,235,0.08) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(37,99,235,0.15);
     color: var(--text,#e5e7eb); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
   }
-  .filter-toggle:hover { background: linear-gradient(90deg, rgba(56,189,248,0.14) 0%, rgba(56,189,248,0.04) 100%); }
-  .filter-toggle-icon { display: flex; align-items: center; gap: 8px; color: #38bdf8; }
+  .filter-toggle:hover { background: linear-gradient(90deg, rgba(37,99,235,0.14) 0%, rgba(37,99,235,0.04) 100%); }
+  .filter-toggle-icon { display: flex; align-items: center; gap: 8px; color: #2563eb; }
   .filter-count-badge {
-    background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
     color: #0a0f1d; border-radius: 10px; padding: 2px 8px; font-size: 11px;
-    font-weight: 700; min-width: 20px; text-align: center; box-shadow: 0 2px 8px rgba(56,189,248,0.4);
+    font-weight: 700; min-width: 20px; text-align: center; box-shadow: 0 2px 8px rgba(37,99,235,0.4);
   }
   .filter-body {
     padding: 16px; display: flex; flex-direction: column; gap: 14px;
@@ -367,19 +367,19 @@
   }
   .filter-body::-webkit-scrollbar { width: 6px; }
   .filter-body::-webkit-scrollbar-track { background: rgba(31,41,55,0.4); border-radius: 3px; }
-  .filter-body::-webkit-scrollbar-thumb { background: rgba(56,189,248,0.3); border-radius: 3px; }
-  .filter-body::-webkit-scrollbar-thumb:hover { background: rgba(56,189,248,0.5); }
+  .filter-body::-webkit-scrollbar-thumb { background: rgba(37,99,235,0.3); border-radius: 3px; }
+  .filter-body::-webkit-scrollbar-thumb:hover { background: rgba(37,99,235,0.5); }
   .filter-chip-list { display: flex; flex-direction: column; gap: 8px; }
   .filter-chip {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    background: linear-gradient(135deg, rgba(56,189,248,0.12) 0%, rgba(56,189,248,0.06) 100%);
-    border: 1px solid rgba(56,189,248,0.35); border-radius: 10px; padding: 10px 12px;
+    background: linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(37,99,235,0.06) 100%);
+    border: 1px solid rgba(37,99,235,0.35); border-radius: 10px; padding: 10px 12px;
     font-size: 13px; transition: all 0.2s ease; animation: chipSlideIn 0.3s ease;
   }
   @keyframes chipSlideIn { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:translateX(0); } }
-  .filter-chip:hover { background: linear-gradient(135deg, rgba(56,189,248,0.18) 0%, rgba(56,189,248,0.1) 100%); border-color: rgba(56,189,248,0.5); transform: translateX(2px); }
+  .filter-chip:hover { background: linear-gradient(135deg, rgba(37,99,235,0.18) 0%, rgba(37,99,235,0.1) 100%); border-color: rgba(37,99,235,0.5); transform: translateX(2px); }
   .filter-chip-label { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-  .filter-chip strong { color: #38bdf8; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .filter-chip strong { color: #2563eb; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
   .filter-chip-value { color: #e5e7eb; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .chip-remove {
     border: none; background: rgba(239,68,68,0.2); color: #fca5a5;
@@ -413,7 +413,7 @@
   .squad-insights .si-badge{position:absolute;top:6px;right:6px;background:var(--accent-2);color:#fff;font-size:10px;padding:2px 6px;border-radius:999px;letter-spacing:.5px;font-weight:600}
   .squad-insights .warn{background:#b91c1c}
   .squad-insights .ok{background:#166534}
-  .squad-table-wrap{margin-top:10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:auto;max-height:260px;background:#0e1424;padding:8px}
+  .squad-table-wrap{margin-top:10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:auto;max-height:260px;background:#1a1a1e;padding:8px}
   .squad-table{width:100%;border-collapse:collapse;font-size:11px}
   .squad-table th{position:sticky;top:0;background:#162238;font-weight:600;font-size:11px;padding:6px 8px;text-align:left;color:#e5e7eb}
   .squad-table td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.06);color:#cbd5e1;white-space:nowrap}
@@ -659,7 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
           margin: [0,0,0,0],
           filename: 'dashboard-agendamentos.pdf',
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { backgroundColor: '#0b0f1a', scale: 2 },
+          html2canvas: { backgroundColor: '#0a0a0b', scale: 2 },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         })
@@ -1310,7 +1310,7 @@ function setOptionEnhanced(chart, option) {
   chart.setOption(enhanced, updateOpts);
 }
 
-function renderBarStack(domId,categories,seriesMap,filterKey,palette=['#0ea5e9','#38bdf8','#7dd3fc','#bae6fd','#e0f2fe']){
+function renderBarStack(domId,categories,seriesMap,filterKey,palette=['#60a5fa','#2563eb','#93c5fd','#bae6fd','#e0f2fe']){
   const el=document.getElementById(domId);if(!el)return;echarts.dispose(el);const chart=echarts.init(el);
   const series=Object.keys(seriesMap).map((name,idx)=>({name,type:'bar',stack:'sum',emphasis:{focus:'series'},itemStyle:{borderRadius:[4,4,0,0]},data:seriesMap[name],animationDuration:700}));
   const isSquad = domId === 'chartSquadScore';
@@ -1551,7 +1551,7 @@ function renderPie(domId,dataPairs,title='',totalValue=null,filterKey){
       radius: isSource? ['62%','82%'] : ['55%','80%'],
       label:{show:false},
       labelLine:{show:false},
-      itemStyle:{borderRadius:10,borderColor:'#0e1424',borderWidth:4},
+      itemStyle:{borderRadius:10,borderColor:'#1a1a1e',borderWidth:4},
       data:data,
       animationDuration:700
     }]
@@ -2128,7 +2128,7 @@ function downloadChartPNG(domId, fileBase){
     if(!el){alert('Gráfico não encontrado: '+domId);return;}
     const chart = echarts.getInstanceByDom(el);
     if(!chart){alert('Instância ECharts não disponível ainda.');return;}
-    const dataURL = chart.getDataURL({ type:'png', pixelRatio:2, backgroundColor:'#0b0f1a' });
+    const dataURL = chart.getDataURL({ type:'png', pixelRatio:2, backgroundColor:'#0a0a0b' });
     const a = document.createElement('a');
     const stamp = new Date().toISOString().replace(/[:T]/g,'-').split('.')[0];
     a.href = dataURL;

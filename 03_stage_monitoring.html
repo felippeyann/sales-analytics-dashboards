@@ -37,16 +37,16 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     :root{
-      --bg:#0f172a; --panel:#111827; --card:#0b1220; --muted:#9ca3af; --text:#e5e7eb;
-      --accent:#38bdf8; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --line:#1f2937;
-      --accent-light:#7dd3fc; --accent-dark:#0284c7;
-      --accent-glow:rgba(56,189,248,0.15);
+      --bg:#0a0a0b; --panel:#131316; --card:#1a1a1e; --muted:#9ca3af; --text:#e5e7eb;
+      --accent:#2563eb; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --line:#232328;
+      --accent-light:#93c5fd; --accent-dark:#1d4ed8;
+      --accent-glow:rgba(37,99,235,0.15);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      background:linear-gradient(180deg,#0a0f1d 0%,#0f172a 60%,#0a0f1d 100%);
+      background:linear-gradient(180deg,#0a0f1d 0%,#0a0a0b 60%,#0a0f1d 100%);
       color:var(--text);
       font:300 clamp(12px,1.2vw,14px)/1.4 'Montserrat',system-ui,-apple-system,sans-serif;
     }
@@ -75,8 +75,8 @@
     /* Menu de navegação minimizável */
     .nav-container{
       margin-top:12px;
-      background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      border:1px solid #1f2937;
+      background:linear-gradient(135deg, #0a0a0b 0%, #1e293b 100%);
+      border:1px solid #232328;
       border-radius:12px;
       overflow:hidden;
       transition:all 0.3s ease;
@@ -94,7 +94,7 @@
     }
     .nav-header:hover{
       background:rgba(56, 189, 248, 0.1);
-      border-bottom-color:#1f2937;
+      border-bottom-color:#232328;
     }
     .nav-title{
       display:flex;
@@ -112,7 +112,7 @@
     }
     .nav-badge{
       background:var(--accent);
-      color:#0f172a;
+      color:#0a0a0b;
       font-size:10px;
       font-weight:700;
       padding:2px 6px;
@@ -141,7 +141,7 @@
     .card{
       background:
         radial-gradient(1200px 300px at 10% -10%,var(--accent-glow),transparent),
-        radial-gradient(900px 300px at 90% -20%,rgba(56,189,248,0.08),transparent);
+        radial-gradient(900px 300px at 90% -20%,rgba(37,99,235,0.08),transparent);
       border:1px solid var(--line);border-radius:14px;padding:clamp(16px,2.5vw,24px);
       scroll-margin-top: 120px;
     }
@@ -1462,7 +1462,7 @@ function renderVolumeChart() {
         fontSize: 11,
         formatter: (value) => formatNumber(value)
       },
-      splitLine: { lineStyle: { color: '#1f2937' } }
+      splitLine: { lineStyle: { color: '#232328' } }
     },
     series: [{
       type: 'bar',
@@ -1578,7 +1578,7 @@ function renderTempoChart() {
         fontSize: 11,
         formatter: (value) => formatTime(value)
       },
-      splitLine: { lineStyle: { color: '#1f2937' } }
+      splitLine: { lineStyle: { color: '#232328' } }
     },
     series: [{
       type: 'bar',
@@ -1842,7 +1842,7 @@ function renderTimelineChart() {
         fontSize: 11,
         formatter: (value) => formatNumber(value)
       },
-      splitLine: { lineStyle: { color: '#1f2937' } }
+      splitLine: { lineStyle: { color: '#232328' } }
     },
     legend: {
       top: 0,
@@ -1951,7 +1951,7 @@ function renderPerformanceChart() {
           fontSize: 11,
           formatter: (value) => formatNumber(value)
         },
-        splitLine: { lineStyle: { color: '#1f2937' } }
+        splitLine: { lineStyle: { color: '#232328' } }
       },
       {
         type: 'value',
@@ -2133,7 +2133,7 @@ function renderDistribuicaoChart() {
         fontSize: 11,
         formatter: (value) => formatNumber(value)
       },
-      splitLine: { lineStyle: { color: '#1f2937' } }
+      splitLine: { lineStyle: { color: '#232328' } }
     },
     legend: {
       top: 0,
@@ -2209,7 +2209,7 @@ function renderRankingChart() {
         fontSize: 11,
         formatter: (value) => formatNumber(value)
       },
-      splitLine: { lineStyle: { color: '#1f2937' } }
+      splitLine: { lineStyle: { color: '#232328' } }
     },
     yAxis: {
       type: 'category',
@@ -2525,7 +2525,7 @@ function renderSaldoChart() {
         fontSize: 11,
         formatter: (value) => formatNumber(value)
       },
-      splitLine: { lineStyle: { color: '#1f2937' } }
+      splitLine: { lineStyle: { color: '#232328' } }
     },
     legend: {
       top: 0,

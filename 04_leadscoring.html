@@ -25,14 +25,14 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     :root{
-      --bg:#0f172a; --panel:#111827; --card:#0b1220; --muted:#9ca3af; --text:#e5e7eb;
-      --accent:#38bdf8; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --line:#1f2937;
+      --bg:#0a0a0b; --panel:#131316; --card:#1a1a1e; --muted:#9ca3af; --text:#e5e7eb;
+      --accent:#2563eb; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --line:#232328;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      background:linear-gradient(180deg,#0a0f1d 0%,#0f172a 60%,#0a0f1d 100%);
+      background:linear-gradient(180deg,#0a0f1d 0%,#0a0a0b 60%,#0a0f1d 100%);
       color:var(--text);
       font:400 clamp(14px,1.5vw,16px)/1.5 'Montserrat',system-ui,-apple-system,sans-serif;
     }
@@ -61,8 +61,8 @@
     /* Menu de navegação minimizável */
     .nav-container{
       margin-top:12px;
-      background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      border:1px solid #1f2937;
+      background:linear-gradient(135deg, #0a0a0b 0%, #1e293b 100%);
+      border:1px solid #232328;
       border-radius:12px;
       overflow:hidden;
       transition:all 0.3s ease;
@@ -80,7 +80,7 @@
     }
     .nav-header:hover{
       background:rgba(56, 189, 248, 0.1);
-      border-bottom-color:#1f2937;
+      border-bottom-color:#232328;
     }
     .nav-title{
       display:flex;
@@ -97,8 +97,8 @@
       transform:rotate(-90deg);
     }
     .nav-badge{
-      background:#38bdf8;
-      color:#0f172a;
+      background:#2563eb;
+      color:#0a0a0b;
       font-size:10px;
       font-weight:700;
       padding:2px 6px;
@@ -144,12 +144,12 @@
       top:0;
       bottom:0;
       width:3px;
-      background:linear-gradient(180deg, #38bdf8, #0ea5e9);
+      background:linear-gradient(180deg, #2563eb, #60a5fa);
       transform:translateX(-3px);
       transition:transform 0.2s ease;
     }
     nav a:hover{
-      border-color:#38bdf8;
+      border-color:#2563eb;
       background:rgba(56, 189, 248, 0.1);
       transform:translateX(2px);
     }
@@ -165,8 +165,8 @@
     .card{
       grid-column:1 / -1;
       background:
-        radial-gradient(1200px 300px at 10% -10%,rgba(56,189,248,.08),transparent),
-        radial-gradient(900px 300px at 90% -20%,rgba(168,85,247,.08),transparent);
+        radial-gradient(1200px 300px at 10% -10%,rgba(37,99,235,.08),transparent),
+        radial-gradient(900px 300px at 90% -20%,rgba(59,130,246,.08),transparent);
       border:1px solid var(--line);border-radius:14px;padding:clamp(12px,2vw,16px);
       scroll-margin-top: 120px;
     }
@@ -181,7 +181,7 @@
       justify-content: center;
       min-width: 28px;
       height: 28px;
-      background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+      background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
       color: #0a0f1d;
       border-radius: 8px;
       font-size: 13px;
@@ -219,9 +219,9 @@
     }
     
     .info-icon:hover {
-      color: #38bdf8;
+      color: #2563eb;
       background: rgba(56, 189, 248, 0.1);
-      border-color: #38bdf8;
+      border-color: #2563eb;
       transform: scale(1.1);
       z-index: 10000;
     }
@@ -237,7 +237,7 @@
       color: #e5e7eb;
       padding: 12px 16px;
       border-radius: 8px;
-      border: 1px solid #38bdf8;
+      border: 1px solid #2563eb;
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       white-space: nowrap;
       font-size: 12px;
@@ -256,7 +256,7 @@
       left: 50%;
       transform: translateX(-50%);
       border: 6px solid transparent;
-      border-top-color: #38bdf8;
+      border-top-color: #2563eb;
     }
     
     .info-icon:hover .tooltip {
@@ -297,7 +297,7 @@
     .table-toggle {
       background: none;
       border: none;
-      color: #38bdf8;
+      color: #2563eb;
       cursor: pointer;
       font-size: 16px;
       padding: 0;
@@ -320,9 +320,9 @@
     }
     table{width:100%;border-collapse:separate;border-spacing:0;min-width:640px}
     th,td{padding:8px 10px;border-bottom:1px solid #202838}
-    th{color:#cbd5e1;text-align:left;font-weight:600;background:#0b1220;position:sticky;top:0}
+    th{color:#cbd5e1;text-align:left;font-weight:600;background:#1a1a1e;position:sticky;top:0}
     td{color:#e2e8f0;word-break:break-word}
-    .version-badge{display:inline-block;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);color:#7dd3fc;font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;margin-left:10px;letter-spacing:0.5px}
+    .version-badge{display:inline-block;background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.4);color:#93c5fd;font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;margin-left:10px;letter-spacing:0.5px}
 
     @media (prefers-reduced-motion: reduce){
       *{scroll-behavior:auto}
@@ -331,10 +331,10 @@
     /* Controles do visualizador */
     .opts{display:flex;gap:12px;align-items:center;margin:6px 0 8px 0;color:var(--muted);font-size:13px}
     .opts label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
-    .opts input{accent-color:#38bdf8}
+    .opts input{accent-color:#2563eb}
 
     .date-filter {
-      background: #1f2937;
+      background: #232328;
       color: #cbd5e1;
       border: 1px solid #334155;
       padding: 2px 6px;
@@ -347,7 +347,7 @@
     .date-filter-label.disabled {
       opacity: 0.4;
       cursor: not-allowed;
-      background: #0f172a;
+      background: #0a0a0b;
       color: #64748b;
     }
     
@@ -437,11 +437,11 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      color: #38bdf8;
+      color: #2563eb;
     }
 
     .filter-count-badge {
-      background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+      background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
       color: #0a0f1d;
       border-radius: 10px;
       padding: 2px 8px;
@@ -529,7 +529,7 @@
     }
 
     .filter-chip strong {
-      color: #38bdf8;
+      color: #2563eb;
       font-weight: 600;
       font-size: 11px;
       text-transform: uppercase;
@@ -621,9 +621,9 @@
     #diag-panel {
       margin-top: 10px;
       padding: 0;
-      border: 1px solid #1f2937;
+      border: 1px solid #232328;
       border-radius: 10px;
-      background: #0b1220;
+      background: #1a1a1e;
       color: #cbd5e1;
       font-size: 13px;
       overflow: hidden;
@@ -651,7 +651,7 @@
     #diag-toggle {
       background: none;
       border: none;
-      color: #38bdf8;
+      color: #2563eb;
       cursor: pointer;
       font-size: 16px;
       padding: 0;
@@ -775,7 +775,7 @@
     
     .modal-body code {
       background: rgba(56, 189, 248, 0.15);
-      color: #7dd3fc;
+      color: #93c5fd;
       padding: 2px 6px;
       border-radius: 4px;
       font-family: 'Courier New', monospace;
@@ -785,7 +785,7 @@
     .btn-metodologia {
       background: rgba(56, 189, 248, 0.15);
       border: 1px solid rgba(56, 189, 248, 0.35);
-      color: #7dd3fc;
+      color: #93c5fd;
       padding: 8px 14px;
       border-radius: 8px;
       font-size: 12px;
@@ -837,7 +837,7 @@
   <header>
     <div class="wrap">
       <div class="title">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 5v8l-9 5-9-5V8l9-5z" stroke="#38bdf8" stroke-width="1.5"/><path d="M12 3v18M3 8l9 5 9-5" stroke="#475569" stroke-width="1.2"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 5v8l-9 5-9-5V8l9-5z" stroke="#2563eb" stroke-width="1.5"/><path d="M12 3v18M3 8l9 5 9-5" stroke="#475569" stroke-width="1.2"/></svg>
         <h1>Relatório Interativo – Lead Scoring (ABCD) <span class="version-badge">v1.0</span></h1>
         <span class="badge">ECharts + CSV</span>
       </div>
@@ -856,7 +856,7 @@
           Data fim:
           <input id="globalDateEnd" type="date" class="date-filter" style="width: 140px;">
         </label>
-        <button id="applyGlobalDate" class="date-filter" style="padding: 6px 14px; cursor: pointer; font-weight: 600; background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%); color: #0a0f1d; border: none; border-radius: 6px;">Aplicar</button>
+        <button id="applyGlobalDate" class="date-filter" style="padding: 6px 14px; cursor: pointer; font-weight: 600; background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%); color: #0a0f1d; border: none; border-radius: 6px;">Aplicar</button>
         <button id="clearGlobalDate" class="date-filter" style="padding: 6px 14px; cursor: pointer; background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px;">Limpar</button>
         <span id="globalDateInfo" style="color: #94a3b8; font-size: 12px; font-style: italic;"></span>
         
@@ -869,7 +869,7 @@
         <div class="nav-header" onclick="toggleNav()">
           <div class="nav-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M6 9l6 6 6-6" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6 9l6 6 6-6" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <span>📊 Navegação Rápida</span>
           </div>
@@ -1829,10 +1829,10 @@
     }
     function getClassColor(k){
       // Escala monocromática em roxo
-      if(k.startsWith('A')) return '#9333ea'; // Roxo mais intenso
-      if(k.startsWith('B')) return '#a855f7'; // Roxo médio-intenso
-      if(k.startsWith('C')) return '#c084fc'; // Roxo médio-claro
-      return '#d8b4fe';                       // Roxo claro
+      if(k.startsWith('A')) return '#1d4ed8'; // Roxo mais intenso
+      if(k.startsWith('B')) return '#2563eb'; // Roxo médio-intenso
+      if(k.startsWith('C')) return '#60a5fa'; // Roxo médio-claro
+      return '#bfdbfe';                       // Roxo claro
     }
 
     // ---------- Main ----------
@@ -2128,7 +2128,7 @@
           yAxis:{
             type:'value',
             axisLabel:{color:'#cbd5e1', formatter:'{value}%'},
-            splitLine:{lineStyle:{color:'#1f2937'}}
+            splitLine:{lineStyle:{color:'#232328'}}
           },
           series:[{
             name:'Conversão %',
@@ -2154,7 +2154,7 @@
             } : { data: [] },
             markPoint: showHighlight ? {
               data:[{type:'max', name:'Maior'},{type:'min', name:'Menor'}],
-              label:{color:'#0b1220'},
+              label:{color:'#1a1a1e'},
               itemStyle:{color:'#eab308'}
             } : { data: [] }
           }],
@@ -2252,7 +2252,7 @@
                 { type: 'max', name: 'Maior', coord: [months.indexOf(months[monthlyTotals.indexOf(Math.max(...monthlyTotals))]), Math.max(...monthlyTotals)] },
                 { type: 'min', name: 'Menor', coord: [months.indexOf(months[monthlyTotals.indexOf(Math.min(...monthlyTotals))]), Math.min(...monthlyTotals)] }
               ],
-              label: { color: '#0b1220' },
+              label: { color: '#1a1a1e' },
               itemStyle: { color: '#eab308' }
             } : { data: [] };
           }
@@ -2309,7 +2309,7 @@
           yAxis: {
             type: 'value',
             axisLabel: { color: '#cbd5e1' },
-            splitLine: { lineStyle: { color: '#1f2937' } }
+            splitLine: { lineStyle: { color: '#232328' } }
           },
           series: series,
           grid: {
@@ -2399,7 +2399,7 @@
               fontSize: 11
             }
           },
-          yAxis:{type:'value', axisLabel:{color:'#cbd5e1'}, splitLine:{lineStyle:{color:'#1f2937'}}},
+          yAxis:{type:'value', axisLabel:{color:'#cbd5e1'}, splitLine:{lineStyle:{color:'#232328'}}},
           series: seriesStatus,
           grid:{left:50,right:20,top:45,bottom:35}  // Mais espaço para labels
         });
@@ -2454,7 +2454,7 @@
           },
           tooltip:{trigger:'axis', axisPointer: {type: 'shadow'}},
           xAxis:{type:'category', data: CLASSES, axisLabel:{color:'#cbd5e1'}},
-          yAxis:{type:'value', axisLabel:{color:'#cbd5e1'}, splitLine:{lineStyle:{color:'#1f2937'}}},
+          yAxis:{type:'value', axisLabel:{color:'#cbd5e1'}, splitLine:{lineStyle:{color:'#232328'}}},
           series:[{
               name: 'Score Médio',
               type:'bar',
@@ -2558,7 +2558,7 @@
               label: {
                 position: 'inner',
                 fontSize: 13,
-                color: '#0b1220', // Texto escuro para contrastar com o fundo colorido
+                color: '#1a1a1e', // Texto escuro para contrastar com o fundo colorido
                 formatter: '{b}'
               },
               labelLine: {
@@ -2577,7 +2577,7 @@
               label: {
                 color: '#e5e7eb',
                 formatter: '{b|{b}} {per|{d}%}',
-                backgroundColor: '#111827', // Cor de fundo do painel
+                backgroundColor: '#131316', // Cor de fundo do painel
                 borderColor: '#334155',
                 borderWidth: 1,
                 borderRadius: 4,
@@ -2589,7 +2589,7 @@
                     lineHeight: 18
                   },
                   per: {
-                    color: '#111827',
+                    color: '#131316',
                     backgroundColor: '#9ca3af',
                     padding: [2, 4],
                     borderRadius: 3
@@ -2865,7 +2865,7 @@
               fontSize: 12
             },
             splitLine: {
-              lineStyle: {color: '#1f2937'}
+              lineStyle: {color: '#232328'}
             }
           },
           yAxis: {
@@ -2905,7 +2905,7 @@
               }
             },
             axisLine: {
-              lineStyle: { color: '#1f2937' }
+              lineStyle: { color: '#232328' }
             },
             axisTick: {
               show: false
@@ -2981,7 +2981,7 @@
         // Paletas de cores
         const palettes = {
           blue: ['#0a0f1d', '#1e3a8a', '#3b82f6', '#60a5fa', '#93c5fd'],
-          purple: ['#0a0f1d', '#581c87', '#7c3aed', '#a78bfa', '#c4b5fd'],
+          purple: ['#0a0f1d', '#581c87', '#1e40af', '#3b82f6', '#93c5fd'],
           green: ['#0a0f1d', '#065f46', '#10b981', '#34d399', '#6ee7b7'],
           warm: ['#0a0f1d', '#991b1b', '#f59e0b', '#fbbf24', '#fde68a']
         };
@@ -3272,7 +3272,7 @@
               return `
                 <b>${dateStr}</b><br/>
                 ${klass}<br/>
-                Leads: <b style="color: #38bdf8">${fmt.format(count)}</b>
+                Leads: <b style="color: #2563eb">${fmt.format(count)}</b>
               `;
             }
           },
@@ -3356,7 +3356,7 @@
               itemStyle: {
                 shadowBlur: 15,
                 shadowColor: 'rgba(56, 189, 248, 0.8)',
-                borderColor: '#38bdf8',
+                borderColor: '#2563eb',
                 borderWidth: 2
               }
             },
@@ -3537,7 +3537,7 @@
                 formatter: (val) => fmt.format(val)
               },
               splitLine: {
-                lineStyle: { color: '#1f2937', type: 'dashed' }
+                lineStyle: { color: '#232328', type: 'dashed' }
               }
             },
             yAxis: {
@@ -3555,7 +3555,7 @@
                 formatter: '{value}%'
               },
               splitLine: {
-                lineStyle: { color: '#1f2937', type: 'dashed' }
+                lineStyle: { color: '#232328', type: 'dashed' }
               }
             },
             series: [{
@@ -3640,7 +3640,7 @@
                 type: 'value',
                 name: 'Quantidade',
                 axisLabel: { color: '#cbd5e1' },
-                splitLine: { lineStyle: { color: '#1f2937' } }
+                splitLine: { lineStyle: { color: '#232328' } }
               },
               {
                 type: 'value',
@@ -3879,7 +3879,7 @@
           },
           calendar: {
             top: 100, left: 'center', orient: 'vertical', cellSize: 90, range: targetMonth,
-            itemStyle: { color: '#0b1220', borderWidth: 1, borderColor: '#1f2937' },
+            itemStyle: { color: '#1a1a1e', borderWidth: 1, borderColor: '#232328' },
             yearLabel: { show: false },
             monthLabel: { nameMap: 'auto', color: '#cbd5e1', position: 'end', align: 'left', fontSize: 16, padding: [0, 0, 20, 20] },
             dayLabel: { firstDay: 1, nameMap: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], color: '#9ca3af' },
@@ -4175,7 +4175,7 @@
       </div>
       <div class="modal-body">
         <h3>📂 Como usar este dashboard:</h3>
-        <p style="background: rgba(153,41,234,0.15); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
+        <p style="background: rgba(37,99,235,0.15); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
           📁 <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">leadscoring.csv</code><br>
           <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar dados de leads com pontuação IA do sistema.</span>
         </p>
