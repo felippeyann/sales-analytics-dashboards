@@ -49,7 +49,7 @@
     .header-hidden {
       transform: translateY(-100%); 
     }
-    .wrap{width:100%;max-width:1200px;margin:0 auto;padding:12px clamp(12px,3vw,16px)}
+    .wrap{width:100%;max-width:1360px;margin:0 auto;padding:12px clamp(12px,3vw,16px)}
     .title{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .title h1{margin:0;font-size:clamp(16px,2.2vw,20px)}
     .badge{font-size:12px;padding:2px 8px;border:1px solid var(--line);border-radius:20px;color:var(--muted)}
@@ -107,7 +107,7 @@
       text-align:center;
     }
     .nav-content{
-      max-height:500px;
+      max-height:320px;
       overflow:hidden;
       transition:max-height 0.3s ease, opacity 0.3s ease;
       opacity:1;
@@ -193,7 +193,7 @@
 
     @media(min-width:640px){ .grid{grid-template-columns:repeat(6,1fr)} .row-6{grid-column:span 6} .row-4{grid-column:span 6} }
     @media(min-width:900px){ .grid{grid-template-columns:repeat(12,1fr)} .row-6{grid-column:span 6} .row-4{grid-column:span 4} }
-    @media(min-width:1280px){ .wrap{max-width:1280px} }
+    @media(min-width:1280px){ .wrap{max-width:1360px} }
 
     .chart{width:100%;height:clamp(240px,40vw,380px)}
     #chart_heatmap{height:clamp(280px,45vw,460px)}
@@ -310,7 +310,7 @@
     }
     .table-content {
       overflow: auto;
-      max-height: 600px;
+      max-height: 380px;
       transition: max-height 0.3s ease, opacity 0.3s ease;
     }
     .table-container.collapsed .table-content {
@@ -1135,7 +1135,7 @@
             </select>
           </label>
         </div>
-        <div id="chart_calendar_pies" class="chart" style="height: 680px;"></div>
+        <div id="chart_calendar_pies" class="chart" style="height: 420px;"></div>
         <div class="foot muted">Cada pizza representa a proporção de leads criados naquele dia por faixa.</div>
       </section>
 
@@ -4840,6 +4840,9 @@
 .cta-band .cta-btn.primary{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:3px 3px 0 0 rgba(0,0,0,0.4)}
 .cta-band .cta-btn.primary:hover{background:#1d4ed8;border-color:#1d4ed8}
 @media(max-width:640px){.cta-band{flex-direction:column;align-items:flex-start}}
+.cta-mail{max-width:1400px;margin:0 auto 28px;padding:0 28px;font-family:'Space Grotesk',system-ui,sans-serif;font-size:13px;color:#8a8a94;text-align:right}
+.cta-mail a{color:#2563eb;text-decoration:none;font-weight:600}
+.cta-mail a:hover{text-decoration:underline}
 </style>
 <script id="onb-cta">
 (function(){
@@ -4867,10 +4870,12 @@
         +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
         +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
         +'<div class="cta-actions">'
-        +'<a class="cta-btn primary" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
+        +'<a class="cta-btn primary" href="index.html">Ver todos os dashboards</a>'
+        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
         +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
         +'</div>';
       (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
+      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML='Prefere conversar por e-mail? <a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
     }
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();

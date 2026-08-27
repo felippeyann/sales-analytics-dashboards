@@ -57,7 +57,7 @@ header{
 .header-hidden {
   transform: translateY(-100%); 
 }
-.wrap{width:100%;max-width:1200px;margin:0 auto;padding:8px clamp(12px,3vw,16px)}
+.wrap{width:100%;max-width:1360px;margin:0 auto;padding:8px clamp(12px,3vw,16px)}
 .title{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .title h1{margin:0;font-size:14px;font-weight:600}
 .badge{font-size:10px;padding:2px 6px;border:1px solid var(--line);border-radius:20px;color:var(--muted)}
@@ -159,7 +159,7 @@ body > .wrap {
   .grid-two{grid-template-columns:1fr 1fr}
 }
 @media(min-width:1280px){
-  .wrap{max-width:1280px}
+  .wrap{max-width:1360px}
 }
 .grid > div {margin-bottom:0}
 .card{
@@ -363,7 +363,7 @@ body > .wrap {
 }
 
 .table-container {
-    max-height: 500px;
+    max-height: 320px;
     overflow-y: auto;
     border-radius: 8px;
     position: relative;
@@ -3138,6 +3138,9 @@ window.addEventListener('scroll', function() {
 .cta-band .cta-btn.primary{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:3px 3px 0 0 rgba(0,0,0,0.4)}
 .cta-band .cta-btn.primary:hover{background:#1d4ed8;border-color:#1d4ed8}
 @media(max-width:640px){.cta-band{flex-direction:column;align-items:flex-start}}
+.cta-mail{max-width:1400px;margin:0 auto 28px;padding:0 28px;font-family:'Space Grotesk',system-ui,sans-serif;font-size:13px;color:#8a8a94;text-align:right}
+.cta-mail a{color:#2563eb;text-decoration:none;font-weight:600}
+.cta-mail a:hover{text-decoration:underline}
 </style>
 <script id="onb-cta">
 (function(){
@@ -3165,10 +3168,12 @@ window.addEventListener('scroll', function() {
         +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
         +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
         +'<div class="cta-actions">'
-        +'<a class="cta-btn primary" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
+        +'<a class="cta-btn primary" href="index.html">Ver todos os dashboards</a>'
+        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
         +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
         +'</div>';
       (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
+      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML='Prefere conversar por e-mail? <a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
     }
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();

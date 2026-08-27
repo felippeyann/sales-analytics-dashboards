@@ -96,7 +96,7 @@
   .header-hidden {
     transform: translateY(-100%); 
   }
-  .wrap{max-width:1200px;margin:0 auto;padding:16px}
+  .wrap{max-width:1360px;margin:0 auto;padding:14px}
   .brand{display:flex;align-items:center;gap:12px}
   .logo{
     width:28px;height:28px;border-radius:8px;
@@ -112,11 +112,11 @@
   .card{
     background:linear-gradient(180deg, rgba(17,24,39,0.9) 0%, rgba(10,14,26,0.9) 100%);
     border:1px solid rgba(255,255,255,0.06);
-    border-radius:16px;padding:14px 14px;
+    border-radius:12px;padding:12px 14px;
     box-shadow:0 10px 24px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.02);
   }
   .grid{
-    display:grid; gap:16px; 
+    display:grid; gap:12px;
     grid-template-columns: repeat(12, 1fr);
   }
   .col-12{grid-column:span 12}
@@ -222,9 +222,9 @@
     filter: invert(0.8);
     cursor: pointer;
   }
-  .chart{width:100%;height:360px; cursor:pointer;}
-  .chart.tall{height:420px}
-  .chart.extra-tall{height:550px}
+  .chart{width:100%;height:260px; cursor:pointer;}
+  .chart.tall{height:300px}
+  .chart.extra-tall{height:360px}
   
   /* Info Icon Tooltip */
   .info-icon {
@@ -754,7 +754,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <h2>1) Squads — Volume & Mix de Score
           <span class="info-icon">ⓘ<span class="tooltip">Comparação de volume e distribuição de score entre squads (Alpha, Beta, Gamma, Delta)</span></span>
         </h2>
-            <div class="panel-sub">Volume de agendamentos e composição de score por squad.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartSquadScore" data-kind="squad" data-csv="squad_volume_score.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -779,7 +778,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <h2>2) Velocidade — TA x Squad
           <span class="info-icon">ⓘ<span class="tooltip">Análise de tempo de resposta (TA) por squad, mostrando velocidade de agendamento</span></span>
         </h2>
-            <div class="panel-sub">Tempo até o agendamento (velocidade) por squad.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartHeatTASquad" data-kind="ta_squad" data-csv="velocidade_ta_squad.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -800,12 +798,11 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="taSquadInsights" class="squad-insights" style="display:none"></div>
     </section>
 
-    <section class="col-6 card">
+    <section class="col-4 card">
       <div class="topic-head">
         <h2>3) SDRs — Top produtividade & rapidez
           <span class="info-icon">ⓘ<span class="tooltip">Ranking de SDRs por volume de agendamentos e percentual com TA ≤ 3 dias</span></span>
         </h2>
-            <div class="panel-sub">SDRs ordenados por produtividade e rapidez de agendamento.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartSDR" data-kind="sdr" data-csv="sdr_produtividade.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -822,12 +819,11 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="chartSDR" class="chart"></div>
     </section>
 
-    <section class="col-6 card">
+    <section class="col-4 card">
       <div class="topic-head">
         <h2>4) Closers — Volume e Mix de Score
           <span class="info-icon">ⓘ<span class="tooltip">Distribuição de scores (A/B/C/D) por closer, mostrando qualidade dos agendamentos recebidos</span></span>
         </h2>
-            <div class="panel-sub">Closers por volume e composição de score dos agendamentos.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartCloserScore" data-kind="closer" data-csv="closers_score.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -843,12 +839,11 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="chartCloserScore" class="chart"></div>
     </section>
 
-    <section class="col-6 card">
+    <section class="col-4 card">
       <div class="topic-head">
         <h2>5) Fontes (UTM Source) — Volume
           <span class="info-icon">ⓘ<span class="tooltip">Comparação de volume de agendamentos por canal de origem (Facebook Ads, Google Ads, Outbound, etc.)</span></span>
         </h2>
-            <div class="panel-sub">Volume de agendamentos por canal de origem (UTM source).</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartSource" data-kind="source" data-csv="fontes_volume.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -864,12 +859,11 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="chartSource" class="chart"></div>
       </section>
 
-    <section class="col-6 card">
+    <section class="col-4 card">
       <div class="topic-head">
         <h2>6) Campanhas — Top 10 e Score
           <span class="info-icon">ⓘ<span class="tooltip">Top 10 campanhas com mais agendamentos e composição de scores A/B/C/D</span></span>
         </h2>
-            <div class="panel-sub">Campanhas que mais agendam e o score que trazem.</div>
         <div class="topic-actions nowrap">
           <label class="toggle-label" style="margin-right: 8px;">
             <input type="checkbox" id="hideSemValorCampaign" onchange="applyAndRender()">
@@ -889,12 +883,11 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="chartCampaign" class="chart"></div>
     </section>
 
-    <section class="col-6 card">
+    <section class="col-4 card">
       <div class="topic-head">
         <h2>7) Score — Distribuição geral
           <span class="info-icon">ⓘ<span class="tooltip">Visão geral da distribuição de scores (A/B/C/D) em todos os agendamentos</span></span>
         </h2>
-            <div class="panel-sub">Como os scores se distribuem na base de agendamentos.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartScore" data-kind="score" data-csv="score_distribuicao.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -910,12 +903,11 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="chartScore" class="chart"></div>
     </section>
 
-    <section class="col-6 card">
+    <section class="col-4 card">
       <div class="topic-head tight">
         <h2>8) Tempo até Agendamento (TA) — Distribuição
           <span class="info-icon">ⓘ<span class="tooltip">Distribuição de frequência do tempo entre primeiro contato e agendamento confirmado</span></span>
         </h2>
-            <div class="panel-sub">Dispersão do tempo do lead até o agendamento.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartTADist" data-kind="ta_dist" data-csv="ta_distribuicao.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -931,13 +923,12 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="chartTADist" class="chart"></div>
     </section>
 
-    <section class="col-12 card">
+    <section class="col-6 card">
       <div class="topic-head">
         <div>
           <h2>9) Análise de Composição das Tags
             <span class="info-icon">ⓘ<span class="tooltip">Distribuição e composição de tags por status ou score, mostrando padrões de classificação</span></span>
           </h2>
-            <div class="panel-sub">Tags mais associadas aos agendamentos.</div>
           <div class="sub" style="margin-bottom:0">Explore a distribuição das tags agrupadas por diferentes dimensões.</div>
         </div>
         <div class="topic-actions nowrap">
@@ -957,9 +948,8 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="chartNestedTags" class="chart extra-tall"></div>
     </section>
 
-    <section class="col-12 card">
+    <section class="col-6 card">
         <h2>10) Análise Comparativa de Squads (Radar)</h2>
-            <div class="panel-sub">Comparativo multidimensional entre squads (radar).</div>
         <div class="sub" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
           <span>Comparação de performance entre squads em volume, qualidade, conversão e velocidade. Use a legenda para selecionar.</span>
           <div class="chart-menu-wrap" data-chart="chartSquadRadar" data-kind="squads_radar" data-csv="squads_radar.csv">
@@ -3164,6 +3154,9 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
 .cta-band .cta-btn.primary{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:3px 3px 0 0 rgba(0,0,0,0.4)}
 .cta-band .cta-btn.primary:hover{background:#1d4ed8;border-color:#1d4ed8}
 @media(max-width:640px){.cta-band{flex-direction:column;align-items:flex-start}}
+.cta-mail{max-width:1400px;margin:0 auto 28px;padding:0 28px;font-family:'Space Grotesk',system-ui,sans-serif;font-size:13px;color:#8a8a94;text-align:right}
+.cta-mail a{color:#2563eb;text-decoration:none;font-weight:600}
+.cta-mail a:hover{text-decoration:underline}
 </style>
 <script id="onb-cta">
 (function(){
@@ -3191,10 +3184,12 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
         +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
         +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
         +'<div class="cta-actions">'
-        +'<a class="cta-btn primary" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
+        +'<a class="cta-btn primary" href="index.html">Ver todos os dashboards</a>'
+        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
         +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
         +'</div>';
       (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
+      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML='Prefere conversar por e-mail? <a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
     }
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
