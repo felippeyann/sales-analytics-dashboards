@@ -135,7 +135,7 @@
   .panel .sub{color:var(--muted);font-size:12px;margin-bottom:10px}
   .kpis{display:flex;gap:10px;flex-wrap:wrap}
   .kpi{
-    flex:1;min-width:160px;background:linear-gradient(180deg, #111930 0%, #0b1120 100%);
+    flex:1;min-width:160px;background:#1a1a1e;
     border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:12px
   }
   .kpi .label{color:var(--muted);font-size:11px}
@@ -590,6 +590,23 @@
 <style>.uploader,.upload-section{display:none!important}</style>
 </head>
 
+<style id="exec-band-css">
+.exec-band{background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:5px 5px 0 0 rgba(0,0,0,0.5);padding:22px 24px;margin:0 0 18px 0;font-family:'Space Grotesk',system-ui,sans-serif}
+.exec-band .exec-kicker{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a94;margin-bottom:8px}
+.exec-band .exec-kicker b{color:#2563eb}
+.exec-band .exec-q{font-size:15px;line-height:1.5;color:#f8f7f3;max-width:80ch;margin-bottom:18px}
+.exec-band .exec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.exec-band .exec-kpi{background:#1a1a1e;border:1px solid rgba(248,247,243,0.08);padding:14px 16px}
+.exec-band .exec-kpi .ev{font-size:30px;font-weight:700;line-height:1;color:#f8f7f3;font-variant-numeric:tabular-nums}
+.exec-band .exec-kpi .ev.good{color:#4ade80}
+.exec-band .exec-kpi .el{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a94;margin-top:8px}
+.exec-band .exec-kpi .eh{font-size:12px;color:#6b6b73;margin-top:3px}
+.exec-band .exec-insight{border-left:3px solid #2563eb;padding:10px 0 10px 14px;font-size:14px;line-height:1.55;color:#c9c9d0}
+.exec-band .exec-insight b{color:#f8f7f3;font-weight:600}
+.exec-band .exec-insight .ei-tag{display:inline-block;font-family:'Space Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;border:1px solid rgba(37,99,235,0.4);padding:1px 7px;margin-right:8px;vertical-align:middle}
+@media(max-width:720px){.exec-band .exec-kpis{grid-template-columns:repeat(2,1fr)}}
+.panel-sub{font-family:'Space Grotesk',system-ui,sans-serif;font-size:13px;line-height:1.45;color:#8a8a94;margin:-4px 0 16px;max-width:82ch}
+</style>
 <body>
 <header>
   <div class="wrap">
@@ -734,9 +751,10 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="grid panel">
     <section class="col-6 card">
       <div class="topic-head">
-        <h2>1) Squads — Volume & Mix de Score
+        <h2>1) Squads: Volume & Mix de Score
           <span class="info-icon">ⓘ<span class="tooltip">Comparação de volume e distribuição de score entre squads (Alpha, Beta, Gamma, Delta)</span></span>
         </h2>
+            <div class="panel-sub">Volume de agendamentos e composição de score por squad.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartSquadScore" data-kind="squad" data-csv="squad_volume_score.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -758,9 +776,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-6 card">
       <div class="topic-head">
-        <h2>2) Velocidade — TA x Squad
+        <h2>2) Velocidade: TA x Squad
           <span class="info-icon">ⓘ<span class="tooltip">Análise de tempo de resposta (TA) por squad, mostrando velocidade de agendamento</span></span>
         </h2>
+            <div class="panel-sub">Tempo até o agendamento (velocidade) por squad.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartHeatTASquad" data-kind="ta_squad" data-csv="velocidade_ta_squad.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -783,9 +802,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-6 card">
       <div class="topic-head">
-        <h2>3) SDRs — Top produtividade & rapidez
+        <h2>3) SDRs: Top produtividade & rapidez
           <span class="info-icon">ⓘ<span class="tooltip">Ranking de SDRs por volume de agendamentos e percentual com TA ≤ 3 dias</span></span>
         </h2>
+            <div class="panel-sub">SDRs ordenados por produtividade e rapidez de agendamento.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartSDR" data-kind="sdr" data-csv="sdr_produtividade.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -804,9 +824,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-6 card">
       <div class="topic-head">
-        <h2>4) Closers — Volume e Mix de Score
+        <h2>4) Closers: Volume e Mix de Score
           <span class="info-icon">ⓘ<span class="tooltip">Distribuição de scores (A/B/C/D) por closer, mostrando qualidade dos agendamentos recebidos</span></span>
         </h2>
+            <div class="panel-sub">Closers por volume e composição de score dos agendamentos.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartCloserScore" data-kind="closer" data-csv="closers_score.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -824,9 +845,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-6 card">
       <div class="topic-head">
-        <h2>5) Fontes (UTM Source) — Volume
+        <h2>5) Fontes (UTM Source): Volume
           <span class="info-icon">ⓘ<span class="tooltip">Comparação de volume de agendamentos por canal de origem (Facebook Ads, Google Ads, Outbound, etc.)</span></span>
         </h2>
+            <div class="panel-sub">Volume de agendamentos por canal de origem (UTM source).</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartSource" data-kind="source" data-csv="fontes_volume.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -844,9 +866,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-6 card">
       <div class="topic-head">
-        <h2>6) Campanhas — Top 10 e Score
+        <h2>6) Campanhas: Top 10 e Score
           <span class="info-icon">ⓘ<span class="tooltip">Top 10 campanhas com mais agendamentos e composição de scores A/B/C/D</span></span>
         </h2>
+            <div class="panel-sub">Campanhas que mais agendam e o score que trazem.</div>
         <div class="topic-actions nowrap">
           <label class="toggle-label" style="margin-right: 8px;">
             <input type="checkbox" id="hideSemValorCampaign" onchange="applyAndRender()">
@@ -868,9 +891,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-6 card">
       <div class="topic-head">
-        <h2>7) Score — Distribuição geral
+        <h2>7) Score: Distribuição geral
           <span class="info-icon">ⓘ<span class="tooltip">Visão geral da distribuição de scores (A/B/C/D) em todos os agendamentos</span></span>
         </h2>
+            <div class="panel-sub">Como os scores se distribuem na base de agendamentos.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartScore" data-kind="score" data-csv="score_distribuicao.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -888,9 +912,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-6 card">
       <div class="topic-head tight">
-        <h2>8) Tempo até Agendamento (TA) — Distribuição
+        <h2>8) Tempo até Agendamento (TA): Distribuição
           <span class="info-icon">ⓘ<span class="tooltip">Distribuição de frequência do tempo entre primeiro contato e agendamento confirmado</span></span>
         </h2>
+            <div class="panel-sub">Dispersão do tempo do lead até o agendamento.</div>
         <div class="topic-actions nowrap">
           <div class="chart-menu-wrap" data-chart="chartTADist" data-kind="ta_dist" data-csv="ta_distribuicao.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
@@ -912,6 +937,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <h2>9) Análise de Composição das Tags
             <span class="info-icon">ⓘ<span class="tooltip">Distribuição e composição de tags por status ou score, mostrando padrões de classificação</span></span>
           </h2>
+            <div class="panel-sub">Tags mais associadas aos agendamentos.</div>
           <div class="sub" style="margin-bottom:0">Explore a distribuição das tags agrupadas por diferentes dimensões.</div>
         </div>
         <div class="topic-actions nowrap">
@@ -933,6 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-12 card">
         <h2>10) Análise Comparativa de Squads (Radar)</h2>
+            <div class="panel-sub">Comparativo multidimensional entre squads (radar).</div>
         <div class="sub" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
           <span>Comparação de performance entre squads em volume, qualidade, conversão e velocidade. Use a legenda para selecionar.</span>
           <div class="chart-menu-wrap" data-chart="chartSquadRadar" data-kind="squads_radar" data-csv="squads_radar.csv">
@@ -2638,7 +2665,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
 <!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
 <script>
 /* ==========================================================================
-   DATAKIT (DK) — barra de dados compartilhada dos dashboards
+   DATAKIT (DK): barra de dados compartilhada dos dashboards
    --------------------------------------------------------------------------
    Responsabilidades:
      1. Toolbar no topo: "Preencher automaticamente" / "Enviar CSV" /
@@ -3008,7 +3035,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
 })();
 </script>
 <script>
-/* DK — 01 Analise de Agendamentos (dados sinteticos) */
+/* DK: 01 Analise de Agendamentos (dados sinteticos) */
 (function () {
   var SDRS = ['Ana Souza', 'Bruno Lima', 'Carla Mendes', 'Diego Castro', 'Elisa Ramos'];
   var CLOSERS = ['Fernanda Costa', 'Gabriel Nunes', 'Helena Dias', 'Igor Aguiar'];
@@ -3120,5 +3147,59 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
 })();
 </script>
 <!-- ==== /DATAKIT ==== -->
+<style id="onb-cta-style">
+.onb-card{position:relative;background:#0f0f12;border:1px solid rgba(37,99,235,0.28);border-left:3px solid #2563eb;padding:16px 44px 16px 20px;margin:0 0 18px;font-family:'Space Grotesk',system-ui,sans-serif}
+.onb-card .onb-h{font-weight:600;color:#f8f7f3;font-size:14px;margin-bottom:8px}
+.onb-card .onb-steps{margin:0;padding-left:20px;color:#c9c9d0;font-size:13px;line-height:1.7}
+.onb-card .onb-steps b{color:#f8f7f3}
+.onb-card .onb-x{position:absolute;top:8px;right:10px;background:none;border:none;color:#8a8a94;font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
+.onb-card .onb-x:hover{color:#f8f7f3}
+.cta-band{width:100%;margin:34px 0 8px;box-sizing:border-box;padding:24px 28px;background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:6px 6px 0 0 rgba(37,99,235,0.22);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;font-family:'Space Grotesk',system-ui,sans-serif}
+.cta-band .cta-k{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#2563eb;margin-bottom:8px}
+.cta-band .cta-h{font-size:16px;color:#f8f7f3;font-weight:600;max-width:62ch;line-height:1.45}
+.cta-band .cta-s{font-size:14px;color:#8a8a94;margin-top:4px}
+.cta-band .cta-actions{display:flex;gap:12px;flex-wrap:wrap}
+.cta-band .cta-btn{display:inline-block;padding:11px 20px;font-size:14px;font-weight:600;text-decoration:none;border:1px solid rgba(248,247,243,0.2);color:#f8f7f3;background:#1a1a1e;transition:border-color .15s,background .15s;font-family:'Space Grotesk',system-ui,sans-serif}
+.cta-band .cta-btn:hover{border-color:#2563eb}
+.cta-band .cta-btn.primary{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:3px 3px 0 0 rgba(0,0,0,0.4)}
+.cta-band .cta-btn.primary:hover{background:#1d4ed8;border-color:#1d4ed8}
+@media(max-width:640px){.cta-band{flex-direction:column;align-items:flex-start}}
+</style>
+<script id="onb-cta">
+(function(){
+  function build(){
+    var band=document.getElementById('exec-band');
+    try{
+      if(band && !localStorage.getItem('onbDismissed_v1')){
+        var onb=document.createElement('div');
+        onb.className='onb-card';
+        onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
+          +'<div class="onb-h">Como ler este painel</div>'
+          +'<ol class="onb-steps">'
+          +'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>'
+          +'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>'
+          +'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>'
+          +'</ol>';
+        band.parentNode.insertBefore(onb, band.nextSibling);
+        onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
+      }
+    }catch(e){}
+    if(!document.querySelector('.cta-band')){
+      var cta=document.createElement('div');
+      cta.className='cta-band';
+      cta.innerHTML='<div class="cta-txt"><div class="cta-k">// analytics comercial</div>'
+        +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
+        +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
+        +'<div class="cta-actions">'
+        +'<a class="cta-btn primary" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
+        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
+        +'</div>';
+      (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
+})();
+</script>
+
 </body>
 </html>

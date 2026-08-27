@@ -13,7 +13,7 @@
 <meta charset="utf-8"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Tempo até 1º Agendamento — 2025</title>
+<title>Tempo até 1º Agendamento: 2025</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -193,7 +193,7 @@
   /* Estilo para numeração dos gráficos */
   h3[data-number]::before,
   strong[data-number]::before {
-    content: attr(data-number) " — ";
+    content: attr(data-number) ": ";
     color: var(--primary);
     font-weight: 700;
     margin-right: 4px;
@@ -971,6 +971,23 @@
 </style>
 <style>.uploader,.upload-section{display:none!important}</style>
 </head>
+<style id="exec-band-css">
+.exec-band{background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:5px 5px 0 0 rgba(0,0,0,0.5);padding:22px 24px;margin:0 0 18px 0;font-family:'Space Grotesk',system-ui,sans-serif}
+.exec-band .exec-kicker{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a94;margin-bottom:8px}
+.exec-band .exec-kicker b{color:#2563eb}
+.exec-band .exec-q{font-size:15px;line-height:1.5;color:#f8f7f3;max-width:80ch;margin-bottom:18px}
+.exec-band .exec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.exec-band .exec-kpi{background:#1a1a1e;border:1px solid rgba(248,247,243,0.08);padding:14px 16px}
+.exec-band .exec-kpi .ev{font-size:30px;font-weight:700;line-height:1;color:#f8f7f3;font-variant-numeric:tabular-nums}
+.exec-band .exec-kpi .ev.good{color:#4ade80}
+.exec-band .exec-kpi .el{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a94;margin-top:8px}
+.exec-band .exec-kpi .eh{font-size:12px;color:#6b6b73;margin-top:3px}
+.exec-band .exec-insight{border-left:3px solid #2563eb;padding:10px 0 10px 14px;font-size:14px;line-height:1.55;color:#c9c9d0}
+.exec-band .exec-insight b{color:#f8f7f3;font-weight:600}
+.exec-band .exec-insight .ei-tag{display:inline-block;font-family:'Space Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;border:1px solid rgba(37,99,235,0.4);padding:1px 7px;margin-right:8px;vertical-align:middle}
+@media(max-width:720px){.exec-band .exec-kpis{grid-template-columns:repeat(2,1fr)}}
+.panel-sub{font-family:'Space Grotesk',system-ui,sans-serif;font-size:13px;line-height:1.45;color:#8a8a94;margin:-4px 0 16px;max-width:82ch}
+</style>
 <body>
 <!-- Painel de filtros flutuante -->
 <div id="filter-panel" class="filter-panel collapsed">
@@ -1026,6 +1043,12 @@
 </header>
 
 <div class="wrap">
+  <section class="exec-band" id="exec-band">
+    <div class="exec-kicker"><b>//</b> resumo executivo</div>
+    <div class="exec-q">Quão rápido cada lead vira agendamento, e o quanto a IA acelera esse tempo frente ao SDR humano.</div>
+    <div class="exec-kpis" id="exec-kpis"></div>
+    <div class="exec-insight" id="exec-insight"></div>
+  </section>
   <div class="wrap" style="max-width: 1240px; margin: 0 auto; padding: 16px;">
     <!-- Filtro Global de Período -->
     <div style="margin: 16px 0; padding: 14px; background: rgba(20, 20, 23, 0.6); border: 1px solid #1e1e23; border-radius: 12px;">
@@ -1144,6 +1167,7 @@
         Histograma comparativo (0–30 dias)
         <span class="info-icon">ⓘ<span class="tooltip">Mostra a distribuição de frequência dos dias até o agendamento</span></span>
       </h3>
+            <div class="panel-sub">Distribuição de frequência do tempo até agendamento: IA vs humanos.</div>
       <div id="hist" class="chart"></div>
     </div>
     <div class="card two">
@@ -1151,23 +1175,24 @@
         Boxplot comparativo
         <span class="info-icon">ⓘ<span class="tooltip">Visualiza quartis, mediana e outliers da distribuição</span></span>
       </h3>
+            <div class="panel-sub">Quartis, mediana e outliers do tempo até agendamento por grupo.</div>
       <div id="box" class="chart"></div>
     </div>
 
     <div class="section-title">Tendência temporal</div>
-    <div class="card two">
+    <div class="card">
       <h3 data-number="3.1">
-        Mediana semanal
-        <span class="info-icon">ⓘ<span class="tooltip">Evolução semanal da mediana de dias até agendamento</span></span>
+        Mediana de dias até agendamento (tendência)
+        <span class="info-icon">ⓘ<span class="tooltip">Evolução da mediana de dias até agendamento, na visão semanal ou mensal</span></span>
       </h3>
+      <div class="panel-sub">Evolução da mediana de dias até o agendamento; alterne entre a visão semanal e a mensal.</div>
+      <div style="margin:0 0 10px;">
+        <select id="trendGran" onchange="initWeekly()" aria-label="Granularidade" style="background:#1a1a1e;color:#f8f7f3;border:1px solid rgba(248,247,243,0.18);padding:6px 12px;font-family:'Space Mono',ui-monospace,monospace;font-size:12px;cursor:pointer;">
+          <option value="weekly" selected>Semanal</option>
+          <option value="monthly">Mensal</option>
+        </select>
+      </div>
       <div id="weekly" class="chart tall"></div>
-    </div>
-    <div class="card two">
-      <h3 data-number="3.2">
-        Mediana mensal
-        <span class="info-icon">ⓘ<span class="tooltip">Evolução mensal da mediana de dias até agendamento</span></span>
-      </h3>
-      <div id="monthly" class="chart tall"></div>
     </div>
 
     <div class="section-title">Análises Temporais Avançadas</div>
@@ -1176,6 +1201,7 @@
         Distribuição Acumulada (CDF)
         <span class="info-icon">ⓘ<span class="tooltip">Percentual acumulado de agendamentos ao longo dos dias</span></span>
       </h3>
+            <div class="panel-sub">Percentual acumulado de agendamentos até cada número de dias.</div>
       <div id="cdf" class="chart tall"></div>
     </div>
     <div class="card two">
@@ -1183,6 +1209,7 @@
         Calendário Semanal
         <span class="info-icon">ⓘ<span class="tooltip">Volume de agendamentos por semana e dia da semana</span></span>
       </h3>
+            <div class="panel-sub">Volume de agendamentos por semana ao longo do período.</div>
       <div id="heatmap" class="chart tall"></div>
     </div>
     
@@ -1191,6 +1218,7 @@
         Análise de Velocidade
         <span class="info-icon">ⓘ<span class="tooltip">Percentual de agendamentos realizados em até 3 dias</span></span>
       </h3>
+            <div class="panel-sub">Percentual de agendamentos realizados em até 3 dias (rápidos).</div>
       <div id="velocity" class="chart tall"></div>
     </div>
     <div class="card two">
@@ -1198,6 +1226,7 @@
         Funil de Conversão Temporal
         <span class="info-icon">ⓘ<span class="tooltip">Percentual de agendamentos por faixa de tempo (rápido, normal, lento)</span></span>
       </h3>
+            <div class="panel-sub">Distribuição dos agendamentos por faixa de tempo: rápido, normal, lento.</div>
       <div id="funnel" class="chart tall"></div>
     </div>
 
@@ -2193,6 +2222,28 @@ function updateKPIs(iaData, humanoData) {
   
   // Mostrar estatísticas adicionais
   showDataStats(iaData, humanoData);
+  renderExec(iaData, humanoData);
+  function renderExec(iaData, humanoData){
+    var med=function(arr){ var v=(arr||[]).map(function(d){return d.days_to_schedule;}).filter(function(x){return typeof x==='number' && isFinite(x);}).sort(function(a,b){return a-b;}); if(!v.length) return null; var m=Math.floor(v.length/2); return v.length%2 ? v[m] : (v[m-1]+v[m])/2; };
+    var total=(iaData?iaData.length:0)+(humanoData?humanoData.length:0);
+    var iaMed=med(iaData), humMed=med(humanoData);
+    var gain=(iaMed!=null && humMed!=null && humMed>0) ? Math.round((humMed-iaMed)/humMed*100) : null;
+    var fmt=function(x){ if(x==null) return '-'; var r=Math.round(x*10)/10; return (Number.isInteger(r)?r:r.toFixed(1))+'d'; };
+    var nf=function(n){ return (n||0).toLocaleString('pt-BR'); };
+    var kpis=[
+      {v:nf(total), l:'Negócios', h:'no período'},
+      {v:fmt(iaMed), l:'Mediana IA', h:'lead a agendamento', good:true},
+      {v:fmt(humMed), l:'Mediana humano', h:'lead a agendamento'},
+      {v:(gain!=null?gain+'%':'-'), l:'IA mais rápida', h:'vs SDR humano', good:gain!=null&&gain>0}
+    ];
+    var insight = (gain!=null && gain>0)
+      ? 'A IA agenda em <b>'+fmt(iaMed)+'</b> (mediana) contra <b>'+fmt(humMed)+'</b> dos SDRs humanos, <b>'+gain+'% mais rápido</b> do lead ao primeiro agendamento.'
+      : 'Mediana de <b>'+fmt(iaMed)+'</b> para IA e <b>'+fmt(humMed)+'</b> para humanos no tempo do lead ao agendamento.';
+    var kw=document.getElementById('exec-kpis');
+    if(kw) kw.innerHTML=kpis.map(function(k){ return '<div class="exec-kpi"><div class="ev'+(k.good?' good':'')+'">'+k.v+'</div><div class="el">'+k.l+'</div><div class="eh">'+k.h+'</div></div>'; }).join('');
+    var iw=document.getElementById('exec-insight');
+    if(iw) iw.innerHTML='<span class="ei-tag">insight</span>'+insight;
+  }
 }
 
 function showDataStats(iaData, humanoData) {
@@ -2253,7 +2304,6 @@ function renderAllCharts() {
   initHist();
   initBox();
   initWeekly();
-  initMonthly();
   
   // Novos visualizadores
   initCDF();
@@ -2400,21 +2450,34 @@ function initBox() {
 function initWeekly() {
   const el = echarts.init(document.getElementById('weekly'));
   el.clear();
-  
-  if (!weeklyIA.length && !weeklyHumano.length) {
+
+  const sel = document.getElementById('trendGran');
+  const gran = (sel && sel.value) || 'weekly';
+  const iaSrc = gran === 'monthly' ? monthlyIA : weeklyIA;
+  const humSrc = gran === 'monthly' ? monthlyHumano : weeklyHumano;
+
+  if (!iaSrc.length && !humSrc.length) {
     el.setOption({
       title: { text: 'Carregue um CSV para visualizar', left: 'center', top: 'middle', textStyle: { color: '#666' } }
     });
     return;
   }
-  
+
+  const xAxis = gran === 'monthly'
+    ? { type:'time', axisLabel:{ color:'#C9C9D1', fontSize:10, formatter:function(v){ return new Date(v).toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}); } }, axisLine:{ lineStyle:{ color:'#3a3a45' } } }
+    : { type:'time', axisLabel:{ color:'#C9C9D1', fontSize:10 }, axisLine:{ lineStyle:{ color:'#3a3a45' } } };
+
   el.setOption({
     backgroundColor: 'transparent',
-    tooltip: { 
+    tooltip: {
       trigger:'axis',
       formatter: function(params) {
         if (!params || !params.length) return '';
-        let result = '<strong>' + new Date(params[0].value[0]).toLocaleDateString('pt-BR') + '</strong><br/>';
+        const d = new Date(params[0].value[0]);
+        const head = gran === 'monthly'
+          ? d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+          : d.toLocaleDateString('pt-BR');
+        let result = '<strong>' + head + '</strong><br/>';
         params.forEach(param => {
           result += `${param.marker} ${param.seriesName}: ${param.value[1].toFixed(2)} dias<br/>`;
         });
@@ -2423,19 +2486,15 @@ function initWeekly() {
     },
     legend: { data: ['IA', 'Humanos'], textStyle: { color: '#DADAE3' }, top: 10 },
     grid: { left: '8%', right: '5%', bottom: '12%', top:'15%' },
-    xAxis: {
-      type: 'time', 
-      axisLabel: { color: '#C9C9D1', fontSize: 10 }, 
-      axisLine: { lineStyle: { color: '#3a3a45' } }
-    },
+    xAxis: xAxis,
     yAxis: {
-      type:'value', 
+      type:'value',
       name: 'Mediana (dias)',
       nameTextStyle: { color: '#C9C9D1' },
-      axisLabel: { color:'#C9C9D1' }, 
+      axisLabel: { color:'#C9C9D1' },
       splitLine: { lineStyle: { color:'#23232A' } }
     },
-    series: [ lineSeries('IA', weeklyIA), lineSeries('Humanos', weeklyHumano) ]
+    series: [ lineSeries('IA', iaSrc), lineSeries('Humanos', humSrc) ]
   });
 }
 
@@ -3131,7 +3190,6 @@ window.addEventListener('load', () => {
   initHist();
   initBox();
   initWeekly();
-  initMonthly();
   
   // Inicializar novos visualizadores
   initCDF();
@@ -3216,7 +3274,7 @@ function updateGlobalDateInfo() {
 
 // Resize dos gráficos ao redimensionar janela
 window.addEventListener('resize', () => {
-  const charts = ['hist', 'box', 'weekly', 'monthly', 'cdf', 'velocity', 'funnel', 'heatmap'];
+  const charts = ['hist', 'box', 'weekly', 'cdf', 'velocity', 'funnel', 'heatmap'];
   charts.forEach(id => {
     const chartDom = document.getElementById(id);
     if (chartDom) {
@@ -3261,7 +3319,7 @@ window.addEventListener('resize', () => {
 <!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
 <script>
 /* ==========================================================================
-   DATAKIT (DK) — barra de dados compartilhada dos dashboards
+   DATAKIT (DK): barra de dados compartilhada dos dashboards
    --------------------------------------------------------------------------
    Responsabilidades:
      1. Toolbar no topo: "Preencher automaticamente" / "Enviar CSV" /
@@ -3631,7 +3689,7 @@ window.addEventListener('resize', () => {
 })();
 </script>
 <script>
-/* DK — 05 Tempo ate o 1o Agendamento, IA vs humanos (dados sinteticos) */
+/* DK: 05 Tempo ate o 1o Agendamento, IA vs humanos (dados sinteticos) */
 (function () {
   // O dashboard classifica como IA todo SDR cujo e-mail contem +123 ou +789
   // (sufixos de caixa compartilhada), ou contato com a tag "Agendado IA".
@@ -3708,6 +3766,60 @@ window.addEventListener('resize', () => {
 })();
 </script>
 <!-- ==== /DATAKIT ==== -->
+<style id="onb-cta-style">
+.onb-card{position:relative;background:#0f0f12;border:1px solid rgba(37,99,235,0.28);border-left:3px solid #2563eb;padding:16px 44px 16px 20px;margin:0 0 18px;font-family:'Space Grotesk',system-ui,sans-serif}
+.onb-card .onb-h{font-weight:600;color:#f8f7f3;font-size:14px;margin-bottom:8px}
+.onb-card .onb-steps{margin:0;padding-left:20px;color:#c9c9d0;font-size:13px;line-height:1.7}
+.onb-card .onb-steps b{color:#f8f7f3}
+.onb-card .onb-x{position:absolute;top:8px;right:10px;background:none;border:none;color:#8a8a94;font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
+.onb-card .onb-x:hover{color:#f8f7f3}
+.cta-band{width:100%;margin:34px 0 8px;box-sizing:border-box;padding:24px 28px;background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:6px 6px 0 0 rgba(37,99,235,0.22);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;font-family:'Space Grotesk',system-ui,sans-serif}
+.cta-band .cta-k{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#2563eb;margin-bottom:8px}
+.cta-band .cta-h{font-size:16px;color:#f8f7f3;font-weight:600;max-width:62ch;line-height:1.45}
+.cta-band .cta-s{font-size:14px;color:#8a8a94;margin-top:4px}
+.cta-band .cta-actions{display:flex;gap:12px;flex-wrap:wrap}
+.cta-band .cta-btn{display:inline-block;padding:11px 20px;font-size:14px;font-weight:600;text-decoration:none;border:1px solid rgba(248,247,243,0.2);color:#f8f7f3;background:#1a1a1e;transition:border-color .15s,background .15s;font-family:'Space Grotesk',system-ui,sans-serif}
+.cta-band .cta-btn:hover{border-color:#2563eb}
+.cta-band .cta-btn.primary{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:3px 3px 0 0 rgba(0,0,0,0.4)}
+.cta-band .cta-btn.primary:hover{background:#1d4ed8;border-color:#1d4ed8}
+@media(max-width:640px){.cta-band{flex-direction:column;align-items:flex-start}}
+</style>
+<script id="onb-cta">
+(function(){
+  function build(){
+    var band=document.getElementById('exec-band');
+    try{
+      if(band && !localStorage.getItem('onbDismissed_v1')){
+        var onb=document.createElement('div');
+        onb.className='onb-card';
+        onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
+          +'<div class="onb-h">Como ler este painel</div>'
+          +'<ol class="onb-steps">'
+          +'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>'
+          +'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>'
+          +'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>'
+          +'</ol>';
+        band.parentNode.insertBefore(onb, band.nextSibling);
+        onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
+      }
+    }catch(e){}
+    if(!document.querySelector('.cta-band')){
+      var cta=document.createElement('div');
+      cta.className='cta-band';
+      cta.innerHTML='<div class="cta-txt"><div class="cta-k">// analytics comercial</div>'
+        +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
+        +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
+        +'<div class="cta-actions">'
+        +'<a class="cta-btn primary" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
+        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
+        +'</div>';
+      (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
+})();
+</script>
+
 </body>
 </html>
 

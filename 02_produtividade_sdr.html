@@ -473,6 +473,23 @@
   </style>
   <style>.uploader,.upload-section,#emptyState{display:none!important}</style>
 </head>
+<style id="exec-band-css">
+.exec-band{background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:5px 5px 0 0 rgba(0,0,0,0.5);padding:22px 24px;margin:0 0 18px 0;font-family:'Space Grotesk',system-ui,sans-serif}
+.exec-band .exec-kicker{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a94;margin-bottom:8px}
+.exec-band .exec-kicker b{color:#2563eb}
+.exec-band .exec-q{font-size:15px;line-height:1.5;color:#f8f7f3;max-width:80ch;margin-bottom:18px}
+.exec-band .exec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.exec-band .exec-kpi{background:#1a1a1e;border:1px solid rgba(248,247,243,0.08);padding:14px 16px}
+.exec-band .exec-kpi .ev{font-size:30px;font-weight:700;line-height:1;color:#f8f7f3;font-variant-numeric:tabular-nums}
+.exec-band .exec-kpi .ev.good{color:#4ade80}
+.exec-band .exec-kpi .el{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a94;margin-top:8px}
+.exec-band .exec-kpi .eh{font-size:12px;color:#6b6b73;margin-top:3px}
+.exec-band .exec-insight{border-left:3px solid #2563eb;padding:10px 0 10px 14px;font-size:14px;line-height:1.55;color:#c9c9d0}
+.exec-band .exec-insight b{color:#f8f7f3;font-weight:600}
+.exec-band .exec-insight .ei-tag{display:inline-block;font-family:'Space Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;border:1px solid rgba(37,99,235,0.4);padding:1px 7px;margin-right:8px;vertical-align:middle}
+@media(max-width:720px){.exec-band .exec-kpis{grid-template-columns:repeat(2,1fr)}}
+.panel-sub{font-family:'Space Grotesk',system-ui,sans-serif;font-size:13px;line-height:1.45;color:#8a8a94;margin:-4px 0 16px;max-width:82ch}
+</style>
 <body>
   <header>
     <div class="wrap">
@@ -525,6 +542,12 @@
   </header>
   
   <main>
+    <section class="exec-band" id="exec-band">
+      <div class="exec-kicker"><b>//</b> resumo executivo</div>
+      <div class="exec-q">Quem produz no topo do funil e onde a atividade de prospecção vira reunião: volume, taxa de conexão e agendamentos por SDR.</div>
+      <div class="exec-kpis" id="exec-kpis"></div>
+      <div class="exec-insight" id="exec-insight"></div>
+    </section>
     <div class="wrap">
       <div id="loadingBar" style="display: none;">
         <div>
@@ -557,6 +580,7 @@
             <h2 data-number="01">Timeline de Atividades
               <span class="info-icon">ⓘ<span class="tooltip">Evolução temporal de todas as métricas de produtividade</span></span>
             </h2>
+            <div class="panel-sub">Volume diário de cada tipo de atividade ao longo do período, com eixos configuráveis para comparar métricas.</div>
             
             <!-- Controles de Eixo Y -->
             <div class="opts" style="margin-bottom: 16px;">
@@ -597,6 +621,7 @@
             <h2 data-number="02">Ranking de SDRs
               <span class="info-icon">ⓘ<span class="tooltip">Comparação de performance com taxas de conversão e eficiência</span></span>
             </h2>
+            <div class="panel-sub">Comparativo de produtividade por SDR, ordenável por volume, taxa de conexão ou agendamentos.</div>
             <div class="opts">
               <span class="date-filter-label">Período:</span>
               <select id="ranking_period" class="date-filter">
@@ -615,7 +640,7 @@
                 <option value="taxa_agend">Taxa Agend/Conexão (%)</option>
               </select>
             </div>
-            <div id="rankingTable"></div>
+            <div id="rankingTable" style="overflow-x:auto;"></div>
           </section>
           
           <!-- VIZ 03: Heatmap de Atividade Semanal -->
@@ -623,6 +648,7 @@
             <h2 data-number="03">Heatmap de Atividade por Dia da Semana
               <span class="info-icon">ⓘ<span class="tooltip">Intensidade de atividades por dia da semana ao longo do período selecionado</span></span>
             </h2>
+            <div class="panel-sub">Concentração de esforço por dia da semana, filtrável por métrica, SDR e período.</div>
             <div class="opts">
               <span class="date-filter-label">Métrica:</span>
               <select id="heatmap_metric" class="date-filter">
@@ -649,6 +675,13 @@
             </div>
             <div id="weekLegend" style="padding: 12px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; margin-bottom: 16px; font-size: 12px; color: #94a3b8; line-height: 1.8; max-height: 120px; overflow-y: auto;"></div>
             <div id="heatmapChart" class="chart" style="height: 400px;"></div>
+          </section>
+          <section class="card row-12">
+            <h2 data-number="04">Funil de Conversão
+              <span class="info-icon">ⓘ<span class="tooltip">Da ligação à reunião marcada: volume em cada etapa do funil de prospecção e a taxa de passagem entre elas.</span></span>
+            </h2>
+            <div class="panel-sub">Da ligação à reunião marcada: quanto cada etapa da prospecção retém e a taxa de passagem entre elas.</div>
+            <div id="funnelBody" style="padding:10px 4px 4px;"></div>
           </section>
         </div>
       </div>
@@ -1478,6 +1511,71 @@
       applyFilters();
       renderRanking();
       renderHeatmap();
+      renderExec();
+      renderFunnel();
+      function renderFunnel(){
+        var acts=(typeof RAW_ACTIVITIES!=='undefined'?RAW_ACTIVITIES:[])||[];
+        var tent=0,conex=0,agend=0;
+        acts.forEach(function(a){ if(isTentativa(a))tent++; if(isConexao(a))conex++; if(isAgendamento(a))agend++; });
+        var top=Math.max(tent,1);
+        var nf=function(n){return (n||0).toLocaleString('pt-BR');};
+        var stages=[
+          {l:'Ligações', s:'tentativas de contato', n:tent, c:'#1d4ed8'},
+          {l:'Conexões', s:'ligações com conversa', n:conex, c:'#2563eb'},
+          {l:'Agendamentos', s:'reuniões marcadas', n:agend, c:'#22c55e'}
+        ];
+        var steps=[null, (tent>0?Math.round(conex/tent*100):0)+'% das ligações conectaram', (conex>0?Math.round(agend/conex*100):0)+'% das conexões agendaram'];
+        var html='';
+        stages.forEach(function(st,i){
+          var w=Math.max(6, Math.round(st.n/top*100)), pct=Math.round(st.n/top*100);
+          if(i>0) html+='<div style="font:11px/1 \'Space Mono\',ui-monospace,monospace;color:#8a8a94;letter-spacing:.04em;margin:2px 0 8px 156px;">↓ '+steps[i]+'</div>';
+          html+='<div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">'
+            +'<div style="width:140px;flex:0 0 140px;text-align:right;">'
+              +'<div style="font-weight:600;color:#f8f7f3;font-size:14px;">'+st.l+'</div>'
+              +'<div style="font:11px/1.3 \'Space Mono\',ui-monospace,monospace;color:#6b6b73;">'+st.s+'</div>'
+            +'</div>'
+            +'<div style="flex:1;background:#111114;border:1px solid rgba(248,247,243,0.06);height:46px;position:relative;overflow:hidden;">'
+              +'<div style="width:'+w+'%;height:100%;background:'+st.c+';display:flex;align-items:center;padding-left:12px;color:#fff;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;">'+nf(st.n)+'</div>'
+            +'</div>'
+            +'<div style="width:52px;flex:0 0 52px;text-align:right;font-variant-numeric:tabular-nums;color:#c9c9d0;font-weight:600;">'+pct+'%</div>'
+          +'</div>';
+        });
+        var el=document.getElementById('funnelBody');
+        if(el) el.innerHTML=html;
+      }
+      function renderExec(){
+        var acts = (typeof RAW_ACTIVITIES!=='undefined' ? RAW_ACTIVITIES : []) || [];
+        var total = acts.length;
+        var sdrs = {}; acts.forEach(function(a){ if(a && a.sdr) sdrs[a.sdr]=1; });
+        var nSdr = Object.keys(sdrs).length;
+        var tent=0, conex=0, agend=0, bySdr={};
+        acts.forEach(function(a){
+          if(isTentativa(a)) tent++;
+          if(isConexao(a)) conex++;
+          var ag = isAgendamento(a);
+          if(ag) agend++;
+          var s = (a&&a.sdr)||'-';
+          if(!bySdr[s]) bySdr[s]={ag:0};
+          if(ag) bySdr[s].ag++;
+        });
+        var connRate = tent>0 ? Math.round(conex/tent*100) : 0;
+        var topSdr=null, topAg=-1;
+        Object.keys(bySdr).forEach(function(s){ if(bySdr[s].ag>topAg){ topAg=bySdr[s].ag; topSdr=s; } });
+        var nf=function(n){ return (n||0).toLocaleString('pt-BR'); };
+        var kpis=[
+          {v:nf(total), l:'Atividades', h:'no período'},
+          {v:nf(nSdr), l:'SDRs ativos', h:'com atividade'},
+          {v:connRate+'%', l:'Taxa de conexão', h:'conexões / tentativas', good:connRate>=30},
+          {v:nf(agend), l:'Agendamentos', h:'gerados', good:agend>0}
+        ];
+        var insight = (topSdr && topAg>0)
+          ? '<b>'+topSdr+'</b> lidera em agendamentos ('+nf(topAg)+') no período, convertendo prospecção em reuniões.'
+          : '<b>'+nf(agend)+'</b> agendamentos gerados a partir de <b>'+nf(total)+'</b> atividades de prospecção.';
+        var kw=document.getElementById('exec-kpis');
+        if(kw) kw.innerHTML=kpis.map(function(k){ return '<div class="exec-kpi"><div class="ev'+(k.good?' good':'')+'">'+k.v+'</div><div class="el">'+k.l+'</div><div class="eh">'+k.h+'</div></div>'; }).join('');
+        var iw=document.getElementById('exec-insight');
+        if(iw) iw.innerHTML='<span class="ei-tag">insight</span>'+insight;
+      }
     }
     
     function populateSDRSelect() {
@@ -2001,6 +2099,7 @@
       
       // Agregar por SDR contando atividades brutas
       const bySdr = {};
+      const allDays = new Set();
       filteredActivities.forEach(a => {
         const sdrName = a.sdr;
         
@@ -2010,9 +2109,11 @@
             tentativas: 0,
             conexoes: 0,
             agendamentos: 0,
-            duracao: 0
+            duracao: 0,
+            daily: {}
           };
         }
+        { const _d = new Date(a.date); if(!isNaN(_d)){ const _dk = _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0'); bySdr[sdrName].daily[_dk] = (bySdr[sdrName].daily[_dk]||0)+1; allDays.add(_dk); } }
         
         // Usar funções globais de cálculo
         if (isTentativa(a)) {
@@ -2048,6 +2149,18 @@
       // Renderizar tabela
       const container = document.getElementById('rankingTable');
       const maxTentativas = Math.max(...ranking.map(s => s.tentativas));
+      const dayList = Array.from(allDays).sort();
+      function sparkline(daily){
+        if(!dayList.length) return '';
+        const vals = dayList.map(d => (daily && daily[d]) || 0);
+        const max = Math.max.apply(null, vals) || 1;
+        const W=96, H=26, n=vals.length, step = n>1 ? W/(n-1) : W;
+        const pts = vals.map((v,i)=> ((i*step).toFixed(1))+','+((H-3 - (v/max)*(H-6)).toFixed(1))).join(' ');
+        const lastX = ((n-1)*step).toFixed(1), lastY = (H-3 - (vals[n-1]/max)*(H-6)).toFixed(1);
+        return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="vertical-align:middle;" role="img" aria-label="tendência de atividade">'
+          +'<polyline points="'+pts+'" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>'
+          +'<circle cx="'+lastX+'" cy="'+lastY+'" r="2.2" fill="#4ade80"/></svg>';
+      }
       
       container.innerHTML = `
         <table class="ranking-table">
@@ -2061,6 +2174,7 @@
               <th style="text-align: right;">Agendamentos</th>
               <th style="text-align: right;">Taxa Agend</th>
               <th style="text-align: right;">Duração Média</th>
+              <th style="text-align: center;">Tendência</th>
             </tr>
           </thead>
           <tbody>
@@ -2089,6 +2203,7 @@
                   </span>
                 </td>
                 <td style="text-align: right;">${formatMinutesToHHMM(s.duracao_media)}</td>
+                <td style="text-align: center;">${sparkline(s.daily)}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -2428,7 +2543,7 @@
 <!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
 <script>
 /* ==========================================================================
-   DATAKIT (DK) — barra de dados compartilhada dos dashboards
+   DATAKIT (DK): barra de dados compartilhada dos dashboards
    --------------------------------------------------------------------------
    Responsabilidades:
      1. Toolbar no topo: "Preencher automaticamente" / "Enviar CSV" /
@@ -2798,7 +2913,7 @@
 })();
 </script>
 <script>
-/* DK — 02 Produtividade SDR (dados sinteticos) */
+/* DK: 02 Produtividade SDR (dados sinteticos) */
 (function () {
   // O dashboard so aceita atividades de SDRs que estao na whitelist, e traduz
   // user_id -> nome pelo USER_MAP. Entao a base sintetica precisa usar exatamente
@@ -2897,5 +3012,59 @@
 })();
 </script>
 <!-- ==== /DATAKIT ==== -->
+<style id="onb-cta-style">
+.onb-card{position:relative;background:#0f0f12;border:1px solid rgba(37,99,235,0.28);border-left:3px solid #2563eb;padding:16px 44px 16px 20px;margin:0 0 18px;font-family:'Space Grotesk',system-ui,sans-serif}
+.onb-card .onb-h{font-weight:600;color:#f8f7f3;font-size:14px;margin-bottom:8px}
+.onb-card .onb-steps{margin:0;padding-left:20px;color:#c9c9d0;font-size:13px;line-height:1.7}
+.onb-card .onb-steps b{color:#f8f7f3}
+.onb-card .onb-x{position:absolute;top:8px;right:10px;background:none;border:none;color:#8a8a94;font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
+.onb-card .onb-x:hover{color:#f8f7f3}
+.cta-band{width:100%;margin:34px 0 8px;box-sizing:border-box;padding:24px 28px;background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:6px 6px 0 0 rgba(37,99,235,0.22);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;font-family:'Space Grotesk',system-ui,sans-serif}
+.cta-band .cta-k{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#2563eb;margin-bottom:8px}
+.cta-band .cta-h{font-size:16px;color:#f8f7f3;font-weight:600;max-width:62ch;line-height:1.45}
+.cta-band .cta-s{font-size:14px;color:#8a8a94;margin-top:4px}
+.cta-band .cta-actions{display:flex;gap:12px;flex-wrap:wrap}
+.cta-band .cta-btn{display:inline-block;padding:11px 20px;font-size:14px;font-weight:600;text-decoration:none;border:1px solid rgba(248,247,243,0.2);color:#f8f7f3;background:#1a1a1e;transition:border-color .15s,background .15s;font-family:'Space Grotesk',system-ui,sans-serif}
+.cta-band .cta-btn:hover{border-color:#2563eb}
+.cta-band .cta-btn.primary{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:3px 3px 0 0 rgba(0,0,0,0.4)}
+.cta-band .cta-btn.primary:hover{background:#1d4ed8;border-color:#1d4ed8}
+@media(max-width:640px){.cta-band{flex-direction:column;align-items:flex-start}}
+</style>
+<script id="onb-cta">
+(function(){
+  function build(){
+    var band=document.getElementById('exec-band');
+    try{
+      if(band && !localStorage.getItem('onbDismissed_v1')){
+        var onb=document.createElement('div');
+        onb.className='onb-card';
+        onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
+          +'<div class="onb-h">Como ler este painel</div>'
+          +'<ol class="onb-steps">'
+          +'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>'
+          +'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>'
+          +'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>'
+          +'</ol>';
+        band.parentNode.insertBefore(onb, band.nextSibling);
+        onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
+      }
+    }catch(e){}
+    if(!document.querySelector('.cta-band')){
+      var cta=document.createElement('div');
+      cta.className='cta-band';
+      cta.innerHTML='<div class="cta-txt"><div class="cta-k">// analytics comercial</div>'
+        +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
+        +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
+        +'<div class="cta-actions">'
+        +'<a class="cta-btn primary" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
+        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
+        +'</div>';
+      (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
+})();
+</script>
+
 </body>
 </html>
