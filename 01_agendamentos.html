@@ -140,6 +140,21 @@
   }
   .kpi .label{color:var(--muted);font-size:11px}
   .kpi .value{font-size:22px;font-weight:700;margin-top:4px}
+  /* faixa executiva (padrao enterprise) */
+  .exec-band{background:var(--panel);border:1px solid rgba(248,247,243,0.12);box-shadow:5px 5px 0 0 rgba(0,0,0,0.5);padding:22px 24px;margin-bottom:16px}
+  .exec-kicker{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .exec-kicker b{color:var(--accent);font-weight:700}
+  .exec-q{color:var(--text);font-size:17px;font-weight:500;margin:8px 0 18px;max-width:780px;line-height:1.4}
+  .exec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  @media(max-width:720px){.exec-kpis{grid-template-columns:repeat(2,1fr)}}
+  .exec-kpi{background:var(--card);border:1px solid rgba(248,247,243,0.08);padding:14px 16px}
+  .exec-kpi .ev{font-size:30px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;line-height:1}
+  .exec-kpi .ev.good{color:var(--ok)}
+  .exec-kpi .el{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+  .exec-kpi .eh{color:var(--muted);font-size:12px;margin-top:3px;opacity:.8}
+  .exec-insight{border-left:3px solid var(--accent);padding-left:14px;color:var(--text);font-size:15px;line-height:1.55}
+  .exec-insight .ei-tag{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:1px 6px;margin-right:8px}
+  .exec-insight b{color:var(--text);font-weight:700}
   .btn, button{
     background:linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
     border:none;color:white;padding:8px 12px;font-weight:600;border-radius:10px;
@@ -673,6 +688,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <main class="wrap panel">
 
+  <section class="exec-band" id="exec-band">
+    <div class="exec-kicker"><b>//</b> resumo executivo</div>
+    <div class="exec-q">Onde o topo do funil ganha e perde, da origem ao agendamento: por squad, canal, closer e velocidade de atribuição.</div>
+    <div class="exec-kpis" id="exec-kpis"></div>
+    <div class="exec-insight" id="exec-insight"></div>
+  </section>
+
   <section class="card col-12" id="suggestionsBox" style="margin-bottom:16px;">
     <div style="display:flex;justify-content:space-between;align-items:start;">
       <div style="flex:1;">
@@ -1135,6 +1157,32 @@ function countTags(arr){const m={};for(const r of arr){for(const t of r.tagsAll)
 function ctab(rows,rowKey,colKey,rowOrder=null,colOrder=null){const rowsSet=rowOrder||Array.from(new Set(rows.map(r=>r[rowKey])));const colsSet=colOrder||Array.from(new Set(rows.map(r=>r[colKey])));const mat=rowsSet.map(()=>colsSet.map(()=>0));const rIndex=Object.fromEntries(rowsSet.map((v,i)=>[v,i]));const cIndex=Object.fromEntries(colsSet.map((v,i)=>[v,i]));for(const r of rows){const ri=rIndex[r[rowKey]];const ci=cIndex[r[colKey]];if(ri!=null&&ci!=null)mat[ri][ci]+=1;} return{rows:rowsSet,cols:colsSet,mat};}
 
 /* ---------- KPIs & Cards ---------- */
+function renderExec(data){
+  const total=data.length||1, pct=n=>Math.round(n/total*100);
+  const won=data.filter(d=>d.deal_status==='WON').length;
+  const fast=data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias').length;
+  const corp=data.filter(d=>d.provider_class==='email_corporate').length;
+  const wonRate=won/total*100;
+  const bySquad={};
+  data.forEach(d=>{const s=d.origin_group_name||'—';(bySquad[s]=bySquad[s]||{n:0,w:0});bySquad[s].n++;if(d.deal_status==='WON')bySquad[s].w++;});
+  let topSquad=null,topRate=-1;
+  Object.entries(bySquad).forEach(([s,o])=>{if(o.n>=Math.max(5,total*0.05)){const r=o.w/o.n*100;if(r>topRate){topRate=r;topSquad=s;}}});
+  const kpis=[
+    {v:total.toLocaleString('pt-BR'),l:'Agendamentos',h:'no período'},
+    {v:pct(won)+'%',l:'Taxa de ganho',h:won+' fechados',good:wonRate>=30},
+    {v:pct(fast)+'%',l:'Rápidos (≤3 dias)',h:'lead → agendamento'},
+    {v:pct(corp)+'%',l:'E-mail corporativo',h:'leads mais quentes'}
+  ];
+  const kw=document.getElementById('exec-kpis');
+  if(kw) kw.innerHTML=kpis.map(k=>`<div class="exec-kpi"><div class="ev${k.good?' good':''}">${k.v}</div><div class="el">${k.l}</div><div class="eh">${k.h}</div></div>`).join('');
+  const iw=document.getElementById('exec-insight');
+  if(iw){
+    let msg;
+    if(topSquad&&topRate>wonRate+2) msg=`<b>${topSquad}</b> lidera a conversão com <b>${Math.round(topRate)}%</b> de ganho, ${Math.round(topRate-wonRate)} p.p. acima da média do período.`;
+    else msg=`<b>${pct(corp)}%</b> dos agendamentos vêm de e-mail corporativo, o segmento de melhor qualidade de lead.`;
+    iw.innerHTML=`<span class="ei-tag">insight</span>${msg}`;
+  }
+}
 function renderKPIs(data){const wrap=document.getElementById('kpis');wrap.innerHTML='';const total=data.length;const status=countBy(data,'deal_status');const free=data.filter(d=>d.provider_class==='email_free').length;const corp=data.filter(d=>d.provider_class==='email_corporate').length;const fast=data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias').length;const kpis=[{label:'Agendamentos (seleção)',value:total},{label:'OPEN',value:status['OPEN']||0},{label:'WON',value:status['WON']||0},{label:'LOST',value:status['LOST']||0},{label:'E-mail corporativo',value:corp},{label:'E-mail gratuito',value:free},{label:'TA ≤ 3 dias',value:`${(fast/Math.max(1,total)*100).toFixed(1)}%`},];for(const k of kpis){const el=document.createElement('div');el.className='kpi';el.innerHTML=`<div class="label">${k.label}</div><div class="value">${k.value}</div>`;wrap.appendChild(el);}}
 
 /* ---------- LÓGICA DE FILTROS CRUZADOS ---------- */
@@ -1813,6 +1861,7 @@ function buildAll(data){
   const status = countBy(data,'deal_status');
   const statusPairs = STATUS_ORDER.map(s => [s, status[s] || 0]);
   chartDataStore.kpi = {total, status: status, ...countBy(data,'provider_class'), '% TA <= 3 dias': (data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias').length/Math.max(1,total)*100).toFixed(1)};
+  renderExec(data);
   renderKPIs(data);
   renderPie('chartStatusDonut', statusPairs, 'Status Geral', total, 'status');
   
