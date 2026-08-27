@@ -997,7 +997,7 @@
     <div class="brand">
       <div class="brand-logo"></div>
       <h1>Tempo até 1º Agendamento <span class="version-badge">v1.0</span></h1>
-      <span class="tag">🤖 IA vs 👤 Humanos</span>
+      <span class="tag">IA vs Humanos</span>
     </div>
 
     <div class="controls">
@@ -1007,7 +1007,7 @@
       </div>
       
       <div class="group">
-        <span class="pill" id="statusPill">📂 Aguardando CSV...</span>
+        <span class="pill" id="statusPill">Aguardando CSV...</span>
       </div>
       
       <button class="btn-metodologia" onclick="toggleFilterPanel()" style="position: relative;">
@@ -1019,7 +1019,7 @@
       </button>
       
       <button class="btn-metodologia" onclick="openMetodologiaModal()">
-        📖 Metodologia
+        Metodologia
       </button>
     </div>
   </div>
@@ -1030,7 +1030,7 @@
     <!-- Filtro Global de Período -->
     <div style="margin: 16px 0; padding: 14px; background: rgba(20, 20, 23, 0.6); border: 1px solid #1e1e23; border-radius: 12px;">
       <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <span style="color: #C9C9D1; font-weight: 600; font-size: 13px;">📅 Filtro Global de Data:</span>
+        <span style="color: #C9C9D1; font-weight: 600; font-size: 13px;">Filtro Global de Data:</span>
         <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #A9A9B2;">
           Data início:
           <input id="globalStartDate" type="date" style="background: #0F0F12; border: 1px solid #1e1e23; color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-family: "Space Grotesk", sans-serif;">
@@ -1049,51 +1049,51 @@
     <div class="section-title">Resumo executivo</div>
     <div class="kpis">
       <div class="kpi">
-        <div class="label">1.1 🤖 IA - Mediana (dias)</div>
+        <div class="label">1.1 IA - Mediana (dias)</div>
         <div class="value" id="kpiIAMedian">—</div>
         <div class="stats">
           <div class="stat-row">
-            <span>📊 Total registros:</span>
+            <span>Total registros:</span>
             <span class="stat-value" id="kpiIACount">—</span>
           </div>
           <div class="stat-row">
-            <span>⬇️ Min:</span>
+            <span>↓ Min:</span>
             <span class="stat-value" id="kpiIAMin">—</span>
           </div>
           <div class="stat-row">
-            <span>⬆️ Max:</span>
+            <span>↑ Max:</span>
             <span class="stat-value" id="kpiIAMax">—</span>
           </div>
           <div class="stat-row">
-            <span>📈 Q1 → Q3:</span>
+            <span>Q1 → Q3:</span>
             <span class="stat-value" id="kpiIARange">—</span>
           </div>
         </div>
       </div>
       <div class="kpi">
-        <div class="label">1.2 👤 Humanos - Mediana (dias)</div>
+        <div class="label">1.2 Humanos - Mediana (dias)</div>
         <div class="value" id="kpiHumanoMedian">—</div>
         <div class="stats">
           <div class="stat-row">
-            <span>📊 Total registros:</span>
+            <span>Total registros:</span>
             <span class="stat-value" id="kpiHumanoCount">—</span>
           </div>
           <div class="stat-row">
-            <span>⬇️ Min:</span>
+            <span>↓ Min:</span>
             <span class="stat-value" id="kpiHumanoMin">—</span>
           </div>
           <div class="stat-row">
-            <span>⬆️ Max:</span>
+            <span>↑ Max:</span>
             <span class="stat-value" id="kpiHumanoMax">—</span>
           </div>
           <div class="stat-row">
-            <span>📈 Q1 → Q3:</span>
+            <span>Q1 → Q3:</span>
             <span class="stat-value" id="kpiHumanoRange">—</span>
           </div>
         </div>
       </div>
       <div class="kpi">
-        <div class="label">1.3 🤖 IA - P75 (dias)
+        <div class="label">1.3 IA - P75 (dias)
           <span style="display: block; font-size: 9px; font-weight: 400; color: #A9A9B2; margin-top: 2px; line-height: 1.3;">
             Percentil 75: valor onde 75% dos agendamentos foram realizados em tempo igual ou menor
           </span>
@@ -1105,17 +1105,17 @@
         </div>
         <div class="stats">
           <div class="stat-row">
-            <span>💡 Info:</span>
+            <span>Info:</span>
             <span class="stat-value">75% dos agendamentos ≤ este valor</span>
           </div>
           <div class="stat-row">
-            <span>📏 vs Mediana:</span>
+            <span>vs Mediana:</span>
             <span class="stat-value" id="kpiIAP75VsMedian">—</span>
           </div>
         </div>
       </div>
       <div class="kpi">
-        <div class="label">1.4 👤 Humanos - P75 (dias)
+        <div class="label">1.4 Humanos - P75 (dias)
           <span style="display: block; font-size: 9px; font-weight: 400; color: #A9A9B2; margin-top: 2px; line-height: 1.3;">
             Percentil 75: valor onde 75% dos agendamentos foram realizados em tempo igual ou menor
           </span>
@@ -1127,11 +1127,11 @@
         </div>
         <div class="stats">
           <div class="stat-row">
-            <span>💡 Info:</span>
+            <span>Info:</span>
             <span class="stat-value">75% dos agendamentos ≤ este valor</span>
           </div>
           <div class="stat-row">
-            <span>📏 vs Mediana:</span>
+            <span>vs Mediana:</span>
             <span class="stat-value" id="kpiHumanoP75VsMedian">—</span>
           </div>
         </div>
@@ -1214,15 +1214,15 @@
     <div class="modal-body">
       <h3 data-number="4.1">Como usar este dashboard:</h3>
       <p style="background: var(--primary-glow); border-left: 4px solid var(--primary); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
-        📁 <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br>
+        <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br>
         <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar atividades de primeiro agendamento do CRM (contém datas de criação e agendamento).</span>
       </p>
       <ul style="margin-bottom: 16px;">
-        <li>📂 <strong>Faça upload de um arquivo CSV</strong> contendo as colunas:
+        <li><strong>Faça upload de um arquivo CSV</strong> contendo as colunas:
           <ul style="margin-top: 4px;">
             <li><strong>Data de criação do deal/atividade:</strong>
               <ul style="margin-left: 20px; font-size: 11px;">
-                <li><code>ta_created_at</code> (atividades CRM) ✅</li>
+                <li><code>ta_created_at</code> (atividades CRM) </li>
                 <li><code>deal_created_at</code> (deals)</li>
                 <li><code>created_at</code></li>
                 <li><code>data_criacao</code></li>
@@ -1230,8 +1230,8 @@
             </li>
             <li><strong>Data do agendamento/reunião:</strong>
               <ul style="margin-left: 20px; font-size: 11px;">
-                <li><code>data_do_agendamento</code> (CRM) ✅</li>
-                <li><code>data_da_call</code> (CRM) ✅</li>
+                <li><code>data_do_agendamento</code> (CRM) </li>
+                <li><code>data_da_call</code> (CRM) </li>
                 <li><code>first_schedule_date</code></li>
                 <li><code>data_primeiro_agendamento</code></li>
                 <li><code>primeira_reuniao</code></li>
@@ -1250,21 +1250,21 @@
       </ul>
       <h3>Processamento automático:</h3>
       <ul>
-        <li>✅ Filtragem automática: apenas dados de <strong>2024 e 2025</strong></li>
-        <li>✅ Remoção de <strong>intervalos negativos</strong> (agendamento anterior ao deal/atividade)</li>
-        <li>✅ Remoção de <strong>outliers</strong> usando percentil 99 (P99)</li>
-        <li>🤖 <strong>Detecção automática de agendamentos IA:</strong>
+        <li>Filtragem automática: apenas dados de <strong>2024 e 2025</strong></li>
+        <li>Remoção de <strong>intervalos negativos</strong> (agendamento anterior ao deal/atividade)</li>
+        <li>Remoção de <strong>outliers</strong> usando percentil 99 (P99)</li>
+        <li><strong>Detecção automática de agendamentos IA:</strong>
           <ul style="margin-left: 20px; font-size: 11px;">
             <li>Emails SDR contendo <code>+123</code> ou <code>+789</code></li>
             <li>Tags: "agendado ia", "tentativa ia", "tentativas esgotadas ia", "agendado ligação ia", "ligar depois ia", "reunião removida - ia", "fora do icp - ia", "agendado whatsapp"</li>
           </ul>
         </li>
-        <li>✅ Cálculo automático de: mediana, quartis, distribuições e tendências temporais</li>
-        <li>✅ <strong>Compatível com CSV de atividades do CRM</strong> (colunas <code>ta_created_at</code>, <code>data_do_agendamento</code>)</li>
-        <li>📅 <strong>Filtro global de datas</strong> - Configure o período de análise desejado</li>
+        <li>Cálculo automático de: mediana, quartis, distribuições e tendências temporais</li>
+        <li><strong>Compatível com CSV de atividades do CRM</strong> (colunas <code>ta_created_at</code>, <code>data_do_agendamento</code>)</li>
+        <li><strong>Filtro global de datas</strong> - Configure o período de análise desejado</li>
       </ul>
       <div id="dataStatsModal" style="margin-top: 12px; padding: 12px; background: #17171B; border-radius: 8px; display: none;">
-        <strong data-number="4.2">📊 Estatísticas dos dados carregados:</strong>
+        <strong data-number="4.2">Estatísticas dos dados carregados:</strong>
         <div id="statsContentModal" style="margin-top: 8px; font-size: 12px; color: #C9C9D1;"></div>
       </div>
     </div>
@@ -1383,11 +1383,11 @@ function updateFilterPanel() {
     
     const label = document.createElement('span');
     label.className = 'filter-chip-label';
-    label.innerHTML = `<strong>📅 Período:</strong> ${formatDate(ACTIVE_FILTERS.dateRange.start)} até ${formatDate(ACTIVE_FILTERS.dateRange.end)}`;
+    label.innerHTML = `<strong>Período:</strong> ${formatDate(ACTIVE_FILTERS.dateRange.start)} até ${formatDate(ACTIVE_FILTERS.dateRange.end)}`;
     
     const removeBtn = document.createElement('button');
     removeBtn.className = 'filter-chip-remove';
-    removeBtn.textContent = '✕';
+    removeBtn.textContent = '';
     removeBtn.onclick = () => clearDateFilter();
     
     chip.appendChild(label);
@@ -1524,8 +1524,8 @@ const daysBetween = (a, b) => {
 function lineSeries(name, data) {
   // Definir cores específicas para IA (roxo) e Humanos (azul)
   let color = '#60a5fa'; // Padrão azul para Humanos
-  if (name.includes('IA') || name.includes('🤖')) {
-    color = primary; // Ciano para IA (#2563eb)
+  if (name.includes('IA')) {
+    color = primary; // azul da marca para IA (#2563eb)
   }
   
   return {
@@ -1559,7 +1559,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    updateStatus('📊 Processando CSV...');
+    updateStatus('Processando CSV...');
     
     Papa.parse(file, {
       header: true,
@@ -1568,18 +1568,18 @@ document.addEventListener('DOMContentLoaded', function() {
       complete: (results) => {
         if (!results.data || results.data.length === 0) {
           alert('Erro: CSV vazio ou inválido.');
-          updateStatus('❌ Erro no CSV');
+          updateStatus('Erro no CSV');
           return;
         }
         
         RAW_DATA = results.data;
-        updateStatus(`✅ ${RAW_DATA.length} linhas carregadas`);
+        updateStatus(`${RAW_DATA.length} linhas carregadas`);
         processData();
       },
       error: (error) => {
         console.error('Erro ao processar CSV:', error);
         alert('Erro ao processar CSV: ' + error.message);
-        updateStatus('❌ Erro no processamento');
+        updateStatus('Erro no processamento');
       }
     });
   });
@@ -1596,7 +1596,7 @@ function processData() {
     return;
   }
   
-  updateStatus('🔄 Processando dados...');
+  updateStatus('Processando dados...');
   
   // Processar cada linha - suporta múltiplos formatos de CSV
   PROCESSED_DATA = RAW_DATA.map(row => {
@@ -1656,7 +1656,7 @@ function processData() {
   
   if (PROCESSED_DATA.length === 0) {
     alert('Nenhum dado válido encontrado. Verifique se o CSV contém:\n- deal_created_at (data de criação)\n- first_schedule_date (data do 1º agendamento)\n- Dados do ano 2025');
-    updateStatus('❌ Sem dados válidos');
+    updateStatus('Sem dados válidos');
     return;
   }
   
@@ -1670,7 +1670,7 @@ function processData() {
     
     if (PROCESSED_DATA.length === 0) {
       alert('Nenhum registro encontrado no período selecionado.');
-      updateStatus('❌ Sem dados no período filtrado');
+      updateStatus('Sem dados no período filtrado');
       return;
     }
   }
@@ -1695,7 +1695,7 @@ function processData() {
     }
   });
   
-  updateStatus(`✅ ${PROCESSED_DATA.length} registros | 🤖 IA: ${iaData.length} | 👤 Humanos: ${humanoData.length}`);
+  updateStatus(`${PROCESSED_DATA.length} registros | IA: ${iaData.length} | Humanos: ${humanoData.length}`);
   
   // Calcular estatísticas
   calculateStatistics(iaData, humanoData);
@@ -1862,11 +1862,11 @@ function calculateVelocityAnalysis(iaData, humanoData) {
 // 4.4 - Funnel (Funil de Conversão Temporal)
 function calculateFunnel(iaData, humanoData) {
   const stages = [
-    { name: '0-1 dia', min: 0, max: 1, icon: '🚀' },
-    { name: '1-3 dias', min: 1, max: 3, icon: '⚡' },
-    { name: '3-7 dias', min: 3, max: 7, icon: '✅' },
-    { name: '7-15 dias', min: 7, max: 15, icon: '🐌' },
-    { name: '15+ dias', min: 15, max: Infinity, icon: '❌' }
+    { name: '0-1 dia', min: 0, max: 1, icon: '' },
+    { name: '1-3 dias', min: 1, max: 3, icon: '' },
+    { name: '3-7 dias', min: 3, max: 7, icon: '' },
+    { name: '7-15 dias', min: 7, max: 15, icon: '' },
+    { name: '15+ dias', min: 15, max: Infinity, icon: '' }
   ];
   
   const result = stages.map(stage => {
@@ -2147,11 +2147,11 @@ function updateKPIs(iaData, humanoData) {
       iaP75TrendEl.style.display = 'inline-flex';
       if (diff < 0) {
         iaP75TrendEl.className = 'trend positive';
-        if (iaP75TrendIconEl) iaP75TrendIconEl.textContent = '⬇️';
+        if (iaP75TrendIconEl) iaP75TrendIconEl.textContent = '↓';
         if (iaP75TrendTextEl) iaP75TrendTextEl.textContent = `${Math.abs(diffPercent)}% melhor que Humanos`;
       } else {
         iaP75TrendEl.className = 'trend negative';
-        if (iaP75TrendIconEl) iaP75TrendIconEl.textContent = '⬆️';
+        if (iaP75TrendIconEl) iaP75TrendIconEl.textContent = '↑';
         if (iaP75TrendTextEl) iaP75TrendTextEl.textContent = `${diffPercent}% pior que Humanos`;
       }
     }
@@ -2181,11 +2181,11 @@ function updateKPIs(iaData, humanoData) {
       humanoP75TrendEl.style.display = 'inline-flex';
       if (diff < 0) {
         humanoP75TrendEl.className = 'trend positive';
-        if (humanoP75TrendIconEl) humanoP75TrendIconEl.textContent = '⬇️';
+        if (humanoP75TrendIconEl) humanoP75TrendIconEl.textContent = '↓';
         if (humanoP75TrendTextEl) humanoP75TrendTextEl.textContent = `${Math.abs(diffPercent)}% melhor que IA`;
       } else {
         humanoP75TrendEl.className = 'trend negative';
-        if (humanoP75TrendIconEl) humanoP75TrendIconEl.textContent = '⬆️';
+        if (humanoP75TrendIconEl) humanoP75TrendIconEl.textContent = '↑';
         if (humanoP75TrendTextEl) humanoP75TrendTextEl.textContent = `${diffPercent}% pior que IA`;
       }
     }
@@ -2209,17 +2209,17 @@ function showDataStats(iaData, humanoData) {
   const medianDiff = boxHumano[2] && boxIA[2] ? ((boxIA[2] - boxHumano[2]) / boxHumano[2] * 100) : 0;
   const p75Diff = boxHumano[3] && boxIA[3] ? ((boxIA[3] - boxHumano[3]) / boxHumano[3] * 100) : 0;
   
-  const medianArrow = medianDiff < 0 ? '⬇️' : '⬆️';
+  const medianArrow = medianDiff < 0 ? '↓' : '↑';
   const medianColor = medianDiff < 0 ? '#22c55e' : '#ef4444';
-  const p75Arrow = p75Diff < 0 ? '⬇️' : '⬆️';
+  const p75Arrow = p75Diff < 0 ? '↓' : '↑';
   const p75Color = p75Diff < 0 ? '#22c55e' : '#ef4444';
   
   const statsHTML = `
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
       <div>
         <strong>Total de registros:</strong> ${totalRecords.toLocaleString('pt-BR')}<br/>
-        <span style="color: ${primary}">🤖 IA:</span> ${iaCount.toLocaleString('pt-BR')} (${(iaCount/totalRecords*100).toFixed(1)}%)<br/>
-        <span style="color: #2563eb">👤 Humanos:</span> ${humanoCount.toLocaleString('pt-BR')} (${(humanoCount/totalRecords*100).toFixed(1)}%)
+        <span style="color: ${primary}">IA:</span> ${iaCount.toLocaleString('pt-BR')} (${(iaCount/totalRecords*100).toFixed(1)}%)<br/>
+        <span style="color: #2563eb">Humanos:</span> ${humanoCount.toLocaleString('pt-BR')} (${(humanoCount/totalRecords*100).toFixed(1)}%)
       </div>
       <div>
         <strong>Comparativo Mediana:</strong><br/>
@@ -2288,9 +2288,9 @@ function initHist() {
         let result = `<strong>Dia ${params[0].axisValue}</strong><br/>`;
         params.forEach(p => {
           let percent = 0;
-          if (p.seriesName === '🤖 IA') {
+          if (p.seriesName === 'IA') {
             percent = ((p.value / totalIA) * 100).toFixed(1);
-          } else if (p.seriesName === '👤 Humanos') {
+          } else if (p.seriesName === 'Humanos') {
             percent = ((p.value / totalHumano) * 100).toFixed(1);
           }
           result += `${p.marker} ${p.seriesName}: ${p.value} deals <span style='color:#94a3b8'>(${percent}%)</span><br/>`;
@@ -2299,10 +2299,11 @@ function initHist() {
       }
     },
     legend: {
-      data: ['🤖 IA', '👤 Humanos'],
-      textStyle: { color: '#DADAE3' }
+      data: ['IA', 'Humanos'],
+      textStyle: { color: '#DADAE3' },
+      top: 8, bottom: 'auto'
     },
-    grid: { left: '6%', right: '3%', bottom: '12%', top: '12%' },
+    grid: { left: '6%', right: '3%', bottom: '14%', top: '20%' },
     xAxis: {
       type: 'category',
       data: categories,
@@ -2323,7 +2324,7 @@ function initHist() {
     series: [
       { 
         type: 'bar', 
-        name: '🤖 IA', 
+        name: 'IA', 
         data: histIA, 
         itemStyle: { color: primary },
         barGap: '10%',  // Espaço entre barras do mesmo grupo
@@ -2331,9 +2332,9 @@ function initHist() {
       },
       { 
         type: 'bar', 
-        name: '👤 Humanos', 
+        name: 'Humanos', 
         data: histHumano, 
-        itemStyle: { color: '#2563eb' }
+        itemStyle: { color: '#60a5fa' }
       },
     ]
   });
@@ -2368,7 +2369,7 @@ function initBox() {
     grid: { left: '8%', right: '3%', bottom: '8%', top: '12%' },
     xAxis: {
       type: 'category',
-      data: ['🤖 IA', '👤 Humanos'],
+      data: ['IA', 'Humanos'],
       axisLabel: { color: '#C9C9D1', fontSize: 12 },
       axisLine: { lineStyle: { color: '#3a3a45' } }
     },
@@ -2420,7 +2421,7 @@ function initWeekly() {
         return result;
       }
     },
-    legend: { data: ['🤖 IA', '👤 Humanos'], textStyle: { color: '#DADAE3' }, top: 10 },
+    legend: { data: ['IA', 'Humanos'], textStyle: { color: '#DADAE3' }, top: 10 },
     grid: { left: '8%', right: '5%', bottom: '12%', top:'15%' },
     xAxis: {
       type: 'time', 
@@ -2434,7 +2435,7 @@ function initWeekly() {
       axisLabel: { color:'#C9C9D1' }, 
       splitLine: { lineStyle: { color:'#23232A' } }
     },
-    series: [ lineSeries('🤖 IA', weeklyIA), lineSeries('👤 Humanos', weeklyHumano) ]
+    series: [ lineSeries('IA', weeklyIA), lineSeries('Humanos', weeklyHumano) ]
   });
 }
 
@@ -2464,7 +2465,7 @@ function initMonthly() {
         return result;
       }
     },
-    legend: { data: ['🤖 IA', '👤 Humanos'], textStyle: { color: '#DADAE3' }, top: 10 },
+    legend: { data: ['IA', 'Humanos'], textStyle: { color: '#DADAE3' }, top: 10 },
     grid: { left: '8%', right: '5%', bottom: '12%', top:'15%' },
     xAxis: {
       type: 'time', 
@@ -2485,7 +2486,7 @@ function initMonthly() {
       axisLabel: { color:'#C9C9D1' }, 
       splitLine: { lineStyle: { color:'#23232A' } }
     },
-    series: [ lineSeries('🤖 IA', monthlyIA), lineSeries('👤 Humanos', monthlyHumano) ]
+    series: [ lineSeries('IA', monthlyIA), lineSeries('Humanos', monthlyHumano) ]
   });
 }
 
@@ -2517,7 +2518,7 @@ function initCDF() {
       }
     },
     legend: { 
-      data: ['🤖 IA', '👤 Humanos'], 
+      data: ['IA', 'Humanos'], 
       textStyle: { color: '#DADAE3' }, 
       top: 10 
     },
@@ -2543,7 +2544,7 @@ function initCDF() {
     },
     series: [
       {
-        name: '🤖 IA',
+        name: 'IA',
         type: 'line',
         data: cdfIA,
         smooth: true,
@@ -2561,12 +2562,12 @@ function initCDF() {
         }
       },
       {
-        name: '👤 Humanos',
+        name: 'Humanos',
         type: 'line',
         data: cdfHumano,
         smooth: true,
         symbol: 'none',
-        lineStyle: { width: 3, color: '#2563eb' },
+        lineStyle: { width: 3, color: '#60a5fa' },
         areaStyle: { 
           color: {
             type: 'linear',
@@ -2628,14 +2629,14 @@ function initVelocity() {
       }
     },
     legend: {
-      data: ['🤖 IA', '👤 Humanos'],
+      data: ['IA', 'Humanos'],
       top: 35,
       textStyle: { color: '#DADAE3', fontSize: 11 }
     },
     series: [
       // Gauge para IA
       {
-        name: '🤖 IA',
+        name: 'IA',
         type: 'gauge',
         center: ['25%', '60%'],
         radius: '70%',
@@ -2710,7 +2711,7 @@ function initVelocity() {
         data: [
           {
             value: ia.rapidoPercent,
-            name: '🤖 IA',
+            name: 'IA',
             count: ia.rapido,
             total: ia.total
           }
@@ -2718,7 +2719,7 @@ function initVelocity() {
       },
       // Gauge para Humanos
       {
-        name: '👤 Humanos',
+        name: 'Humanos',
         type: 'gauge',
         center: ['75%', '60%'],
         radius: '70%',
@@ -2728,13 +2729,13 @@ function initVelocity() {
         max: 100,
         splitNumber: 5,
         itemStyle: {
-          color: '#2563eb'
+          color: '#60a5fa'
         },
         progress: {
           show: true,
           width: 15,
           itemStyle: {
-            color: '#2563eb'
+            color: '#60a5fa'
           }
         },
         pointer: {
@@ -2793,7 +2794,7 @@ function initVelocity() {
         data: [
           {
             value: humano.rapidoPercent,
-            name: '👤 Humanos',
+            name: 'Humanos',
             count: humano.rapido,
             total: humano.total
           }
@@ -2829,13 +2830,13 @@ function initFunnel() {
         const dataIndex = params[0].dataIndex;
         const stage = funnelData[dataIndex];
         let result = `<strong>${stage.icon} ${stage.name}</strong><br/>`;
-        result += `🤖 IA: ${stage.ia} deals (${stage.iaPercent.toFixed(1)}%)<br/>`;
-        result += `👤 Humanos: ${stage.humano} deals (${stage.humanoPercent.toFixed(1)}%)`;
+        result += `IA: ${stage.ia} deals (${stage.iaPercent.toFixed(1)}%)<br/>`;
+        result += `Humanos: ${stage.humano} deals (${stage.humanoPercent.toFixed(1)}%)`;
         return result;
       }
     },
     legend: { 
-      data: ['🤖 IA', '👤 Humanos'], 
+      data: ['IA', 'Humanos'], 
       textStyle: { color: '#DADAE3' }, 
       top: 10 
     },
@@ -2859,7 +2860,7 @@ function initFunnel() {
     },
     series: [
       {
-        name: '🤖 IA',
+        name: 'IA',
         type: 'bar',
         data: iaPercents,
         itemStyle: { 
@@ -2878,11 +2879,11 @@ function initFunnel() {
         }
       },
       {
-        name: '👤 Humanos',
+        name: 'Humanos',
         type: 'bar',
         data: humanoPercents,
         itemStyle: { 
-          color: '#2563eb',
+          color: '#60a5fa',
           borderRadius: [0, 4, 4, 0]
         },
         barMaxWidth: 25,
@@ -2997,8 +2998,8 @@ function initHeatmap() {
                   <strong style="font-size: 14px;">${d.total}</strong> agendamentos total<br/>
                 </div>
                 <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid #3a3a45;">
-                  🤖 IA: <strong>${d.iaCount}</strong> (${iaPercent.toFixed(0)}%)<br/>
-                  👤 Humanos: <strong>${d.humanoCount}</strong> (${humanoPercent.toFixed(0)}%)
+                  IA: <strong>${d.iaCount}</strong> (${iaPercent.toFixed(0)}%)<br/>
+                  Humanos: <strong>${d.humanoCount}</strong> (${humanoPercent.toFixed(0)}%)
                 </div>`;
       }
     },

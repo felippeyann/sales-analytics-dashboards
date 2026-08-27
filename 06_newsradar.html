@@ -918,7 +918,7 @@ select:focus:not(:focus-visible) {
         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" stroke="var(--accent)" stroke-width="1.5"/>
         <path d="M8 7h8M8 11h8M8 15h5" stroke="var(--accent-2)" stroke-width="1.2" stroke-linecap="round"/>
       </svg>
-      <h1>📰 NewsRadar • Dashboard Editorial <span class="version-badge">v1.0</span></h1>
+      <h1>NewsRadar • Dashboard Editorial <span class="version-badge">v1.0</span></h1>
       <span class="badge">ECharts + CSV</span>
     </div>
     
@@ -959,8 +959,8 @@ select:focus:not(:focus-visible) {
             <div style="position:relative">
               <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
               <div class="chart-menu">
-                <button onclick="downloadActiveKeywordChart()">📸 Download PNG</button>
-                <button onclick="exportActiveKeywordData()">📊 Exportar CSV</button>
+                <button onclick="downloadActiveKeywordChart()">Download PNG</button>
+                <button onclick="exportActiveKeywordData()">Exportar CSV</button>
               </div>
             </div>
           </div>
@@ -1003,8 +1003,8 @@ select:focus:not(:focus-visible) {
               <div style="position:relative">
                 <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
                 <div class="chart-menu">
-                  <button onclick="downloadChartPNG('chart_theme_evolution','evolucao_temas')">📸 Download PNG</button>
-                  <button onclick="exportChartDataCSV('chart_theme_evolution','evolucao_temas')">📊 Exportar CSV</button>
+                  <button onclick="downloadChartPNG('chart_theme_evolution','evolucao_temas')">Download PNG</button>
+                  <button onclick="exportChartDataCSV('chart_theme_evolution','evolucao_temas')">Exportar CSV</button>
                 </div>
               </div>
             </div>
@@ -1030,8 +1030,8 @@ select:focus:not(:focus-visible) {
             <div style="position:relative">
               <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
               <div class="chart-menu">
-                <button onclick="downloadChartPNG('chart_sources','top_fontes')">📸 Download PNG</button>
-                <button onclick="exportChartDataCSV('chart_sources','top_fontes')">📊 Exportar CSV</button>
+                <button onclick="downloadChartPNG('chart_sources','top_fontes')">Download PNG</button>
+                <button onclick="exportChartDataCSV('chart_sources','top_fontes')">Exportar CSV</button>
               </div>
             </div>
           </div>
@@ -1048,8 +1048,8 @@ select:focus:not(:focus-visible) {
             <div style="position:relative">
               <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
               <div class="chart-menu">
-                <button onclick="downloadChartPNG('chart_sankey','sankey_temas')">📸 Download PNG</button>
-                <button onclick="exportChartDataCSV('chart_sankey','sankey_temas')">📊 Exportar CSV</button>
+                <button onclick="downloadChartPNG('chart_sankey','sankey_temas')">Download PNG</button>
+                <button onclick="exportChartDataCSV('chart_sankey','sankey_temas')">Exportar CSV</button>
               </div>
             </div>
           </div>
@@ -1802,7 +1802,7 @@ function renderActiveFilters(){
   // Adicionar contador
   const counter = document.createElement('div');
   counter.className = 'filter-counter';
-  counter.innerHTML = `<span class="icon">🔍</span> ${activeFilters.length} filtro${activeFilters.length > 1 ? 's' : ''} ativo${activeFilters.length > 1 ? 's' : ''}`;
+  counter.innerHTML = `<span class="icon"></span> ${activeFilters.length} filtro${activeFilters.length > 1 ? 's' : ''} ativo${activeFilters.length > 1 ? 's' : ''}`;
   box.appendChild(counter);
   
   // Adicionar pills
@@ -1847,7 +1847,7 @@ el('file').addEventListener('change', (ev)=>{
     complete: (res)=>{
       if(!raw.length){ 
         hideLoadingState();
-        addAlert('⚠️ CSV vazio ou inválido.','warn'); 
+        addAlert('CSV vazio ou inválido.','warn'); 
         return; 
       }
       
@@ -1857,12 +1857,12 @@ el('file').addEventListener('change', (ev)=>{
       setTimeout(() => {
         processLoadedData();
         hideLoadingState();
-        addAlert(`✅ ${raw.length} linhas processadas com sucesso!`, 'badge');
+        addAlert(`${raw.length} linhas processadas com sucesso!`, 'badge');
       }, 100);
     },
     error: (err, file) => {
       hideLoadingState();
-      addAlert(`❌ Erro ao processar o CSV: ${err.message}. Verifique o formato do arquivo.`, 'warn');
+      addAlert(`Erro ao processar o CSV: ${err.message}. Verifique o formato do arquivo.`, 'warn');
     }
   });
 });
@@ -1873,13 +1873,13 @@ function processLoadedData(){
   const misses = ['titulo','data','fonte'].filter(k=>!colmap[k]);
   
   if(misses.length){
-    addAlert('⚠️ Mapeamento incompleto para: '+misses.join(', ')+'. Use cabeçalhos padrão.', 'warn');
+    addAlert('Mapeamento incompleto para: '+misses.join(', ')+'. Use cabeçalhos padrão.', 'warn');
   }
   
   let ignoredNoDate = 0, fixedUrls = 0, duplicates = 0;
   const seen = new Set();
   
-  // ⚠️ IMPORTANTE: Deduplicação mantém APENAS a PRIMEIRA ocorrência de cada artigo
+  // IMPORTANTE: Deduplicação mantém APENAS a PRIMEIRA ocorrência de cada artigo
   // Chave única: URL (se existir) ou título+data
   // Garante que cada artigo seja analisado apenas UMA vez
   rows = raw.map(r=>{
@@ -1916,9 +1916,9 @@ function processLoadedData(){
   if(fixedUrls) messages.push(`${fixedUrls} URL(s) corrigida(s)`);
   
   if(messages.length){
-    addAlert('ℹ️ ' + messages.join(' • '), 'badge');
+    addAlert('ℹ ' + messages.join(' • '), 'badge');
   } else {
-    addAlert(`✅ ${rows.length} artigos únicos processados com sucesso!`, 'badge');
+    addAlert(`${rows.length} artigos únicos processados com sucesso!`, 'badge');
   }
 
   el('btn-download-clean').disabled = false;
@@ -2372,13 +2372,13 @@ if (header) {
 <div class="modal-overlay" id="modalMetodologia">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>📰 Metodologia - Dashboard Editorial NewsRadar</h2>
+      <h2>Metodologia - Dashboard Editorial NewsRadar</h2>
       <button class="modal-close" onclick="closeMetodologiaModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <h3>📂 Como usar este dashboard:</h3>
+      <h3>Como usar este dashboard:</h3>
       <p style="background: var(--accent-glow); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
-        📁 <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br>
+        <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br>
         <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar atividades da base de artigos do sistema.</span>
       </p>
       <ul style="margin-bottom: 16px;">
@@ -2403,7 +2403,7 @@ if (header) {
         </li>
       </ul>
 
-      <h3>🔍 Funcionalidades principais:</h3>
+      <h3>Funcionalidades principais:</h3>
       <ul>
         <li><strong>Keyword Explorer:</strong> Análise de palavras-chave com nuvem, grafo e heatmap</li>
         <li><strong>Theme Evolution:</strong> Evolução de temas ao longo do tempo</li>
@@ -2412,17 +2412,17 @@ if (header) {
         <li><strong>Insights IA:</strong> Análises contextualizadas via Google Gemini</li>
       </ul>
 
-      <h3>⚙️ Processamento automático:</h3>
+      <h3>Processamento automático:</h3>
       <ul>
-        <li>✅ <strong>Tokenização inteligente:</strong> Remove stopwords e normaliza termos</li>
-        <li>✅ <strong>Detecção de keywords:</strong> Extração de título + tags</li>
-        <li>✅ <strong>Análise de co-ocorrência:</strong> Relacionamento entre palavras-chave</li>
-        <li>✅ <strong>Agregação temporal:</strong> Agrupamento por dia/semana/mês</li>
-        <li>✅ <strong>Parseamento de datas:</strong> Suporta DD/MM/YYYY, YYYY-MM-DD e ISO</li>
-        <li>🇧🇷 <strong>Stopwords em português:</strong> Filtragem automática de artigos, preposições, etc.</li>
+        <li><strong>Tokenização inteligente:</strong> Remove stopwords e normaliza termos</li>
+        <li><strong>Detecção de keywords:</strong> Extração de título + tags</li>
+        <li><strong>Análise de co-ocorrência:</strong> Relacionamento entre palavras-chave</li>
+        <li><strong>Agregação temporal:</strong> Agrupamento por dia/semana/mês</li>
+        <li><strong>Parseamento de datas:</strong> Suporta DD/MM/YYYY, YYYY-MM-DD e ISO</li>
+        <li><strong>Stopwords em português:</strong> Filtragem automática de artigos, preposições, etc.</li>
       </ul>
 
-      <h3>📊 Visualizações disponíveis:</h3>
+      <h3>Visualizações disponíveis:</h3>
       <ul>
         <li><strong>Keyword Cloud:</strong> Nuvem de palavras com frequência</li>
         <li><strong>Keyword Network:</strong> Grafo de relacionamentos entre termos</li>
@@ -2433,7 +2433,7 @@ if (header) {
         <li><strong>Latest Articles Table:</strong> Listagem completa com filtros</li>
       </ul>
 
-      <h3>🎯 Filtros disponíveis:</h3>
+      <h3>Filtros disponíveis:</h3>
       <ul>
         <li><strong>Keyword filter:</strong> Filtrar por palavra-chave específica</li>
         <li><strong>Source filter:</strong> Filtrar por fonte/veículo</li>
@@ -2442,21 +2442,21 @@ if (header) {
         <li><strong>Table filters:</strong> Busca em título, tags e score</li>
       </ul>
 
-      <h3>💡 Dicas de uso:</h3>
+      <h3>Dicas de uso:</h3>
       <ul>
-        <li>📌 Use <strong>filtros ativos</strong> (chips ciano) para refinar análises</li>
-        <li>🤖 Clique em <strong>"🤖"</strong> nos cards para insights de IA sobre cada visualização</li>
-        <li>📥 Exporte dados limpos via <strong>"CSV Limpo"</strong></li>
-        <li>🔍 Clique em <strong>nodes do grafo</strong> para aplicar filtro de keyword</li>
-        <li>📊 Use <strong>Discord webhook</strong> para enviar resumos automaticamente</li>
+        <li>Use <strong>filtros ativos</strong> (chips ciano) para refinar análises</li>
+        <li>Clique em <strong>""</strong> nos cards para insights de IA sobre cada visualização</li>
+        <li>Exporte dados limpos via <strong>"CSV Limpo"</strong></li>
+        <li>Clique em <strong>nodes do grafo</strong> para aplicar filtro de keyword</li>
+        <li>Use <strong>Discord webhook</strong> para enviar resumos automaticamente</li>
       </ul>
 
-      <h3>⚠️ Notas técnicas:</h3>
+      <h3>Notas técnicas:</h3>
       <ul>
-        <li>🔒 <strong>100% local:</strong> Nenhum dado é enviado para servidores (exceto IA/Discord quando ativado)</li>
-        <li>⚡ <strong>Performance:</strong> Otimizado para até 10.000 artigos</li>
-        <li>🧹 <strong>Limpeza automática:</strong> Remove registros sem título ou data</li>
-        <li>🌐 <strong>Timezone:</strong> America/Sao_Paulo (UTC-3)</li>
+        <li><strong>100% local:</strong> Nenhum dado é enviado para servidores (exceto IA/Discord quando ativado)</li>
+        <li><strong>Performance:</strong> Otimizado para até 10.000 artigos</li>
+        <li><strong>Limpeza automática:</strong> Remove registros sem título ou data</li>
+        <li><strong>Timezone:</strong> America/Sao_Paulo (UTC-3)</li>
       </ul>
     </div>
   </div>

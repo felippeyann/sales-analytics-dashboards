@@ -264,7 +264,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
             <option value="0">Desligado</option>
           </select>
           <button id="refresh-btn" class="refresh-btn" title="Atualizar dados">↻</button>
-          <button id="fullscreen-btn" class="fullscreen-btn" title="Tela cheia">⛶</button>
+          <button id="fullscreen-btn" class="fullscreen-btn" title="Tela cheia"></button>
         </div>
         <div id="last-update" class="last-update">Última atualização: --</div>
       </div>
@@ -710,7 +710,7 @@ function createWeekCard(semana) {
   try {
     const card = document.createElement('div');
     card.className = 'week-card ' + semana.status;
-    const statusIcons = { batida: '✓', passada: '○', em_andamento: '→', futura: '·' };
+    const statusIcons = { batida: '', passada: '○', em_andamento: '→', futura: '·' };
     let progressClass = semana.status === 'futura' ? 'future' : semana.percentual >= 100 ? 'good' : 'progress';
     let faltanteText = '—', mediaDiariaText = '';
     if (semana.status === 'em_andamento' && semana.diasRestantes > 0) {
@@ -763,7 +763,7 @@ function createWeekCard(semana) {
       </div>
       ${semana.vendas && semana.vendas.length > 0 ? `
       <div class="week-sales">
-        <div class="week-sales-title">📋 Vendas Recentes</div>
+        <div class="week-sales-title">Vendas Recentes</div>
         ${semana.vendas.map(v => `
           <div class="week-sale-item">
             <span class="week-sale-closer">${v.closer}</span>

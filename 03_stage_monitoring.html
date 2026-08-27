@@ -582,7 +582,7 @@
 <header id="header">
   <div class="wrap">
     <div class="title">
-      <h1>📊 Monitoramento de Stages - Social Selling</h1>
+      <h1>Monitoramento de Stages - Social Selling</h1>
       <span class="badge">v1.2 PRO</span>
     </div>
     <div class="uploader">
@@ -635,7 +635,7 @@
 
     <!-- Indicador de Período de Dados -->
     <div class="data-period" id="dataPeriodIndicator" style="display:none;">
-      📅 Período: <strong id="periodStart">-</strong> até <strong id="periodEnd">-</strong>
+      Período: <strong id="periodStart">-</strong> até <strong id="periodEnd">-</strong>
       &nbsp;•&nbsp; <span class="count" id="recordCount">0</span> registros
       &nbsp;•&nbsp; <span id="uniqueDeals">0</span> deals únicos
     </div>
@@ -645,7 +645,7 @@
 
     <!-- Loading -->
     <div class="loading" id="loadingIndicator">
-      <p>📊 Carregando dados...</p>
+      <p>Carregando dados...</p>
     </div>
 
     <!-- KPIs -->
@@ -684,7 +684,7 @@
 
     <!-- Insights Summary -->
     <div class="summary-box" id="insightsSummary" style="display:none;">
-      <span class="summary-icon">💡</span>
+      <span class="summary-icon"></span>
       <div class="summary-content">
         <div class="summary-title">Insights do Funil</div>
         <div class="summary-text" id="insightsText">Carregue dados para gerar insights automáticos...</div>
@@ -1334,9 +1334,9 @@ function generateInsights(stageVolumes, avgTime, conversionRate, velocity) {
   }
   
   if (parseFloat(conversionRate) < 10) {
-    insights.push(`⚠️ Taxa de conversão de <strong>${conversionRate}%</strong> está abaixo do esperado.`);
+    insights.push(`Taxa de conversão de <strong>${conversionRate}%</strong> está abaixo do esperado.`);
   } else if (parseFloat(conversionRate) >= 20) {
-    insights.push(`✅ Taxa de conversão de <strong>${conversionRate}%</strong> está excelente!`);
+    insights.push(`Taxa de conversão de <strong>${conversionRate}%</strong> está excelente!`);
   }
   
   if (avgTime > 86400 * 3) { // mais de 3 dias
@@ -1344,7 +1344,7 @@ function generateInsights(stageVolumes, avgTime, conversionRate, velocity) {
   }
   
   if (velocity > 50) {
-    insights.push(`🚀 Alta velocidade de <strong>${velocity}</strong> movimentações/dia indica funil ativo.`);
+    insights.push(`Alta velocidade de <strong>${velocity}</strong> movimentações/dia indica funil ativo.`);
   }
   
   const insightsText = insights.length > 0 ? insights.join(' &nbsp;•&nbsp; ') : 'Dados carregados com sucesso. Explore os filtros para análises detalhadas.';
@@ -1613,8 +1613,8 @@ function renderTempoChart() {
         fontSize: 10,
         formatter: (params) => {
           const label = formatTime(params.value);
-          if (params.data.isBottleneck) return `⚠️ ${label}`;
-          if (params.data.isFastest) return `⚡ ${label}`;
+          if (params.data.isBottleneck) return `${label}`;
+          if (params.data.isFastest) return `${label}`;
           return label;
         }
       },
@@ -1635,8 +1635,8 @@ function renderTempoChart() {
       formatter: (params) => {
         const p = params[0];
         let status = '';
-        if (p.data.isBottleneck) status = '<br><span style="color:#ef4444">⚠️ GARGALO - Tempo mais alto</span>';
-        if (p.data.isFastest) status = '<br><span style="color:#22c55e">⚡ EFICIENTE - Tempo mais baixo</span>';
+        if (p.data.isBottleneck) status = '<br><span style="color:#ef4444">GARGALO - Tempo mais alto</span>';
+        if (p.data.isFastest) status = '<br><span style="color:#22c55e">EFICIENTE - Tempo mais baixo</span>';
         return `<b>${p.name}</b><br>Tempo médio: <b>${formatTime(p.value)}</b>${status}`;
       }
     }
@@ -2030,8 +2030,8 @@ function renderPerformanceChart() {
         const isBest = retention === maxRetention && retention < 100;
         
         let status = '';
-        if (isWorst) status = '<br><span style="color:#ef4444">⚠️ Menor retenção - atenção!</span>';
-        if (isBest) status = '<br><span style="color:#22c55e">✅ Melhor retenção</span>';
+        if (isWorst) status = '<br><span style="color:#ef4444">Menor retenção - atenção!</span>';
+        if (isBest) status = '<br><span style="color:#22c55e">Melhor retenção</span>';
         
         return `<b>${STAGES[stage]?.label || stage}</b>${status}<br>
           <span style="color:#9929ea">●</span> Entradas: <b>${formatNumber(data.entered)}</b><br>
@@ -2051,11 +2051,11 @@ function renderDistribuicaoChart() {
   
   // Analyze time distribution based on real data
   const timeRanges = [
-    { label: '<1h', min: 0, max: 3600, emoji: '⚡' },
-    { label: '1-6h', min: 3600, max: 21600, emoji: '🕐' },
-    { label: '6-24h', min: 21600, max: 86400, emoji: '🌅' },
-    { label: '1-3d', min: 86400, max: 259200, emoji: '📆' },
-    { label: '3-7d', min: 259200, max: 604800, emoji: '📅' },
+    { label: '<1h', min: 0, max: 3600, emoji: '' },
+    { label: '1-6h', min: 3600, max: 21600, emoji: '' },
+    { label: '6-24h', min: 21600, max: 86400, emoji: '' },
+    { label: '1-3d', min: 86400, max: 259200, emoji: '' },
+    { label: '3-7d', min: 259200, max: 604800, emoji: '' },
     { label: '>7d', min: 604800, max: Infinity, emoji: '⏳' }
   ];
   
@@ -2220,7 +2220,7 @@ function renderRankingChart() {
         fontWeight: 500,
         formatter: (value, idx) => {
           const rank = sortedStages.indexOf(value) + 1;
-          const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+          const medal = rank === 1 ? '' : rank === 2 ? '' : rank === 3 ? '' : `#${rank}`;
           return `${medal} ${value}`;
         }
       },
@@ -2311,7 +2311,7 @@ function renderRankingChart() {
           ? ((data.entered - data.exited) / data.entered * 100).toFixed(1) 
           : '100.0';
         
-        let medalBadge = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+        let medalBadge = rank === 1 ? '' : rank === 2 ? '' : rank === 3 ? '' : '';
         let tooltip = `<b>${medalBadge} #${rank} ${stage}</b><br>`;
         tooltip += `<span style="color:#22c55e">▪ Entradas:</span> ${formatNumber(data.entered)}<br>`;
         tooltip += `<span style="color:#ef4444">▪ Saídas:</span> ${formatNumber(data.exited)}<br>`;
@@ -2545,7 +2545,7 @@ function renderSaldoChart() {
         const total = params.reduce((sum, p) => sum + (p.value.value || p.value || 0), 0);
         const isPeak = date === peakDate;
         
-        let tooltip = `<b>${d}/${m}/${y}</b> ${isPeak ? '<span style="color:#22c55e">📈 PICO</span>' : ''}<br>`;
+        let tooltip = `<b>${d}/${m}/${y}</b> ${isPeak ? '<span style="color:#22c55e">PICO</span>' : ''}<br>`;
         tooltip += `Saldo Total: <b>${formatNumber(total)}</b><br><br>`;
         
         params.filter(p => (p.value.value || p.value) > 0).forEach(param => {
@@ -2596,7 +2596,7 @@ window.addEventListener('resize', function() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Dashboard de Monitoramento de Stages carregado');
+  console.log('Dashboard de Monitoramento de Stages carregado');
 });
 </script>
 

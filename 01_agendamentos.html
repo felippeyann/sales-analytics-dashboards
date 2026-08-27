@@ -329,7 +329,7 @@
     border-color: rgba(255,255,255,0.15);
   }
   .suggestions-list a::before {
-    content: '🔎';
+    content: '';
     margin-right: 8px;
   }
 
@@ -601,12 +601,12 @@
           <button id="exportPdfBtn" class="btn accent" style="margin-left:10px;" title="Exportar dashboard em PDF">Exportar PDF</button>
           
           <button class="btn-metodologia" onclick="openMetodologiaModal()">
-            📖 Metodologia
+            Metodologia
           </button>
         </div>
         
         <div class="opts" style="margin-top: 12px; padding: 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-          <label style="color: #cbd5e1; font-weight: 600;">📅 Filtro de Data:</label>
+          <label style="color: #cbd5e1; font-weight: 600;">Filtro de Data:</label>
           <label style="color: #cbd5e1;">
             Início:
             <input id="globalDateStart" type="date" class="date-filter" style="width: 140px; padding: 6px; border-radius: 6px; border: 1px solid #334155; background: #0b1220; color: #e5e7eb;">
@@ -719,11 +719,11 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-menu-wrap" data-chart="chartSquadScore" data-kind="squad" data-csv="squad_volume_score.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
             <div class="chart-menu" role="menu">
-              <button role="menuitem" onclick="sendGemini('squad', this)"><span class="icon">🤖</span> Analisar IA</button>
-              <button role="menuitem" onclick="downloadChartPNG('chartSquadScore','squads_volume_score')"><span class="icon">⬇</span> Baixar PNG</button>
-              <button role="menuitem" onclick="exportChartDataCSV('chartSquadScore','squads_volume_score')"><span class="icon">📄</span> Exportar CSV</button>
+              <button role="menuitem" onclick="sendGemini('squad', this)"><span class="icon"></span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartSquadScore','squads_volume_score')"><span class="icon">↓</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartSquadScore','squads_volume_score')"><span class="icon"></span> Exportar CSV</button>
               <hr/>
-              <button role="menuitem" id="toggleSquadTableBtn" onclick="document.getElementById('toggleSquadTableBtn').click()"><span class="icon">📊</span> Ver/Esconder Insights</button>
+              <button role="menuitem" id="toggleSquadTableBtn" onclick="document.getElementById('toggleSquadTableBtn').click()"><span class="icon"></span> Ver/Esconder Insights</button>
             </div>
           </div>
         </div>
@@ -743,11 +743,11 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-menu-wrap" data-chart="chartHeatTASquad" data-kind="ta_squad" data-csv="velocidade_ta_squad.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
             <div class="chart-menu" role="menu">
-              <button role="menuitem" onclick="sendGemini('ta_squad', this)"><span class="icon">🤖</span> Analisar IA</button>
-              <button role="menuitem" onclick="downloadChartPNG('chartHeatTASquad','velocidade_ta_squad')"><span class="icon">⬇</span> Baixar PNG</button>
-              <button role="menuitem" onclick="exportChartDataCSV('chartHeatTASquad','velocidade_ta_squad')"><span class="icon">📄</span> Exportar CSV</button>
+              <button role="menuitem" onclick="sendGemini('ta_squad', this)"><span class="icon"></span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartHeatTASquad','velocidade_ta_squad')"><span class="icon">↓</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartHeatTASquad','velocidade_ta_squad')"><span class="icon"></span> Exportar CSV</button>
               <hr/>
-              <button role="menuitem" onclick="document.getElementById('toggleTASquadBtn').click()"><span class="icon">📊</span> Ver/Esconder Insights</button>
+              <button role="menuitem" onclick="document.getElementById('toggleTASquadBtn').click()"><span class="icon"></span> Ver/Esconder Insights</button>
             </div>
           </div>
           <button id="toggleTASquadBtn" class="btn secondary" style="display:none">Ver Insights</button>
@@ -768,9 +768,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-menu-wrap" data-chart="chartSDR" data-kind="sdr" data-csv="sdr_produtividade.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
             <div class="chart-menu" role="menu">
-              <button role="menuitem" onclick="sendGemini('sdr', this)"><span class="icon">🤖</span> Analisar IA</button>
-              <button role="menuitem" onclick="downloadChartPNG('chartSDR','sdr_produtividade')"><span class="icon">⬇</span> Baixar PNG</button>
-              <button role="menuitem" onclick="exportChartDataCSV('chartSDR','sdr_produtividade')"><span class="icon">📄</span> Exportar CSV</button>
+              <button role="menuitem" onclick="sendGemini('sdr', this)"><span class="icon"></span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartSDR','sdr_produtividade')"><span class="icon">↓</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartSDR','sdr_produtividade')"><span class="icon"></span> Exportar CSV</button>
             </div>
           </div>
         </div>
@@ -789,9 +789,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-menu-wrap" data-chart="chartCloserScore" data-kind="closer" data-csv="closers_score.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
             <div class="chart-menu" role="menu">
-              <button role="menuitem" onclick="sendGemini('closer', this)"><span class="icon">🤖</span> Analisar IA</button>
-              <button role="menuitem" onclick="downloadChartPNG('chartCloserScore','closers_score')"><span class="icon">⬇</span> Baixar PNG</button>
-              <button role="menuitem" onclick="exportChartDataCSV('chartCloserScore','closers_score')"><span class="icon">📄</span> Exportar CSV</button>
+              <button role="menuitem" onclick="sendGemini('closer', this)"><span class="icon"></span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartCloserScore','closers_score')"><span class="icon">↓</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartCloserScore','closers_score')"><span class="icon"></span> Exportar CSV</button>
             </div>
           </div>
         </div>
@@ -809,9 +809,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-menu-wrap" data-chart="chartSource" data-kind="source" data-csv="fontes_volume.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
             <div class="chart-menu" role="menu">
-              <button role="menuitem" onclick="sendGemini('source', this)"><span class="icon">🤖</span> Analisar IA</button>
-              <button role="menuitem" onclick="downloadChartPNG('chartSource','fontes_volume')"><span class="icon">⬇</span> Baixar PNG</button>
-              <button role="menuitem" onclick="exportChartDataCSV('chartSource','fontes_volume')"><span class="icon">📄</span> Exportar CSV</button>
+              <button role="menuitem" onclick="sendGemini('source', this)"><span class="icon"></span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartSource','fontes_volume')"><span class="icon">↓</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartSource','fontes_volume')"><span class="icon"></span> Exportar CSV</button>
             </div>
           </div>
         </div>
@@ -833,9 +833,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-menu-wrap" data-chart="chartCampaign" data-kind="campaign" data-csv="campanhas_top10_score.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
             <div class="chart-menu" role="menu">
-              <button role="menuitem" onclick="sendGemini('campaign', this)"><span class="icon">🤖</span> Analisar IA</button>
-              <button role="menuitem" onclick="downloadChartPNG('chartCampaign','campanhas_top10_score')"><span class="icon">⬇</span> Baixar PNG</button>
-              <button role="menuitem" onclick="exportChartDataCSV('chartCampaign','campanhas_top10_score')"><span class="icon">📄</span> Exportar CSV</button>
+              <button role="menuitem" onclick="sendGemini('campaign', this)"><span class="icon"></span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartCampaign','campanhas_top10_score')"><span class="icon">↓</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartCampaign','campanhas_top10_score')"><span class="icon"></span> Exportar CSV</button>
             </div>
           </div>
         </div>
@@ -853,9 +853,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-menu-wrap" data-chart="chartScore" data-kind="score" data-csv="score_distribuicao.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
             <div class="chart-menu" role="menu">
-              <button role="menuitem" onclick="sendGemini('score', this)"><span class="icon">🤖</span> Analisar IA</button>
-              <button role="menuitem" onclick="downloadChartPNG('chartScore','score_distribuicao')"><span class="icon">⬇</span> Baixar PNG</button>
-              <button role="menuitem" onclick="exportChartDataCSV('chartScore','score_distribuicao')"><span class="icon">📄</span> Exportar CSV</button>
+              <button role="menuitem" onclick="sendGemini('score', this)"><span class="icon"></span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartScore','score_distribuicao')"><span class="icon">↓</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartScore','score_distribuicao')"><span class="icon"></span> Exportar CSV</button>
             </div>
           </div>
         </div>
@@ -873,9 +873,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-menu-wrap" data-chart="chartTADist" data-kind="ta_dist" data-csv="ta_distribuicao.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
             <div class="chart-menu" role="menu">
-              <button role="menuitem" onclick="sendGemini('ta_dist', this)"><span class="icon">🤖</span> Analisar IA</button>
-              <button role="menuitem" onclick="downloadChartPNG('chartTADist','ta_distribuicao')"><span class="icon">⬇</span> Baixar PNG</button>
-              <button role="menuitem" onclick="exportChartDataCSV('chartTADist','ta_distribuicao')"><span class="icon">📄</span> Exportar CSV</button>
+              <button role="menuitem" onclick="sendGemini('ta_dist', this)"><span class="icon"></span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartTADist','ta_distribuicao')"><span class="icon">↓</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartTADist','ta_distribuicao')"><span class="icon"></span> Exportar CSV</button>
             </div>
           </div>
         </div>
@@ -899,9 +899,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-menu-wrap" data-chart="chartNestedTags" data-kind="tags_composition" data-csv="tags_composicao.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
             <div class="chart-menu" role="menu">
-              <button role="menuitem" onclick="sendGemini('tags_composition', this)"><span class="icon">🤖</span> Analisar IA</button>
-              <button role="menuitem" onclick="downloadChartPNG('chartNestedTags','tags_composicao')"><span class="icon">⬇</span> Baixar PNG</button>
-              <button role="menuitem" onclick="exportChartDataCSV('chartNestedTags','tags_composicao')"><span class="icon">📄</span> Exportar CSV</button>
+              <button role="menuitem" onclick="sendGemini('tags_composition', this)"><span class="icon"></span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartNestedTags','tags_composicao')"><span class="icon">↓</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartNestedTags','tags_composicao')"><span class="icon"></span> Exportar CSV</button>
             </div>
           </div>
         </div>
@@ -916,9 +916,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-menu-wrap" data-chart="chartSquadRadar" data-kind="squads_radar" data-csv="squads_radar.csv">
             <button class="chart-menu-btn" aria-haspopup="true" aria-expanded="false" title="Ações" onclick="toggleChartMenu(this)">⋮</button>
             <div class="chart-menu" role="menu">
-              <button role="menuitem" onclick="sendGemini('squad_radar', this)"><span class="icon">🤖</span> Analisar IA</button>
-              <button role="menuitem" onclick="downloadChartPNG('chartSquadRadar','squad_radar')"><span class="icon">⬇</span> Baixar PNG</button>
-              <button role="menuitem" onclick="exportChartDataCSV('chartSquadRadar','squad_radar')"><span class="icon">📄</span> Exportar CSV</button>
+              <button role="menuitem" onclick="sendGemini('squad_radar', this)"><span class="icon"></span> Analisar IA</button>
+              <button role="menuitem" onclick="downloadChartPNG('chartSquadRadar','squad_radar')"><span class="icon">↓</span> Baixar PNG</button>
+              <button role="menuitem" onclick="exportChartDataCSV('chartSquadRadar','squad_radar')"><span class="icon"></span> Exportar CSV</button>
             </div>
           </div>
         </div>
@@ -1204,7 +1204,7 @@ function renderFilterPanel(){
     chip.style.background = 'linear-gradient(135deg,rgba(249,115,22,0.15) 0%,rgba(249,115,22,0.05) 100%)';
     chip.style.borderColor = 'rgba(249,115,22,0.3)';
     const lc = document.createElement('div'); lc.className = 'filter-chip-label';
-    const lt = document.createElement('strong'); lt.textContent = '📅 Período'; lt.style.color = '#fb923c';
+    const lt = document.createElement('strong'); lt.textContent = 'Período'; lt.style.color = '#fb923c';
     const [sy,sm,sd] = globalDateStart.split('-').map(Number);
     const [ey,em,ed] = globalDateEnd.split('-').map(Number);
     const startFmt = new Date(sy,sm-1,sd).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -1212,7 +1212,7 @@ function renderFilterPanel(){
     const lv = document.createElement('div'); lv.className = 'filter-chip-value';
     lv.textContent = `${startFmt} → ${endFmt}`;
     lc.appendChild(lt); lc.appendChild(lv);
-    const rb = document.createElement('button'); rb.type='button'; rb.className='chip-remove'; rb.innerHTML='✕';
+    const rb = document.createElement('button'); rb.type='button'; rb.className='chip-remove'; rb.innerHTML='';
     rb.addEventListener('click', ()=>{
       globalDateStart=null; globalDateEnd=null;
       const s=document.getElementById('globalDateStart'); if(s) s.value='';
@@ -1231,7 +1231,7 @@ function renderFilterPanel(){
     const lv = document.createElement('div'); lv.className = 'filter-chip-value';
     lv.textContent = filter.label || filter.value; lv.title = filter.label || filter.value;
     lc.appendChild(lt); lc.appendChild(lv);
-    const rb = document.createElement('button'); rb.type='button'; rb.className='chip-remove'; rb.innerHTML='✕';
+    const rb = document.createElement('button'); rb.type='button'; rb.className='chip-remove'; rb.innerHTML='';
     rb.addEventListener('click', ()=> removeGlobalFilter(filter.key));
     chip.appendChild(lc); chip.appendChild(rb); chipsContainer.appendChild(chip);
   });
@@ -2294,7 +2294,7 @@ fileInput.addEventListener('change', async (e) => {
     if (!file) return;
     
     try {
-        console.log('📂 Carregando arquivo:', file.name);
+        console.log('Carregando arquivo:', file.name);
         
         // Carrega e processa TODOS os dados
         rawRows = await loadCSV(file);
@@ -2318,7 +2318,7 @@ fileInput.addEventListener('change', async (e) => {
         buildAll(DATA);
         renderFilterPanel();
         
-        console.log(`✅ Dashboard carregado: ${DATA.length} registros processados`);
+        console.log(`Dashboard carregado: ${DATA.length} registros processados`);
         
     } catch (error) {
         console.error("Erro ao processar:", error);
@@ -2358,7 +2358,7 @@ document.getElementById('applyGlobalDate').addEventListener('click', () => {
     const startFormatted = startDateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const endFormatted = endDateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     
-    infoEl.textContent = `✓ Filtro ativo: ${startFormatted} → ${endFormatted}`;
+    infoEl.textContent = `Filtro ativo: ${startFormatted} → ${endFormatted}`;
     infoEl.style.color = '#22c55e';
     
     applyAndRender();
@@ -2463,13 +2463,13 @@ function enableSuggestions(){
 <div class="modal-overlay" id="modalMetodologia">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>📖 Metodologia - Análise de Agendamentos</h2>
+      <h2>Metodologia - Análise de Agendamentos</h2>
       <button class="modal-close" onclick="closeMetodologiaModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <h3>📂 Como usar este dashboard:</h3>
+      <h3>Como usar este dashboard:</h3>
       <p style="background: rgba(153,41,234,0.15); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
-        📁 <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br>
+        <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br>
         <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar atividades de agendamentos do CRM (contém UTMs, Squad, TA).</span>
       </p>
       <ul style="margin-bottom: 16px;">
@@ -2485,7 +2485,7 @@ function enableSuggestions(){
         </li>
       </ul>
 
-      <h3>🔍 Funcionalidades principais:</h3>
+      <h3>Funcionalidades principais:</h3>
       <ul>
         <li><strong>Filtro Global de Datas:</strong> Configure o período de análise desejado</li>
         <li><strong>UTM Flow (Sankey):</strong> Visualize o fluxo de <code>utm_source → utm_campaign → utm_content</code></li>
@@ -2494,16 +2494,16 @@ function enableSuggestions(){
         <li><strong>Análises IA:</strong> Insights automatizados via Google Gemini</li>
       </ul>
 
-      <h3>⚙️ Processamento automático:</h3>
+      <h3>Processamento automático:</h3>
       <ul>
-        <li>✅ <strong>Deduplicação:</strong> Remove registros duplicados por <code>deal_id</code></li>
-        <li>✅ <strong>Normalização de origens:</strong> Padroniza nomes (Facebook Ads, Google Ads, etc.)</li>
-        <li>✅ <strong>Normalização de status:</strong> Agrupa variações de WON/LOST/OPEN</li>
-        <li>✅ <strong>Parseamento de datas:</strong> Suporta formatos DD/MM/YYYY e ISO</li>
-        <li>✅ <strong>Cálculo de métricas:</strong> Taxa de conversão, qualidade, velocidade</li>
+        <li><strong>Deduplicação:</strong> Remove registros duplicados por <code>deal_id</code></li>
+        <li><strong>Normalização de origens:</strong> Padroniza nomes (Facebook Ads, Google Ads, etc.)</li>
+        <li><strong>Normalização de status:</strong> Agrupa variações de WON/LOST/OPEN</li>
+        <li><strong>Parseamento de datas:</strong> Suporta formatos DD/MM/YYYY e ISO</li>
+        <li><strong>Cálculo de métricas:</strong> Taxa de conversão, qualidade, velocidade</li>
       </ul>
 
-      <h3>📊 Visualizações disponíveis:</h3>
+      <h3>Visualizações disponíveis:</h3>
       <ul>
         <li><strong>Distribuição por Origem:</strong> Quantidade e taxa de conversão</li>
         <li><strong>Tendência Temporal:</strong> Evolução de agendamentos ao longo do tempo</li>
@@ -2512,12 +2512,12 @@ function enableSuggestions(){
         <li><strong>Heatmaps:</strong> Correlações entre dimensões</li>
       </ul>
 
-      <h3>💡 Dicas de uso:</h3>
+      <h3>Dicas de uso:</h3>
       <ul>
-        <li>📌 Use <strong>filtros interativos</strong> no painel lateral para análises focadas</li>
-        <li>🤖 Clique em <strong>"🤖"</strong> nos gráficos para insights de IA contextualizados</li>
-        <li>📥 Exporte gráficos como <strong>PNG</strong> ou dados como <strong>CSV</strong></li>
-        <li>📄 Use <strong>"Exportar PDF"</strong> para relatórios completos</li>
+        <li>Use <strong>filtros interativos</strong> no painel lateral para análises focadas</li>
+        <li>Clique em <strong>""</strong> nos gráficos para insights de IA contextualizados</li>
+        <li>Exporte gráficos como <strong>PNG</strong> ou dados como <strong>CSV</strong></li>
+        <li>Use <strong>"Exportar PDF"</strong> para relatórios completos</li>
       </ul>
     </div>
   </div>

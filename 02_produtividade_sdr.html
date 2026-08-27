@@ -477,24 +477,24 @@
   <header>
     <div class="wrap">
       <div class="title">
-        <h1>📊 Produtividade SDR</h1>
+        <h1>Produtividade SDR</h1>
         <span class="badge">Analytics Hub v1.0</span>
-        <button id="healthCheckBtn" style="margin-left: auto; padding: 6px 12px; background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; display: none; font-family: inherit;">🩺 Diagnóstico</button>
+        <button id="healthCheckBtn" style="margin-left: auto; padding: 6px 12px; background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; display: none; font-family: inherit;">Diagnóstico</button>
       </div>
       
       <div class="uploader">
         <input type="file" id="csvFile" accept=".csv" />
-        <span id="fileStatus" class="hint">⚠️ CSV de <strong>atividades</strong> (activity_date, activity_type, user_id, duration)</span>
+        <span id="fileStatus" class="hint">CSV de <strong>atividades</strong> (activity_date, activity_type, user_id, duration)</span>
       </div>
       
       <div class="controls">
         <div class="control-group">
-          <label>📅 Data Início:</label>
+          <label>Data Início:</label>
           <input type="date" id="dateStart" style="padding: 8px; border-radius: 8px; border: 1px solid var(--grid); background: var(--card); color: var(--text); font-family: inherit;" />
         </div>
         
         <div class="control-group">
-          <label>📅 Data Fim:</label>
+          <label>Data Fim:</label>
           <input type="date" id="dateEnd" style="padding: 8px; border-radius: 8px; border: 1px solid var(--grid); background: var(--card); color: var(--text); font-family: inherit;" />
         </div>
         
@@ -539,7 +539,7 @@
       </div>
       
       <div id="emptyState" class="empty-state">
-        <h3>📁 Nenhum arquivo carregado</h3>
+        <h3>Nenhum arquivo carregado</h3>
         <p>Faça upload do CSV agregado de produtividade SDR</p>
         <p style="font-size: 12px; margin-top: 12px; color: var(--muted);">
           Colunas esperadas: Data, Nome, Agendamentos, Reuniões realizadas, Ligações, Emails, Tarefas, Quantidade, WhatsApp, Tentativas, Conexões, Duração (HH:MM)
@@ -760,7 +760,7 @@
      * Deve ser chamada após aggregateActivities() para debug
      */
     function validateDataConsistency() {
-      console.log('🔍 Validando consistência dos dados...');
+      console.log('Validando consistência dos dados...');
       
       // Somar totais de RAW (agregado)
       const aggregatedTotals = {
@@ -792,15 +792,15 @@
         const match = agg === raw;
         
         if (!match) {
-          console.error(`❌ INCONSISTÊNCIA em ${key}: Agregado=${agg}, Bruto=${raw}`);
+          console.error(`INCONSISTÊNCIA em ${key}: Agregado=${agg}, Bruto=${raw}`);
           hasErrors = true;
         } else {
-          console.log(`✅ ${key}: ${agg} (consistente)`);
+          console.log(`${key}: ${agg} (consistente)`);
         }
       });
       
       if (!hasErrors) {
-        console.log('✅ Todos os dados estão consistentes!');
+        console.log('Todos os dados estão consistentes!');
       }
       
       return !hasErrors;
@@ -1021,14 +1021,14 @@
           setTimeout(() => {
             processData(chunks);
             loadingBar.style.display = 'none';
-            document.getElementById('fileStatus').textContent = `✅ ${chunks.length.toLocaleString()} linhas carregadas`;
+            document.getElementById('fileStatus').textContent = `${chunks.length.toLocaleString()} linhas carregadas`;
           }, 500);
         },
         error: (err) => {
           console.error('Erro ao ler CSV:', err);
           alert('Erro ao processar CSV: ' + err.message);
           loadingBar.style.display = 'none';
-          document.getElementById('fileStatus').textContent = '❌ Erro';
+          document.getElementById('fileStatus').textContent = 'Erro';
         }
       });
     });
@@ -1041,9 +1041,9 @@
       }
       
       const headers = Object.keys(rows[0]);
-      console.log('🔍 Headers detectados:', headers);
-      console.log('🔍 TODAS as colunas disponíveis:', headers.join(', '));
-      console.log('🔍 Primeira linha de exemplo (completa):', rows[0]);
+      console.log('Headers detectados:', headers);
+      console.log('TODAS as colunas disponíveis:', headers.join(', '));
+      console.log('Primeira linha de exemplo (completa):', rows[0]);
       
       // Verificar colunas relacionadas a resultado/status de atividade
       const resultColumns = headers.filter(h => 
@@ -1053,7 +1053,7 @@
         h.toLowerCase().includes('answered') ||
         h.toLowerCase().includes('responded')
       );
-      console.log('🔍 Colunas de resultado/status encontradas:', resultColumns.length > 0 ? resultColumns : 'Nenhuma');
+      console.log('Colunas de resultado/status encontradas:', resultColumns.length > 0 ? resultColumns : 'Nenhuma');
       
       // Detectar se é CSV de atividades (activity_date, activity_type, user_id)
       const isActivityCSV = headers.includes('activity_date') && headers.includes('activity_type') && headers.includes('user_id');
@@ -1063,7 +1063,7 @@
         return;
       }
       
-      console.log('✅ CSV de atividades detectado. Processando...');
+      console.log('CSV de atividades detectado. Processando...');
       
       RAW = [];
       RAW_ACTIVITIES = [];   // substitui a base a cada carga, em vez de acumular
@@ -1085,7 +1085,7 @@
         // Aplicar whitelist
         if (!SDR_WHITELIST.includes(sdrName)) {
           whitelistRejects++;
-          if (whitelistRejects <= 5) console.log(`🚫 SDR não está na whitelist: "${sdrName}" (user_id: ${row.user_id})`);
+          if (whitelistRejects <= 5) console.log(`SDR não está na whitelist: "${sdrName}" (user_id: ${row.user_id})`);
           return;
         }
         
@@ -1132,7 +1132,7 @@
         });
       });
       
-      console.log(`📊 Resumo do processamento:`);
+      console.log(`Resumo do processamento:`);
       console.log(`  - Total de linhas no CSV: ${rows.length}`);
       console.log(`  - Linhas ignoradas (sem data): ${skippedCount}`);
       console.log(`  - Rejeitadas (whitelist): ${whitelistRejects}`);
@@ -1141,7 +1141,7 @@
       console.log(`  - SDRs únicos:`, [...new Set(RAW_ACTIVITIES.map(r => r.sdr))]);
       
       if (emptyTypeCount > 0) {
-        console.warn(`⚠️ ATENÇÃO: ${emptyTypeCount} atividades sem tipo! Verifique os objetos completos acima.`);
+        console.warn(`ATENÇÃO: ${emptyTypeCount} atividades sem tipo! Verifique os objetos completos acima.`);
       }
       
       if (RAW_ACTIVITIES.length === 0) {
@@ -1162,7 +1162,7 @@
         return;
       }
       
-      console.log('🩺 Executando diagnóstico de saúde dos dados...');
+      console.log('Executando diagnóstico de saúde dos dados...');
       
       // 1. Análise de completude
       const totalRows = RAW_ACTIVITIES.length;
@@ -1202,19 +1202,19 @@
       // Verificar duração sempre zero
       const totalDuration = RAW_ACTIVITIES.reduce((sum, r) => sum + parseFloat(r.duration || 0), 0);
       if (totalDuration === 0) {
-        warnings.push('⚠️ Todas as durações (duration) são 0 - Conexões e Duração sempre zeradas');
+        warnings.push('Todas as durações (duration) são 0 - Conexões e Duração sempre zeradas');
       }
       
       // Verificar SDRs com poucas atividades
       Object.entries(sdrStats).forEach(([sdr, stats]) => {
         if (stats.total < 10) {
-          warnings.push(`⚠️ ${sdr} tem apenas ${stats.total} atividades no período`);
+          warnings.push(`${sdr} tem apenas ${stats.total} atividades no período`);
         }
       });
       
       // Verificar cobertura temporal
       if (parseFloat(coveragePercent) < 70) {
-        warnings.push(`⚠️ Cobertura temporal baixa: ${coveragePercent}% (${uniqueDates.length} de ${expectedDays} dias com dados)`);
+        warnings.push(`Cobertura temporal baixa: ${coveragePercent}% (${uniqueDates.length} de ${expectedDays} dias com dados)`);
       }
       
       // Verificar tipos de atividade desconhecidos
@@ -1222,27 +1222,27 @@
       const unknownTypes = uniqueTypes.filter(type => !knownTypes.includes(type));
       
       if (unknownTypes.includes('UNKNOWN') || unknownTypes.includes('undefined')) {
-        issues.push(`❌ CSV sem coluna de tipo de atividade válida! Verifique o console para ver as colunas disponíveis.`);
+        issues.push(`CSV sem coluna de tipo de atividade válida! Verifique o console para ver as colunas disponíveis.`);
       }
       
       unknownTypes.forEach(type => {
         if (type !== 'UNKNOWN' && type !== 'undefined') {
-          warnings.push(`⚠️ Tipo de atividade não mapeado: "${type}" - Adicione ao switch case se necessário`);
+          warnings.push(`Tipo de atividade não mapeado: "${type}" - Adicione ao switch case se necessário`);
         }
       });
       
       // Montar relatório
-      let report = '🩺 DIAGNÓSTICO DE SAÚDE DOS DADOS\n';
+      let report = 'DIAGNÓSTICO DE SAÚDE DOS DADOS\n';
       report += '═'.repeat(60) + '\n\n';
       
-      report += '📊 VISÃO GERAL\n';
+      report += 'VISÃO GERAL\n';
       report += `  • Total de atividades: ${totalRows.toLocaleString('pt-BR')}\n`;
       report += `  • Período: ${dateRange.min} até ${dateRange.max} (${daysDiff} dias)\n`;
       report += `  • Dias com dados: ${uniqueDates.length} (${coveragePercent}% cobertura)\n`;
       report += `  • SDRs ativos: ${uniqueSDRs.length}\n`;
       report += `  • Tipos de atividade: ${uniqueTypes.length}\n\n`;
       
-      report += '📈 DISTRIBUIÇÃO POR TIPO\n';
+      report += 'DISTRIBUIÇÃO POR TIPO\n';
       Object.entries(typeDistribution)
         .sort((a, b) => b[1] - a[1])
         .forEach(([type, count]) => {
@@ -1251,7 +1251,7 @@
         });
       report += '\n';
       
-      report += '👥 TOP 5 SDRs (por volume)\n';
+      report += 'TOP 5 SDRs (por volume)\n';
       Object.entries(sdrStats)
         .sort((a, b) => b[1].total - a[1].total)
         .slice(0, 5)
@@ -1262,25 +1262,25 @@
       report += '\n';
       
       if (warnings.length > 0) {
-        report += '⚠️ AVISOS\n';
+        report += 'AVISOS\n';
         warnings.forEach(w => report += `  ${w}\n`);
         report += '\n';
       }
       
       if (issues.length > 0) {
-        report += '❌ PROBLEMAS CRÍTICOS\n';
+        report += 'PROBLEMAS CRÍTICOS\n';
         issues.forEach(i => report += `  ${i}\n`);
         report += '\n';
-        report += '💡 AÇÃO NECESSÁRIA\n';
+        report += 'AÇÃO NECESSÁRIA\n';
         report += '  → Abra o Console (F12) e verifique:\n';
-        report += '     • Mensagem: "🔍 TODAS as colunas disponíveis:"\n';
+        report += '     • Mensagem: "TODAS as colunas disponíveis:"\n';
         report += '     • Mensagem: "Linha completa:" (primeiras 5 linhas)\n';
         report += '  → Identifique qual coluna contém o tipo de atividade\n';
         report += '  → Reporte ao desenvolvedor para ajuste do código\n\n';
       }
       
       if (issues.length === 0 && warnings.length === 0) {
-        report += '✅ Nenhum problema detectado!\n\n';
+        report += 'Nenhum problema detectado!\n\n';
       }
       
       report += '═'.repeat(60);
@@ -1314,14 +1314,14 @@
       `;
       
       const title = document.createElement('h3');
-      title.textContent = '🩺 Diagnóstico de Saúde dos Dados';
+      title.textContent = 'Diagnóstico de Saúde dos Dados';
       title.style.cssText = 'margin: 0; color: #22c55e; font-size: 18px;';
       
       const btnGroup = document.createElement('div');
       btnGroup.style.cssText = 'display: flex; gap: 8px;';
       
       const copyBtn = document.createElement('button');
-      copyBtn.textContent = '📋 Copiar';
+      copyBtn.textContent = 'Copiar';
       copyBtn.style.cssText = `
         padding: 6px 12px; background: var(--accent-glow); 
         color: var(--accent); border: 1px solid rgba(37,99,235,0.3); 
@@ -1331,7 +1331,7 @@
       copyBtn.onclick = () => {
         navigator.clipboard.writeText(report).then(() => {
           const originalText = copyBtn.textContent;
-          copyBtn.textContent = '✅ Copiado!';
+          copyBtn.textContent = 'Copiado!';
           copyBtn.style.background = 'rgba(34,197,94,0.2)';
           copyBtn.style.color = '#22c55e';
           copyBtn.style.borderColor = 'rgba(34,197,94,0.3)';
@@ -1347,7 +1347,7 @@
       };
       
       const closeBtn = document.createElement('button');
-      closeBtn.textContent = '✕';
+      closeBtn.textContent = '';
       closeBtn.style.cssText = `
         padding: 6px 12px; background: rgba(239,68,68,0.2); 
         color: #ef4444; border: 1px solid rgba(239,68,68,0.3); 
@@ -1380,8 +1380,8 @@
     }
     
     function aggregateActivities() {
-      console.log('🔄 Agregando atividades por data e SDR...');
-      console.log('ℹ️  Usando funções globais de cálculo para garantir consistência');
+      console.log('Agregando atividades por data e SDR...');
+      console.log('ℹ  Usando funções globais de cálculo para garantir consistência');
       
       const byDateSdr = {};
       
@@ -1390,7 +1390,7 @@
       RAW_ACTIVITIES.forEach(row => {
         typeCount[row.type] = (typeCount[row.type] || 0) + 1;
       });
-      console.log('📊 Distribuição de tipos de atividade:', typeCount);
+      console.log('Distribuição de tipos de atividade:', typeCount);
       
       RAW_ACTIVITIES.forEach(row => {
         const key = `${row.date}__${row.sdr}`;
@@ -1446,12 +1446,12 @@
       });
       
       RAW = Object.values(byDateSdr);
-      console.log(`✅ Atividades agregadas: ${RAW.length} linhas (data × SDR)`);
+      console.log(`Atividades agregadas: ${RAW.length} linhas (data × SDR)`);
       
       // Debug: mostrar amostra de agregados
       const sample = RAW.slice(0, 3);
       sample.forEach(s => {
-        console.log(`  📋 ${s.sdr} - ${s.dateDisplay}: Ligações=${s.ligacoes}, Tentativas=${s.tentativas}, Conexões=${s.conexoes}, Agendamentos=${s.agendamentos}, Quantidade=${s.quantidade}`);
+        console.log(`  ${s.sdr} - ${s.dateDisplay}: Ligações=${s.ligacoes}, Tentativas=${s.tentativas}, Conexões=${s.conexoes}, Agendamentos=${s.agendamentos}, Quantidade=${s.quantidade}`);
       });
       
       // Validar consistência dos dados
@@ -1468,7 +1468,7 @@
         sdrStats[row.sdr].quantidade += row.quantidade;
       });
       
-      console.log('📊 Total por SDR:');
+      console.log('Total por SDR:');
       Object.entries(sdrStats).forEach(([sdr, stats]) => {
         console.log(`  - ${sdr}: Tentativas=${stats.tentativas}, Ligações=${stats.ligacoes}, Total atividades=${stats.quantidade}`);
       });
@@ -1500,7 +1500,7 @@
     
     // ==================== FILTERS & AGGREGATION ====================
     function applyFilters() {
-      console.log('🔄 Aplicando filtros...');
+      console.log('Aplicando filtros...');
       
       const selectedSDR = document.getElementById('sdrSelect').value;
       const hideWeekends = document.getElementById('hideWeekends').checked;
@@ -1526,7 +1526,7 @@
       
       // Filtrar por SDR ou calcular média/total
       if (selectedSDR === 'Todos_Media') {
-        console.log('  📊 Calculando média do time...');
+        console.log('  Calculando média do time...');
         
         // Remover datas excluídas
         const beforeExclusion = filtered.length;
@@ -1582,7 +1582,7 @@
           duracao: avg(d.duracao) // Duração pode ser decimal (minutos)
         }));
       } else if (selectedSDR === 'Todos_Total') {
-        console.log('  📊 Calculando total absoluto do time...');
+        console.log('  Calculando total absoluto do time...');
         
         // Agrupar por data e somar
         const byDate = {};
@@ -1620,7 +1620,7 @@
         
         DATA = Object.values(byDate);
       } else {
-        console.log(`  👤 Filtrando por SDR individual: ${selectedSDR}`);
+        console.log(`  Filtrando por SDR individual: ${selectedSDR}`);
         
         // Filtrar por SDR individual
         filtered = filtered.filter(r => r.sdr === selectedSDR);
@@ -1698,7 +1698,7 @@
         console.log(`  - Dias zerados removidos: ${beforeZeros - DATA.length}`);
       }
       
-      console.log(`✅ Filtros aplicados. DATA final: ${DATA.length} linhas`);
+      console.log(`Filtros aplicados. DATA final: ${DATA.length} linhas`);
       if (DATA.length > 0) {
         console.log('  - Primeira linha:', DATA[0]);
         console.log('  - Última linha:', DATA[DATA.length - 1]);
@@ -1715,11 +1715,11 @@
     
     // ==================== RENDERING ====================
     function renderMetricsToggles() {
-      console.log('🎨 Renderizando checkboxes de métricas...');
+      console.log('Renderizando checkboxes de métricas...');
       const container = document.getElementById('metricsToggles');
       
       if (!container) {
-        console.error('❌ Container metricsToggles não encontrado!');
+        console.error('Container metricsToggles não encontrado!');
         return;
       }
       
@@ -1749,7 +1749,7 @@
         checkbox.id = `metric_${metric.key}`;
         checkbox.checked = activeMetrics.includes(metric.key);
         checkbox.addEventListener('change', (e) => {
-          console.log(`📊 Checkbox ${metric.key} alterado para: ${e.target.checked}`);
+          console.log(`Checkbox ${metric.key} alterado para: ${e.target.checked}`);
           console.log(`   - Antes:`, activeMetrics);
           
           if (e.target.checked) {
@@ -1781,28 +1781,28 @@
         container.appendChild(div);
         
         if (idx < 3) {
-          console.log(`  ✅ [${idx}] Criado: ${metric.label} (${metric.key}) - checked: ${checkbox.checked}`);
+          console.log(`  [${idx}] Criado: ${metric.label} (${metric.key}) - checked: ${checkbox.checked}`);
         }
       });
       
-      console.log(`✅ ${availableMetrics.length} checkboxes criados no container`);
+      console.log(`${availableMetrics.length} checkboxes criados no container`);
       console.log('  - Children no container:', container.children.length);
     }
     
     // ==================== VIZ 01: TIMELINE DE ATIVIDADES ====================
     // USA DADOS DE RAW/DATA (já agregados usando funções globais)
     function renderChart() {
-      console.log('📈 Renderizando gráfico...');
+      console.log('Renderizando gráfico...');
       console.log('  - DATA.length:', DATA.length);
       console.log('  - Métricas ativas:', activeMetrics);
       console.log('  - Eixo esquerdo:', leftAxisMetric);
       console.log('  - Eixo direito:', rightAxisMetric);
       
       if (DATA.length === 0) {
-        console.warn('⚠️ Nenhum dado para renderizar');
+        console.warn('Nenhum dado para renderizar');
         document.getElementById('dashboard').style.display = 'none';
         document.getElementById('emptyState').style.display = 'block';
-        document.getElementById('emptyState').innerHTML = '<h3>🔍 Nenhum dado</h3><p>Ajuste os filtros</p>';
+        document.getElementById('emptyState').innerHTML = '<h3>Nenhum dado</h3><p>Ajuste os filtros</p>';
         return;
       }
       
@@ -1942,7 +1942,7 @@
       
       console.log('  - Aplicando configuração ao gráfico...');
       chart.setOption(option, true);
-      console.log('✅ Gráfico renderizado com sucesso!');
+      console.log('Gráfico renderizado com sucesso!');
     }
     
     // ==================== VIZ 02: RANKING DE SDRs ====================
@@ -1951,7 +1951,7 @@
       const period = parseInt(document.getElementById('ranking_period').value);
       const sortBy = document.getElementById('ranking_sort').value;
       
-      console.log('🔍 VIZ 02 - Debug Ranking:');
+      console.log('VIZ 02 - Debug Ranking:');
       console.log(`  Período selecionado: ${period === 'all' ? 'Todo período' : `Últimos ${period} dias`}`);
       console.log(`  Total de atividades brutas: ${RAW_ACTIVITIES.length}`);
       
@@ -1970,7 +1970,7 @@
       
       // Debug: verificar atividades do Alexandre Assis
       const aleksisActivities = filteredActivities.filter(a => a.sdr === 'Alexandre Assis');
-      console.log(`  🔎 Atividades de Alexandre Assis: ${aleksisActivities.length}`);
+      console.log(`  Atividades de Alexandre Assis: ${aleksisActivities.length}`);
       if (aleksisActivities.length > 0) {
         const tiposUnicos = [...new Set(aleksisActivities.map(a => a.type))];
         console.log(`    Tipos de atividade únicos:`, tiposUnicos);
@@ -1990,7 +1990,7 @@
         
         // Se não há CALLs, mostrar o que tem
         if (tentativasAleksis.length === 0) {
-          console.warn(`    ⚠️ ATENÇÃO: Alexandre não tem atividades do tipo CALL!`);
+          console.warn(`    ATENÇÃO: Alexandre não tem atividades do tipo CALL!`);
           console.log(`    Verificar tipos brutos no CSV:`, aleksisActivities.slice(0, 3).map(a => ({
             tipo_processado: a.type,
             activity_type_csv: a.rawData?.activity_type,
@@ -2031,7 +2031,7 @@
       
       // Debug: mostrar resultados da agregação
       if (bySdr['Alexandre Assis']) {
-        console.log(`  📊 Resultados agregados para Alexandre Assis:`, bySdr['Alexandre Assis']);
+        console.log(`  Resultados agregados para Alexandre Assis:`, bySdr['Alexandre Assis']);
       }
       
       // Calcular taxas
@@ -2320,14 +2320,14 @@
     // Event listeners para controles de eixo Y (VIZ 01)
     document.getElementById('leftAxisSelect')?.addEventListener('change', (e) => {
       leftAxisMetric = e.target.value;
-      console.log('🔄 Eixo esquerdo alterado para:', leftAxisMetric || 'Nenhuma');
+      console.log('Eixo esquerdo alterado para:', leftAxisMetric || 'Nenhuma');
       renderMetricsToggles(); // Recriar checkboxes com novas métricas
       renderChart();
     });
     
     document.getElementById('rightAxisSelect')?.addEventListener('change', (e) => {
       rightAxisMetric = e.target.value;
-      console.log('🔄 Eixo direito alterado para:', rightAxisMetric || 'Nenhuma');
+      console.log('Eixo direito alterado para:', rightAxisMetric || 'Nenhuma');
       renderMetricsToggles(); // Recriar checkboxes com novas métricas
       renderChart();
     });
@@ -2351,7 +2351,7 @@
         }
         dateFilterStart = start;
         dateFilterEnd = end;
-        console.log('📅 Filtro de data aplicado:', dateFilterStart, 'até', dateFilterEnd);
+        console.log('Filtro de data aplicado:', dateFilterStart, 'até', dateFilterEnd);
         applyFilters();
       } else {
         alert('Preencha ambas as datas (início e fim)');
@@ -2363,7 +2363,7 @@
       dateFilterEnd = null;
       document.getElementById('dateStart').value = '';
       document.getElementById('dateEnd').value = '';
-      console.log('📅 Filtro de data removido');
+      console.log('Filtro de data removido');
       applyFilters();
     });
     
@@ -2392,7 +2392,7 @@
   </script>
 </body>
 </html>
-    console.log('✅ Validação automática executada após agregação de dados');
+    console.log('Validação automática executada após agregação de dados');
     console.log('');
   </script>
 

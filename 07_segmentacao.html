@@ -195,7 +195,7 @@
 <body>
   <div class="container">
     <header>
-      <h1>🎯 Segmentação - Pipeline de Normalização</h1>
+      <h1>Segmentação - Pipeline de Normalização</h1>
       <div class="subtitle">Normalize múltiplas fontes de segmento usando dicionário canônico e detecte conflitos automaticamente</div>
     </header>
 
@@ -203,51 +203,51 @@
       <h2 style="margin:0 0 16px 0;font-size:18px">Upload de Arquivos</h2>
       <div class="upload-grid">
         <div class="upload-box">
-          <h3>📊 Base de Dados (CSV)</h3>
+          <h3>Base de Dados (CSV)</h3>
           <p>Upload do export do sistema CRM com campos de segmentação</p>
           <input type="file" id="csvFile" accept=".csv" />
           <div class="status" id="csvStatus"></div>
         </div>
         <div class="upload-box">
-          <h3>📚 Dicionário (CSV)</h3>
+          <h3>Dicionário (CSV)</h3>
           <p>Mapeamento termo → canônico (raw_term,segmento_canonico)</p>
           <input type="file" id="dictFile" accept=".csv" />
           <div class="status" id="dictStatus"></div>
         </div>
       </div>
-      <button class="btn" id="processBtn" disabled>🚀 Processar Segmentação</button>
+      <button class="btn" id="processBtn" disabled>Processar Segmentação</button>
     </div>
 
     <div class="results" id="results">
       <div class="stats-grid" id="statsGrid"></div>
       
       <div class="section">
-        <h2>📋 Base Enriquecida (preview)</h2>
+        <h2>Base Enriquecida (preview)</h2>
         <div style="overflow-x:auto">
           <table id="enrichedTable"></table>
         </div>
         <div class="export-buttons">
-          <button onclick="exportCSV('enriched')">⬇️ Baixar Base Enriquecida (CSV)</button>
+          <button onclick="exportCSV('enriched')">↓ Baixar Base Enriquecida (CSV)</button>
         </div>
       </div>
 
       <div class="section">
-        <h2>⚠️ Fila de Conflitos</h2>
+        <h2>Fila de Conflitos</h2>
         <div style="overflow-x:auto">
           <table id="conflictsTable"></table>
         </div>
         <div class="export-buttons">
-          <button onclick="exportCSV('conflicts')">⬇️ Baixar Conflitos (CSV)</button>
+          <button onclick="exportCSV('conflicts')">↓ Baixar Conflitos (CSV)</button>
         </div>
       </div>
 
       <div class="section">
-        <h2>🆕 Termos Novos (não mapeados)</h2>
+        <h2>Termos Novos (não mapeados)</h2>
         <div style="overflow-x:auto">
           <table id="newTermsTable"></table>
         </div>
         <div class="export-buttons">
-          <button onclick="exportCSV('newterms')">⬇️ Baixar Termos Novos (CSV)</button>
+          <button onclick="exportCSV('newterms')">↓ Baixar Termos Novos (CSV)</button>
         </div>
       </div>
     </div>
@@ -270,7 +270,7 @@
         encoding: 'UTF-8',
         complete: (results) => {
           csvData = results.data.filter(row => row['ID do negócio']); // remove empty rows
-          document.getElementById('csvStatus').textContent = `✓ ${csvData.length} registros carregados`;
+          document.getElementById('csvStatus').textContent = `${csvData.length} registros carregados`;
           document.getElementById('csvStatus').classList.add('loaded');
           checkReady();
         }
@@ -286,7 +286,7 @@
         encoding: 'UTF-8',
         complete: (results) => {
           dictData = results.data.filter(row => row.raw_term && row.segmento_canonico);
-          document.getElementById('dictStatus').textContent = `✓ ${dictData.length} mapeamentos carregados`;
+          document.getElementById('dictStatus').textContent = `${dictData.length} mapeamentos carregados`;
           document.getElementById('dictStatus').classList.add('loaded');
           checkReady();
         }
