@@ -30,6 +30,7 @@
 <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>/* theme init: follows localStorage 'theme' (set by the shell); dark by default. Runs before charts register. */(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 
 <style>
   /* ===== tokens (fonte única de verdade do arquivo) ===== */
@@ -52,6 +53,28 @@
     --muted:var(--ink-4);
     --text:var(--ink);
     --accent-2:var(--accent-soft);
+    /* chart tokens (lidos por registerDemoTheme via getComputedStyle) */
+    --c-text:#d4d4d8; --c-dim:#8a8a94; --c-legend:#a1a1aa;
+    --c-tip-bg:#131316; --c-tip-text:#d4d4d8;
+    --c-axis:rgba(248,247,243,.18); --c-border:rgba(248,247,243,.18);
+    --c-split:rgba(248,247,243,.10); --c-split-cat:rgba(248,247,243,.045); --c-split-minor:rgba(248,247,243,.035);
+  }
+  :root[data-theme="light"]{
+    --bg:#f4f3ee;
+    --dot:rgba(10,10,11,.10);
+    --panel:#ffffff;
+    --card:#faf9f4;
+    --card-h:#eef0f4;
+    --ink:#0a0a0b; --ink-2:#232328; --ink-3:#52525b; --ink-4:#71717a;
+    --accent:#2563eb;
+    --accent-soft:#1d4ed8;
+    --accent-glow:rgba(37,99,235,0.12);
+    --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+    --line:rgba(10,10,11,.12); --line-strong:rgba(10,10,11,.20);
+    --c-text:#232328; --c-dim:#6b6b73; --c-legend:#52525b;
+    --c-tip-bg:#ffffff; --c-tip-text:#232328;
+    --c-axis:rgba(10,10,11,.22); --c-border:rgba(10,10,11,.18);
+    --c-split:rgba(10,10,11,.10); --c-split-cat:rgba(10,10,11,.06); --c-split-minor:rgba(10,10,11,.04);
   }
 
 /* --- Suggestions Box Minimize --- */
@@ -862,16 +885,53 @@ const STATUS_RAMPS = {
   OPEN: ['#1e40af','#2563eb','#60a5fa','#bfdbfe']
 };
 const SEQ_BLUE = ['#16233f','#1d3a6b','#1f55a3','#2f74d0','#60a5fa'];
-echarts.registerTheme('demo', {
-  color: CAT_PALETTE,
-  backgroundColor: 'transparent',
-  textStyle: { fontFamily: '"Space Grotesk",system-ui,sans-serif', color: '#d4d4d8' },
-  legend: { textStyle: { color: '#a1a1aa', fontSize: 11 }, itemWidth: 12, itemHeight: 12, icon: 'rect' },
-  tooltip: { backgroundColor: '#131316', borderColor: 'rgba(248,247,243,.18)', borderWidth: 1, textStyle: { color: '#d4d4d8', fontSize: 12 } },
-  categoryAxis: { axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisTick: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisLabel: { color: '#8a8a94' }, splitLine: { show: true, lineStyle: { color: 'rgba(248,247,243,.045)' } } },
-  valueAxis: { axisLine: { show: false }, axisLabel: { color: '#8a8a94' }, splitLine: { lineStyle: { color: 'rgba(248,247,243,.10)' } }, minorSplitLine: { show: true, lineStyle: { color: 'rgba(248,247,243,.035)' } } }
-});
-function makeChart(el){ echarts.dispose(el); return echarts.init(el, 'demo'); }
+function cvar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+// The ECharts theme reads the chart tokens (--c-*) from CSS, so it follows light/dark. Re-run on theme switch.
+function registerDemoTheme(){
+  echarts.registerTheme('demo', {
+    color: CAT_PALETTE,
+    backgroundColor: 'transparent',
+    textStyle: { fontFamily: '"Space Grotesk",system-ui,sans-serif', color: cvar('--c-text') },
+    legend: { textStyle: { color: cvar('--c-legend'), fontSize: 11 }, itemWidth: 12, itemHeight: 12, icon: 'rect' },
+    tooltip: { backgroundColor: cvar('--c-tip-bg'), borderColor: cvar('--c-border'), borderWidth: 1, textStyle: { color: cvar('--c-tip-text'), fontSize: 12 } },
+    categoryAxis: { axisLine: { lineStyle: { color: cvar('--c-axis') } }, axisTick: { lineStyle: { color: cvar('--c-axis') } }, axisLabel: { color: cvar('--c-dim') }, splitLine: { show: true, lineStyle: { color: cvar('--c-split-cat') } } },
+    valueAxis: { axisLine: { show: false }, axisLabel: { color: cvar('--c-dim') }, splitLine: { lineStyle: { color: cvar('--c-split') } }, minorSplitLine: { show: true, lineStyle: { color: cvar('--c-split-minor') } } }
+  });
+}
+registerDemoTheme();
+// In light mode, remap only the guaranteed-neutral literals scattered in chart options:
+// the near-white grid/line rgbas -> near-black, and the dark panel bg -> the light panel.
+// Data colors (CAT/SCORE/STATUS/SEQ) and contrast text (#fff/#0a0a0b) are left untouched.
+var LIGHT_LINE_RE=/rgba\(\s*248\s*,\s*247\s*,\s*243\s*,\s*([\d.]+)\s*\)/g;
+function isLightTheme(){ return document.documentElement.getAttribute('data-theme')==='light'; }
+function remapLight(o){
+  if(o==null) return o;
+  if(typeof o==='string'){
+    var s=o.replace(LIGHT_LINE_RE,'rgba(10,10,11,$1)');
+    if(s==='#131316') s=cvar('--panel');
+    return s;
+  }
+  if(Array.isArray(o)){ for(var i=0;i<o.length;i++) o[i]=remapLight(o[i]); return o; }
+  if(typeof o==='object'){ for(var k in o){ if(Object.prototype.hasOwnProperty.call(o,k)) o[k]=remapLight(o[k]); } return o; }
+  return o;
+}
+function makeChart(el){
+  echarts.dispose(el);
+  var c=echarts.init(el, 'demo');
+  if(isLightTheme()){ var _set=c.setOption.bind(c); c.setOption=function(opt,extra){ return _set(remapLight(opt),extra); }; }
+  return c;
+}
+// Theme switch: set the attribute, re-register the token-driven theme, re-render every chart.
+function applyTheme(theme){
+  theme = theme==='light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  try{ localStorage.setItem('theme', theme); }catch(e){}
+  registerDemoTheme();
+  if(typeof applyAndRender==='function' && typeof DATA!=='undefined' && Array.isArray(DATA) && DATA.length){ applyAndRender(); }
+}
+window.applyTheme = applyTheme;
+// A sibling context (the shell) changed the theme: follow it.
+window.addEventListener('storage', function(e){ if(e && e.key==='theme'){ applyTheme(e.newValue==='light'?'light':'dark'); } });
 const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 /* ---------- Utilidades ---------- */
