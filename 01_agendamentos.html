@@ -257,6 +257,13 @@
     color: #fff;
     border-color: var(--accent);
   }
+  /* botões segmentados (seletor de visão) */
+  .seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:var(--r-sm);overflow:hidden}
+  .seg-b{background:transparent;border:0;border-right:1px solid var(--line);color:var(--ink-4);cursor:pointer;
+    font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:5px 10px;transition:background .15s,color .15s}
+  .seg-b:last-child{border-right:0}
+  .seg-b:hover{color:var(--ink-2)}
+  .seg-b.active{background:var(--accent);color:#fff}
   .topic-head.tight{align-items:flex-start}
   .topic-head.tight h2{margin-top:2px}
   .topic-head.tight .topic-actions{padding-top:2px}
@@ -707,14 +714,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <section class="card" id="trendCard">
     <div class="topic-head">
-      <h2><span data-i18n="trH">Bookings over time · by status</span>
-        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="trTip">Weekly booking volume split by outcome. Areas overlap (not stacked) so you can read where won, lost and open cross over time.</span></span>
+      <h2><span data-i18n="trH">Evolution over time</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="trTip">Weekly volume broken down by the chosen dimension. Straight lines with delicate points; the peak of each series is marked in green, the low in red. Overlapping areas reveal the crossover.</span></span>
       </h2>
       <div class="topic-actions nowrap">
-        <div class="chart-actions" data-chart="chartTrend" data-kind="trend" data-csv="evolucao_agendamentos_status"></div>
+        <div class="seg" id="trendDimSeg">
+          <button type="button" class="seg-b active" data-dim="squad" data-i18n="trDimSquad">Squad</button>
+          <button type="button" class="seg-b" data-dim="sdr" data-i18n="trDimSdr">SDR</button>
+          <button type="button" class="seg-b" data-dim="source" data-i18n="trDimSource">Source</button>
+        </div>
+        <div class="seg" id="trendMetricSeg">
+          <button type="button" class="seg-b active" data-metric="bookings" data-i18n="trMetBookings">Bookings</button>
+          <button type="button" class="seg-b" data-metric="sales" data-i18n="trMetSales">Sales</button>
+        </div>
+        <div class="chart-actions" data-chart="chartTrend" data-kind="trend" data-csv="evolucao_temporal" data-no-png="1"></div>
       </div>
     </div>
-    <div class="sub" data-i18n="trSub">Won, lost and open bookings per week. Overlapping areas reveal the crossover between outcomes.</div>
+    <div class="sub" data-i18n="trSub">Weekly bookings by the chosen dimension. Straight lines, delicate points, and the peak/low of each series highlighted.</div>
     <div id="chartTrend" class="chart tall"></div>
   </section>
 
@@ -1291,52 +1307,67 @@ function renderSunburstStatusScore(data){
   });
 }
 
-/* ---------- Evolução temporal por status (área com degradê, sobreposta) ---------- */
+/* ---------- Evolução temporal (dimensão + métrica selecionáveis) ---------- */
+let trendDim='squad', trendMetric='bookings';
+const TREND_FIELD={squad:'origin_group_name', sdr:'sdr', source:'d_utm_source'};
 function renderTrend(data){
   const el=document.getElementById('chartTrend'); if(!el) return; const chart=makeChart(el);
   if(!data.length){ chart.clear(); return; }
+  const field=TREND_FIELD[trendDim]||'origin_group_name';
+  // métrica: agendamentos (todos) ou vendas (só WON)
+  const rows=trendMetric==='sales' ? data.filter(d=>d.deal_status==='WON') : data;
+  if(!rows.length){ chart.clear(); const g=chart.getZr&&chart.getZr(); chart.setOption({graphic:{type:'text',left:'center',top:'middle',style:{text:t('noData'),fill:'#8a8a94',font:'13px "Space Grotesk"'}}}); return; }
   // granularidade adaptativa: semana se o período for curto, mês se for longo
-  const times=data.map(d=>{const iso=paraDataISO(String(d.ta_created_at||'').trim());return iso?new Date(iso.split('-').map((n,i)=>i===1?+n-1:+n)[0], (iso.split('-')[1]-1), +iso.split('-')[2]).getTime():null;}).filter(v=>v!=null);
-  if(!times.length){ chart.clear(); return; }
+  const msOf=(d)=>{ const iso=paraDataISO(String(d.ta_created_at||'').trim()); if(!iso) return null; const p=iso.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]).getTime(); };
+  const times=rows.map(msOf).filter(v=>v!=null); if(!times.length){ chart.clear(); return; }
   const span=(Math.max(...times)-Math.min(...times))/86400000;
-  const byMonth = span>140;
-  const keyOf=(ms)=>{ const d=new Date(ms); if(byMonth){ d.setDate(1); } else { d.setDate(d.getDate()-((d.getDay()+6)%7)); } d.setHours(0,0,0,0); return d.getTime(); };
+  const byMonth=span>140;
+  const keyOf=(ms)=>{ const d=new Date(ms); if(byMonth) d.setDate(1); else d.setDate(d.getDate()-((d.getDay()+6)%7)); d.setHours(0,0,0,0); return d.getTime(); };
+  // top 6 categorias da dimensão por volume (chaves internas; exibição via dispVal)
+  const totalByCat={}; rows.forEach(d=>{ const c=d[field]==null?'':d[field]; totalByCat[c]=(totalByCat[c]||0)+1; });
+  const cats=Object.entries(totalByCat).sort((a,b)=>b[1]-a[1]).slice(0,6).map(e=>e[0]);
   const buckets={};
-  data.forEach(d=>{
-    const iso=paraDataISO(String(d.ta_created_at||'').trim()); if(!iso) return;
-    const parts=iso.split('-').map(Number); const ms=new Date(parts[0],parts[1]-1,parts[2]).getTime();
-    const k=keyOf(ms); (buckets[k]=buckets[k]||{WON:0,LOST:0,OPEN:0});
-    if(buckets[k][d.deal_status]!=null) buckets[k][d.deal_status]++;
-  });
+  rows.forEach(d=>{ const ms=msOf(d); if(ms==null) return; const c=d[field]==null?'':d[field]; if(cats.indexOf(c)<0) return; const k=keyOf(ms); (buckets[k]=buckets[k]||{}); buckets[k][c]=(buckets[k][c]||0)+1; });
   const keys=Object.keys(buckets).map(Number).sort((a,b)=>a-b);
   const labels=keys.map(k=>dfmt(new Date(k)));
-  const grad=(hex)=>({type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:hexA(hex,.42)},{offset:.55,color:hexA(hex,.14)},{offset:1,color:hexA(hex,0)}]});
-  const mkSeries=(st)=>({
-    name:st, type:'line', smooth:.4, showSymbol:false, symbolSize:7,
-    z: st==='WON'?3:(st==='LOST'?2:1),
-    lineStyle:{width:2.6,color:STATUS_COLORS[st]},
-    itemStyle:{color:STATUS_COLORS[st]},
-    areaStyle:{color:grad(STATUS_COLORS[st]),origin:'start'},
-    emphasis:{focus:'series'},
-    data:keys.map(k=>buckets[k][st])
-  });
-  chartDataStore.trend={rows:['WON','LOST','OPEN'],cols:labels,data:['WON','LOST','OPEN'].map(st=>keys.map(k=>buckets[k][st]))};
+  const grad=(hex)=>({type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:hexA(hex,.24)},{offset:.6,color:hexA(hex,.06)},{offset:1,color:hexA(hex,0)}]});
+  const mkSeries=(c,i)=>{
+    const vals=keys.map(k=>(buckets[k]&&buckets[k][c])||0);
+    // destaque sutil: verde no pico, vermelho no vale de cada série
+    let maxI=0,minI=0; vals.forEach((v,j)=>{ if(v>vals[maxI])maxI=j; if(v<vals[minI])minI=j; });
+    const mp=[]; if(vals.length>1 && vals[maxI]!==vals[minI]){
+      mp.push({coord:[maxI,vals[maxI]],itemStyle:{color:'#4ade80'}});
+      mp.push({coord:[minI,vals[minI]],itemStyle:{color:'#f87171'}});
+    }
+    return {
+      name:c, type:'line', smooth:false, showSymbol:true, symbol:'circle', symbolSize:4.5,
+      lineStyle:{width:2,color:CAT_PALETTE[i%CAT_PALETTE.length]},
+      itemStyle:{color:CAT_PALETTE[i%CAT_PALETTE.length],borderColor:'#131316',borderWidth:1},
+      areaStyle:{color:grad(CAT_PALETTE[i%CAT_PALETTE.length]),origin:'start'},
+      emphasis:{focus:'series'},
+      markPoint:{symbol:'circle',symbolSize:8,silent:true,label:{show:false},data:mp},
+      data:vals
+    };
+  };
+  chartDataStore.trend={dim:trendDim,metric:trendMetric,rows:cats,cols:labels,data:cats.map(c=>keys.map(k=>(buckets[k]&&buckets[k][c])||0))};
+  const unit=trendMetric==='sales'?t('trUnitSales'):t('trUnitBookings');
   chart.setOption({
     grid:{left:8,right:16,top:38,bottom:26,containLabel:true},
-    legend:{top:2,data:['WON','LOST','OPEN'],textStyle:{color:'#a1a1aa',fontSize:11},itemWidth:14,itemHeight:3,itemGap:18},
+    legend:{top:2,data:cats,formatter:(n)=>dispVal(n),textStyle:{color:'#a1a1aa',fontSize:11},itemWidth:14,itemHeight:3,itemGap:16,type:'scroll'},
     tooltip:{trigger:'axis',axisPointer:{type:'line',lineStyle:{color:'rgba(248,247,243,.25)'}},
       backgroundColor:'#131316',borderColor:'rgba(248,247,243,.18)',
-      formatter:(ps)=>{ let tot=ps.reduce((a,p)=>a+(p.value||0),0);
-        let h='<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#8a8a94;margin-bottom:4px">'+escHtml(ps[0].axisValue)+'</div>';
-        ps.slice().sort((a,b)=>b.value-a.value).forEach(p=>{ h+='<div style="display:flex;justify-content:space-between;gap:16px"><span>'+p.marker+' '+p.seriesName+'</span><b>'+p.value+'</b></div>'; });
-        h+='<div style="display:flex;justify-content:space-between;gap:16px;margin-top:3px;border-top:1px solid rgba(248,247,243,.12);padding-top:3px;color:#8a8a94"><span>'+escHtml(t('trTotal'))+'</span><b>'+tot+'</b></div>';
+      formatter:(ps)=>{ const tot=ps.reduce((a,p)=>a+(p.value||0),0);
+        let h='<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#8a8a94;margin-bottom:4px">'+escHtml(ps[0].axisValue)+' · '+escHtml(unit)+'</div>';
+        ps.slice().filter(p=>p.value>0).sort((a,b)=>b.value-a.value).forEach(p=>{ const pct=tot?(p.value/tot*100).toFixed(0):0; h+='<div style="display:flex;justify-content:space-between;gap:18px"><span>'+p.marker+' '+escHtml(dispVal(p.seriesName))+'</span><span><b>'+p.value+'</b> <span style="color:#8a8a94">'+pct+'%</span></span></div>'; });
+        h+='<div style="display:flex;justify-content:space-between;gap:18px;margin-top:3px;border-top:1px solid rgba(248,247,243,.12);padding-top:3px;color:#8a8a94"><span>'+escHtml(t('trTotal'))+'</span><b>'+tot+'</b></div>';
         return h; }},
     xAxis:{type:'category',boundaryGap:false,data:labels,axisLabel:{fontSize:9,color:'#8a8a94',hideOverlap:true}},
-    yAxis:{type:'value',axisLabel:{fontSize:9,color:'#8a8a94'},splitLine:{lineStyle:{color:'rgba(248,247,243,.06)'}},minorSplitLine:{show:true,lineStyle:{color:'rgba(248,247,243,.03)'}}},
-    series:['WON','LOST','OPEN'].map(mkSeries),
-    animationDuration:800
+    yAxis:{type:'value',minInterval:1,axisLabel:{fontSize:9,color:'#8a8a94'},splitLine:{lineStyle:{color:'rgba(248,247,243,.06)'}},minorSplitLine:{show:true,lineStyle:{color:'rgba(248,247,243,.03)'}}},
+    series:cats.map(mkSeries),
+    animationDuration:700
   });
   addResize(chart);
+  chart.on('click',p=>{ if(p.seriesName) addGlobalFilter({type:trendDim,value:p.seriesName,label:p.seriesName}); });
 }
 // hex #rrggbb + alpha -> rgba()
 function hexA(hex,a){ const h=hex.replace('#',''); const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
@@ -2096,6 +2127,20 @@ const btnScore = document.getElementById('groupTagsByScoreBtn');
 btnStatus.addEventListener('click',()=>{renderTagsTreemap(currentData, 'deal_status');btnStatus.classList.add('active');btnScore.classList.remove('active');});
 btnScore.addEventListener('click',()=>{renderTagsTreemap(currentData, 'score');btnScore.classList.add('active');btnStatus.classList.remove('active');});
 
+// seletores de visão do gráfico temporal (dimensão + métrica)
+document.getElementById('trendDimSeg')?.addEventListener('click',(e)=>{
+  const b=e.target.closest('[data-dim]'); if(!b) return;
+  trendDim=b.dataset.dim;
+  b.parentNode.querySelectorAll('.seg-b').forEach(x=>x.classList.toggle('active',x===b));
+  renderTrend(window.currentData||[]);
+});
+document.getElementById('trendMetricSeg')?.addEventListener('click',(e)=>{
+  const b=e.target.closest('[data-metric]'); if(!b) return;
+  trendMetric=b.dataset.metric;
+  b.parentNode.querySelectorAll('.seg-b').forEach(x=>x.classList.toggle('active',x===b));
+  renderTrend(window.currentData||[]);
+});
+
 </script>
 
 <script>
@@ -2233,7 +2278,7 @@ var I18N={
     hlTopFlow:'top flow', hlLeader:'leader', hlFastest:'fastest', hlBestConv:'best conv.', hlTop:'top', hlPeak:'peak',
     skFrom:'incoming', skTo:'outgoing',
     scScatter:'Volume × conversion (bubble = A+B quality)', scAvg:'avg',
-    trTotal:'Total', trPeak:'peak week',
+    trTotal:'Total', trPeak:'peak week', trUnitBookings:'bookings', trUnitSales:'sales',
     fbHighValue:'high-value leads', fbMarket:'market', fbOverall:'overall',
     sugNoData:'Not enough data to generate suggestions. Process a valid CSV file first.',
     minimize:'Minimize', maximize:'Maximize',
@@ -2276,7 +2321,7 @@ var I18N={
     hlTopFlow:'maior fluxo', hlLeader:'líder', hlFastest:'mais rápida', hlBestConv:'melhor conv.', hlTop:'top', hlPeak:'pico',
     skFrom:'de onde vem', skTo:'para onde vai',
     scScatter:'Volume × conversão (bolha = qualidade A+B)', scAvg:'média',
-    trTotal:'Total', trPeak:'semana de pico',
+    trTotal:'Total', trPeak:'semana de pico', trUnitBookings:'agendamentos', trUnitSales:'vendas',
     fbHighValue:'leads de alto valor', fbMarket:'mercado', fbOverall:'geral',
     sugNoData:'Dados insuficientes para gerar sugestões. Processe um arquivo CSV válido primeiro.',
     minimize:'Minimizar', maximize:'Maximizar',
@@ -2316,9 +2361,11 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     sugSub:'Clique no botão para gerar uma lista de pesquisas e ações recomendadas com base nos dados carregados.',
     sugBtn:'Gerar sugestões de pesquisa',
     aiBtn:'Analisar com IA',
-    trH:'Agendamentos no tempo · por status',
-    trTip:'Volume semanal de agendamentos por desfecho. As áreas se sobrepõem (não empilhadas), então dá pra ler onde ganhos, perdas e abertos se cruzam ao longo do tempo.',
-    trSub:'Agendamentos ganhos, perdidos e em aberto por semana. As áreas sobrepostas revelam o cruzamento entre os desfechos.',
+    trH:'Evolução no tempo',
+    trTip:'Volume semanal quebrado pela dimensão escolhida. Linhas retas com pontos delicados; o pico de cada série é marcado em verde e o vale em vermelho. As áreas sobrepostas revelam o cruzamento.',
+    trSub:'Volume semanal pela dimensão escolhida. Linhas retas, pontos delicados e o pico/vale de cada série destacados.',
+    trDimSquad:'Squad', trDimSdr:'SDR', trDimSource:'Fonte',
+    trMetBookings:'Agendamentos', trMetSales:'Vendas',
     fwH:'Fluxo · Fonte → Squad → Faixa → Closer',
     fwTip:'Cada agendamento como um fluxo: canal de origem, squad que trabalhou, faixa de score em que caiu e closer que recebeu. Largura do link = volume. Clique num nó para filtrar por aquela dimensão.',
     fwSub:'Top 6 fontes e top 8 closers; o resto vira "Outros". Canais e squads usam a paleta categórica; faixas de score usam a rampa azul ordinal.',
