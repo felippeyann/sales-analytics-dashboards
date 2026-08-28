@@ -209,10 +209,13 @@
   /* ===== linha do topo: executivo + como ler + IA ===== */
   .top-row{display:flex;gap:14px;align-items:stretch;margin-bottom:16px}
   .top-row .exec-band{flex:1.9;min-width:0;margin-bottom:0}
-  .top-row .onb-card{flex:1;min-width:230px;margin:0}
+  .top-row .onb-card{flex:1;min-width:230px;margin:0;padding:13px 16px;display:flex;flex-direction:column}
   .top-row #suggestionsBox{flex:1;min-width:230px;margin-bottom:0!important;padding:12px 14px}
-  .top-row .onb-card .onb-h{font-size:12px;margin-bottom:5px}
-  .top-row .onb-card .onb-steps{font-size:11px;line-height:1.55;padding-left:16px}
+  .top-row .onb-card .onb-h{font-size:13px;margin-bottom:8px}
+  .top-row .onb-card .onb-steps{font-size:12px;line-height:1.6;padding-left:18px;color:var(--ink-2)}
+  .top-row .onb-card .onb-steps li{margin-bottom:5px}
+  .top-row .onb-card .onb-x{top:10px;right:12px}
+  .onb-tour-btn{align-self:flex-start;margin-top:auto}
   #suggestionsBox h2{font-size:12.5px;margin:0 0 3px}
   #suggestionsBox .sub{font-size:11px;margin-bottom:4px;line-height:1.45}
   #suggestionsBox .panelBtn{min-width:24px;height:24px;font-size:12px;padding:2px 6px}
@@ -381,10 +384,25 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 176px;
+    max-height: 200px;
     overflow-y: auto;
-    padding-right: 4px;
+    padding-right: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(37,99,235,.55) var(--card);
   }
+  .suggestions-list::-webkit-scrollbar{width:6px}
+  .suggestions-list::-webkit-scrollbar-thumb{background:rgba(37,99,235,.55);border-radius:3px}
+  .suggestions-list::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+  .suggestions-list::-webkit-scrollbar-track{background:var(--card);border-radius:3px}
+
+  /* ===== tour guiado ===== */
+  .tour-hole{position:fixed;z-index:12000;pointer-events:none;border:2px solid var(--accent-soft);border-radius:10px;box-shadow:0 0 0 200vmax rgba(5,5,6,.74);transition:top .25s ease,left .25s ease,width .25s ease,height .25s ease}
+  .tour-tip{position:fixed;z-index:12001;background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);padding:12px 14px;width:300px;box-shadow:0 12px 32px rgba(0,0,0,.55)}
+  .tour-tip .tt{font-weight:700;color:var(--ink);font-size:13px;margin-bottom:4px}
+  .tour-tip .tb{font-size:12px;color:var(--ink-2);line-height:1.5;margin-bottom:10px}
+  .tour-tip .tf{display:flex;align-items:center;gap:6px}
+  .tour-tip .tstep{font-family:var(--mono);font-size:10px;color:var(--ink-4);margin-right:auto}
+  .onb-tour-btn{margin-top:10px}
   .suggestions-list a {
     background: var(--card);
     padding: 8px 10px;
@@ -2883,9 +2901,75 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     if(mail&&band) band.parentNode.insertBefore(mail, band.nextSibling);
   }
   var orig=window.__onbCtaRebuild;
-  if(typeof orig==='function') window.__onbCtaRebuild=function(){ orig(); relocateCta(); };
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(relocateCta,0); });
-  else setTimeout(relocateCta,0);
+  if(typeof orig==='function') window.__onbCtaRebuild=function(){ orig(); relocateCta(); enrichOnb(); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(function(){relocateCta();enrichOnb();},0); });
+  else setTimeout(function(){relocateCta();enrichOnb();},0);
+})();
+
+/* ===== Tour guiado + botão no card "How to read" ===== */
+(function(){
+  function L(){ try{return (localStorage.getItem('lang')||'en')==='pt'?'pt':'en';}catch(e){return 'en';} }
+  var TXT={
+    en:{ btn:'▶ Start guided tour', steps:[
+      ['#exec-band','Executive summary','The headline of the period: bookings, win rate, speed and lead quality, plus one written insight that updates with your filters.'],
+      ['header','Filters & period','Set a date window, then click any chart to add a cross-filter. Active filters become chips up here and combine with each other.'],
+      ['#chartFlow','The flow','Every booking as a path: origin channel → squad → score band → closer. Link width is volume. Click a node to filter the whole board by it.'],
+      ['#chartStatusScore','Status × score','Inner ring is the deal status, outer ring the score bands inside it. It answers where quality concentrates.'],
+      ['#chartSDR','Weekly race','SDR ranking playing out week by week. Press play or scrub the timeline to watch positions change.'],
+      ['#chartScoreTA','Quality × speed','Score band against time-to-booking. The outlined cell is where most bookings land, your sweet spot or your problem.']
+    ], done:'Got it', next:'Next', prev:'Back', of:'of' },
+    pt:{ btn:'▶ Iniciar tour guiado', steps:[
+      ['#exec-band','Resumo executivo','A manchete do período: agendamentos, taxa de ganho, velocidade e qualidade do lead, com um insight escrito que muda conforme os filtros.'],
+      ['header','Filtros e período','Defina uma janela de datas e clique em qualquer gráfico para criar um filtro cruzado. Os filtros ativos viram chips aqui em cima e se combinam.'],
+      ['#chartFlow','O fluxo','Cada agendamento como um caminho: canal de origem → squad → faixa de score → closer. A largura do vínculo é volume. Clique num nó para filtrar tudo por ele.'],
+      ['#chartStatusScore','Status × score','O anel interno é o status do negócio, o externo as faixas de score dentro dele. Mostra onde a qualidade se concentra.'],
+      ['#chartSDR','Corrida semanal','O ranking de SDRs acontecendo semana a semana. Dê play ou arraste a linha do tempo para ver as posições mudarem.'],
+      ['#chartScoreTA','Qualidade × velocidade','Faixa de score contra o tempo até o agendamento. A célula contornada é onde a maioria cai, seu ponto forte ou seu problema.']
+    ], done:'Entendi', next:'Próximo', prev:'Voltar', of:'de' }
+  };
+  var hole,tip,idx,steps;
+  function place(){
+    var sel=steps[idx][0]; var el=document.querySelector(sel);
+    if(!el){ next(); return; }
+    el.scrollIntoView({block:'center',behavior:'smooth'});
+    setTimeout(function(){
+      var r=el.getBoundingClientRect(), pad=6;
+      hole.style.top=(r.top-pad)+'px'; hole.style.left=(r.left-pad)+'px';
+      hole.style.width=(r.width+pad*2)+'px'; hole.style.height=(r.height+pad*2)+'px';
+      var d=TXT[L()], tw=300, th=150;
+      var left=Math.min(Math.max(8,r.left), innerWidth-tw-8);
+      var top=r.bottom+12; if(top+th>innerHeight) top=Math.max(8,r.top-th-12);
+      tip.style.left=left+'px'; tip.style.top=top+'px';
+      tip.innerHTML='<div class="tt">'+steps[idx][1]+'</div><div class="tb">'+steps[idx][2]+'</div>'
+        +'<div class="tf"><span class="tstep">'+(idx+1)+' '+d.of+' '+steps.length+'</span>'
+        +(idx>0?'<button class="btn secondary sm" data-t="prev">'+d.prev+'</button>':'')
+        +'<button class="btn sm" data-t="next">'+(idx===steps.length-1?d.done:d.next)+'</button></div>';
+    },260);
+  }
+  function next(){ if(idx>=steps.length-1){ end(); return; } idx++; place(); }
+  function prev(){ if(idx>0){ idx--; place(); } }
+  function end(){ if(hole)hole.remove(); if(tip)tip.remove(); hole=tip=null; document.removeEventListener('keydown',onKey); }
+  function onKey(e){ if(e.key==='Escape')end(); else if(e.key==='ArrowRight')next(); else if(e.key==='ArrowLeft')prev(); }
+  function start(){
+    end(); steps=TXT[L()].steps; idx=0;
+    hole=document.createElement('div'); hole.className='tour-hole';
+    tip=document.createElement('div'); tip.className='tour-tip';
+    document.body.appendChild(hole); document.body.appendChild(tip);
+    tip.addEventListener('click',function(e){ var b=e.target.closest('[data-t]'); if(!b)return; b.dataset.t==='next'?next():prev(); });
+    document.addEventListener('keydown',onKey);
+    place();
+  }
+  window.__startTour=start;
+  window.enrichOnb=function(){
+    var card=document.querySelector('.onb-card'); if(!card) return;
+    if(card.querySelector('.onb-tour-btn')) return;
+    var b=document.createElement('button');
+    b.type='button'; b.className='btn sm onb-tour-btn';
+    b.textContent=TXT[L()].btn;
+    b.addEventListener('click',start);
+    var steps=card.querySelector('.onb-steps');
+    (steps&&steps.parentNode?steps.parentNode:card).appendChild(b);
+  };
 })();
 </script>
 
