@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <!--
   ╔═══════════════════════════════════════════════════════════╗
-  ║  Analytics Dashboard - Análise de Agendamentos           ║
-  ║  Versão: v1.0                                            ║
-  ║  Última atualização: 31/10/2025                          ║
-  ║  Descrição: Dashboard interativo para análise de         ║
-  ║             agendamentos com filtros e insights IA       ║
+  ║  Analytics Dashboard - Bookings Analysis                 ║
+  ║  Version: v1.0                                           ║
+  ║  Last update: 31/10/2025                                 ║
+  ║  Description: interactive dashboard for bookings         ║
+  ║               analysis with filters and AI insights      ║
   ╚═══════════════════════════════════════════════════════════╝
 -->
-<html lang="pt-br">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Análise de Agendamentos | Felippe Yann</title>
+<title>Bookings Analysis | Felippe Yann</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -116,6 +116,11 @@
   h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .desc{color:var(--ink-4);font-size:11px;font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  .lang-sw{display:flex;align-items:center;height:32px;padding:0 8px;background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r-sm);font-family:var(--mono)}
+  .lang-sw button{background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink-4);padding:0 5px}
+  .lang-sw button:hover{color:var(--ink)}
+  .lang-sw button.on{color:var(--accent-soft);font-weight:700}
+  .lang-sw .sep{color:var(--ink-4);font-size:11px;opacity:.5}
   @media (max-width:760px){ .desc{display:none} h1{font-size:14px} }
 
   /* ===== filter bar ===== */
@@ -572,37 +577,40 @@
     <div class="brand">
       <div class="logo">&gt;_</div>
       <div>
-        <h1>Análise de Agendamentos <span class="version-badge">demo</span></h1>
-        <div class="desc">topo de funil · title="Agendamento de reunião" · type=SCHEDULE</div>
+        <h1><span data-i18n="h1">Bookings Analysis</span> <span class="version-badge">demo</span></h1>
+        <div class="desc" data-i18n="desc">top of funnel · title="Agendamento de reunião" · type=SCHEDULE</div>
       </div>
     </div>
     <div class="hdr-actions">
       <input id="file" type="file" accept=".csv" hidden/>
-      <select id="modelSelect" class="select" title="Modelo do Gemini usado nas análises de IA">
+      <select id="modelSelect" class="select" title="Gemini model used for the AI analyses" data-pt-title="Modelo do Gemini usado nas análises de IA">
           <option value="models/gemini-2.5-flash">Gemini 2.5 Flash</option>
           <option value="models/gemini-2.5-pro" selected>Gemini 2.5 Pro</option>
       </select>
-      <button id="exportPdfBtn" class="btn secondary sm" title="Exportar dashboard em PDF">PDF</button>
-      <button class="btn-metodologia" onclick="openMetodologiaModal()">Metodologia</button>
+      <button id="exportPdfBtn" class="btn secondary sm" title="Export dashboard as PDF" data-pt-title="Exportar dashboard em PDF">PDF</button>
+      <button class="btn-metodologia" onclick="openMetodologiaModal()" data-i18n="btnMeth">Methodology</button>
+      <div class="lang-sw" role="group" aria-label="Language" data-pt-aria="Idioma">
+        <button type="button" data-lang-btn="en" aria-pressed="true">EN</button><span class="sep">/</span><button type="button" data-lang-btn="pt" aria-pressed="false">PT</button>
+      </div>
     </div>
   </div>
   <div class="filterbar">
     <div class="wrap fb-in">
-      <span class="fb-label">período</span>
+      <span class="fb-label" data-i18n="fbPeriod">period</span>
       <input id="globalDateStart" type="date" class="date-filter">
       <input id="globalDateEnd" type="date" class="date-filter">
-      <button id="applyGlobalDate" class="btn sm">Aplicar</button>
-      <button id="clearGlobalDate" class="btn secondary sm">Limpar</button>
+      <button id="applyGlobalDate" class="btn sm" data-i18n="fbApply">Apply</button>
+      <button id="clearGlobalDate" class="btn secondary sm" data-i18n="fbClearBtn">Clear</button>
       <span id="globalDateInfo"></span>
       <span class="fb-sep"></span>
-      <span class="fb-label">filtros</span>
+      <span class="fb-label" data-i18n="fbFilters">filters</span>
       <div id="filter-panel" class="fb-chips">
         <span id="filter-count" hidden>0</span>
         <div class="filter-body">
           <div id="filter-chips" class="filter-chip-list"></div>
           <div class="filter-actions">
-            <span id="filter-empty-text" class="filter-empty-text">nenhum · clique em qualquer gráfico para filtrar</span>
-            <button id="filter-clear" class="filter-clear" type="button" disabled>Limpar tudo</button>
+            <span id="filter-empty-text" class="filter-empty-text" data-i18n="fbEmpty">none · click any chart to filter</span>
+            <button id="filter-clear" class="filter-clear" type="button" disabled data-i18n="fbClearAll">Clear all</button>
           </div>
         </div>
       </div>
@@ -617,7 +625,7 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.onclick = function() {
       // Seleciona o painel principal do dashboard
       const dashboard = document.querySelector('main.wrap.panel');
-      if(!dashboard) { alert('Dashboard não encontrado!'); return; }
+      if(!dashboard) { alert(t('pdfNotFound')); return; }
       // Configuração para dark mode e melhor quebra de página
       html2pdf()
         .set({
@@ -639,8 +647,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <main class="wrap panel">
 
   <section class="exec-band" id="exec-band">
-    <div class="exec-kicker"><b>//</b> resumo executivo</div>
-    <div class="exec-q">Onde o topo do funil ganha e perde, da origem ao agendamento: por squad, canal, closer e velocidade de atribuição.</div>
+    <div class="exec-kicker" data-i18n="execK"><b>//</b> executive summary</div>
+    <div class="exec-q" data-i18n="execQ">Where the top of the funnel wins and loses, from origin to booking: by squad, channel, closer and assignment speed.</div>
     <div class="kpis" id="kpis" style="margin-bottom:14px"></div>
     <div class="exec-insight" id="exec-insight"></div>
   </section>
@@ -648,14 +656,14 @@ document.addEventListener('DOMContentLoaded', function() {
   <section class="card col-12" id="suggestionsBox" style="margin-bottom:16px;">
     <div style="display:flex;justify-content:space-between;align-items:start;">
       <div style="flex:1;">
-        <h2>Principais Ações e Pesquisas Sugeridas</h2>
-        <div class="sub">Clique no botão para gerar uma lista de pesquisas e ações recomendadas pela IA, com base nos dados que você carregou.</div>
+        <h2 data-i18n="sugH">Top Suggested Actions and Searches</h2>
+        <div class="sub" data-i18n="sugSub">Click the button to generate a list of AI-recommended searches and actions based on the data you loaded.</div>
       </div>
-      <button class="panelBtn" id="minimizeSuggestionsBox" title="Minimizar" style="margin-left:8px;">−</button>
+      <button class="panelBtn" id="minimizeSuggestionsBox" title="Minimize" data-pt-title="Minimizar" style="margin-left:8px;">−</button>
     </div>
     <div id="suggestionsContent">
       <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <button id="generateSuggestionsBtn" class="btn" disabled>Gerar Sugestões de Pesquisa com IA</button>
+        <button id="generateSuggestionsBtn" class="btn" disabled data-i18n="sugBtn">Generate AI Search Suggestions</button>
       </div>
       <div id="suggestionsOutput" class="suggestions-list"></div>
     </div>
@@ -663,19 +671,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <section class="card">
     <div class="topic-head">
-      <h2>Visão Geral</h2>
+      <h2 data-i18n="ovH">Overview</h2>
       <div class="topic-actions">
-        <button class="btn secondary sm" onclick="sendGemini('kpi', this)">Analisar com IA</button>
+        <button class="btn secondary sm" onclick="sendGemini('kpi', this)" data-i18n="aiBtn">Analyze with AI</button>
       </div>
     </div>
-    <div class="sub">Status dos agendamentos e a qualidade (score) dentro de cada status.</div>
+    <div class="sub" data-i18n="ovSub">Booking status and the score quality within each status.</div>
     <div class="grid" style="margin-top: 6px;">
       <div class="col-6">
-        <div class="chart-title">Status geral</div>
+        <div class="chart-title" data-i18n="ovT1">Overall status</div>
         <div id="chartStatusDonut" class="chart"></div>
       </div>
       <div class="col-6">
-        <div class="chart-title">Mix de score por status</div>
+        <div class="chart-title" data-i18n="ovT2">Score mix by status</div>
         <div id="chartQualityByStatus" class="chart"></div>
       </div>
     </div>
@@ -684,15 +692,15 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="grid panel">
     <section class="col-6 card">
       <div class="topic-head">
-        <h2>Squads · volume e mix de score
-          <span class="info-icon">ⓘ<span class="tooltip">Comparação de volume e distribuição de score (A a D) entre os squads.</span></span>
+        <h2><span data-i18n="sqH">Squads · volume and score mix</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="sqTip">Volume and score distribution (A to D) compared across squads.</span></span>
         </h2>
         <div class="topic-actions nowrap">
           <button id="toggleSquadTableBtn" hidden></button>
           <div class="chart-actions" data-chart="chartSquadScore" data-kind="squad" data-csv="squads_volume_score" data-insights="toggleSquadTableBtn"></div>
         </div>
       </div>
-      <div class="sub">Quem traz volume e quem traz qualidade. Score é ordinal: quanto mais escuro, melhor a faixa.</div>
+      <div class="sub" data-i18n="sqSub">Who brings volume and who brings quality. Score is ordinal: the darker, the better the band.</div>
       <div id="chartSquadScore" class="chart"></div>
   <div id="squadInsights" class="squad-insights" style="display:none"></div>
   <div id="squadTableWrap" class="squad-table-wrap"></div>
@@ -700,15 +708,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-6 card">
       <div class="topic-head">
-        <h2>Velocidade · TA por squad
-          <span class="info-icon">ⓘ<span class="tooltip">Tempo entre a criação do negócio e o agendamento (TA), por squad. Células mais claras concentram mais agendamentos.</span></span>
+        <h2><span data-i18n="taH">Speed · TA by squad</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="taTip">Time between deal creation and booking (TA), by squad. Lighter cells concentrate more bookings.</span></span>
         </h2>
         <div class="topic-actions nowrap">
           <button id="toggleTASquadBtn" hidden></button>
           <div class="chart-actions" data-chart="chartHeatTASquad" data-kind="ta_squad" data-csv="velocidade_ta_squad" data-insights="toggleTASquadBtn"></div>
         </div>
       </div>
-      <div class="sub">Heatmap de rapidez (até 1,5 / 3 / 5 / 10 / 20 / 30 / mais de 30 dias) por squad.</div>
+      <div class="sub" data-i18n="taSub">Speed heatmap (up to 1.5 / 3 / 5 / 10 / 20 / 30 / over 30 days) by squad.</div>
       <div id="chartHeatTASquad" class="chart"></div>
       <div id="taSquadTableWrap" class="squad-table-wrap"></div>
       <div id="taSquadInsights" class="squad-insights" style="display:none"></div>
@@ -716,97 +724,97 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-4 card">
       <div class="topic-head">
-        <h2>SDRs · top 10 por volume
-          <span class="info-icon">ⓘ<span class="tooltip">Ranking de SDRs por volume de agendamentos na seleção atual. Use os filtros de TA para ver quem agenda rápido.</span></span>
+        <h2><span data-i18n="sdrH">SDRs · top 10 by volume</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="sdrTip">SDR ranking by booking volume in the current selection. Use the TA filters to see who books fast.</span></span>
         </h2>
         <div class="topic-actions nowrap">
           <div class="chart-actions" data-chart="chartSDR" data-kind="sdr" data-csv="sdr_produtividade"></div>
         </div>
       </div>
-      <div class="sub">Filtre por faixa de TA para recortar o ranking.</div>
+      <div class="sub" data-i18n="sdrSub">Filter by TA band to slice the ranking.</div>
   <div id="taQuickFilters" class="ta-quick-filters"></div>
       <div id="chartSDR" class="chart"></div>
     </section>
 
     <section class="col-4 card">
       <div class="topic-head">
-        <h2>Closers · mix de score recebido
-          <span class="info-icon">ⓘ<span class="tooltip">Distribuição de scores (A a D) por closer: a qualidade dos agendamentos que cada um recebe.</span></span>
+        <h2><span data-i18n="clH">Closers · received score mix</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="clTip">Score distribution (A to D) per closer: the quality of the bookings each one receives.</span></span>
         </h2>
         <div class="topic-actions nowrap">
           <div class="chart-actions" data-chart="chartCloserScore" data-kind="closer" data-csv="closers_score"></div>
         </div>
       </div>
-      <div class="sub">Quem recebeu mais leads de cada faixa no período.</div>
+      <div class="sub" data-i18n="clSub">Who received the most leads from each band in the period.</div>
       <div id="chartCloserScore" class="chart"></div>
     </section>
 
     <section class="col-4 card">
       <div class="topic-head">
-        <h2>Fontes · volume por canal
-          <span class="info-icon">ⓘ<span class="tooltip">Volume de agendamentos por canal de origem (utm_source normalizado). Os 8 maiores; o resto vira "Outros".</span></span>
+        <h2><span data-i18n="srcH">Sources · volume by channel</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="srcTip">Booking volume by origin channel (normalized utm_source). The top 8; the rest becomes "Others".</span></span>
         </h2>
         <div class="topic-actions nowrap">
           <div class="chart-actions" data-chart="chartSource" data-kind="source" data-csv="fontes_volume"></div>
         </div>
       </div>
-      <div class="sub">Top 8 canais; o restante agregado em "Outros".</div>
+      <div class="sub" data-i18n="srcSub">Top 8 channels; the rest aggregated into "Others".</div>
       <div id="chartSource" class="chart"></div>
       </section>
 
     <section class="col-4 card">
       <div class="topic-head">
-        <h2>Campanhas · top 10
-          <span class="info-icon">ⓘ<span class="tooltip">As 10 campanhas (utm_campaign) com mais agendamentos na seleção atual.</span></span>
+        <h2><span data-i18n="cmpH">Campaigns · top 10</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cmpTip">The 10 campaigns (utm_campaign) with the most bookings in the current selection.</span></span>
         </h2>
         <div class="topic-actions nowrap">
           <label class="toggle-label" style="margin-right: 8px;">
             <input type="checkbox" id="hideSemValorCampaign" onchange="applyAndRender()">
-            <span style="font-size: 11px;">Ocultar "sem valor"</span>
+            <span style="font-size: 11px;" data-i18n="cmpHide">Hide "no value"</span>
           </label>
           <div class="chart-actions" data-chart="chartCampaign" data-kind="campaign" data-csv="campanhas_top10"></div>
         </div>
       </div>
-      <div class="sub">As campanhas com mais agendamentos no período.</div>
+      <div class="sub" data-i18n="cmpSub">The campaigns with the most bookings in the period.</div>
       <div id="chartCampaign" class="chart"></div>
     </section>
 
     <section class="col-4 card">
       <div class="topic-head">
-        <h2>Score · distribuição geral
-          <span class="info-icon">ⓘ<span class="tooltip">Distribuição das faixas de score (A ≥ 80, B ≥ 60, C ≥ 40, D abaixo de 40) em todos os agendamentos da seleção.</span></span>
+        <h2><span data-i18n="scH">Score · overall distribution</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="scTip">Distribution of score bands (A ≥ 80, B ≥ 60, C ≥ 40, D below 40) across all bookings in the selection.</span></span>
         </h2>
         <div class="topic-actions nowrap">
           <div class="chart-actions" data-chart="chartScore" data-kind="score" data-csv="score_distribuicao"></div>
         </div>
       </div>
-      <div class="sub">Faixas A a D na seleção atual.</div>
+      <div class="sub" data-i18n="scSub">Bands A to D in the current selection.</div>
       <div id="chartScore" class="chart"></div>
     </section>
 
     <section class="col-4 card">
       <div class="topic-head tight">
-        <h2>Tempo até agendamento (TA)
-          <span class="info-icon">ⓘ<span class="tooltip">Quantos agendamentos caem em cada faixa de tempo entre a criação do negócio e o agendamento.</span></span>
+        <h2><span data-i18n="tadH">Time to booking (TA)</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tadTip">How many bookings fall into each time band between deal creation and booking.</span></span>
         </h2>
         <div class="topic-actions nowrap">
           <div class="chart-actions" data-chart="chartTADist" data-kind="ta_dist" data-csv="ta_distribuicao"></div>
         </div>
       </div>
-      <div class="sub">Faixas ordenadas da mais rápida à mais lenta.</div>
+      <div class="sub" data-i18n="tadSub">Bands ordered from fastest to slowest.</div>
       <div id="chartTADist" class="chart"></div>
     </section>
 
     <section class="col-6 card">
       <div class="topic-head">
         <div>
-          <h2>Tags · composição da seleção
-            <span class="info-icon">ⓘ<span class="tooltip">As 10 tags mais frequentes, quebradas por status ou por faixa de score. Clique numa barra para filtrar pela tag.</span></span>
+          <h2><span data-i18n="tgH">Tags · selection composition</span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tgTip">The 10 most frequent tags, broken down by status or score band. Click a bar to filter by tag.</span></span>
           </h2>
-          <div class="sub" style="margin-bottom:0">Top 10 tags da seleção, empilhadas pela dimensão escolhida.</div>
+          <div class="sub" style="margin-bottom:0" data-i18n="tgSub">Top 10 tags in the selection, stacked by the chosen dimension.</div>
         </div>
         <div class="topic-actions nowrap">
-          <span class="muted" style="font-size:12px;">Agrupar por:</span>
+          <span class="muted" style="font-size:12px;" data-i18n="tgGroup">Group by:</span>
           <button id="groupTagsByStatusBtn" class="btn secondary sm active">Status</button>
           <button id="groupTagsByScoreBtn" class="btn secondary sm">Score</button>
           <div class="chart-actions" data-chart="chartNestedTags" data-kind="tags_composition" data-csv="tags_composicao"></div>
@@ -817,34 +825,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <section class="col-6 card">
       <div class="topic-head">
-        <h2>Scorecard de squads
-          <span class="info-icon">ⓘ<span class="tooltip">As 5 métricas de cada squad em escalas honestas: volume absoluto e percentuais reais, sem normalização.</span></span>
+        <h2><span data-i18n="scdH">Squad scorecard</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="scdTip">Each squad's 5 metrics on honest scales: absolute volume and real percentages, no normalization.</span></span>
         </h2>
         <div class="topic-actions nowrap">
           <div class="chart-actions" data-chart="chartSquadRadar" data-kind="squad_radar" data-csv="squads_scorecard" data-no-png="1"></div>
         </div>
       </div>
-      <div class="sub">Volume, qualidade (A+B), conversão, velocidade e e-mail corporativo por squad.</div>
+      <div class="sub" data-i18n="scdSub">Volume, quality (A+B), conversion, speed and corporate email by squad.</div>
       <div id="chartSquadRadar" class="scorecard chart tall"></div>
     </section>
   </div>
 
   <section class="card panel">
-    <h2>Colunas utilizadas na análise</h2>
+    <h2 data-i18n="ucH">Columns used in the analysis</h2>
     <div class="used-cols" id="usedCols">
       </div>
   </section>
 </main>
 
-<div id="toast" class="toast">Copiado para a área de transferência.</div>
+<div id="toast" class="toast" data-i18n="toast0">Copied to clipboard.</div>
 
-<div id="geminiPanel" class="hidden" aria-label="Painel Gemini" aria-hidden="true">
-  <div class="resize-handle" title="Arraste para redimensionar"></div>
+<div id="geminiPanel" class="hidden" aria-label="Gemini panel" data-pt-aria="Painel Gemini" aria-hidden="true">
+  <div class="resize-handle" title="Drag to resize" data-pt-title="Arraste para redimensionar"></div>
   <div class="panel-head">
-    <h3><span class="dot"></span>Resposta Gemini</h3>
+    <h3><span class="dot"></span><span data-i18n="gpH">Gemini Response</span></h3>
     <div class="panel-head-actions">
-      <button class="panelBtn" id="minimizePanel" title="Minimizar">−</button>
-      <button class="panelBtn" id="closePanel" title="Fechar">×</button>
+      <button class="panelBtn" id="minimizePanel" title="Minimize" data-pt-title="Minimizar">−</button>
+      <button class="panelBtn" id="closePanel" title="Close" data-pt-title="Fechar">×</button>
     </div>
   </div>
   <div id="geminiOutput" role="log" aria-live="polite">...</div>
@@ -879,7 +887,7 @@ function paraDataISO(dataString){if(!dataString||typeof dataString!=='string')re
 function getScoreBand(score){const num=parseInt(score,10);if(isNaN(num))return'D';if(num>=80)return'A';if(num>=60)return'B';if(num>=40)return'C';return'D';}
 function calcularDiasTA(dataTaskStr,dataDealStr){if(!dataTaskStr||!dataDealStr)return null;try{const dataTask=new Date(dataTaskStr.split(' ')[0]);const dataDeal=new Date(dataDealStr.split(' ')[0]);const diffTime=Math.abs(dataTask-dataDeal);const diffDays=Math.ceil(diffTime/(1000*60*60*24));return diffDays;}catch(e){return null;}}
 function buckTA(days){if(days===null||isNaN(days))return'desconhecido';if(days<=1.5)return'Até 1,5 dia';if(days<=3)return'Até 3 dias';if(days<=5)return'Até 5 dias';if(days<=10)return'Até 10 dias';if(days<=20)return'Até 20 dias';if(days<=30)return'Até 30 dias';return'Acima de 30 dias';}
-function showToast(msg="Copiado para a área de transferência."){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);}
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg||t('toastCopied');el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1600);}
 function parseMaybeList(raw){if(raw==null)return[];const s=String(raw).trim();if(!s)return[];try{if((s.startsWith('[')&&s.endsWith(']'))||(s.startsWith('{')&&s.endsWith('}'))){const v=JSON.parse(s.replace(/'/g,'"'));if(Array.isArray(v))return v.map(x=>String(x).trim().toLowerCase()).filter(Boolean);if(v&&typeof v==='object')return Object.keys(v).filter(k=>v[k]).map(k=>k.toLowerCase());}}catch(e){} return s.split(/[,;|]/).map(x=>x.trim().toLowerCase()).filter(x=>x.length>1);}
 const TA_ORDER=['Até 1,5 dia','Até 3 dias','Até 5 dias','Até 10 dias','Até 20 dias','Até 30 dias','Acima de 30 dias'];
 const SCORE_ORDER=['A','B','C','D'];
@@ -1053,26 +1061,26 @@ function renderExec(data){
   const iw=document.getElementById('exec-insight');
   if(iw){
     let msg;
-    if(topSquad&&topRate>wonRate+2) msg=`<b>${escHtml(topSquad)}</b> lidera a conversão com <b>${Math.round(topRate)}%</b> de ganho, ${Math.round(topRate-wonRate)} p.p. acima da média do período.`;
-    else msg=`<b>${pct(corp)}%</b> dos agendamentos vêm de e-mail corporativo, o segmento de melhor qualidade de lead.`;
-    iw.innerHTML=`<span class="ei-tag">insight</span>${msg}`;
+    if(topSquad&&topRate>wonRate+2) msg=t('insLead')(escHtml(topSquad),Math.round(topRate),Math.round(topRate-wonRate));
+    else msg=t('insCorp')(pct(corp));
+    iw.innerHTML=`<span class="ei-tag">${t('insTag')}</span>${msg}`;
   }
 }
 function renderKPIs(data){
   const wrap=document.getElementById('kpis'); if(!wrap) return; wrap.innerHTML='';
-  const total=data.length; const t=Math.max(1,total);
+  const total=data.length; const tot=Math.max(1,total);
   const status=countBy(data,'deal_status');
   const won=status['WON']||0, lost=status['LOST']||0, open=status['OPEN']||0;
   const corp=data.filter(d=>d.provider_class==='email_corporate').length;
   const fast=data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias').length;
-  const wonRate=won/t*100;
+  const wonRate=won/tot*100;
   const kpis=[
-    {label:'Agendamentos',value:total.toLocaleString('pt-BR'),sub:'seleção atual'},
-    {label:'Taxa de ganho',value:Math.round(wonRate)+'%',sub:won+' WON',cls:wonRate>=30?'good':(wonRate<15?'bad':'')},
-    {label:'Em aberto',value:open,sub:Math.round(open/t*100)+'% da seleção'},
-    {label:'Perdidos',value:lost,sub:Math.round(lost/t*100)+'% da seleção'},
-    {label:'TA ≤ 3 dias',value:Math.round(fast/t*100)+'%',sub:'lead → agendamento'},
-    {label:'E-mail corporativo',value:Math.round(corp/t*100)+'%',sub:corp+' contatos'}
+    {label:t('kBookings'),value:nfmt(total),sub:t('kSel')},
+    {label:t('kWinRate'),value:Math.round(wonRate)+'%',sub:won+' WON',cls:wonRate>=30?'good':(wonRate<15?'bad':'')},
+    {label:t('kOpen'),value:open,sub:Math.round(open/tot*100)+'% '+t('kOfSel')},
+    {label:t('kLost'),value:lost,sub:Math.round(lost/tot*100)+'% '+t('kOfSel')},
+    {label:t('kTa3'),value:Math.round(fast/tot*100)+'%',sub:t('kLeadBook')},
+    {label:t('kCorp'),value:Math.round(corp/tot*100)+'%',sub:corp+' '+t('kContacts')}
   ];
   for(const k of kpis){
     const el=document.createElement('div');el.className='kpi';
@@ -1082,16 +1090,17 @@ function renderKPIs(data){
 }
 
 /* ---------- LÓGICA DE FILTROS CRUZADOS ---------- */
+/* labels are i18n keys, resolved via t() at render time */
 const FILTER_DEFINITIONS = {
-  status:   { label: 'Status',          predicate: (item, v) => item.deal_status === v },
-  squad:    { label: 'Squad',           predicate: (item, v) => item.origin_group_name === v },
-  sdr:      { label: 'SDR',             predicate: (item, v) => item.sdr === v },
-  closer:   { label: 'Closer',          predicate: (item, v) => item.closer_norm === v },
-  source:   { label: 'Fonte',           predicate: (item, v) => item.d_utm_source === v },
-  campaign: { label: 'Campanha',        predicate: (item, v) => item.d_utm_campaign === v },
-  score:    { label: 'Score',           predicate: (item, v) => item.score === v },
-  ta:       { label: 'Velocidade (TA)', predicate: (item, v) => item.ta === v },
-  tag:      { label: 'Tag',             predicate: (item, v) => Array.isArray(item.tagsAll) && item.tagsAll.includes(v) }
+  status:   { label: 'fStatus',   predicate: (item, v) => item.deal_status === v },
+  squad:    { label: 'fSquad',    predicate: (item, v) => item.origin_group_name === v },
+  sdr:      { label: 'fSdr',      predicate: (item, v) => item.sdr === v },
+  closer:   { label: 'fCloser',   predicate: (item, v) => item.closer_norm === v },
+  source:   { label: 'fSource',   predicate: (item, v) => item.d_utm_source === v },
+  campaign: { label: 'fCampaign', predicate: (item, v) => item.d_utm_campaign === v },
+  score:    { label: 'fScore',    predicate: (item, v) => item.score === v },
+  ta:       { label: 'fTa',       predicate: (item, v) => item.ta === v },
+  tag:      { label: 'fTag',      predicate: (item, v) => Array.isArray(item.tagsAll) && item.tagsAll.includes(v) }
 };
 
 function makeFilterKey(type, value){ return `${type}:${value}`; }
@@ -1146,11 +1155,11 @@ function renderFilterPanel(){
   if(hasDateFilter){
     const chip = document.createElement('div'); chip.className = 'filter-chip';
     const lc = document.createElement('div'); lc.className = 'filter-chip-label';
-    const lt = document.createElement('strong'); lt.textContent = 'Período';
+    const lt = document.createElement('strong'); lt.textContent = t('fPeriod');
     const [sy,sm,sd] = globalDateStart.split('-').map(Number);
     const [ey,em,ed] = globalDateEnd.split('-').map(Number);
-    const startFmt = new Date(sy,sm-1,sd).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
-    const endFmt   = new Date(ey,em-1,ed).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const startFmt = dfmt(new Date(sy,sm-1,sd));
+    const endFmt   = dfmt(new Date(ey,em-1,ed));
     const lv = document.createElement('div'); lv.className = 'filter-chip-value';
     lv.textContent = `${startFmt} → ${endFmt}`;
     lc.appendChild(lt); lc.appendChild(lv);
@@ -1169,9 +1178,10 @@ function renderFilterPanel(){
     const def = FILTER_DEFINITIONS[filter.type];
     const chip = document.createElement('div'); chip.className = 'filter-chip';
     const lc = document.createElement('div'); lc.className = 'filter-chip-label';
-    const lt = document.createElement('strong'); lt.textContent = def ? def.label : filter.type;
+    const lt = document.createElement('strong'); lt.textContent = def ? t(def.label) : filter.type;
     const lv = document.createElement('div'); lv.className = 'filter-chip-value';
-    lv.textContent = filter.label || filter.value; lv.title = filter.label || filter.value;
+    const shown = dispVal(filter.label || filter.value);
+    lv.textContent = shown; lv.title = shown;
     lc.appendChild(lt); lc.appendChild(lv);
     const rb = document.createElement('button'); rb.type='button'; rb.className='chip-remove'; rb.innerHTML='';
     rb.addEventListener('click', ()=> removeGlobalFilter(filter.key));
@@ -1186,9 +1196,9 @@ function renderTAQuickFilters(){
   const active = new Set(Array.from(globalFilters.values()).filter(f=>f.type==='ta').map(f=>f.value));
   const html = TA_ORDER.map(f=>{
     const on = active.has(f);
-    return `<button class="ta-filter-btn${on?' on':''}" data-ta="${f}" title="Filtrar faixa: ${f}">${f.replace('Até ','≤ ').replace('Acima de ','> ')}</button>`;
+    return `<button class="ta-filter-btn${on?' on':''}" data-ta="${f}" title="${t('taFilterTip')}${dispVal(f)}">${taShort(f)}</button>`;
   }).join('');
-  wrap.innerHTML = html + (active.size? `<button class="ta-filter-clear" title="Remover filtros de TA">Limpar</button>`:'');
+  wrap.innerHTML = html + (active.size? `<button class="ta-filter-clear" title="${t('taClearTip')}">${t('taClear')}</button>`:'');
   wrap.querySelectorAll('.ta-filter-btn').forEach(btn=>{
     btn.onclick=()=>{
       const k=makeFilterKey('ta',btn.dataset.ta);
@@ -1253,7 +1263,8 @@ function renderBarStack(domId,categories,seriesMap,filterKey){
   }));
   const isSquad = domId === 'chartSquadScore';
   const isCloser = domId === 'chartCloserScore';
-  const wrapLabel = (label)=>{
+  const wrapLabel = (rawLabel)=>{
+    const label = dispVal(rawLabel);
     if(!(isSquad||isCloser)) return label;
     if(isCloser){
       const maxLen = 16;
@@ -1278,6 +1289,12 @@ function renderBarStack(domId,categories,seriesMap,filterKey){
     ...baseOpts(),
     grid:{left:10,right:10,top:36,bottom:isSquad?54:(isCloser?70:30),containLabel:true},
     legend:{top:0},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:(params)=>{
+      const list=Array.isArray(params)?params:[params];
+      let s=escHtml(dispVal(list[0].name));
+      list.forEach(p=>{ s+=`<br/>${p.marker}${escHtml(p.seriesName)}: <b>${p.value}</b>`; });
+      return s;
+    }},
     xAxis:{type:'category',data:categories,axisLabel:{interval:0,formatter:wrapLabel,fontSize:xFont,rotate,margin},axisTick:{alignWithLabel:true}},
     yAxis:{type:'value'},
     series
@@ -1316,7 +1333,7 @@ function updateTASquadTable(data){
   const {list}=computeTASquadMetrics(data); if(!list.length){wrap.innerHTML=''; return;}
   list.sort((a,b)=>b.fastPct-a.fastPct);
   const rows=list.map(m=>`<tr><td>${escHtml(m.squad)}</td><td>${m.volume}</td><td>${m.fastPct.toFixed(1)}%</td><td>${m.midPct.toFixed(1)}%</td><td>${m.slowPct.toFixed(1)}%</td></tr>`).join('');
-  wrap.innerHTML=`<table class="squad-table"><thead><tr><th>Squad</th><th>Vol</th><th>Rápido (≤3d)%</th><th>Médio (≤10d)%</th><th>Lento (&gt;10d)%</th></tr></thead><tbody>${rows}</tbody></table>`;
+  wrap.innerHTML=`<table class="squad-table"><thead><tr><th>${t('thSquad')}</th><th>${t('thVol')}</th><th>${t('thFast')}</th><th>${t('thMid')}</th><th>${t('thSlow')}</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 function updateTASquadInsights(data){
   const wrap=document.getElementById('taSquadInsights'); if(!wrap) return;
@@ -1328,10 +1345,10 @@ function updateTASquadInsights(data){
   const balanced=list.slice().sort((a,b)=> Math.abs((a.fastPct+a.midPct)/2 - a.slowPct) - Math.abs((b.fastPct+b.midPct)/2 - b.slowPct))[0];
   const lowVolume=minBy('volume');
   const cards=[
-    {title:'Maior % Rápido (≤3d)',badge:'SPEED',value:`${fastest.fastPct.toFixed(1)}%`,extra:`Vol ${fastest.volume}`,squad:fastest.squad},
-    {title:'Maior % Lento (>10d)',badge:'ALERTA',value:`${slowest.slowPct.toFixed(1)}%`,extra:`Rápido ${slowest.fastPct.toFixed(1)}%`,squad:slowest.squad,warn:true},
-    {title:'Mais Balanceado',badge:'BALANCE',value:`F:${balanced.fastPct.toFixed(0)} M:${balanced.midPct.toFixed(0)} L:${balanced.slowPct.toFixed(0)}`,extra:`Vol ${balanced.volume}`,squad:balanced.squad},
-    {title:'Menor Volume',badge:'VOL',value:`${lowVolume.volume}`,extra:`Rápido ${lowVolume.fastPct.toFixed(1)}%`,squad:lowVolume.squad}
+    {title:t('siFastest'),badge:'SPEED',value:`${fastest.fastPct.toFixed(1)}%`,extra:`Vol ${fastest.volume}`,squad:fastest.squad},
+    {title:t('siSlowest'),badge:t('bAlert'),value:`${slowest.slowPct.toFixed(1)}%`,extra:`${t('siFast')} ${slowest.fastPct.toFixed(1)}%`,squad:slowest.squad,warn:true},
+    {title:t('siBalanced'),badge:'BALANCE',value:`F:${balanced.fastPct.toFixed(0)} M:${balanced.midPct.toFixed(0)} L:${balanced.slowPct.toFixed(0)}`,extra:`Vol ${balanced.volume}`,squad:balanced.squad},
+    {title:t('siLowVol'),badge:'VOL',value:`${lowVolume.volume}`,extra:`${t('siFast')} ${lowVolume.fastPct.toFixed(1)}%`,squad:lowVolume.squad}
   ];
   wrap.innerHTML=cards.map(c=>`<div class="si-card"><span class="si-badge ${c.warn?'warn':'ok'}">${c.badge}</span><b>${c.title}</b><div class="val">${c.value}</div><div style="margin-top:4px;color:var(--ink-3);">${escHtml(c.squad)}</div><div style="margin-top:2px;font-size:10px;color:var(--ink-4)">${c.extra||''}</div></div>`).join('');
 }
@@ -1344,11 +1361,11 @@ document.addEventListener('click',(e)=>{
       updateTASquadInsights(window.currentData||[]);
       if(insights) insights.style.display='grid';
       if(tableWrap) tableWrap.style.display='none';
-      btn.dataset.mode='insights'; btn.textContent='Ver Tabela';
+      btn.dataset.mode='insights'; btn.textContent=t('viewTable');
     } else {
       if(insights) insights.style.display='none';
       if(tableWrap) tableWrap.style.display='block';
-      btn.dataset.mode='table'; btn.textContent='Ver Insights';
+      btn.dataset.mode='table'; btn.textContent=t('viewInsights');
     }
   }
 });
@@ -1365,12 +1382,12 @@ function updateSquadInsights(data){
   const worstQuali=maxBy('cdPct');
   const topWon=maxBy('wonPct');
   const cards=[
-    {title:'Maior Volume',badge:'TOP',value:topVol.volume,extra:`${(topVol.volume/totalVol*100).toFixed(1)}% share`,squad:topVol.squad},
-    {title:'Melhor Qualidade (A+B)',badge:'QUALI',value:`${topQuali.abPct.toFixed(1)}%`,extra:`A ${(raw[topQuali.squad].A/topQuali.volume*100||0).toFixed(1)}%`,squad:topQuali.squad},
-    {title:'Mais Rápido (TA≤3d)',badge:'SPEED',value:`${topSpeed.fastPct.toFixed(1)}%`,extra:`WON ${topSpeed.wonPct.toFixed(1)}%`,squad:topSpeed.squad},
-    {title:'Alerta Qualidade (C+D)',badge:'ATENÇÃO',value:`${worstQuali.cdPct.toFixed(1)}%`,extra:`A+B ${worstQuali.abPct.toFixed(1)}%`,squad:worstQuali.squad,warn:true},
+    {title:t('siTopVol'),badge:'TOP',value:topVol.volume,extra:`${(topVol.volume/totalVol*100).toFixed(1)}% share`,squad:topVol.squad},
+    {title:t('siQuali'),badge:t('bQuality'),value:`${topQuali.abPct.toFixed(1)}%`,extra:`A ${(raw[topQuali.squad].A/topQuali.volume*100||0).toFixed(1)}%`,squad:topQuali.squad},
+    {title:t('siSpeed'),badge:'SPEED',value:`${topSpeed.fastPct.toFixed(1)}%`,extra:`WON ${topSpeed.wonPct.toFixed(1)}%`,squad:topSpeed.squad},
+    {title:t('siAlertQ'),badge:t('bWarn'),value:`${worstQuali.cdPct.toFixed(1)}%`,extra:`A+B ${worstQuali.abPct.toFixed(1)}%`,squad:worstQuali.squad,warn:true},
   ];
-  if(topWon.wonPct>0){cards.push({title:'Maior Conversão (WON)',badge:'WON',value:`${topWon.wonPct.toFixed(1)}%`,extra:`Vol ${topWon.volume}`,squad:topWon.squad});}
+  if(topWon.wonPct>0){cards.push({title:t('siConv'),badge:'WON',value:`${topWon.wonPct.toFixed(1)}%`,extra:`Vol ${topWon.volume}`,squad:topWon.squad});}
   wrap.innerHTML=cards.map(c=>`<div class="si-card"><span class="si-badge ${c.warn?'warn':'ok'}">${c.badge}</span><b>${c.title}</b><div class="val">${c.value}</div><div style="margin-top:4px;color:var(--ink-3);">${escHtml(c.squad)}</div><div style="margin-top:2px;font-size:10px;color:var(--ink-4)">${c.extra||''}</div></div>`).join('');
 }
 
@@ -1379,7 +1396,7 @@ function updateSquadTable(data){
   const {list}=computeSquadMetrics(data); if(!list.length){wrap.style.display='none';return;}
   list.sort((a,b)=>b.volume-a.volume);
   const rows=list.map(m=>`<tr><td>${escHtml(m.squad)}</td><td>${m.volume}</td><td>${m.abPct.toFixed(1)}%</td><td>${m.cdPct.toFixed(1)}%</td><td>${m.fastPct.toFixed(1)}%</td><td>${m.wonPct.toFixed(1)}%</td></tr>`).join('');
-  wrap.innerHTML=`<table class="squad-table"><thead><tr><th>Squad</th><th>Vol</th><th>A+B%</th><th>C+D%</th><th>TA≤3d%</th><th>WON%</th></tr></thead><tbody>${rows}</tbody></table>`;
+  wrap.innerHTML=`<table class="squad-table"><thead><tr><th>${t('thSquad')}</th><th>${t('thVol')}</th><th>A+B%</th><th>C+D%</th><th>TA≤3d%</th><th>WON%</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 document.addEventListener('click',(e)=>{
@@ -1394,12 +1411,12 @@ document.addEventListener('click',(e)=>{
       if(insights){insights.style.display='grid';}
       if(tableWrap){tableWrap.style.display='none';}
       btn.dataset.mode='insights';
-      btn.textContent='Ver Tabela';
+      btn.textContent=t('viewTable');
     } else {
       if(insights){insights.style.display='none';}
       if(tableWrap){tableWrap.style.display='block';}
       btn.dataset.mode='table';
-      btn.textContent='Ver Insights';
+      btn.textContent=t('viewInsights');
     }
   }
 });
@@ -1409,27 +1426,27 @@ function renderBar(domId,categories,values,horizontal=false,title='',filterKey){
   const isSDR = domId === 'chartSDR';
   const isScore = domId === 'chartScore';
   const isTADist = domId === 'chartTADist';
-  let rotate = 0; let fontSize = 11; let formatter = undefined; let margin = 8;
+  let rotate = 0; let fontSize = 11; let formatter = (raw)=>dispVal(raw); let margin = 8;
   if(!horizontal){
     if(isSDR){
       rotate = 45;
       if(categories.length>18) fontSize=9; else if(categories.length>14) fontSize=10;
       const maxLen = 16;
-      formatter = (val)=>{ if(val.length<=maxLen) return val; return val.slice(0,maxLen-1)+'…'; };
+      formatter = (raw)=>{ const val=dispVal(raw); if(val.length<=maxLen) return val; return val.slice(0,maxLen-1)+'…'; };
       margin = 12;
     } else if(isScore || isTADist){
       if(categories.length>6) rotate = 30;
       const maxLen = 12;
-      formatter = (val)=> val.length<=maxLen? val : val.slice(0,maxLen-1)+'…';
+      formatter = (raw)=>{ const val=dispVal(raw); return val.length<=maxLen? val : val.slice(0,maxLen-1)+'…'; };
     } else {
       if(categories.length>8) rotate=30;
     }
   }
 
-  let yFormatter = undefined; let yFont=11; let yMargin=8;
+  let yFormatter = (raw)=>dispVal(raw); let yFont=11; let yMargin=8;
   if(horizontal){
     const maxLen=20;
-    yFormatter = (val)=> val.length<=maxLen? val : val.slice(0,maxLen-1)+'…';
+    yFormatter = (raw)=>{ const val=dispVal(raw); return val.length<=maxLen? val : val.slice(0,maxLen-1)+'…'; };
     if(categories.length>12) yFont=10;
     yMargin=10;
   }
@@ -1441,7 +1458,7 @@ function renderBar(domId,categories,values,horizontal=false,title='',filterKey){
 
   chart.setOption({
     ...baseOpts(),
-    tooltip: { trigger: 'item', formatter: (p)=>`${p.name}: <b>${p.value}</b>` },
+    tooltip: { trigger: 'item', formatter: (p)=>`${escHtml(dispVal(p.name))}: <b>${p.value}</b>` },
     xAxis: horizontal ? {type:'value'} : {
       type:'category',
       data:categories,
@@ -1452,7 +1469,7 @@ function renderBar(domId,categories,values,horizontal=false,title='',filterKey){
     series:[{type:'bar',data,barMaxWidth:26,itemStyle:{borderRadius:horizontal?[0,3,3,0]:[3,3,0,0],color:(isScore||isTADist)?undefined:accent},animationDuration:700}]
   });
   addResize(chart);
-  if(filterKey){chart.on('click',p=>{if(p.componentType==='series'&&p.name&&p.name!=='Outros')addGlobalFilter({type:filterKey,value:p.name,label:p.name});});}
+  if(filterKey){chart.on('click',p=>{if(p.componentType==='series'&&p.name&&!isAggLabel(p.name))addGlobalFilter({type:filterKey,value:p.name,label:p.name});});}
 }
 function renderPie(domId,dataPairs,title='',totalValue=null,filterKey){
   const el=document.getElementById(domId);if(!el)return;const chart=makeChart(el);
@@ -1484,7 +1501,8 @@ function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
   const isTASquad = domId === 'chartHeatTASquad';
   // Dynamic font size: fewer columns -> bigger font
   let xFont = 11; if(isTASquad){ if(cols.length>10) xFont=10; if(cols.length>14) xFont=9; if(cols.length>18) xFont=8; }
-  const wrapLabel = (label)=>{
+  const wrapLabel = (rawLabel)=>{
+    const label = dispVal(rawLabel);
     if(!isTASquad) return label;
     const maxPerLine = (cols.length>14)?8:12;
     const parts = String(label).split(/\s+/);
@@ -1498,13 +1516,13 @@ function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
   };
   chart.setOption({
     ...baseOpts(),
-    tooltip:{position:'top',formatter:(p)=>`${rows[p.data[1]]} × ${cols[p.data[0]]}: <b>${p.data[2]}</b>`},
+    tooltip:{position:'top',formatter:(p)=>`${escHtml(dispVal(rows[p.data[1]]))} × ${escHtml(dispVal(cols[p.data[0]]))}: <b>${p.data[2]}</b>`},
     grid:(()=>{ if(!isTASquad) return {left:60,right:10,top:26,bottom:40,containLabel:true};
       const maxChars = Math.max(...rows.map(r=>r.length));
       const leftPad = Math.min(70, Math.max(45, Math.round(maxChars*4.6))); // clamp 45-70
       return {left:leftPad,right:70,top:26,bottom:40,containLabel:true}; })(),
     xAxis:{type:'category',data:cols,axisLabel:{interval:0,formatter:wrapLabel,fontSize:xFont}},
-  yAxis:{type:'category',data:rows,axisLabel:{interval:0,fontSize:11,align:'right'}},
+  yAxis:{type:'category',data:rows,axisLabel:{interval:0,fontSize:11,align:'right',formatter:(raw)=>dispVal(raw)}},
     visualMap:(()=>{ const base={min:0,max:Math.max(1,...data.map(d=>d[2])),calculable:true,inRange:{color:SEQ_BLUE},textStyle:{color:'#8a8a94'}};
       if(!isTASquad) return {...base,orient:'horizontal',left:'center',bottom:0,itemWidth:16};
       return {...base,orient:'vertical',right:10,top:20,itemWidth:14,itemHeight:120}; })(),
@@ -1517,10 +1535,13 @@ function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
 }
 
 
-/* ---------- GERAÇÃO DINÂMICA DE SUGESTÕES ---------- */
-const suggestionTemplates=["Quais são os hábitos e rotinas de SDRs de alta performance como [BEST_SDR]?","Como replicar as estratégias de agendamento rápido da squad '[FASTEST_SQUAD]' para o resto do time?","Estratégias para dobrar a aquisição de leads via '[TOP_SOURCE]'.","Framework para analisar e replicar o sucesso da campanha '[TOP_CAMPAIGN]'.","Como criar conteúdo de marketing de nicho focado no interesse '[PAIN_POINT_TAG]'?","Plano de ação para coaching e desenvolvimento da performance de '[WORST_PERFORMER]'.","Estratégias de marketing para atrair mais clientes com o perfil da tag '[GOLDEN_TAG]'.","Qual o impacto da velocidade de atendimento na conversão de leads no setor de '[PAIN_POINT_TAG]?'","Melhores práticas para o handoff de leads de alto valor (perfil '[GOLDEN_TAG]').","Análise comparativa de concorrentes que também atuam no nicho '[PAIN_POINT_TAG]'.","Como otimizar o Lead Scoring para identificar mais cedo leads com o perfil de '[GOLDEN_TAG]'?","Técnicas de prospecção outbound para o público interessado em '[PAIN_POINT_TAG]'.","Como usar o sucesso da campanha '[TOP_CAMPAIGN]' para criar campanhas de retargeting?"];
-function extractKeyInsights(data){if(!data||!data.length)return{};const getTop=(map)=>Object.entries(map).sort((a,b)=>b[1]-a[1])[0]?.[0]||'N/A';keyInsights.bestSDR=getTop(countBy(data,'sdr'));const fastData=data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias');keyInsights.fastestSquad=getTop(countBy(fastData,'origin_group_name'));keyInsights.topSource=getTop(countBy(data,'d_utm_source'));keyInsights.topCampaign=getTop(countBy(data,'d_utm_campaign'));const aLeads=data.filter(d=>d.score==='A');keyInsights.goldenTag=getTop(countTags(aLeads))||'leads de alto valor';keyInsights.painPointTag=getTop(countTags(data))||'mercado';const squadScore=ctab(data,'origin_group_name','score',null,SCORE_ORDER);const squadPerformance=squadScore.rows.map((squad,i)=>{const row=squadScore.mat[i];const total=row.reduce((a,b)=>a+b,0);if(total===0)return{squad,ratio:0};const bad=(row[2]||0)+(row[3]||0);return{squad,ratio:bad/total}}).sort((a,b)=>b.ratio-a.ratio);keyInsights.worstPerformer=squadPerformance[0]?.squad||'geral'}
-function generateSuggestions(){const output=document.getElementById('suggestionsOutput');if(!keyInsights.bestSDR){output.innerHTML="<p class='muted'>Dados insuficientes para gerar sugestões. Processe um arquivo CSV válido primeiro.</p>";return}const shuffled=[...suggestionTemplates].sort(()=>0.5-Math.random());const selectedTemplates=shuffled.slice(0,10);const html=selectedTemplates.map(template=>{const suggestion=template.replace(/\[BEST_SDR\]/g,keyInsights.bestSDR).replace(/\[FASTEST_SQUAD\]/g,keyInsights.fastestSquad).replace(/\[TOP_SOURCE\]/g,keyInsights.topSource).replace(/\[TOP_CAMPAIGN\]/g,keyInsights.topCampaign).replace(/\[PAIN_POINT_TAG\]/g,keyInsights.painPointTag).replace(/\[WORST_PERFORMER\]/g,keyInsights.worstPerformer).replace(/\[GOLDEN_TAG\]/g,keyInsights.goldenTag);const query=encodeURIComponent(suggestion);return`<a href="https://www.google.com/search?q=${query}" target="_blank" rel="noopener">${escHtml(suggestion)}</a>`}).join('');output.innerHTML=html}
+/* ---------- GERAÇÃO DINÂMICA DE SUGESTÕES (bilíngue: lista usa a língua ativa) ---------- */
+const SUGGESTION_TPL={
+  en:["What are the habits and routines of high-performing SDRs like [BEST_SDR]?","How to replicate the fast-booking strategies of squad '[FASTEST_SQUAD]' across the rest of the team?","Strategies to double lead acquisition via '[TOP_SOURCE]'.","Framework to analyze and replicate the success of campaign '[TOP_CAMPAIGN]'.","How to create niche marketing content focused on the '[PAIN_POINT_TAG]' interest?","Action plan for coaching and developing the performance of '[WORST_PERFORMER]'.","Marketing strategies to attract more customers with the '[GOLDEN_TAG]' tag profile.","What is the impact of response speed on lead conversion in the '[PAIN_POINT_TAG]' sector?","Best practices for handing off high-value leads ('[GOLDEN_TAG]' profile).","Comparative analysis of competitors also operating in the '[PAIN_POINT_TAG]' niche.","How to optimize Lead Scoring to identify '[GOLDEN_TAG]' profile leads earlier?","Outbound prospecting techniques for the audience interested in '[PAIN_POINT_TAG]'.","How to use the success of campaign '[TOP_CAMPAIGN]' to build retargeting campaigns?"],
+  pt:["Quais são os hábitos e rotinas de SDRs de alta performance como [BEST_SDR]?","Como replicar as estratégias de agendamento rápido da squad '[FASTEST_SQUAD]' para o resto do time?","Estratégias para dobrar a aquisição de leads via '[TOP_SOURCE]'.","Framework para analisar e replicar o sucesso da campanha '[TOP_CAMPAIGN]'.","Como criar conteúdo de marketing de nicho focado no interesse '[PAIN_POINT_TAG]'?","Plano de ação para coaching e desenvolvimento da performance de '[WORST_PERFORMER]'.","Estratégias de marketing para atrair mais clientes com o perfil da tag '[GOLDEN_TAG]'.","Qual o impacto da velocidade de atendimento na conversão de leads no setor de '[PAIN_POINT_TAG]?'","Melhores práticas para o handoff de leads de alto valor (perfil '[GOLDEN_TAG]').","Análise comparativa de concorrentes que também atuam no nicho '[PAIN_POINT_TAG]'.","Como otimizar o Lead Scoring para identificar mais cedo leads com o perfil de '[GOLDEN_TAG]'?","Técnicas de prospecção outbound para o público interessado em '[PAIN_POINT_TAG]'.","Como usar o sucesso da campanha '[TOP_CAMPAIGN]' para criar campanhas de retargeting?"]
+};
+function extractKeyInsights(data){if(!data||!data.length)return{};const getTop=(map)=>Object.entries(map).sort((a,b)=>b[1]-a[1])[0]?.[0]||'N/A';keyInsights.bestSDR=getTop(countBy(data,'sdr'));const fastData=data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias');keyInsights.fastestSquad=getTop(countBy(fastData,'origin_group_name'));keyInsights.topSource=getTop(countBy(data,'d_utm_source'));keyInsights.topCampaign=getTop(countBy(data,'d_utm_campaign'));const aLeads=data.filter(d=>d.score==='A');keyInsights.goldenTag=getTop(countTags(aLeads))||t('fbHighValue');keyInsights.painPointTag=getTop(countTags(data))||t('fbMarket');const squadScore=ctab(data,'origin_group_name','score',null,SCORE_ORDER);const squadPerformance=squadScore.rows.map((squad,i)=>{const row=squadScore.mat[i];const total=row.reduce((a,b)=>a+b,0);if(total===0)return{squad,ratio:0};const bad=(row[2]||0)+(row[3]||0);return{squad,ratio:bad/total}}).sort((a,b)=>b.ratio-a.ratio);keyInsights.worstPerformer=squadPerformance[0]?.squad||t('fbOverall')}
+function generateSuggestions(){const output=document.getElementById('suggestionsOutput');if(!keyInsights.bestSDR){output.innerHTML=`<p class='muted'>${t('sugNoData')}</p>`;return}const shuffled=[...SUGGESTION_TPL[LANG()]].sort(()=>0.5-Math.random());const selectedTemplates=shuffled.slice(0,10);const html=selectedTemplates.map(template=>{const suggestion=template.replace(/\[BEST_SDR\]/g,keyInsights.bestSDR).replace(/\[FASTEST_SQUAD\]/g,keyInsights.fastestSquad).replace(/\[TOP_SOURCE\]/g,keyInsights.topSource).replace(/\[TOP_CAMPAIGN\]/g,keyInsights.topCampaign).replace(/\[PAIN_POINT_TAG\]/g,keyInsights.painPointTag).replace(/\[WORST_PERFORMER\]/g,keyInsights.worstPerformer).replace(/\[GOLDEN_TAG\]/g,keyInsights.goldenTag);const query=encodeURIComponent(suggestion);return`<a href="https://www.google.com/search?q=${query}" target="_blank" rel="noopener">${escHtml(suggestion)}</a>`}).join('');output.innerHTML=html}
 
 /* ---------- TAGS: barras horizontais empilhadas (top 10) ---------- */
 function renderNestedTags(data, groupBy = 'deal_status') {
@@ -1576,7 +1597,7 @@ function renderSquadRadar(data) {
     if (!el) return;
     try { const inst = echarts.getInstanceByDom(el); if (inst) inst.dispose(); } catch (e) {}
     const { raw, list } = computeSquadMetrics(data || []);
-    if (!list.length) { el.innerHTML = '<div class="muted" style="padding:30px 0;text-align:center">Sem dados</div>'; return; }
+    if (!list.length) { el.innerHTML = `<div class="muted" style="padding:30px 0;text-align:center">${t('noData')}</div>`; return; }
     list.sort((a,b)=>b.volume-a.volume);
     const maxVol = Math.max(1, ...list.map(m=>m.volume));
     const cell = (v,max,txt)=>`<div class="sc-cell"><div class="sc-bar"><i style="width:${Math.max(2,Math.round(v/max*100))}%"></i></div><span class="sc-val">${txt}</span></div>`;
@@ -1591,7 +1612,7 @@ function renderSquadRadar(data) {
         <td>${cell(corpPct, 100, corpPct.toFixed(1)+'%')}</td>
       </tr>`;
     }).join('');
-    el.innerHTML = `<table><thead><tr><th>Squad</th><th>Volume</th><th>Qualidade A+B</th><th>Conversão WON</th><th>TA ≤ 3d</th><th>E-mail corp.</th></tr></thead><tbody>${rows}</tbody></table>`;
+    el.innerHTML = `<table><thead><tr><th>${t('thSquad')}</th><th>${t('thVolume')}</th><th>${t('thQualiAB')}</th><th>${t('thConvWon')}</th><th>${t('thTa3')}</th><th>${t('thCorpMail')}</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 
@@ -1607,7 +1628,7 @@ function buildAll(data){
   chartDataStore.kpi = {total, status: status, ...countBy(data,'provider_class'), '% TA <= 3 dias': (data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias').length/Math.max(1,total)*100).toFixed(1)};
   renderExec(data);
   renderKPIs(data);
-  renderPie('chartStatusDonut', statusPairs, 'Total', total, 'status');
+  renderPie('chartStatusDonut', statusPairs, t('total'), total, 'status');
   
   const qualityByStatus = ctab(data, 'deal_status', 'score', STATUS_ORDER, SCORE_ORDER);
   const seriesMapQuality = {};
@@ -1623,7 +1644,7 @@ function buildAll(data){
   const insightsEl = document.getElementById('squadInsights');
   if(insightsEl){insightsEl.innerHTML='';insightsEl.style.display='none';}
   const toggleBtn = document.getElementById('toggleSquadTableBtn');
-  if(toggleBtn){toggleBtn.textContent='Ver Insights';toggleBtn.dataset.mode='table';}
+  if(toggleBtn){toggleBtn.textContent=t('viewInsights');toggleBtn.dataset.mode='table';}
   updateSquadTable(data);
 
   const taSquad = ctab(data,'ta','origin_group_name', TA_ORDER, null);
@@ -1631,7 +1652,7 @@ function buildAll(data){
   renderHeat('chartHeatTASquad', taSquad.rows, taSquad.cols, taSquad.mat, 'ta', 'squad');
   // Reset TA x Squad extra area
   const taBtn = document.getElementById('toggleTASquadBtn');
-  if(taBtn){taBtn.textContent='Ver Insights';taBtn.dataset.mode='table';}
+  if(taBtn){taBtn.textContent=t('viewInsights');taBtn.dataset.mode='table';}
   const taInsights = document.getElementById('taSquadInsights');
   if(taInsights){taInsights.innerHTML=''; taInsights.style.display='none';}
   updateTASquadTable(data);
@@ -1639,7 +1660,7 @@ function buildAll(data){
   const sdrCount = countBy(data,'sdr');
   const sdrs = Object.entries(sdrCount).sort((a,b)=> b[1]-a[1]).slice(0,10);
   chartDataStore.sdr = sdrs;
-  renderBar('chartSDR', sdrs.map(d=>d[0]), sdrs.map(d=>d[1]), false, 'Top 10 SDRs por Volume', 'sdr');
+  renderBar('chartSDR', sdrs.map(d=>d[0]), sdrs.map(d=>d[1]), false, '', 'sdr');
   renderTAQuickFilters();
 
   // Normalização de closers antes de montar o gráfico
@@ -1654,7 +1675,7 @@ function buildAll(data){
   const srcPairs = Object.entries(srcCount).sort((a,b)=> b[1]-a[1]);
   const srcTop = srcPairs.slice(0,8);
   const srcRest = srcPairs.slice(8);
-  if(srcRest.length) srcTop.push(['Outros', srcRest.reduce((a,b)=>a+b[1],0)]);
+  if(srcRest.length) srcTop.push([t('others'), srcRest.reduce((a,b)=>a+b[1],0)]);
   chartDataStore.source = srcTop;
   renderBar('chartSource', srcTop.map(d=>d[0]), srcTop.map(d=>d[1]), true, '', 'source');
 
@@ -1668,15 +1689,15 @@ function buildAll(data){
   }
   
   chartDataStore.campaign = campTop;
-  renderBar('chartCampaign', campTop.map(c=>c[0]), campTop.map(c=>c[1]), true, 'Top 10 Campanhas por Volume', 'campaign');
+  renderBar('chartCampaign', campTop.map(c=>c[0]), campTop.map(c=>c[1]), true, '', 'campaign');
 
   const scoreCount = SCORE_ORDER.map(sc => [sc, data.filter(d=> d.score===sc).length]);
   chartDataStore.score = scoreCount;
-  renderBar('chartScore', scoreCount.map(d=>d[0]), scoreCount.map(d=>d[1]), false, 'Distribuição por Score', 'score');
+  renderBar('chartScore', scoreCount.map(d=>d[0]), scoreCount.map(d=>d[1]), false, '', 'score');
 
-  const taCount = TA_ORDER.map(t => [t, data.filter(d=> d.ta===t).length]);
+  const taCount = TA_ORDER.map(b => [b, data.filter(d=> d.ta===b).length]);
   chartDataStore.ta_dist = taCount;
-  renderBar('chartTADist', taCount.map(d=>d[0]), taCount.map(d=>d[1]), false, 'Distribuição por Tempo de Agendamento', 'ta');
+  renderBar('chartTADist', taCount.map(d=>d[0]), taCount.map(d=>d[1]), false, '', 'ta');
 
   renderNestedTags(data, document.getElementById('groupTagsByStatusBtn').classList.contains('active') ? 'deal_status' : 'score');
 
@@ -1706,7 +1727,7 @@ function getGeminiKey() {
     let k = null;
     try { k = localStorage.getItem('demo_gemini_key'); } catch (e) {}
     if (k) return k;
-    k = window.prompt("Demonstração: para testar a análise com IA, cole a sua chave da API Gemini (crie uma grátis em aistudio.google.com/apikey).\n\nEla fica só no seu navegador e vai direto para o Google, nunca passa por este site.");
+    k = window.prompt(t('gKeyPrompt'));
     if (k && k.trim()) { k = k.trim(); try { localStorage.setItem('demo_gemini_key', k); } catch (e) {} return k; }
     return null;
 }
@@ -1714,7 +1735,7 @@ function getGeminiKey() {
 async function callGemini(prompt) {
     const apiKey = getGeminiKey();
     if (!apiKey) {
-      return "Análise com IA cancelada. Cole uma chave da API Gemini para testar (ela fica só no seu navegador).";
+      return t('gCanceled');
     }
 
     // Pega o modelo escolhido no menu (ex: "models/gemini-1.5-pro-latest")
@@ -1734,14 +1755,14 @@ async function callGemini(prompt) {
         });
         if (!res.ok) {
             const errorData = await res.json();
-            console.error("Erro da API Gemini:", errorData);
-            return `Erro na API: ${errorData.error.message}`;
+            console.error("Gemini API error:", errorData);
+            return `${t('gApiErr')}${errorData.error.message}`;
         }
         const data = await res.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || "Sem resposta da API.";
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || t('gNoResp');
     } catch (error) {
-        console.error("Erro ao chamar a API Gemini:", error);
-        return "Falha na comunicação com a API Gemini. Verifique o console e sua conexão de rede para detalhes.";
+        console.error("Failed to call the Gemini API:", error);
+        return t('gNetFail');
     }
 }
 
@@ -1774,7 +1795,7 @@ function toggleGeminiMinimize(){
   const minimizeBtn = document.getElementById('minimizePanel');
   if(minimizeBtn) {
     minimizeBtn.textContent = isMinimized ? '+' : '−';
-    minimizeBtn.title = isMinimized ? 'Maximizar' : 'Minimizar';
+    minimizeBtn.title = isMinimized ? t('maximize') : t('minimize');
   }
 }
 
@@ -1787,7 +1808,7 @@ function toggleSuggestionsMinimize(){
   const minimizeBtn = document.getElementById('minimizeSuggestionsBox');
   if(minimizeBtn) {
     minimizeBtn.textContent = isMinimized ? '+' : '−';
-    minimizeBtn.title = isMinimized ? 'Maximizar' : 'Minimizar';
+    minimizeBtn.title = isMinimized ? t('maximize') : t('minimize');
   }
 }
 
@@ -1832,45 +1853,42 @@ window.chartDataStore = window.chartDataStore || {};
 async function sendGemini(kind, buttonElement){
   // 1) Verificações
   if(!window.chartDataStore || !Object.prototype.hasOwnProperty.call(window.chartDataStore, kind)){
-    alert("Dados deste gráfico ainda não estão prontos. Processe o CSV e aguarde o carregamento dos gráficos.");
+    alert(t('gNotReady'));
     return;
   }
 
   // 2) UX: desabilita botão e abre painel
   const originalText = buttonElement ? buttonElement.textContent : "";
-  if (buttonElement) { buttonElement.disabled = true; buttonElement.textContent = "Analisando..."; }
+  if (buttonElement) { buttonElement.disabled = true; buttonElement.textContent = t('analyzing'); }
   toggleGemini(true);
 
   // 3) Define elementos do painel
   const out = document.getElementById("geminiOutput");
   const actions = document.getElementById("geminiActions");
-  if (out) out.textContent = "Gerando análise com IA...";
+  if (out) out.textContent = t('gWorking');
   if (actions) actions.innerHTML = "";
 
   try {
-    // 4) Monta prompt a partir do snapshot do gráfico
+    // 4) Monta prompt a partir do snapshot do gráfico, na língua ativa
     const snapshot = window.chartDataStore[kind];
     const model = document.getElementById('modelSelect')?.value || "models/gemini-1.5-pro";
 
-    const prompt = [
-      "Você é um analista sênior de MarTech e Vendas. Gere uma análise clara, direta e acionável.",
-      "Estruture em: {nome do visualizador analisado} • Breve resumo dos dados analisados • Insight(s) • Diagnóstico • Recomendações imediatas (prioridade alta) • Riscos/atenções.",
-      `Contexto de negócio: Agendamentos selecionados (seleção atual do dashboard).`,
-      `Visualização analisada: ${kind}`,
-      `Modelo: ${model}`,
-      `Dados sintetizados (JSON):`,
+    const prompt = t('gPromptHead').concat([
+      `${t('gPromptViz')}${kind}`,
+      `${t('gPromptModel')}${model}`,
+      t('gPromptData'),
       JSON.stringify(snapshot, null, 2)
-    ].join("\n");
+    ]).join("\n");
 
     const text = await callGemini(prompt);
-    if (out) out.textContent = text || "Sem conteúdo retornado.";
+    if (out) out.textContent = text || t('gNoContent');
 
     // 6) Envio pro Discord removido nesta demonstração pública (ação de operador,
     //    webhook não configurado). A análise com IA acima segue funcionando.
     if (actions) { actions.innerHTML = ""; }
   } catch (err) {
     console.error(err);
-    if (out) out.textContent = "Ocorreu um erro durante a análise. Verifique o console.";
+    if (out) out.textContent = t('gErr');
   } finally {
     if (buttonElement) {
       buttonElement.disabled = false;
@@ -1885,9 +1903,9 @@ async function sendGemini(kind, buttonElement){
 function downloadChartPNG(domId, fileBase){
   try{
     const el = document.getElementById(domId);
-    if(!el){alert('Gráfico não encontrado: '+domId);return;}
+    if(!el){alert(t('pngNoChart')+domId);return;}
     const chart = echarts.getInstanceByDom(el);
-    if(!chart){alert('Instância ECharts não disponível ainda.');return;}
+    if(!chart){alert(t('pngNoInst'));return;}
     const dataURL = chart.getDataURL({ type:'png', pixelRatio:2, backgroundColor:'#0a0a0b' });
     const a = document.createElement('a');
     const stamp = new Date().toISOString().replace(/[:T]/g,'-').split('.')[0];
@@ -1895,8 +1913,8 @@ function downloadChartPNG(domId, fileBase){
     a.download = (fileBase||domId)+'_'+stamp+'.png';
     document.body.appendChild(a);a.click();a.remove();
   }catch(e){
-    console.error('Falha ao exportar gráfico', e);
-    alert('Falha ao gerar o PNG. Veja o console.');
+    console.error('Chart export failed', e);
+    alert(t('pngFail'));
   }
 }
 
@@ -1905,18 +1923,18 @@ function exportChartDataCSV(kind, fileBase){
   try{
     let dataObj = chartDataStore[kind];
     if(!dataObj){
-      alert('Não há dados estruturados para este gráfico.');
+      alert(t('csvNoData'));
       return;
     }
     let rows=[]; let header=[];
     const fromArray = (arr)=>{
-      if(arr.length && Array.isArray(arr[0])){ header=['categoria','valor']; rows=arr.map(p=>[p[0],p[1]]); }
+      if(arr.length && Array.isArray(arr[0])){ header=[t('csvCat'),t('csvVal')]; rows=arr.map(p=>[p[0],p[1]]); }
       else if(arr.length && typeof arr[0]==='object'){ header=Object.keys(arr[0]); rows=arr.map(o=>header.map(h=>o[h])); }
-      else { header=['valor']; rows=arr.map(v=>[v]); }
+      else { header=[t('csvVal')]; rows=arr.map(v=>[v]); }
     };
     if(dataObj.rows && (dataObj.mat || dataObj.data)){ // crosstab
       const mat = dataObj.mat || dataObj.data;
-      header=['categoria', ...(dataObj.cols||[])];
+      header=[t('csvCat'), ...(dataObj.cols||[])];
       rows = dataObj.rows.map((r,i)=> [r, ...(mat[i]||[])]);
     } else if(Array.isArray(dataObj)){
       fromArray(dataObj);
@@ -1925,7 +1943,7 @@ function exportChartDataCSV(kind, fileBase){
     } else if(Array.isArray(dataObj.data)){
       fromArray(dataObj.data);
     } else {
-      header=['chave','valor']; rows = Object.entries(dataObj).filter(e=>typeof e[1] !== 'object');
+      header=[t('csvKey'),t('csvVal')]; rows = Object.entries(dataObj).filter(e=>typeof e[1] !== 'object');
     }
     const csvLines=[header.join(',')].concat(rows.map(r=> r.map(x=> (x==null?'':String(x).replace(/"/g,'""')) ).map(x=> /[",\n]/.test(x)?`"${x}"`:x).join(',')));
     const blob=new Blob(["\ufeff"+csvLines.join('\n')],{type:'text/csv;charset=utf-8;'});
@@ -1933,7 +1951,7 @@ function exportChartDataCSV(kind, fileBase){
     a.href=URL.createObjectURL(blob);
     a.download=(fileBase||domId)+'.csv';
     document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},200);
-  }catch(e){console.error('Falha export CSV',e);alert('Falha ao exportar CSV. Veja console.');}
+  }catch(e){console.error('CSV export failed',e);alert(t('csvFail'));}
 }
 
 // Ações inline por gráfico (IA / PNG / CSV / tabela)
@@ -1947,10 +1965,10 @@ function exportChartDataCSV(kind, fileBase){
   function init(){
     document.querySelectorAll('.chart-actions[data-chart]').forEach(w=>{
       const chart=w.dataset.chart, kind=w.dataset.kind, base=w.dataset.csv||chart;
-      const btns=[{ic:I.ia,tip:'Analisar com IA',fn:(btn)=>sendGemini(kind,btn)}];
-      if(!w.dataset.noPng) btns.push({ic:I.png,tip:'Baixar PNG',fn:()=>downloadChartPNG(chart,base)});
-      btns.push({ic:I.csv,tip:'Exportar CSV',fn:()=>exportChartDataCSV(kind,base)});
-      if(w.dataset.insights) btns.push({ic:I.tbl,tip:'Tabela / insights',fn:()=>document.getElementById(w.dataset.insights)?.click()});
+      const btns=[{ic:I.ia,tip:t('tipAI'),fn:(btn)=>sendGemini(kind,btn)}];
+      if(!w.dataset.noPng) btns.push({ic:I.png,tip:t('tipPNG'),fn:()=>downloadChartPNG(chart,base)});
+      btns.push({ic:I.csv,tip:t('tipCSV'),fn:()=>exportChartDataCSV(kind,base)});
+      if(w.dataset.insights) btns.push({ic:I.tbl,tip:t('tipTbl'),fn:()=>document.getElementById(w.dataset.insights)?.click()});
       w.innerHTML='';
       btns.forEach(b=>{
         const el=document.createElement('button');
@@ -1962,6 +1980,7 @@ function exportChartDataCSV(kind, fileBase){
       });
     });
   }
+  window.__rebuildChartActions = init; // re-tradução dos data-tips na troca de língua
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 })();
 
@@ -2058,7 +2077,7 @@ fileInput.addEventListener('change', async (e) => {
         const data = process({ rows: rawRows });
 
         if (!data.length) {
-            alert('Nenhuma linha encontrada com title=Agendamento de reunião e type=SCHEDULE.');
+            alert(t('noRows'));
             return;
         }
 
@@ -2073,8 +2092,8 @@ fileInput.addEventListener('change', async (e) => {
         buildAll(DATA);
         renderFilterPanel();
     } catch (error) {
-        console.error("Erro ao processar:", error);
-        alert("Ocorreu um erro ao processar. Verifique o console para mais detalhes.");
+        console.error("Processing error:", error);
+        alert(t('procErr'));
     }
 });
 
@@ -2090,12 +2109,12 @@ document.getElementById('applyGlobalDate').addEventListener('click', () => {
     const end = endInput.value.trim();
     
     if (!start || !end) {
-        alert('Por favor, preencha ambas as datas (início e fim).');
+        alert(t('dateBoth'));
         return;
     }
-    
+
     if (start > end) {
-        alert('A data de início não pode ser maior que a data de fim.');
+        alert(t('dateOrder'));
         return;
     }
     
@@ -2107,10 +2126,10 @@ document.getElementById('applyGlobalDate').addEventListener('click', () => {
     const [endYear, endMonth, endDay] = end.split('-').map(Number);
     const startDateObj = new Date(startYear, startMonth - 1, startDay);
     const endDateObj = new Date(endYear, endMonth - 1, endDay);
-    const startFormatted = startDateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const endFormatted = endDateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    
-    infoEl.textContent = `Filtro ativo: ${startFormatted} → ${endFormatted}`;
+    const startFormatted = dfmt(startDateObj);
+    const endFormatted = dfmt(endDateObj);
+
+    infoEl.textContent = `${t('dateActive')}${startFormatted} → ${endFormatted}`;
     infoEl.style.color = '#22c55e';
     
     applyAndRender();
@@ -2142,7 +2161,7 @@ function enableSuggestions(){
     toggleGemini(true);
     const out = document.getElementById("geminiOutput");
     const actions = document.getElementById("geminiActions");
-    if(out) out.textContent = "Gerando sugestões de pesquisa para aprofundar os achados...";
+    if(out) out.textContent = t('gSugWorking');
     if(actions) actions.innerHTML = "";
 
     const snap = {
@@ -2152,15 +2171,12 @@ function enableSuggestions(){
       squad: window.chartDataStore?.squad || {}
     };
 
-    const prompt = [
-      "Liste 8-12 ideias de pesquisas/ações para acelerar ganhos e reduzir atritos nos agendamentos do dia.",
-      "Priorize impacto alto e custo baixo de execução. Cada ideia deve vir com: objetivo, como executar em 3 passos e métrica de sucesso.",
-      "Baseie-se nos dados abaixo.",
+    const prompt = t('gSugPrompt').concat([
       JSON.stringify(snap, null, 2)
-    ].join('\n');
+    ]).join('\n');
 
     const text = await callGemini(prompt);
-    if(out) out.textContent = text || "Sem conteúdo retornado.";
+    if(out) out.textContent = text || t('gNoContent');
   };
 }
 </script>
@@ -2191,36 +2207,36 @@ function enableSuggestions(){
 <div class="modal-overlay" id="modalMetodologia">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Metodologia - Análise de Agendamentos</h2>
+      <h2 data-i18n="mH">Methodology - Bookings Analysis</h2>
       <button class="modal-close" onclick="closeMetodologiaModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <h3>O que este painel responde</h3>
-      <ul>
-        <li>Onde o topo do funil ganha e perde, da origem ao agendamento: por <strong>squad</strong>, <strong>canal</strong>, <strong>campanha</strong>, <strong>SDR</strong>, <strong>closer</strong>, <strong>score</strong> e <strong>velocidade (TA)</strong>.</li>
+      <h3 data-i18n="m1H">What this panel answers</h3>
+      <ul data-i18n="m1L">
+        <li>Where the top of the funnel wins and loses, from origin to booking: by <strong>squad</strong>, <strong>channel</strong>, <strong>campaign</strong>, <strong>SDR</strong>, <strong>closer</strong>, <strong>score</strong> and <strong>speed (TA)</strong>.</li>
       </ul>
 
-      <h3>Dados de entrada</h3>
-      <ul>
-        <li>Arquivo único <code>agendamentos.csv</code>: export de atividades do CRM, 1 linha por atividade. O contrato completo (colunas, tipos e template) está no painel <strong>"Como montar o CSV"</strong> da barra de dados, no topo da página.</li>
-        <li>Só entram na análise as linhas com <code>title = "Agendamento de reunião"</code> e <code>type = SCHEDULE</code>; o resto do export é ignorado.</li>
-        <li>O parse acontece 100% no navegador: nenhum dado sai da sua máquina.</li>
+      <h3 data-i18n="m2H">Input data</h3>
+      <ul data-i18n="m2L">
+        <li>Single file <code>agendamentos.csv</code>: a CRM activity export, 1 row per activity. The full contract (columns, types and template) is in the <strong>"How to build the CSV"</strong> panel of the data bar at the top of the page.</li>
+        <li>Only rows with <code>title = "Agendamento de reunião"</code> and <code>type = SCHEDULE</code> enter the analysis; the rest of the export is ignored.</li>
+        <li>Parsing happens 100% in the browser: no data leaves your machine.</li>
       </ul>
 
-      <h3>Definições e derivações</h3>
-      <ul>
-        <li><strong>Score:</strong> <code>lead_score</code> vira faixa ordinal: A ≥ 80, B ≥ 60, C ≥ 40, D abaixo de 40. Nos gráficos, a faixa usa uma rampa de um só matiz (mais escuro = melhor).</li>
-        <li><strong>TA (tempo até agendamento):</strong> dias entre <code>deal_created_at</code> e <code>ta_created_at</code>, agrupados em 7 faixas (até 1,5 dia até acima de 30).</li>
-        <li><strong>E-mail corporativo vs gratuito:</strong> pelo domínio do e-mail do contato (lista de provedores gratuitos conhecidos).</li>
-        <li><strong>Normalizações:</strong> fontes UTM (fb/meta viram Facebook Ads etc.) e nomes de closers (aliases e variações de grafia).</li>
+      <h3 data-i18n="m3H">Definitions and derivations</h3>
+      <ul data-i18n="m3L">
+        <li><strong>Score:</strong> <code>lead_score</code> becomes an ordinal band: A ≥ 80, B ≥ 60, C ≥ 40, D below 40. In the charts the band uses a single-hue ramp (darker = better).</li>
+        <li><strong>TA (time to booking):</strong> days between <code>deal_created_at</code> and <code>ta_created_at</code>, grouped into 7 bands (up to 1.5 days through over 30).</li>
+        <li><strong>Corporate vs free email:</strong> based on the contact's email domain (list of known free providers).</li>
+        <li><strong>Normalizations:</strong> UTM sources (fb/meta become Facebook Ads etc.) and closer names (aliases and spelling variations).</li>
       </ul>
 
-      <h3>Interação</h3>
-      <ul>
-        <li><strong>Cross-filter:</strong> clique em qualquer barra, fatia ou célula para filtrar o painel inteiro por aquela dimensão; os filtros ativos viram chips na barra do topo e combinam entre si (E lógico).</li>
-        <li><strong>Período:</strong> o filtro de datas usa a data da atividade de agendamento (<code>ta_created_at</code>).</li>
-        <li><strong>Por gráfico:</strong> analisar com IA (Gemini, com a sua chave), baixar PNG, exportar o dado agregado em CSV.</li>
-        <li><strong>Exportar PDF</strong> gera o relatório da página inteira.</li>
+      <h3 data-i18n="m4H">Interaction</h3>
+      <ul data-i18n="m4L">
+        <li><strong>Cross-filter:</strong> click any bar, slice or cell to filter the whole panel by that dimension; active filters become chips in the top bar and combine with each other (logical AND).</li>
+        <li><strong>Period:</strong> the date filter uses the booking activity date (<code>ta_created_at</code>).</li>
+        <li><strong>Per chart:</strong> analyze with AI (Gemini, with your own key), download a PNG, export the aggregated data as CSV.</li>
+        <li><strong>Export PDF</strong> generates a report of the whole page.</li>
       </ul>
     </div>
   </div>
@@ -2257,6 +2273,210 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     closeMetodologiaModal();
   }
 });
+</script>
+
+<script>
+/* ==========================================================================
+   i18n: inglês default + PT-BR via seletor (localStorage 'lang', chave
+   compartilhada com o site inteiro). Valores de dados nunca são traduzidos;
+   faixas de TA e 'sem valor' ganham apenas um MAPA DE EXIBIÇÃO (axis/legend/
+   tooltip/chips). Filtros e buckets continuam usando as chaves internas.
+   ========================================================================== */
+function LANG(){ var l='en'; try{ l=localStorage.getItem('lang')||'en'; }catch(e){} return l==='pt'?'pt':'en'; }
+function LOCALE(){ return LANG()==='pt'?'pt-BR':'en-US'; }
+function nfmt(n){ try{ return Number(n).toLocaleString(LOCALE()); }catch(e){ return String(n); } }
+function dfmt(d){ return d.toLocaleDateString(LOCALE(),{day:'2-digit',month:'2-digit',year:'numeric'}); }
+
+/* mapa de exibição: chaves internas (PT) -> rótulo EN; usado só na camada visual */
+var TA_DISPLAY_EN={'Até 1,5 dia':'Up to 1.5 days','Até 3 dias':'Up to 3 days','Até 5 dias':'Up to 5 days','Até 10 dias':'Up to 10 days','Até 20 dias':'Up to 20 days','Até 30 dias':'Up to 30 days','Acima de 30 dias':'Over 30 days'};
+var VAL_DISPLAY_EN={'sem valor':'no value','desconhecido':'unknown'};
+function dispVal(v){ if(LANG()!=='en') return v; return TA_DISPLAY_EN[v]||VAL_DISPLAY_EN[v]||v; }
+function taShort(f){ var d=dispVal(f); return LANG()==='en' ? d.replace('Up to ','≤ ').replace('Over ','> ') : d.replace('Até ','≤ ').replace('Acima de ','> '); }
+function isAggLabel(n){ return n==='Outros'||n==='Others'; }
+
+var I18N={
+  en:{
+    total:'Total', others:'Others',
+    toastCopied:'Copied to clipboard.', pdfNotFound:'Dashboard not found!',
+    insTag:'insight',
+    insLead:function(s,r,d){return '<b>'+s+'</b> leads conversion with a <b>'+r+'%</b> win rate, '+d+' p.p. above the period average.';},
+    insCorp:function(p){return '<b>'+p+'%</b> of bookings come from corporate email, the segment with the best lead quality.';},
+    kBookings:'Bookings', kWinRate:'Win rate', kOpen:'Open', kLost:'Lost', kTa3:'TA ≤ 3 days', kCorp:'Corporate email',
+    kSel:'current selection', kOfSel:'of selection', kLeadBook:'lead → booking', kContacts:'contacts',
+    fStatus:'Status', fSquad:'Squad', fSdr:'SDR', fCloser:'Closer', fSource:'Source', fCampaign:'Campaign', fScore:'Score', fTa:'Speed (TA)', fTag:'Tag', fPeriod:'Period',
+    taFilterTip:'Filter band: ', taClear:'Clear', taClearTip:'Remove TA filters',
+    viewInsights:'View Insights', viewTable:'View Table',
+    thSquad:'Squad', thVol:'Vol', thFast:'Fast (≤3d)%', thMid:'Mid (≤10d)%', thSlow:'Slow (&gt;10d)%',
+    thVolume:'Volume', thQualiAB:'Quality A+B', thConvWon:'WON conversion', thTa3:'TA ≤ 3d', thCorpMail:'Corp. email',
+    noData:'No data',
+    siFastest:'Highest % Fast (≤3d)', siSlowest:'Highest % Slow (>10d)', siBalanced:'Most Balanced', siLowVol:'Lowest Volume',
+    siTopVol:'Highest Volume', siQuali:'Best Quality (A+B)', siSpeed:'Fastest (TA≤3d)', siAlertQ:'Quality Alert (C+D)', siConv:'Highest Conversion (WON)',
+    bAlert:'ALERT', bWarn:'WARNING', bQuality:'QUALITY', siFast:'Fast',
+    fbHighValue:'high-value leads', fbMarket:'market', fbOverall:'overall',
+    sugNoData:'Not enough data to generate suggestions. Process a valid CSV file first.',
+    minimize:'Minimize', maximize:'Maximize',
+    tipAI:'Analyze with AI', tipPNG:'Download PNG', tipCSV:'Export CSV', tipTbl:'Table / insights',
+    analyzing:'Analyzing...',
+    gNotReady:'This chart\'s data is not ready yet. Process the CSV and wait for the charts to load.',
+    gWorking:'Generating AI analysis...', gNoContent:'No content returned.', gErr:'An error occurred during the analysis. Check the console.',
+    gKeyPrompt:'Demo: to try the AI analysis, paste your Gemini API key (create one for free at aistudio.google.com/apikey).\n\nIt stays in your browser only and goes straight to Google, never through this site.',
+    gCanceled:'AI analysis canceled. Paste a Gemini API key to try it (it stays in your browser only).',
+    gApiErr:'API error: ', gNoResp:'No response from the API.',
+    gNetFail:'Failed to reach the Gemini API. Check the console and your network connection for details.',
+    gPromptHead:['You are a senior MarTech and Sales analyst. Produce a clear, direct and actionable analysis.','Structure it as: {name of the analyzed visualization} • Brief summary of the analyzed data • Insight(s) • Diagnosis • Immediate recommendations (high priority) • Risks/warnings.','Business context: selected bookings (current dashboard selection).'],
+    gPromptViz:'Analyzed visualization: ', gPromptModel:'Model: ', gPromptData:'Summarized data (JSON):',
+    gSugWorking:'Generating research suggestions to dig into the findings...',
+    gSugPrompt:['List 8-12 research/action ideas to accelerate wins and reduce friction in today\'s bookings.','Prioritize high impact and low execution cost. Each idea must include: goal, how to execute in 3 steps and a success metric.','Base it on the data below.'],
+    pngNoChart:'Chart not found: ', pngNoInst:'ECharts instance not available yet.', pngFail:'Failed to generate the PNG. See the console.',
+    csvNoData:'There is no structured data for this chart.', csvFail:'Failed to export the CSV. See the console.',
+    csvCat:'category', csvVal:'value', csvKey:'key',
+    noRows:'No rows found with title=Agendamento de reunião and type=SCHEDULE.',
+    procErr:'An error occurred while processing. Check the console for details.',
+    dateBoth:'Please fill in both dates (start and end).', dateOrder:'The start date cannot be later than the end date.', dateActive:'Active filter: '
+  },
+  pt:{
+    total:'Total', others:'Outros',
+    toastCopied:'Copiado para a área de transferência.', pdfNotFound:'Dashboard não encontrado!',
+    insTag:'insight',
+    insLead:function(s,r,d){return '<b>'+s+'</b> lidera a conversão com <b>'+r+'%</b> de ganho, '+d+' p.p. acima da média do período.';},
+    insCorp:function(p){return '<b>'+p+'%</b> dos agendamentos vêm de e-mail corporativo, o segmento de melhor qualidade de lead.';},
+    kBookings:'Agendamentos', kWinRate:'Taxa de ganho', kOpen:'Em aberto', kLost:'Perdidos', kTa3:'TA ≤ 3 dias', kCorp:'E-mail corporativo',
+    kSel:'seleção atual', kOfSel:'da seleção', kLeadBook:'lead → agendamento', kContacts:'contatos',
+    fStatus:'Status', fSquad:'Squad', fSdr:'SDR', fCloser:'Closer', fSource:'Fonte', fCampaign:'Campanha', fScore:'Score', fTa:'Velocidade (TA)', fTag:'Tag', fPeriod:'Período',
+    taFilterTip:'Filtrar faixa: ', taClear:'Limpar', taClearTip:'Remover filtros de TA',
+    viewInsights:'Ver Insights', viewTable:'Ver Tabela',
+    thSquad:'Squad', thVol:'Vol', thFast:'Rápido (≤3d)%', thMid:'Médio (≤10d)%', thSlow:'Lento (&gt;10d)%',
+    thVolume:'Volume', thQualiAB:'Qualidade A+B', thConvWon:'Conversão WON', thTa3:'TA ≤ 3d', thCorpMail:'E-mail corp.',
+    noData:'Sem dados',
+    siFastest:'Maior % Rápido (≤3d)', siSlowest:'Maior % Lento (>10d)', siBalanced:'Mais Balanceado', siLowVol:'Menor Volume',
+    siTopVol:'Maior Volume', siQuali:'Melhor Qualidade (A+B)', siSpeed:'Mais Rápido (TA≤3d)', siAlertQ:'Alerta Qualidade (C+D)', siConv:'Maior Conversão (WON)',
+    bAlert:'ALERTA', bWarn:'ATENÇÃO', bQuality:'QUALI', siFast:'Rápido',
+    fbHighValue:'leads de alto valor', fbMarket:'mercado', fbOverall:'geral',
+    sugNoData:'Dados insuficientes para gerar sugestões. Processe um arquivo CSV válido primeiro.',
+    minimize:'Minimizar', maximize:'Maximizar',
+    tipAI:'Analisar com IA', tipPNG:'Baixar PNG', tipCSV:'Exportar CSV', tipTbl:'Tabela / insights',
+    analyzing:'Analisando...',
+    gNotReady:'Dados deste gráfico ainda não estão prontos. Processe o CSV e aguarde o carregamento dos gráficos.',
+    gWorking:'Gerando análise com IA...', gNoContent:'Sem conteúdo retornado.', gErr:'Ocorreu um erro durante a análise. Verifique o console.',
+    gKeyPrompt:'Demonstração: para testar a análise com IA, cole a sua chave da API Gemini (crie uma grátis em aistudio.google.com/apikey).\n\nEla fica só no seu navegador e vai direto para o Google, nunca passa por este site.',
+    gCanceled:'Análise com IA cancelada. Cole uma chave da API Gemini para testar (ela fica só no seu navegador).',
+    gApiErr:'Erro na API: ', gNoResp:'Sem resposta da API.',
+    gNetFail:'Falha na comunicação com a API Gemini. Verifique o console e sua conexão de rede para detalhes.',
+    gPromptHead:['Você é um analista sênior de MarTech e Vendas. Gere uma análise clara, direta e acionável.','Estruture em: {nome do visualizador analisado} • Breve resumo dos dados analisados • Insight(s) • Diagnóstico • Recomendações imediatas (prioridade alta) • Riscos/atenções.','Contexto de negócio: agendamentos selecionados (seleção atual do dashboard).'],
+    gPromptViz:'Visualização analisada: ', gPromptModel:'Modelo: ', gPromptData:'Dados sintetizados (JSON):',
+    gSugWorking:'Gerando sugestões de pesquisa para aprofundar os achados...',
+    gSugPrompt:['Liste 8-12 ideias de pesquisas/ações para acelerar ganhos e reduzir atritos nos agendamentos do dia.','Priorize impacto alto e custo baixo de execução. Cada ideia deve vir com: objetivo, como executar em 3 passos e métrica de sucesso.','Baseie-se nos dados abaixo.'],
+    pngNoChart:'Gráfico não encontrado: ', pngNoInst:'Instância ECharts não disponível ainda.', pngFail:'Falha ao gerar o PNG. Veja o console.',
+    csvNoData:'Não há dados estruturados para este gráfico.', csvFail:'Falha ao exportar CSV. Veja console.',
+    csvCat:'categoria', csvVal:'valor', csvKey:'chave',
+    noRows:'Nenhuma linha encontrada com title=Agendamento de reunião e type=SCHEDULE.',
+    procErr:'Ocorreu um erro ao processar. Verifique o console para mais detalhes.',
+    dateBoth:'Por favor, preencha ambas as datas (início e fim).', dateOrder:'A data de início não pode ser maior que a data de fim.', dateActive:'Filtro ativo: '
+  }
+};
+function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return v!=null?v:k; }
+
+/* ---- texto estático: EN cacheado do DOM, PT no dicionário (mesmo mecanismo do hub) ---- */
+(function(){
+  var PT = {
+    h1:'Análise de Agendamentos',
+    desc:'topo de funil · title="Agendamento de reunião" · type=SCHEDULE',
+    btnMeth:'Metodologia',
+    fbPeriod:'período', fbApply:'Aplicar', fbClearBtn:'Limpar', fbFilters:'filtros',
+    fbEmpty:'nenhum · clique em qualquer gráfico para filtrar', fbClearAll:'Limpar tudo',
+    execK:'<b>//</b> resumo executivo',
+    execQ:'Onde o topo do funil ganha e perde, da origem ao agendamento: por squad, canal, closer e velocidade de atribuição.',
+    sugH:'Principais Ações e Pesquisas Sugeridas',
+    sugSub:'Clique no botão para gerar uma lista de pesquisas e ações recomendadas pela IA, com base nos dados que você carregou.',
+    sugBtn:'Gerar Sugestões de Pesquisa com IA',
+    ovH:'Visão Geral', aiBtn:'Analisar com IA',
+    ovSub:'Status dos agendamentos e a qualidade (score) dentro de cada status.',
+    ovT1:'Status geral', ovT2:'Mix de score por status',
+    sqH:'Squads · volume e mix de score',
+    sqTip:'Comparação de volume e distribuição de score (A a D) entre os squads.',
+    sqSub:'Quem traz volume e quem traz qualidade. Score é ordinal: quanto mais escuro, melhor a faixa.',
+    taH:'Velocidade · TA por squad',
+    taTip:'Tempo entre a criação do negócio e o agendamento (TA), por squad. Células mais claras concentram mais agendamentos.',
+    taSub:'Heatmap de rapidez (até 1,5 / 3 / 5 / 10 / 20 / 30 / mais de 30 dias) por squad.',
+    sdrH:'SDRs · top 10 por volume',
+    sdrTip:'Ranking de SDRs por volume de agendamentos na seleção atual. Use os filtros de TA para ver quem agenda rápido.',
+    sdrSub:'Filtre por faixa de TA para recortar o ranking.',
+    clH:'Closers · mix de score recebido',
+    clTip:'Distribuição de scores (A a D) por closer: a qualidade dos agendamentos que cada um recebe.',
+    clSub:'Quem recebeu mais leads de cada faixa no período.',
+    srcH:'Fontes · volume por canal',
+    srcTip:'Volume de agendamentos por canal de origem (utm_source normalizado). Os 8 maiores; o resto vira "Outros".',
+    srcSub:'Top 8 canais; o restante agregado em "Outros".',
+    cmpH:'Campanhas · top 10',
+    cmpTip:'As 10 campanhas (utm_campaign) com mais agendamentos na seleção atual.',
+    cmpSub:'As campanhas com mais agendamentos no período.',
+    cmpHide:'Ocultar "sem valor"',
+    scH:'Score · distribuição geral',
+    scTip:'Distribuição das faixas de score (A ≥ 80, B ≥ 60, C ≥ 40, D abaixo de 40) em todos os agendamentos da seleção.',
+    scSub:'Faixas A a D na seleção atual.',
+    tadH:'Tempo até agendamento (TA)',
+    tadTip:'Quantos agendamentos caem em cada faixa de tempo entre a criação do negócio e o agendamento.',
+    tadSub:'Faixas ordenadas da mais rápida à mais lenta.',
+    tgH:'Tags · composição da seleção',
+    tgTip:'As 10 tags mais frequentes, quebradas por status ou por faixa de score. Clique numa barra para filtrar pela tag.',
+    tgSub:'Top 10 tags da seleção, empilhadas pela dimensão escolhida.',
+    tgGroup:'Agrupar por:',
+    scdH:'Scorecard de squads',
+    scdTip:'As 5 métricas de cada squad em escalas honestas: volume absoluto e percentuais reais, sem normalização.',
+    scdSub:'Volume, qualidade (A+B), conversão, velocidade e e-mail corporativo por squad.',
+    ucH:'Colunas utilizadas na análise',
+    toast0:'Copiado para a área de transferência.',
+    gpH:'Resposta Gemini',
+    mH:'Metodologia - Análise de Agendamentos',
+    m1H:'O que este painel responde',
+    m1L:'<li>Onde o topo do funil ganha e perde, da origem ao agendamento: por <strong>squad</strong>, <strong>canal</strong>, <strong>campanha</strong>, <strong>SDR</strong>, <strong>closer</strong>, <strong>score</strong> e <strong>velocidade (TA)</strong>.</li>',
+    m2H:'Dados de entrada',
+    m2L:'<li>Arquivo único <code>agendamentos.csv</code>: export de atividades do CRM, 1 linha por atividade. O contrato completo (colunas, tipos e template) está no painel <strong>"Como montar o CSV"</strong> da barra de dados, no topo da página.</li><li>Só entram na análise as linhas com <code>title = "Agendamento de reunião"</code> e <code>type = SCHEDULE</code>; o resto do export é ignorado.</li><li>O parse acontece 100% no navegador: nenhum dado sai da sua máquina.</li>',
+    m3H:'Definições e derivações',
+    m3L:'<li><strong>Score:</strong> <code>lead_score</code> vira faixa ordinal: A ≥ 80, B ≥ 60, C ≥ 40, D abaixo de 40. Nos gráficos, a faixa usa uma rampa de um só matiz (mais escuro = melhor).</li><li><strong>TA (tempo até agendamento):</strong> dias entre <code>deal_created_at</code> e <code>ta_created_at</code>, agrupados em 7 faixas (até 1,5 dia até acima de 30).</li><li><strong>E-mail corporativo vs gratuito:</strong> pelo domínio do e-mail do contato (lista de provedores gratuitos conhecidos).</li><li><strong>Normalizações:</strong> fontes UTM (fb/meta viram Facebook Ads etc.) e nomes de closers (aliases e variações de grafia).</li>',
+    m4H:'Interação',
+    m4L:'<li><strong>Cross-filter:</strong> clique em qualquer barra, fatia ou célula para filtrar o painel inteiro por aquela dimensão; os filtros ativos viram chips na barra do topo e combinam entre si (E lógico).</li><li><strong>Período:</strong> o filtro de datas usa a data da atividade de agendamento (<code>ta_created_at</code>).</li><li><strong>Por gráfico:</strong> analisar com IA (Gemini, com a sua chave), baixar PNG, exportar o dado agregado em CSV.</li><li><strong>Exportar PDF</strong> gera o relatório da página inteira.</li>'
+  };
+  var META = {
+    en:{ title:'Bookings Analysis | Felippe Yann' },
+    pt:{ title:'Análise de Agendamentos | Felippe Yann' }
+  };
+  var EN = {}; var ATTRS=['alt','title','aria'];
+  document.querySelectorAll('[data-i18n]').forEach(function(el){ EN[el.getAttribute('data-i18n')]=el.innerHTML; });
+  ATTRS.forEach(function(a){ document.querySelectorAll('[data-pt-'+a+']').forEach(function(el){
+    var real = a==='aria' ? 'aria-label' : a;
+    el.setAttribute('data-en-'+a, el.getAttribute(real)||'');
+  }); });
+  window.applyLang = function(lang){
+    lang = lang==='pt' ? 'pt' : 'en';
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var v=(lang==='pt'?PT:EN)[el.getAttribute('data-i18n')];
+      if(v!=null) el.innerHTML=v;
+    });
+    ATTRS.forEach(function(a){ document.querySelectorAll('[data-pt-'+a+']').forEach(function(el){
+      var real = a==='aria' ? 'aria-label' : a;
+      el.setAttribute(real, el.getAttribute('data-'+(lang==='pt'?'pt':'en')+'-'+a));
+    }); });
+    document.documentElement.setAttribute('lang', lang==='pt' ? 'pt-BR' : 'en');
+    document.title = META[lang].title;
+    document.querySelectorAll('[data-lang-btn]').forEach(function(b){
+      var on=b.getAttribute('data-lang-btn')===lang;
+      b.classList.toggle('on',on); b.setAttribute('aria-pressed', String(on));
+    });
+    try{ localStorage.setItem('lang',lang); }catch(e){}
+    // camada compartilhada (já bilíngue) + ações por gráfico + re-render dos gráficos
+    if(window.DK && typeof window.DK.relabel==='function'){ try{ window.DK.relabel(); }catch(e){} }
+    if(typeof window.__onbCtaRebuild==='function'){ try{ window.__onbCtaRebuild(); }catch(e){} }
+    if(typeof window.__rebuildChartActions==='function'){ try{ window.__rebuildChartActions(); }catch(e){} }
+    if(typeof applyAndRender==='function' && Array.isArray(DATA) && DATA.length){ applyAndRender(); }
+    if(typeof applyMultiLineHeadingAlignment==='function'){ setTimeout(applyMultiLineHeadingAlignment,60); }
+  };
+  var saved='en'; try{ saved=localStorage.getItem('lang')||'en'; }catch(e){}
+  applyLang(saved==='pt' ? 'pt' : 'en');
+  document.querySelectorAll('[data-lang-btn]').forEach(function(b){
+    b.addEventListener('click', function(){ applyLang(b.getAttribute('data-lang-btn')); });
+  });
+})();
 </script>
 
 
@@ -2310,6 +2530,48 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
   var CFG = null;
   var els = {};
   var mode = 'empty'; // 'empty' | 'demo' | 'user'
+  var lastUserFile = null;
+
+  /* ---------- idioma (ingles default; 'pt' via localStorage 'lang') ---------- */
+  function dkLang() { var l = 'en'; try { l = localStorage.getItem('lang') || 'en'; } catch (e) {} return l === 'pt' ? 'pt' : 'en'; }
+  var DK_STR = {
+    en: {
+      kicker: '[ <b>data</b> ]',
+      fill: 'Auto-fill with sample data',
+      upload: 'Upload CSV', uploads: 'Upload CSVs',
+      help: 'How to build the CSV',
+      panelTitle: 'How to use your data',
+      panelIntro: 'This dashboard is fed by a CSV exported from your CRM or source spreadsheet. Parsing happens 100% in the browser: no file ever leaves your machine. Download the template below, replace the sample rows with your data and upload it back. Columns marked with <span class="dk-req">*</span> are required; the rest can be empty.',
+      thCol: 'column', thType: 'type', thWhat: 'what it is', thEx: 'example',
+      tplBtn: 'Download CSV template', upThis: 'Upload this file',
+      panelFoot: 'Just browsing? The <b style="color:#f8f7f3">Auto-fill</b> button generates a synthetic dataset that follows this exact contract and renders every chart instantly.',
+      stDemo: '<b>sample data</b>', stUser: '<b>your data</b>',
+      stNone: 'no data loaded', stFail: 'failed to generate sample data',
+      badge: '<b>sample data</b> &middot; upload your CSV to use yours'
+    },
+    pt: {
+      kicker: '[ <b>dados</b> ]',
+      fill: 'Preencher automaticamente',
+      upload: 'Enviar CSV', uploads: 'Enviar CSVs',
+      help: 'Como montar o CSV',
+      panelTitle: 'Como usar seus dados',
+      panelIntro: 'Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.',
+      thCol: 'coluna', thType: 'tipo', thWhat: 'o que e', thEx: 'exemplo',
+      tplBtn: 'Baixar template CSV', upThis: 'Enviar este arquivo',
+      panelFoot: 'Prefere so olhar? O botao <b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que respeita exatamente esse contrato e renderiza todos os graficos na hora.',
+      stDemo: '<b>dados de exemplo</b>', stUser: '<b>seus dados</b>',
+      stNone: 'sem dados carregados', stFail: 'falha ao gerar dados de exemplo',
+      badge: '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus'
+    }
+  };
+  function S(k) { var d = DK_STR[dkLang()]; return (d && d[k]) || DK_STR.en[k] || k; }
+  function pickCfg(base, enVal) { return dkLang() === 'pt' ? base : (enVal || base); }
+  function summaryText() {
+    try {
+      if (dkLang() === 'en' && CFG && CFG.summary_en) return CFG.summary_en();
+      return CFG && CFG.summary ? CFG.summary() : '';
+    } catch (e) { return ''; }
+  }
 
   /* ---------- utilitarios ---------- */
 
@@ -2441,35 +2703,30 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
 
   function panelHTML() {
     var out = '<div class="dk-pin">';
-    out += '<h2 class="dk-h">Como usar seus dados</h2>';
-    out += '<p class="dk-p">Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. '
-        + 'O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. '
-        + 'Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. '
-        + 'Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.</p>';
+    out += '<h2 class="dk-h">' + S('panelTitle') + '</h2>';
+    out += '<p class="dk-p">' + S('panelIntro') + '</p>';
 
     CFG.files.forEach(function (f, i) {
       var s = sampleOf(f)[0] || {};
       out += '<div class="dk-file">';
       out += '<div class="dk-fh"><span class="dk-fn">' + esc(f.name) + '</span><span class="dk-fa">';
-      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">Baixar template CSV</button>';
-      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">Enviar este arquivo</button>';
+      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">' + S('tplBtn') + '</button>';
+      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">' + S('upThis') + '</button>';
       out += '</span></div>';
-      out += '<p class="dk-fd">' + esc(f.desc) + '</p>';
+      out += '<p class="dk-fd">' + esc(pickCfg(f.desc, f.desc_en)) + '</p>';
       out += '<div class="dk-scroll"><table class="dk-t"><thead><tr>'
-          + '<th>coluna</th><th>tipo</th><th>o que e</th><th>exemplo</th>'
+          + '<th>' + S('thCol') + '</th><th>' + S('thType') + '</th><th>' + S('thWhat') + '</th><th>' + S('thEx') + '</th>'
           + '</tr></thead><tbody>';
       f.cols.forEach(function (c) {
         out += '<tr><td class="c">' + esc(c.n) + (c.req ? '<span class="dk-req">*</span>' : '') + '</td>'
-            + '<td class="t">' + esc(c.t) + '</td>'
-            + '<td>' + esc(c.d) + '</td>'
+            + '<td class="t">' + esc(pickCfg(c.t, c.t_en)) + '</td>'
+            + '<td>' + esc(pickCfg(c.d, c.d_en)) + '</td>'
             + '<td class="x">' + esc(s[c.n]) + '</td></tr>';
       });
       out += '</tbody></table></div></div>';
     });
 
-    out += '<p class="dk-p" style="margin:2px 0 0">Prefere so olhar? O botao '
-        + '<b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que '
-        + 'respeita exatamente esse contrato e renderiza todos os graficos na hora.</p>';
+    out += '<p class="dk-p" style="margin:2px 0 0">' + S('panelFoot') + '</p>';
     out += '</div>';
     return out;
   }
@@ -2481,14 +2738,14 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     bar.setAttribute('aria-label', 'Dados do dashboard');
 
     var many = CFG.files.filter(function (f) { return !!f.input; }).length > 1;
-    var upLabel = many ? 'Enviar CSVs' : 'Enviar CSV';
+    var upLabel = many ? S('uploads') : S('upload');
     var hasInput = CFG.files.some(function (f) { return !!f.input; });
 
     var inner = '<div class="dk-in">'
-      + '<span class="dk-k">[ <b>dados</b> ]</span>'
-      + '<button type="button" class="dk-btn p" data-dk="fill">Preencher automaticamente</button>'
+      + '<span class="dk-k">' + S('kicker') + '</span>'
+      + '<button type="button" class="dk-btn p" data-dk="fill">' + S('fill') + '</button>'
       + (hasInput ? '<button type="button" class="dk-btn" data-dk="upload">' + upLabel + '</button>' : '')
-      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">Como montar o CSV &#9656;</button>'
+      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">' + S('help') + ' &#9656;</button>'
       + '<span class="dk-sep"></span>'
       + '<span class="dk-st" data-dk="status"></span>'
       + '</div>'
@@ -2519,7 +2776,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
 
     var badge = document.createElement('div');
     badge.className = 'dk-badge';
-    badge.innerHTML = '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus';
+    badge.innerHTML = S('badge');
     els.badge = badge;
 
     document.body.insertBefore(bar, document.body.firstChild);
@@ -2578,7 +2835,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     var open = (force === undefined) ? !els.panel.classList.contains('open') : !!force;
     els.panel.classList.toggle('open', open);
     els.help.setAttribute('aria-expanded', String(open));
-    els.help.innerHTML = 'Como montar o CSV ' + (open ? '&#9662;' : '&#9656;');
+    els.help.innerHTML = S('help') + ' ' + (open ? '&#9662;' : '&#9656;');
     reflow();
     if (typeof CFG.onResize === 'function') CFG.onResize();
   }
@@ -2620,7 +2877,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
           // espera o dashboard terminar de montar antes do primeiro preenchimento
           waitReady(0);
         } else {
-          setStatus('sem dados carregados');
+          setStatus(S('stNone'));
         }
       };
       if (document.readyState === 'loading') {
@@ -2633,18 +2890,32 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
         CFG.fill();
         mode = 'demo';
         if (els.badge) els.badge.style.display = '';
-        setStatus('<b>dados de exemplo</b> &middot; ' + (CFG.summary ? CFG.summary() : 'base sintetica'));
+        setStatus(S('stDemo') + ' &middot; ' + summaryText());
       } catch (e) {
         console.error('[DK] falha ao preencher:', e);
-        setStatus('falha ao gerar dados de exemplo');
+        setStatus(S('stFail'));
       }
     },
 
     markUserData: function (name) {
       mode = 'user';
+      lastUserFile = name || null;
       if (els.badge) els.badge.style.display = 'none';
-      setStatus('<b>seus dados</b> &middot; ' + esc(name || 'CSV enviado'));
+      setStatus(S('stUser') + ' &middot; ' + esc(name || 'CSV'));
       toggleHelp(false);
+    },
+
+    relabel: function () {
+      if (!els.bar) return;
+      var open = els.panel && els.panel.classList.contains('open');
+      if (els.bar.parentNode) els.bar.parentNode.removeChild(els.bar);
+      if (els.badge && els.badge.parentNode) els.badge.parentNode.removeChild(els.badge);
+      lastH = -1;
+      build();
+      if (open) toggleHelp(true);
+      if (mode === 'demo') { if (els.badge) els.badge.style.display = ''; setStatus(S('stDemo') + ' &middot; ' + summaryText()); }
+      else if (mode === 'user') { if (els.badge) els.badge.style.display = 'none'; setStatus(S('stUser') + ' &middot; ' + esc(lastUserFile || 'CSV')); }
+      else setStatus(S('stNone'));
     },
 
     mode: function () { return mode; }
@@ -2734,23 +3005,26 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
       desc: 'Export de atividades do CRM. Uma linha por atividade de agendamento. '
           + 'O dashboard so considera linhas com title = "Agendamento de reuniao" e type = "SCHEDULE"; '
           + 'as demais atividades do export sao ignoradas.',
+      desc_en: 'CRM activity export. One row per booking activity. '
+          + 'The dashboard only considers rows with title = "Agendamento de reuniao" and type = "SCHEDULE"; '
+          + 'every other activity in the export is ignored.',
       cols: [
-        { n: 'title', t: 'texto', d: 'Titulo da atividade. Precisa ser "Agendamento de reuniao".', req: 1 },
-        { n: 'type', t: 'texto', d: 'Tipo da atividade. Precisa ser "SCHEDULE".', req: 1 },
-        { n: 'ta_created_at', t: 'data/hora ISO', d: 'Quando a atividade de agendamento foi criada.', req: 1 },
-        { n: 'deal_created_at', t: 'data/hora ISO', d: 'Quando o negocio entrou no CRM. Base do tempo de atendimento (TA).', req: 1 },
-        { n: 'lead_score', t: 'inteiro 0-100', d: 'Score do lead. Vira faixa A/B/C/D no dashboard.' },
-        { n: 'deal_status', t: 'WON | LOST | OPEN', d: 'Situacao do negocio.' },
-        { n: 'origin_group_name', t: 'texto', d: 'Squad ou grupo de origem responsavel.' },
-        { n: 'sdr', t: 'texto', d: 'SDR que agendou.' },
-        { n: 'closer', t: 'texto', d: 'Closer responsavel pelo negocio.' },
-        { n: 'd_utm_source', t: 'texto', d: 'Fonte de trafego (utm_source). Alimenta o Sankey de origens.' },
-        { n: 'd_utm_campaign', t: 'texto', d: 'Campanha (utm_campaign).' },
-        { n: 'contact_tags', t: 'lista JSON ou separada por virgula', d: 'Tags do contato.' },
-        { n: 'tags_ia', t: 'lista JSON ou separada por virgula', d: 'Tags atribuidas pela classificacao automatica.' },
-        { n: 'email', t: 'texto', d: 'E-mail do contato. O dominio define e-mail corporativo vs gratuito.' },
-        { n: 'deal_id', t: 'texto', d: 'Identificador do negocio.' },
-        { n: 'contact_id', t: 'texto', d: 'Identificador do contato.' }
+        { n: 'title', t: 'texto', t_en: 'text', d: 'Titulo da atividade. Precisa ser "Agendamento de reuniao".', d_en: 'Activity title. Must be "Agendamento de reuniao".', req: 1 },
+        { n: 'type', t: 'texto', t_en: 'text', d: 'Tipo da atividade. Precisa ser "SCHEDULE".', d_en: 'Activity type. Must be "SCHEDULE".', req: 1 },
+        { n: 'ta_created_at', t: 'data/hora ISO', t_en: 'ISO date/time', d: 'Quando a atividade de agendamento foi criada.', d_en: 'When the booking activity was created.', req: 1 },
+        { n: 'deal_created_at', t: 'data/hora ISO', t_en: 'ISO date/time', d: 'Quando o negocio entrou no CRM. Base do tempo de atendimento (TA).', d_en: 'When the deal entered the CRM. Basis for the time to booking (TA).', req: 1 },
+        { n: 'lead_score', t: 'inteiro 0-100', t_en: 'integer 0-100', d: 'Score do lead. Vira faixa A/B/C/D no dashboard.', d_en: 'Lead score. Becomes the A/B/C/D band in the dashboard.' },
+        { n: 'deal_status', t: 'WON | LOST | OPEN', t_en: 'WON | LOST | OPEN', d: 'Situacao do negocio.', d_en: 'Deal status.' },
+        { n: 'origin_group_name', t: 'texto', t_en: 'text', d: 'Squad ou grupo de origem responsavel.', d_en: 'Squad or origin group responsible.' },
+        { n: 'sdr', t: 'texto', t_en: 'text', d: 'SDR que agendou.', d_en: 'SDR who booked the meeting.' },
+        { n: 'closer', t: 'texto', t_en: 'text', d: 'Closer responsavel pelo negocio.', d_en: 'Closer responsible for the deal.' },
+        { n: 'd_utm_source', t: 'texto', t_en: 'text', d: 'Fonte de trafego (utm_source). Alimenta o Sankey de origens.', d_en: 'Traffic source (utm_source). Feeds the origins Sankey.' },
+        { n: 'd_utm_campaign', t: 'texto', t_en: 'text', d: 'Campanha (utm_campaign).', d_en: 'Campaign (utm_campaign).' },
+        { n: 'contact_tags', t: 'lista JSON ou separada por virgula', t_en: 'JSON or comma-separated list', d: 'Tags do contato.', d_en: 'Contact tags.' },
+        { n: 'tags_ia', t: 'lista JSON ou separada por virgula', t_en: 'JSON or comma-separated list', d: 'Tags atribuidas pela classificacao automatica.', d_en: 'Tags assigned by the automatic classification.' },
+        { n: 'email', t: 'texto', t_en: 'text', d: 'E-mail do contato. O dominio define e-mail corporativo vs gratuito.', d_en: 'Contact email. The domain defines corporate vs free email.' },
+        { n: 'deal_id', t: 'texto', t_en: 'text', d: 'Identificador do negocio.', d_en: 'Deal identifier.' },
+        { n: 'contact_id', t: 'texto', t_en: 'text', d: 'Identificador do contato.', d_en: 'Contact identifier.' }
       ],
       sample: function () { return GEN(); }
     }],
@@ -2769,7 +3043,8 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
       renderFilterPanel();
       LAST = processed.length;
     },
-    summary: function () { return LAST + ' agendamentos'; }
+    summary: function () { return LAST + ' agendamentos'; },
+    summary_en: function () { return LAST + ' bookings'; }
   });
 })();
 </script>
@@ -2797,6 +3072,28 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
 </style>
 <script id="onb-cta">
 (function(){
+  function oLang(){ var l='en'; try{ l=localStorage.getItem('lang')||'en'; }catch(e){} return l==='pt'?'pt':'en'; }
+  var OT={
+    en:{ h:'How to read this panel',
+      s1:'<li><b>Executive summary</b>: the essentials of the period are right at the top.</li>',
+      s2:'<li><b>Filters</b>: slice by period and segment to investigate.</li>',
+      s3:'<li><b>Panels</b>: each one has a subtitle saying what it shows; hover the info icons for details.</li>',
+      k:'// sales analytics',
+      ch:'Sample dashboards from a RevOps analytics system built by Felippe Yann.',
+      cs:'Want this kind of visibility over your sales operation?',
+      b1:'See all dashboards', b2:'View portfolio', b3:'Chat on LinkedIn',
+      mail:'Prefer email? ' },
+    pt:{ h:'Como ler este painel',
+      s1:'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>',
+      s2:'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>',
+      s3:'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>',
+      k:'// analytics comercial',
+      ch:'Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.',
+      cs:'Quer visibilidade assim no seu comercial?',
+      b1:'Ver todos os dashboards', b2:'Ver portf\u00f3lio', b3:'Falar no LinkedIn',
+      mail:'Prefere conversar por e-mail? ' }
+  };
+  function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
     try{
@@ -2804,11 +3101,9 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
         var onb=document.createElement('div');
         onb.className='onb-card';
         onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">Como ler este painel</div>'
+          +'<div class="onb-h">'+OS('h')+'</div>'
           +'<ol class="onb-steps">'
-          +'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>'
-          +'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>'
-          +'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>'
+          +OS('s1')+OS('s2')+OS('s3')
           +'</ol>';
         band.parentNode.insertBefore(onb, band.nextSibling);
         onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
@@ -2817,18 +3112,22 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
-      cta.innerHTML='<div class="cta-txt"><div class="cta-k">// analytics comercial</div>'
-        +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
-        +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
+      cta.innerHTML='<div class="cta-txt"><div class="cta-k">'+OS('k')+'</div>'
+        +'<div class="cta-h">'+OS('ch')+'</div>'
+        +'<div class="cta-s">'+OS('cs')+'</div></div>'
         +'<div class="cta-actions">'
-        +'<a class="cta-btn primary" href="index.html">Ver todos os dashboards</a>'
-        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
-        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
+        +'<a class="cta-btn primary" href="index.html">'+OS('b1')+'</a>'
+        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">'+OS('b2')+'</a>'
+        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">'+OS('b3')+'</a>'
         +'</div>';
       (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
-      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML='Prefere conversar por e-mail? <a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
+      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML=OS('mail')+'<a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
     }
   }
+  window.__onbCtaRebuild=function(){
+    ['.onb-card','.cta-band','.cta-mail'].forEach(function(sel){ var e=document.querySelector(sel); if(e&&e.parentNode) e.parentNode.removeChild(e); });
+    build();
+  };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
 })();
 </script>
