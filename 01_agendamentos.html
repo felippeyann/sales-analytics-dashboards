@@ -172,7 +172,9 @@
     border:1px solid var(--line-strong);
     border-radius:var(--r);padding:16px 18px;
     box-shadow:0 1px 4px rgba(0,0,0,.25);
+    scroll-margin-top:80px;scroll-margin-bottom:20px;
   }
+  .exec-band{scroll-margin-top:80px}
   .grid{
     display:grid; gap:14px;
     grid-template-columns: repeat(12, 1fr);
@@ -452,7 +454,7 @@
   .ta-filter-clear:hover{background:rgba(248,113,113,.1)}
 
   /* --- Scorecard de squads --- */
-  .scorecard{overflow:auto;cursor:default}
+  .scorecard{overflow:visible;cursor:default;height:auto!important}
   .scorecard table{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
   .scorecard th{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:7px 9px;border-bottom:1px solid var(--line-strong);font-weight:700;white-space:nowrap}
   .scorecard td{padding:8px 9px;border-bottom:1px solid var(--line);color:var(--ink-2);vertical-align:middle;font-variant-numeric:tabular-nums}
@@ -462,6 +464,10 @@
   .sc-bar{position:relative;flex:1;height:12px;background:var(--card);border-radius:3px;overflow:hidden;min-width:56px}
   .sc-bar i{position:absolute;top:0;bottom:0;left:0;background:var(--accent);border-radius:3px}
   .sc-val{font-size:11.5px;color:var(--ink-2);white-space:nowrap;min-width:44px;text-align:right}
+  .sc-best .sc-bar i{background:var(--ok)}
+  .sc-best .sc-val{color:var(--ok);font-weight:700}
+  .sc-crown{font-size:8px;margin-left:3px;vertical-align:middle}
+  .sc-scatter-h{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin:16px 0 2px;border-top:1px solid var(--line);padding-top:12px}
 
 
   /* Modal de Metodologia */
@@ -830,7 +836,13 @@ document.addEventListener('DOMContentLoaded', function() {
    A/B/C/D e faixas de TA são ordinais: rampa de UM matiz, nunca hues. */
 const CAT_PALETTE = ['#2563eb','#d95926','#199e70','#c98500','#d55181','#008300','#9085e9','#e66767'];
 const SCORE_COLORS = { A:'#1d4ed8', B:'#3b82f6', C:'#7db4f7', D:'#c5ddfb' };
-const STATUS_COLORS = { WON:'#4ade80', LOST:'#f87171', OPEN:'#8a8a94' };
+const STATUS_COLORS = { WON:'#4ade80', LOST:'#f87171', OPEN:'#2563eb' };
+// Rampas monocromáticas por status (A escuro -> D claro), para o anel externo do sunburst
+const STATUS_RAMPS = {
+  WON:  ['#15803d','#22c55e','#4ade80','#bbf7d0'],
+  LOST: ['#b91c1c','#ef4444','#f87171','#fecaca'],
+  OPEN: ['#1e40af','#2563eb','#60a5fa','#bfdbfe']
+};
 const SEQ_BLUE = ['#16233f','#1d3a6b','#1f55a3','#2f74d0','#60a5fa'];
 echarts.registerTheme('demo', {
   color: CAT_PALETTE,
@@ -1225,14 +1237,16 @@ function renderSunburstStatusScore(data){
   const total=data.length||1;
   const tree=STATUS_ORDER.map(st=>{
     const rows=data.filter(d=>d.deal_status===st);
+    const ramp=STATUS_RAMPS[st]||SEQ_BLUE;
     return {
       name:st, dim:'status', value:rows.length,
       itemStyle:{color:STATUS_COLORS[st]||'#8a8a94'},
-      label:{color:NODE_TEXT_COLOR[st]||'#0a0a0b'},
-      children:SCORE_ORDER.map(sc=>({
+      label:{color:(st==='OPEN'||st==='WON'||st==='LOST')?'#fff':'#0a0a0b'},
+      children:SCORE_ORDER.map((sc,i)=>({
         name:sc, dim:'score', value:rows.filter(r=>r.score===sc).length,
-        itemStyle:{color:SCORE_COLORS[sc]},
-        label:{color:NODE_TEXT_COLOR[sc]||'#f8f7f3'}
+        itemStyle:{color:ramp[i]},
+        // texto claro nas 2 faixas escuras, escuro nas 2 claras
+        label:{color:i<2?'#fff':'#0a0a0b'}
       })).filter(c=>c.value>0)
     };
   }).filter(n=>n.value>0);
@@ -1305,10 +1319,37 @@ function renderSankeyFlow(data){
 
   chartDataStore.flow=links.map(lk=>({from:strip(lk.source), to:strip(lk.target), value:lk.value}));
 
+  // índice de entradas/saídas por nó, para o tooltip destrinchado
+  const inByNode={}, outByNode={};
+  links.forEach(lk=>{
+    (outByNode[lk.source]=outByNode[lk.source]||[]).push([lk.target,lk.value]);
+    (inByNode[lk.target]=inByNode[lk.target]||[]).push([lk.source,lk.value]);
+  });
+  const levelName={S:t('fSource'),Q:t('fSquad'),B:t('fScore'),C:t('fCloser')};
+  const grand=data.length||1;
+
   chart.setOption({
-    tooltip:{trigger:'item',formatter:(p)=>{
-      if(p.dataType==='edge') return `${escHtml(disp(p.data.source))} → ${escHtml(disp(p.data.target))}: <b>${p.data.value}</b>`;
-      return `${escHtml(disp(p.name))}: <b>${p.value}</b>`;
+    tooltip:{trigger:'item',confine:true,formatter:(p)=>{
+      if(p.dataType==='edge'){
+        const share=(p.data.value/grand*100).toFixed(1);
+        return `<div style="font-family:'Space Mono',monospace;font-size:10px;color:#8a8a94;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">${escHtml(levelName[String(p.data.source)[0]]||'')} → ${escHtml(levelName[String(p.data.target)[0]]||'')}</div>`
+          +`${escHtml(disp(p.data.source))} → ${escHtml(disp(p.data.target))}<br><b style="font-size:14px">${p.data.value}</b> <span style="color:#8a8a94">agend. · ${share}%</span>`;
+      }
+      // NÓ: total + breakdown de entradas e saídas (top 4 cada)
+      const nm=p.name, lvl=String(nm)[0];
+      const rowsOf=(arr,arrowIn)=>{
+        if(!arr||!arr.length) return '';
+        const sorted=arr.slice().sort((a,b)=>b[1]-a[1]).slice(0,4);
+        const rest=arr.length>4?arr.slice(4).reduce((a,b)=>a+b[1],0):0;
+        let h='<div style="margin-top:5px"><span style="font-family:\'Space Mono\',monospace;font-size:9px;color:#8a8a94;text-transform:uppercase">'+(arrowIn?t('skFrom'):t('skTo'))+'</span>';
+        sorted.forEach(([n,v])=>{ h+='<div style="display:flex;justify-content:space-between;gap:14px"><span>'+escHtml(disp(n))+'</span><b>'+v+'</b></div>'; });
+        if(rest>0) h+='<div style="display:flex;justify-content:space-between;gap:14px;color:#8a8a94"><span>'+escHtml(t('others'))+'</span><b>'+rest+'</b></div>';
+        return h+'</div>';
+      };
+      const share=(p.value/grand*100).toFixed(1);
+      return `<div style="font-family:'Space Mono',monospace;font-size:10px;color:#8a8a94;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">${escHtml(levelName[lvl]||'')}</div>`
+        +`<b style="font-size:13px">${escHtml(disp(nm))}</b> · <b>${p.value}</b> <span style="color:#8a8a94">${share}%</span>`
+        +rowsOf(inByNode[nm],true)+rowsOf(outByNode[nm],false);
     }},
     series:[{
       type:'sankey',
@@ -1357,20 +1398,24 @@ function renderSDRRace(data){
     return {label:dfmt(new Date(w)), values:sdrs.map(s=>cum[s])};
   });
   chartDataStore.sdr={rows:sdrs, cols:frames.map(f=>f.label), data:sdrs.map((_,i)=>frames.map(f=>f.values[i]))};
-  const wkText=(lb)=>({elements:[{type:'text',id:'wk',right:24,bottom:64,style:{text:t('wkOf')+lb,font:'700 15px "Space Mono",monospace',fill:'rgba(248,247,243,.28)'},silent:true}]});
+  const wkText=(lb)=>({elements:[{type:'text',id:'wk',right:20,top:10,style:{text:t('wkOf')+lb,font:'700 14px "Space Mono",monospace',fill:'rgba(96,165,250,.45)'},silent:true}]});
   chart.setOption({
     baseOption:{
       timeline:{
         axisType:'category', autoPlay:true, playInterval:900, loop:true,
-        bottom:0, left:10, right:10, height:40,
+        bottom:2, left:14, right:14, height:46,
         data:frames.map(f=>f.label),
-        label:{show:false}, symbolSize:6,
-        lineStyle:{color:'rgba(248,247,243,.18)'}, itemStyle:{color:'#8a8a94'},
-        checkpointStyle:{color:accent,symbolSize:10},
-        controlStyle:{color:'#a1a1aa',borderColor:'#a1a1aa'},
-        progress:{lineStyle:{color:accent},itemStyle:{color:accent}}
+        // mostra ~6 datas ao longo do período para dar noção de tempo
+        label:{show:true,interval:Math.max(0,Math.ceil(frames.length/6)-1),fontSize:9,color:'#8a8a94',fontFamily:'"Space Mono",monospace'},
+        symbol:'circle', symbolSize:7,
+        lineStyle:{color:'rgba(248,247,243,.14)',width:2},
+        itemStyle:{color:'#3a3a42'},
+        checkpointStyle:{color:accent,borderColor:'#fff',borderWidth:1.5,symbolSize:13},
+        controlStyle:{showNextBtn:true,showPrevBtn:true,color:'#a1a1aa',borderColor:'#a1a1aa',itemSize:17},
+        progress:{lineStyle:{color:accent,width:3},itemStyle:{color:accent}},
+        emphasis:{itemStyle:{color:accent},controlStyle:{color:'#fff',borderColor:'#fff'}}
       },
-      grid:{left:10,right:48,top:10,bottom:52,containLabel:true},
+      grid:{left:10,right:48,top:30,bottom:62,containLabel:true},
       xAxis:{type:'value',max:'dataMax',axisLabel:{fontSize:10}},
       yAxis:{type:'category',data:sdrs,inverse:true,max:Math.min(9,sdrs.length-1),
         animationDuration:300,animationDurationUpdate:300,axisLabel:{fontSize:11}},
@@ -1543,11 +1588,17 @@ function renderTagsTreemap(data, groupBy = 'deal_status'){
 }
 function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
   const el=document.getElementById(domId); if(!el) return; const chart=makeChart(el);
-  const data=[]; for(let i=0;i<rows.length;i++){for(let j=0;j<cols.length;j++){data.push([j,i,mat[i][j]||0]);}}
-  // destaque sutil: a célula de maior concentração ganha contorno
-  let maxIdx=-1,maxVal=-Infinity;
-  data.forEach((d,idx)=>{ if(d[2]>maxVal){maxVal=d[2];maxIdx=idx;} });
-  if(maxIdx>=0&&maxVal>0) data[maxIdx]={value:data[maxIdx],itemStyle:{borderColor:'#60a5fa',borderWidth:2}};
+  let maxVal=0; for(let i=0;i<rows.length;i++){for(let j=0;j<cols.length;j++){ if((mat[i][j]||0)>maxVal) maxVal=mat[i][j]||0; }}
+  const thr=maxVal*0.58; // acima disto a célula é clara -> texto escuro
+  const data=[];
+  for(let i=0;i<rows.length;i++){for(let j=0;j<cols.length;j++){
+    const v=mat[i][j]||0;
+    // valor sutil por célula, com contraste adaptado à intensidade
+    const item={value:[j,i,v], label:{show:v>0, formatter:()=>v, fontSize:9, fontFamily:'"Space Mono",monospace', color:v>=thr?'rgba(10,10,11,.75)':'rgba(248,247,243,.62)'}};
+    // célula de maior concentração ganha contorno
+    if(v===maxVal&&maxVal>0){ item.itemStyle={borderColor:'#60a5fa',borderWidth:2}; }
+    data.push(item);
+  }}
   const isTASquad = domId === 'chartHeatTASquad';
   // colunas com rótulo longo (faixas de TA) precisam quebrar em 2 linhas
   const longCols = cols.some(c=>String(dispVal(c)).length>9);
@@ -1571,16 +1622,15 @@ function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
     grid:(()=>{ if(isTASquad){
         const maxChars = Math.max(...rows.map(r=>r.length));
         const leftPad = Math.min(70, Math.max(45, Math.round(maxChars*4.6)));
-        return {left:leftPad,right:70,top:26,bottom:40,containLabel:true};
+        return {left:leftPad,right:64,top:22,bottom:40,containLabel:true};
       }
-      // score×TA e afins: visualMap no topo, eixo X com fôlego embaixo
-      return {left:44,right:14,top:44,bottom:longCols?44:30,containLabel:true}; })(),
+      // score×TA: visualMap vertical à direita (barra decente), eixo X com fôlego embaixo
+      return {left:40,right:64,top:16,bottom:longCols?44:30,containLabel:true}; })(),
     xAxis:{type:'category',data:cols,axisLabel:{interval:0,formatter:wrapLabel,fontSize:xFont,margin:10,lineHeight:13,color:'#8a8a94'}},
   yAxis:{type:'category',data:rows,axisLabel:{interval:0,fontSize:11,align:'right',formatter:(raw)=>dispVal(raw)}},
-    visualMap:(()=>{ const base={min:0,max:Math.max(1,maxVal),calculable:true,inRange:{color:SEQ_BLUE},textStyle:{color:'#8a8a94',fontSize:10}};
-      if(isTASquad) return {...base,orient:'vertical',right:10,top:20,itemWidth:14,itemHeight:120};
-      return {...base,orient:'horizontal',right:14,top:8,itemWidth:14,itemHeight:12}; })(),
-    series:[{type:'heatmap',data,label:{show:false},itemStyle:{borderColor:'#131316',borderWidth:1}}]
+    // legenda contínua vertical à direita nos dois heatmaps (barra ampla, fácil de ler/arrastar)
+    visualMap:{min:0,max:Math.max(1,maxVal),calculable:true,inRange:{color:SEQ_BLUE},orient:'vertical',right:12,top:'middle',itemWidth:16,itemHeight:132,textStyle:{color:'#8a8a94',fontSize:10},precision:0},
+    series:[{type:'heatmap',data,itemStyle:{borderColor:'#131316',borderWidth:1}}]
   });
   addResize(chart);
   if(rowFilterKey&&colFilterKey){
@@ -1597,29 +1647,54 @@ const SUGGESTION_TPL={
 function extractKeyInsights(data){if(!data||!data.length)return{};const getTop=(map)=>Object.entries(map).sort((a,b)=>b[1]-a[1])[0]?.[0]||'N/A';keyInsights.bestSDR=getTop(countBy(data,'sdr'));const fastData=data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias');keyInsights.fastestSquad=getTop(countBy(fastData,'origin_group_name'));keyInsights.topSource=getTop(countBy(data,'d_utm_source'));keyInsights.topCampaign=getTop(countBy(data,'d_utm_campaign'));const aLeads=data.filter(d=>d.score==='A');keyInsights.goldenTag=getTop(countTags(aLeads))||t('fbHighValue');keyInsights.painPointTag=getTop(countTags(data))||t('fbMarket');const squadScore=ctab(data,'origin_group_name','score',null,SCORE_ORDER);const squadPerformance=squadScore.rows.map((squad,i)=>{const row=squadScore.mat[i];const total=row.reduce((a,b)=>a+b,0);if(total===0)return{squad,ratio:0};const bad=(row[2]||0)+(row[3]||0);return{squad,ratio:bad/total}}).sort((a,b)=>b.ratio-a.ratio);keyInsights.worstPerformer=squadPerformance[0]?.squad||t('fbOverall')}
 function generateSuggestions(){const output=document.getElementById('suggestionsOutput');if(!keyInsights.bestSDR){output.innerHTML=`<p class='muted'>${t('sugNoData')}</p>`;return}const shuffled=[...SUGGESTION_TPL[LANG()]].sort(()=>0.5-Math.random());const selectedTemplates=shuffled.slice(0,10);const html=selectedTemplates.map(template=>{const suggestion=template.replace(/\[BEST_SDR\]/g,keyInsights.bestSDR).replace(/\[FASTEST_SQUAD\]/g,keyInsights.fastestSquad).replace(/\[TOP_SOURCE\]/g,keyInsights.topSource).replace(/\[TOP_CAMPAIGN\]/g,keyInsights.topCampaign).replace(/\[PAIN_POINT_TAG\]/g,keyInsights.painPointTag).replace(/\[WORST_PERFORMER\]/g,keyInsights.worstPerformer).replace(/\[GOLDEN_TAG\]/g,keyInsights.goldenTag);const query=encodeURIComponent(suggestion);return`<a href="https://www.google.com/search?q=${query}" target="_blank" rel="noopener">${escHtml(suggestion)}</a>`}).join('');output.innerHTML=html}
 
-/* ---------- SCORECARD DE SQUADS ---------- */
+/* ---------- SCORECARD DE SQUADS (tabela com triggers de sucesso + bolhas) ---------- */
 function renderSquadRadar(data) {
     // Scorecard: escalas honestas (volume absoluto + percentuais reais), sem normalização.
     const el = document.getElementById('chartSquadRadar');
     if (!el) return;
-    try { const inst = echarts.getInstanceByDom(el); if (inst) inst.dispose(); } catch (e) {}
+    const scatterEl=document.getElementById('chartSquadScatter');
+    try { const s=scatterEl&&echarts.getInstanceByDom(scatterEl); if(s) s.dispose(); } catch(e){}
     const { raw, list } = computeSquadMetrics(data || []);
     if (!list.length) { el.innerHTML = `<div class="muted" style="padding:30px 0;text-align:center">${t('noData')}</div>`; return; }
     list.sort((a,b)=>b.volume-a.volume);
     const maxVol = Math.max(1, ...list.map(m=>m.volume));
-    const cell = (v,max,txt)=>`<div class="sc-cell"><div class="sc-bar"><i style="width:${Math.max(2,Math.round(v/max*100))}%"></i></div><span class="sc-val">${txt}</span></div>`;
-    const rows = list.map(m=>{
+    // melhor valor de cada métrica (trigger de sucesso)
+    const bestOf=(key)=>list.reduce((bi,m,i,a)=>m[key]>a[bi][key]?i:bi,0);
+    const best={volume:bestOf('volume'),abPct:bestOf('abPct'),wonPct:bestOf('wonPct'),fastPct:bestOf('fastPct'),corpPct:bestOf('corpPct')};
+    const cell = (v,max,txt,isBest)=>`<div class="sc-cell${isBest?' sc-best':''}"><div class="sc-bar"><i style="width:${Math.max(2,Math.round(v/max*100))}%"></i></div><span class="sc-val">${txt}${isBest?'<span class="sc-crown">▲</span>':''}</span></div>`;
+    const rows = list.map((m,i)=>{
       const corpPct = m.corpPct || 0;
       return `<tr>
         <td class="sq">${escHtml(m.squad)}</td>
-        <td>${cell(m.volume, maxVol, String(m.volume))}</td>
-        <td>${cell(m.abPct, 100, m.abPct.toFixed(1)+'%')}</td>
-        <td>${cell(m.wonPct, 100, m.wonPct.toFixed(1)+'%')}</td>
-        <td>${cell(m.fastPct, 100, m.fastPct.toFixed(1)+'%')}</td>
-        <td>${cell(corpPct, 100, corpPct.toFixed(1)+'%')}</td>
+        <td>${cell(m.volume, maxVol, String(m.volume), i===best.volume)}</td>
+        <td>${cell(m.abPct, 100, m.abPct.toFixed(1)+'%', i===best.abPct)}</td>
+        <td>${cell(m.wonPct, 100, m.wonPct.toFixed(1)+'%', i===best.wonPct)}</td>
+        <td>${cell(m.fastPct, 100, m.fastPct.toFixed(1)+'%', i===best.fastPct)}</td>
+        <td>${cell(corpPct, 100, corpPct.toFixed(1)+'%', i===best.corpPct)}</td>
       </tr>`;
     }).join('');
-    el.innerHTML = `<table><thead><tr><th>${t('thSquad')}</th><th>${t('thVolume')}</th><th>${t('thQualiAB')}</th><th>${t('thConvWon')}</th><th>${t('thTa3')}</th><th>${t('thCorpMail')}</th></tr></thead><tbody>${rows}</tbody></table>`;
+    el.innerHTML = `<table><thead><tr><th>${t('thSquad')}</th><th>${t('thVolume')}</th><th>${t('thQualiAB')}</th><th>${t('thConvWon')}</th><th>${t('thTa3')}</th><th>${t('thCorpMail')}</th></tr></thead><tbody>${rows}</tbody></table>`
+      +`<div class="sc-scatter-h">${escHtml(t('scScatter'))}</div><div id="chartSquadScatter" style="width:100%;height:210px"></div>`;
+
+    // bolhas: volume (x) × conversão WON% (y) × qualidade A+B% (tamanho)
+    const sc=makeChart(document.getElementById('chartSquadScatter'));
+    const maxAb=Math.max(1,...list.map(m=>m.abPct));
+    const avgWon=list.reduce((a,m)=>a+m.wonPct,0)/list.length;
+    sc.setOption({
+      grid:{left:8,right:16,top:24,bottom:28,containLabel:true},
+      tooltip:{trigger:'item',formatter:(p)=>{const m=p.data.m;return `<b>${escHtml(m.squad)}</b><br>${escHtml(t('thVolume'))}: <b>${m.volume}</b><br>${escHtml(t('thConvWon'))}: <b>${m.wonPct.toFixed(1)}%</b><br>${escHtml(t('thQualiAB'))}: <b>${m.abPct.toFixed(1)}%</b><br>${escHtml(t('thTa3'))}: <b>${m.fastPct.toFixed(1)}%</b>`;}},
+      xAxis:{type:'value',name:t('thVolume'),nameGap:20,nameLocation:'middle',nameTextStyle:{color:'#8a8a94',fontSize:10},axisLabel:{fontSize:9}},
+      yAxis:{type:'value',name:t('thConvWon')+' %',nameGap:34,nameLocation:'middle',nameTextStyle:{color:'#8a8a94',fontSize:10},axisLabel:{fontSize:9,formatter:'{value}%'}},
+      series:[{
+        type:'scatter',
+        symbolSize:(val)=>10+Math.sqrt(val[2]/maxAb)*30,
+        data:list.map((m,i)=>({value:[m.volume,+m.wonPct.toFixed(1),m.abPct],m,itemStyle:{color:CAT_PALETTE[i%CAT_PALETTE.length],opacity:.85,borderColor:'#131316',borderWidth:1}})),
+        label:{show:true,formatter:(p)=>dispVal(p.data.m.squad),position:'top',color:'#a1a1aa',fontSize:9},
+        markLine:{silent:true,symbol:'none',lineStyle:{color:'#8a8a94',type:'dashed',width:1},label:{formatter:t('scAvg'),color:'#8a8a94',fontSize:9,position:'insideEndTop'},data:[{yAxis:+avgWon.toFixed(1)}]}
+      }]
+    });
+    addResize(sc);
+    sc.on('click',p=>{ if(p.data&&p.data.m) addGlobalFilter({type:'squad',value:p.data.m.squad,label:p.data.m.squad}); });
 }
 
 
@@ -2083,6 +2158,8 @@ var I18N={
     bAlert:'ALERT', siFast:'Fast',
     wkOf:'Week of ',
     hlTopFlow:'top flow', hlLeader:'leader', hlFastest:'fastest', hlBestConv:'best conv.', hlTop:'top', hlPeak:'peak',
+    skFrom:'incoming', skTo:'outgoing',
+    scScatter:'Volume × conversion (bubble = A+B quality)', scAvg:'avg',
     fbHighValue:'high-value leads', fbMarket:'market', fbOverall:'overall',
     sugNoData:'Not enough data to generate suggestions. Process a valid CSV file first.',
     minimize:'Minimize', maximize:'Maximize',
@@ -2123,6 +2200,8 @@ var I18N={
     bAlert:'ALERTA', siFast:'Rápido',
     wkOf:'Semana de ',
     hlTopFlow:'maior fluxo', hlLeader:'líder', hlFastest:'mais rápida', hlBestConv:'melhor conv.', hlTop:'top', hlPeak:'pico',
+    skFrom:'de onde vem', skTo:'para onde vai',
+    scScatter:'Volume × conversão (bolha = qualidade A+B)', scAvg:'média',
     fbHighValue:'leads de alto valor', fbMarket:'mercado', fbOverall:'geral',
     sugNoData:'Dados insuficientes para gerar sugestões. Processe um arquivo CSV válido primeiro.',
     minimize:'Minimizar', maximize:'Maximizar',
