@@ -2,12 +2,12 @@
 <!--
   ╔═══════════════════════════════════════════════════════════╗
   ║  Analytics Dashboard - Lead Scoring (ABCD)               ║
-  ║  Versão: v2.0                                            ║
-  ║  Descrição: Dashboard interativo para análise de         ║
-  ║             lead scoring e classificação ABCD            ║
+  ║  Version: v2.0                                           ║
+  ║  Description: Interactive dashboard for lead scoring     ║
+  ║               and ABCD classification analysis           ║
   ╚═══════════════════════════════════════════════════════════╝
 -->
-<html lang="pt-br">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
@@ -65,6 +65,11 @@
   h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .desc{color:var(--ink-4);font-size:11px;font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  .lang-sw{display:flex;align-items:center;height:34px;padding:0 8px;background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r-sm);font-family:var(--mono)}
+  .lang-sw button{background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink-4);padding:0 5px}
+  .lang-sw button:hover{color:var(--ink)}
+  .lang-sw button.on{color:var(--accent-soft);font-weight:700}
+  .lang-sw .sep{color:var(--ink-4);font-size:11px;opacity:.5}
   @media (max-width:760px){ .desc{display:none} h1{font-size:14px} }
 
   /* ===== filter bar ===== */
@@ -278,31 +283,34 @@
       <div class="logo">&gt;_</div>
       <div>
         <h1>Lead Scoring (ABCD) <span class="version-badge">demo</span></h1>
-        <div class="desc">score de lead · faixas A a D · conversão por faixa</div>
+        <div class="desc" data-i18n="hdesc">lead score · bands A to D · conversion by band</div>
       </div>
     </div>
     <div class="hdr-actions">
       <input id="csvFile" type="file" accept=".csv" hidden/>
-      <button class="btn-metodologia" onclick="openMetodologiaModal()">Metodologia</button>
+      <button class="btn-metodologia" onclick="openMetodologiaModal()" data-i18n="btn_meth">Methodology</button>
+      <div class="lang-sw" role="group" aria-label="Language" data-pt-aria="Idioma">
+        <button type="button" data-lang-btn="en" aria-pressed="true">EN</button><span class="sep">/</span><button type="button" data-lang-btn="pt" aria-pressed="false">PT</button>
+      </div>
     </div>
   </div>
   <div class="filterbar">
     <div class="wrap fb-in">
-      <span class="fb-label">período</span>
+      <span class="fb-label" data-i18n="fb_period">period</span>
       <input id="globalDateStart" type="date" class="date-filter">
       <input id="globalDateEnd" type="date" class="date-filter">
-      <button id="applyGlobalDate" class="btn sm">Aplicar</button>
-      <button id="clearGlobalDate" class="btn secondary sm">Limpar</button>
+      <button id="applyGlobalDate" class="btn sm" data-i18n="fb_apply">Apply</button>
+      <button id="clearGlobalDate" class="btn secondary sm" data-i18n="fb_clear">Clear</button>
       <span id="globalDateInfo"></span>
       <span class="fb-sep"></span>
-      <span class="fb-label">filtros</span>
+      <span class="fb-label" data-i18n="fb_filters">filters</span>
       <div id="filter-panel" class="fb-chips">
         <span id="filter-count" hidden>0</span>
         <div class="filter-body">
           <div id="filter-chips" class="filter-chip-list"></div>
           <div class="filter-actions">
-            <span id="filter-empty-text" class="filter-empty-text">nenhum · clique em qualquer gráfico para filtrar</span>
-            <button id="filter-clear" class="filter-clear" type="button" disabled>Limpar tudo</button>
+            <span id="filter-empty-text" class="filter-empty-text" data-i18n="fb_empty">none · click any chart to filter</span>
+            <button id="filter-clear" class="filter-clear" type="button" disabled data-i18n="fb_clearall">Clear all</button>
           </div>
         </div>
       </div>
@@ -312,70 +320,70 @@
 
 <main class="wrap panel">
   <section class="exec-band" id="exec-band" style="display:none;">
-    <div class="exec-kicker"><b>//</b> resumo executivo</div>
-    <div class="exec-q">O que o score de lead separa de fato: quanto o grupo de alto score converte acima do restante da base.</div>
+    <div class="exec-kicker" data-i18n="xk"><b>//</b> executive summary</div>
+    <div class="exec-q" data-i18n="xq">What the lead score actually separates: how far the high-score group converts above the rest of the base.</div>
     <div class="kpis" id="exec-kpis" style="margin-bottom:14px"></div>
     <div class="exec-insight" id="exec-insight"></div>
   </section>
   <div class="grid">
     <section id="conv" class="card row-6">
-      <h2 data-number="01">Taxa de Conversão por Faixa
-        <span class="info-icon">ⓘ<span class="tooltip">Percentual de deals convertidos em cada faixa de score (A a D)</span></span>
+      <h2 data-number="01"><span data-i18n="c1h">Conversion Rate by Band</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c1i">Share of deals converted in each score band (A to D)</span></span>
       </h2>
-      <div class="panel-sub">Percentual de deals convertidos em cada faixa de score.</div>
+      <div class="panel-sub" data-i18n="c1s">Share of deals converted in each score band.</div>
       <div class="opts">
-        <label><input id="opt_avg" type="checkbox"> Média ponderada</label>
-        <label><input id="opt_highlight" type="checkbox"> Destaque máx/mín</label>
+        <label><input id="opt_avg" type="checkbox"> <span data-i18n="o_avg">Weighted average</span></label>
+        <label><input id="opt_highlight" type="checkbox"> <span data-i18n="o_hl">Highlight max/min</span></label>
       </div>
       <div id="chart_conversion" class="chart"></div>
-      <div class="foot">Faixas: <span class="pill">A ≥ 80</span> <span class="pill">B 60-79</span> <span class="pill">C 40-59</span> <span class="pill">D &lt; 40</span></div>
+      <div class="foot" data-i18n="c1f">Bands: <span class="pill">A ≥ 80</span> <span class="pill">B 60-79</span> <span class="pill">C 40-59</span> <span class="pill">D &lt; 40</span></div>
     </section>
 
     <section id="dist" class="card row-6">
-      <h2 data-number="02">Distribuição de Deals por Faixa
-        <span class="info-icon">ⓘ<span class="tooltip">Volume mensal de deals empilhado por faixa ABCD</span></span>
+      <h2 data-number="02"><span data-i18n="c2h">Deal Distribution by Band</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c2i">Monthly deal volume stacked by ABCD band</span></span>
       </h2>
-      <div class="panel-sub">Quantos deals caem em cada faixa, mês a mês.</div>
+      <div class="panel-sub" data-i18n="c2s">How many deals fall into each band, month by month.</div>
       <div class="opts">
-        <label><input id="opt_dist_avg" type="checkbox"> Média simples</label>
-        <label><input id="opt_dist_highlight" type="checkbox"> Destaque máx/mín</label>
+        <label><input id="opt_dist_avg" type="checkbox"> <span data-i18n="o_davg">Simple average</span></label>
+        <label><input id="opt_dist_highlight" type="checkbox"> <span data-i18n="o_hl2">Highlight max/min</span></label>
       </div>
       <div id="chart_distribution" class="chart"></div>
     </section>
 
     <section id="status" class="card row-6">
-      <h2 data-number="03">Status por Faixa (WON/LOST/OPEN)
-        <span class="info-icon">ⓘ<span class="tooltip">Distribuição de status de negociação por faixa de score</span></span>
+      <h2 data-number="03"><span data-i18n="c3h">Status by Band (WON/LOST/OPEN)</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c3i">Deal status distribution by score band</span></span>
       </h2>
-      <div class="panel-sub">Composição de status da negociação (ganho, perda, aberto) por faixa.</div>
+      <div class="panel-sub" data-i18n="c3s">Deal status mix (won, lost, open) by band.</div>
       <div id="chart_status" class="chart"></div>
     </section>
 
     <section id="tags" class="card row-6">
-      <h2 data-number="04">Top Tags por Faixa
-        <span class="info-icon">ⓘ<span class="tooltip">As 8 tags mais frequentes da base e a composição de faixas dentro de cada uma</span></span>
+      <h2 data-number="04"><span data-i18n="c4h">Top Tags by Band</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c4i">The 8 most frequent tags in the base and the band mix within each one</span></span>
       </h2>
-      <div class="panel-sub">Top 8 tags da base e como cada uma se distribui entre as faixas.</div>
+      <div class="panel-sub" data-i18n="c4s">Top 8 tags in the base and how each one splits across the bands.</div>
       <div id="chart_tags" class="chart"></div>
-      <div class="foot muted">Clique em uma barra para filtrar pela tag.</div>
+      <div class="foot muted" data-i18n="c4f">Click a bar to filter by that tag.</div>
     </section>
 
     <section id="funnel" class="card row-6">
-      <h2 data-number="05">Desfecho por Faixa (100%)
-        <span class="info-icon">ⓘ<span class="tooltip">Participação de WON, OPEN e LOST dentro de cada faixa, em percentual</span></span>
+      <h2 data-number="05"><span data-i18n="c5h">Outcome by Band (100%)</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c5i">Share of WON, OPEN and LOST within each band, in percent</span></span>
       </h2>
-      <div class="panel-sub">Participação de ganhos, abertos e perdidos dentro de cada faixa.</div>
+      <div class="panel-sub" data-i18n="c5s">Share of won, open and lost deals within each band.</div>
       <div id="chart_funnel" class="chart"></div>
-      <div class="foot muted">Barras somam 100% por faixa; o tooltip traz os valores absolutos. Clique para filtrar pela faixa.</div>
+      <div class="foot muted" data-i18n="c5f">Bars add up to 100% per band; the tooltip shows absolute values. Click to filter by band.</div>
     </section>
 
     <section id="origem" class="card row-12">
-      <h2 data-number="06">Principais Origens por Faixa
-        <span class="info-icon">ⓘ<span class="tooltip">Top origens de tráfego por faixa ABCD, identificando canais de maior qualidade</span></span>
+      <h2 data-number="06"><span data-i18n="c6h">Top Origins by Band</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c6i">Top traffic origins per ABCD band, surfacing the highest-quality channels</span></span>
       </h2>
-      <div class="panel-sub">Canais de origem que mais alimentam cada faixa.</div>
+      <div class="panel-sub" data-i18n="c6s">Origin channels that feed each band the most.</div>
       <div class="opts">
-        <label><input id="opt_origem_sort" type="checkbox"> Ordenar por volume</label>
+        <label><input id="opt_origem_sort" type="checkbox"> <span data-i18n="o_osort">Sort by volume</span></label>
         <label>
           Top:
           <select id="origem_top_n" class="date-filter" style="width:60px;">
@@ -387,69 +395,69 @@
         </label>
       </div>
       <div id="chart_origins" class="chart"></div>
-      <div class="foot muted">Fonte: coluna <code>origin_name</code>. Clique em uma barra para filtrar por origem.</div>
+      <div class="foot muted" data-i18n="c6f">Source: <code>origin_name</code> column. Click a bar to filter by origin.</div>
     </section>
 
     <section id="heatmap" class="card row-12">
-      <h2 data-number="07">Leads por Dia e Faixa <small id="heatmap_range"></small>
-        <span class="info-icon">ⓘ<span class="tooltip">Volume de leads criados por dia e por faixa de score, como heatmap ou linhas</span></span>
+      <h2 data-number="07"><span data-i18n="c7h">Leads per Day and Band</span> <small id="heatmap_range"></small>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c7i">Volume of leads created per day and per score band, as a heatmap or lines</span></span>
       </h2>
-      <div class="panel-sub">Concentração de leads por dia e por faixa de score.</div>
+      <div class="panel-sub" data-i18n="c7s">Lead concentration by day and by score band.</div>
       <div class="opts">
         <label>
-          Modo:
+          <span data-i18n="o_mode">Mode:</span>
           <select id="heatmap_view_mode" class="date-filter" style="width:110px;">
             <option value="heatmap" selected>Heatmap</option>
-            <option value="lines">Linhas</option>
+            <option value="lines" data-i18n="opt_lines">Lines</option>
           </select>
         </label>
         <label>
-          Período:
+          <span data-i18n="o_period">Period:</span>
           <select id="heatmap_days" class="date-filter" style="width:110px;">
-            <option value="30">30 dias</option>
-            <option value="60">60 dias</option>
-            <option value="90" selected>90 dias</option>
-            <option value="120">120 dias</option>
-            <option value="180">180 dias</option>
+            <option value="30" data-i18n="opt_d30">30 days</option>
+            <option value="60" data-i18n="opt_d60">60 days</option>
+            <option value="90" selected data-i18n="opt_d90">90 days</option>
+            <option value="120" data-i18n="opt_d120">120 days</option>
+            <option value="180" data-i18n="opt_d180">180 days</option>
           </select>
         </label>
-        <label><input id="opt_remove_outliers" type="checkbox"> Remover outliers</label>
+        <label><input id="opt_remove_outliers" type="checkbox"> <span data-i18n="o_outl">Remove outliers</span></label>
       </div>
       <div id="chart_heatmap" class="chart"></div>
-      <div class="foot muted">Intensidade de leads criados por dia e faixa. Clique em uma célula para filtrar por dia específico.</div>
+      <div class="foot muted" data-i18n="c7f">Intensity of leads created per day and band. Click a cell to filter by a specific day.</div>
     </section>
 
     <section id="convvol" class="card row-12">
-      <h2 data-number="08">Matriz de Performance: Conversão vs Volume
-        <span class="info-icon">ⓘ<span class="tooltip">Cada faixa posicionada por volume de leads e taxa de conversão; linhas tracejadas marcam as médias</span></span>
+      <h2 data-number="08"><span data-i18n="c8h">Performance Matrix: Conversion vs Volume</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c8i">Each band positioned by lead volume and conversion rate; dashed lines mark the averages</span></span>
       </h2>
-      <div class="panel-sub">Cada faixa posicionada por volume e por taxa de conversão.</div>
+      <div class="panel-sub" data-i18n="c8s">Each band positioned by volume and by conversion rate.</div>
       <div id="chart_conv_volume" class="chart"></div>
       <div class="foot muted">
         <span id="convvol_insight"></span>
-        Tamanho da bolha = total de leads. Linhas tracejadas marcam as médias de volume e de conversão.
+        <span data-i18n="c8f">Bubble size = total leads. Dashed lines mark the volume and conversion averages.</span>
       </div>
     </section>
 
     <section id="calendario" class="card row-12">
-      <h2 data-number="09">Atividade Diária <small id="calendar_range"></small>
-        <span class="info-icon">ⓘ<span class="tooltip">Volume total de leads criados por dia; o tooltip detalha a composição A/B/C/D</span></span>
+      <h2 data-number="09"><span data-i18n="c9h">Daily Activity</span> <small id="calendar_range"></small>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c9i">Total leads created per day; the tooltip breaks down the A/B/C/D mix</span></span>
       </h2>
-      <div class="panel-sub">Volume diário de leads no mês, com a composição de faixas no tooltip.</div>
+      <div class="panel-sub" data-i18n="c9s">Daily lead volume in the month, with the band mix in the tooltip.</div>
       <div class="opts">
-        <label>Mês:
+        <label><span data-i18n="o_month">Month:</span>
           <select id="calendar_month" class="date-filter">
-            <option value="">Carregando...</option>
+            <option value="" data-i18n="o_loading">Loading...</option>
           </select>
         </label>
       </div>
       <div id="chart_calendar_pies" class="chart"></div>
-      <div class="foot muted">Intensidade = leads criados no dia. Clique em um dia para filtrar.</div>
+      <div class="foot muted" data-i18n="c9f">Intensity = leads created that day. Click a day to filter.</div>
     </section>
 
     <section id="tabelas" class="card row-12">
-      <h2 data-number="10">Tabelas Resumo</h2>
-      <div class="panel-sub">Detalhamento numérico por faixa para conferência.</div>
+      <h2 data-number="10"><span data-i18n="c10h">Summary Tables</span></h2>
+      <div class="panel-sub" data-i18n="c10s">Numeric breakdown by band for verification.</div>
       <div id="tables"></div>
     </section>
   </div>
@@ -476,35 +484,99 @@
     function makeChart(el){ echarts.dispose(el); return echarts.init(el, 'demo'); }
     const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     // ---------- Config ----------
+    // CLASSES sao CHAVES INTERNAS (cross-filter) e tambem o rotulo EN natural.
+    // Nunca traduzir os valores; exibicao em PT via klassLabel() (mapa de exibicao).
     const CLASSES = ["A - Hot","B - Warm","C - Cold","D - Low"];
     const DEFAULT_THRESHOLDS = {A:80, B:60, C:40};
 
+    // ---------- i18n (EN default; PT via localStorage 'lang') ----------
+    function LANG(){ let l = 'en'; try { l = localStorage.getItem('lang') || 'en'; } catch (e) {} return l === 'pt' ? 'pt' : 'en'; }
+    function LOCALE(){ return LANG() === 'pt' ? 'pt-BR' : 'en-US'; }
+    const I18N = {
+      en: {
+        f_klass:'Band', f_status:'Status', f_origin:'Origin', f_tag:'Tag', f_month:'Month', f_day:'Day', f_period:'Period',
+        rm_filter:'Remove filter', rm_date:'Remove date filter', date_title:'Date filter:', until:'to', range_to:'to',
+        tt_conv:'Conversion', tt_won:'Won', tt_lost:'Lost', tt_open:'Open', tt_total:'Total', tt_vol:'Volume', tt_convrate:'Conversion rate',
+        s_convpct:'Conversion %', avg:'Avg', mk_max:'Max', mk_min:'Min',
+        ax_vol:'Lead Volume', ax_conv:'Conversion Rate (%)', ml_avgvol:'Avg volume', ml_avgconv:'Avg conversion',
+        cv_best:'Best', cv_watch:'Watch', cv_wins:'wins', cv_conv:'conv.',
+        no_data:'No data to display', hm_lines:' · lines',
+        kpi_scored:'Scored leads', kpi_scored_h:'in the period', kpi_avg:'Average score', kpi_avg_h:'points across the base',
+        kpi_ab:'High score (A+B)', kpi_ab_h:'top of the base', kpi_convA:'Band A conversion', kpi_convA_h:'WON among A leads',
+        tb_conv_title:'Conversion by Band', tb_status_title:'Status by Band', tb_tags_title:'Top 10 Tags by Band', tb_orig_title:'Top Origins by Band',
+        th_band:'Band', th_leads:'Leads', th_won:'Won', th_convpct:'Conversion %', th_total:'Total', th_tag:'Tag', th_occ:'Occurrences', th_origin:'Origin',
+        tb_toggle:'Collapse/Expand',
+        alert_dates:'Please select both start and end dates.', alert_order:'Start date cannot be after end date.',
+        diag_none:'No file processed yet.', diag_warn:'Warnings: ', diag_err:'Errors: ',
+        v_empty:'Empty or invalid CSV', v_nodate:'Creation date column not found', v_noscore:'ia_score column not found',
+        v_nostatus:'Status column not found - defaulting to "OPEN"',
+        csv_invalid:'Invalid CSV: empty file or no data'
+      },
+      pt: {
+        f_klass:'Faixa', f_status:'Status', f_origin:'Origem', f_tag:'Tag', f_month:'Mês', f_day:'Dia', f_period:'Período',
+        rm_filter:'Remover filtro', rm_date:'Remover filtro de data', date_title:'Filtro de data:', until:'até', range_to:'a',
+        tt_conv:'Conversão', tt_won:'Ganhos', tt_lost:'Perdas', tt_open:'Abertos', tt_total:'Total', tt_vol:'Volume', tt_convrate:'Taxa de conversão',
+        s_convpct:'Conversão %', avg:'Média', mk_max:'Maior', mk_min:'Menor',
+        ax_vol:'Volume de Leads', ax_conv:'Taxa de Conversão (%)', ml_avgvol:'Vol. médio', ml_avgconv:'Conv. média',
+        cv_best:'Melhor', cv_watch:'Atenção', cv_wins:'ganhos', cv_conv:'conv.',
+        no_data:'Sem dados para exibir', hm_lines:' · linhas',
+        kpi_scored:'Leads pontuados', kpi_scored_h:'no período', kpi_avg:'Score médio', kpi_avg_h:'pontos da base',
+        kpi_ab:'Alto score (A+B)', kpi_ab_h:'topo da base', kpi_convA:'Conversão faixa A', kpi_convA_h:'WON entre os A',
+        tb_conv_title:'Conversão por Faixa', tb_status_title:'Status por Faixa', tb_tags_title:'Top 10 Tags por Faixa', tb_orig_title:'Principais Origens por Faixa',
+        th_band:'Faixa', th_leads:'Leads', th_won:'Ganhos', th_convpct:'Conversão %', th_total:'Total', th_tag:'Tag', th_occ:'Ocorrências', th_origin:'Origem',
+        tb_toggle:'Minimizar/Expandir',
+        alert_dates:'Por favor, selecione as datas de início e fim.', alert_order:'A data de início não pode ser posterior à data de fim.',
+        diag_none:'Nenhum arquivo processado ainda.', diag_warn:'Avisos: ', diag_err:'Erros: ',
+        v_empty:'CSV vazio ou inválido', v_nodate:'Coluna de data de criação não encontrada', v_noscore:'Coluna ia_score não encontrada',
+        v_nostatus:'Coluna de status não encontrada - usando "OPEN" como padrão',
+        csv_invalid:'CSV inválido: arquivo vazio ou sem dados'
+      }
+    };
+    function t(k){ const d = I18N[LANG()]; if (d && d[k] != null) return d[k]; return I18N.en[k] != null ? I18N.en[k] : k; }
+    // Mapa de EXIBICAO das faixas: valores internos ficam em EN ('A - Hot' etc.);
+    // o PT ganha o mapa apenas em axis/legend/tooltip/chips/tabelas.
+    const KLASS_LABELS_PT = { 'A - Hot':'A - Quente', 'B - Warm':'B - Morno', 'C - Cold':'C - Frio', 'D - Low':'D - Baixo' };
+    function klassLabel(k){ return LANG() === 'pt' ? (KLASS_LABELS_PT[k] || k) : k; }
+
     const FILTER_DEFINITIONS = {
       klass: {
-        label: 'Faixa',
+        labelKey: 'f_klass',
         predicate: (item, value) => item.klass === value
       },
       status: {
-        label: 'Status',
+        labelKey: 'f_status',
         predicate: (item, value) => item.status === value
       },
       origin: {
-        label: 'Origem',
+        labelKey: 'f_origin',
         predicate: (item, value) => (item.origin || '').toLowerCase() === value.toLowerCase()
       },
       tag: {
-        label: 'Tag',
+        labelKey: 'f_tag',
         predicate: (item, value) => Array.isArray(item.tags) && item.tags.includes(value.toLowerCase())
       },
       month: {
-        label: 'Mês',
+        labelKey: 'f_month',
         predicate: (item, value) => toLocalDateString(item.created)?.slice(0,7) === value
       },
       day: {
-        label: 'Dia',
+        labelKey: 'f_day',
         predicate: (item, value) => toLocalDateString(item.created) === value
       }
     };
+
+    // Valor exibido no chip, recalculado a cada render (troca de idioma re-renderiza)
+    function filterDisplayValue(f){
+      switch (f.type) {
+        case 'klass': return klassLabel(f.value);
+        case 'month': return formatMonthLabel(f.value);
+        case 'day': {
+          const [y, m, d] = f.value.split('-').map(Number);
+          return new Date(y, m - 1, d).toLocaleDateString(LOCALE());
+        }
+        default: return f.label || f.value;
+      }
+    }
 
     const globalFilters = new Map();
     const filterClearBtn = document.getElementById('filter-clear');
@@ -550,21 +622,21 @@
         const labelContainer = document.createElement('div');
         labelContainer.className = 'filter-chip-label';
         const labelType = document.createElement('strong');
-        labelType.textContent = 'Período';
+        labelType.textContent = t('f_period');
         const [startYear, startMonth, startDay] = globalDateStart.split('-').map(Number);
         const [endYear, endMonth, endDay] = globalDateEnd.split('-').map(Number);
-        const startDate = new Date(startYear, startMonth - 1, startDay).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        const endDate = new Date(endYear, endMonth - 1, endDay).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const startDate = new Date(startYear, startMonth - 1, startDay).toLocaleDateString(LOCALE(), { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const endDate = new Date(endYear, endMonth - 1, endDay).toLocaleDateString(LOCALE(), { day: '2-digit', month: '2-digit', year: 'numeric' });
         const labelValue = document.createElement('div');
         labelValue.className = 'filter-chip-value';
         labelValue.textContent = `${startDate} → ${endDate}`;
-        labelValue.title = `Filtro de data: ${startDate} até ${endDate}`;
+        labelValue.title = `${t('date_title')} ${startDate} ${t('until')} ${endDate}`;
         labelContainer.appendChild(labelType);
         labelContainer.appendChild(labelValue);
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'chip-remove';
-        removeBtn.title = 'Remover filtro de data';
+        removeBtn.title = t('rm_date');
         removeBtn.addEventListener('click', () => {
           globalDateStart = null;
           globalDateEnd = null;
@@ -586,17 +658,18 @@
         const labelContainer = document.createElement('div');
         labelContainer.className = 'filter-chip-label';
         const labelType = document.createElement('strong');
-        labelType.textContent = def ? def.label : filter.type;
+        labelType.textContent = def ? t(def.labelKey) : filter.type;
         const labelValue = document.createElement('div');
         labelValue.className = 'filter-chip-value';
-        labelValue.textContent = filter.label || filter.value;
-        labelValue.title = filter.label || filter.value;
+        const displayValue = filterDisplayValue(filter);
+        labelValue.textContent = displayValue;
+        labelValue.title = displayValue;
         labelContainer.appendChild(labelType);
         labelContainer.appendChild(labelValue);
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'chip-remove';
-        removeBtn.title = 'Remover filtro';
+        removeBtn.title = t('rm_filter');
         removeBtn.addEventListener('click', ()=> removeGlobalFilter(filter.key));
         chip.appendChild(labelContainer);
         chip.appendChild(removeBtn);
@@ -669,7 +742,15 @@
     };
 
     // ---------- Utils ----------
-    const fmt = new Intl.NumberFormat('pt-BR');
+    // Formatador numerico na locale ativa (cacheado por idioma)
+    let _nf = null, _nfLoc = null;
+    const fmt = {
+      format(v){
+        const L = LOCALE();
+        if (_nfLoc !== L) { _nf = new Intl.NumberFormat(L); _nfLoc = L; }
+        return _nf.format(v);
+      }
+    };
 
     function findColumn(obj, wanted){
       const aliases = FIELD_ALIASES[wanted];
@@ -893,7 +974,7 @@
         const lines = text.split('\n').filter(line => line.trim());
         
         if (lines.length < 2) {
-          diag('CSV inválido: arquivo vazio ou sem dados');
+          diag(t('csv_invalid'));
           return;
         }
         
@@ -966,7 +1047,7 @@
         
         if (fixedRows > 0) {
           const pct = (fixedRows / (lines.length - 1) * 100).toFixed(1);
-          diag(`${fixedRows} linhas corrigidas (${pct}%)`);
+          diag(LANG() === 'pt' ? `${fixedRows} linhas corrigidas (${pct}%)` : `${fixedRows} rows fixed (${pct}%)`);
         }
         
         // Criar CSV limpo
@@ -1004,7 +1085,9 @@
             });
             
             
-            diag(`${cleanedData.length} registros${fixedRows > 0 ? ` (${fixedRows} corrigidos)` : ''}`);
+            diag(LANG() === 'pt'
+              ? `${cleanedData.length} registros${fixedRows > 0 ? ` (${fixedRows} corrigidos)` : ''}`
+              : `${cleanedData.length} records${fixedRows > 0 ? ` (${fixedRows} fixed)` : ''}`);
             
             buildReport(cleanedData);
           }
@@ -1016,7 +1099,9 @@
 
 
     // ---------- Diagnóstico de importação (resumo no modal Metodologia) ----------
+    let diagHasRun = false;
     function diag(msg){
+      diagHasRun = true;
       const el = document.getElementById('import-notes');
       if (el) el.textContent = msg;
     }
@@ -1043,7 +1128,7 @@
       const warnings = [];
       
       if (!data?.length) {
-        errors.push('CSV vazio ou inválido');
+        errors.push(t('v_empty'));
         return { isValid: false, errors, warnings };
       }
 
@@ -1054,9 +1139,9 @@
         status: findColumn(first, 'status')
       };
 
-      if (!requiredCols.created_at) errors.push('Coluna de data de criação não encontrada');
-      if (!first.hasOwnProperty('ia_score')) errors.push('Coluna ia_score não encontrada');
-      if (!requiredCols.status) warnings.push('Coluna de status não encontrada - usando "OPEN" como padrão');
+      if (!requiredCols.created_at) errors.push(t('v_nodate'));
+      if (!first.hasOwnProperty('ia_score')) errors.push(t('v_noscore'));
+      if (!requiredCols.status) warnings.push(t('v_nostatus'));
 
       return {
         isValid: errors.length === 0,
@@ -1089,11 +1174,11 @@
       const validation = validateData(rows);
       
       if (validation.warnings.length) {
-        diag('Avisos: ' + validation.warnings.join('; '));
+        diag(t('diag_warn') + validation.warnings.join('; '));
       }
-      
+
       if (!validation.isValid) {
-        diag('Erros: ' + validation.errors.join('; '));
+        diag(t('diag_err') + validation.errors.join('; '));
         return;
       }
 
@@ -1148,7 +1233,7 @@
           }
         }
 
-        const origin  = String(COL.origin ? r[COL.origin] : (r['origin_name'] || r['origin'] || r['origem'] || '')).trim() || 'desconhecida';
+        const origin  = String(COL.origin ? r[COL.origin] : (r['origin_name'] || r['origin'] || r['origem'] || '')).trim() || 'unknown';
         const tags    = splitTags(COL.tags ? r[COL.tags] : (r['c_tags'] || r['tags'] || r['tags_list']));
         return {created, status, score:scoreNum, origin, tags, klass: null};
       });
@@ -1183,18 +1268,23 @@
         var aDeals = data.filter(function(d){return kchar(d)==='A';});
         var convA = aDeals.length ? aDeals.filter(function(d){return d.status==='WON';}).length/aDeals.length*100 : 0;
         var mult = convAll>0 ? (convA/convAll) : 0;
-        var nf=function(n){return (n||0).toLocaleString('pt-BR');};
+        var nf=function(n){return (n||0).toLocaleString(LOCALE());};
         var kpis=[
-          {v:nf(data.length), l:'Leads pontuados', h:'no período'},
-          {v:String(avgScore), l:'Score médio', h:'pontos da base'},
-          {v:pctAB+'%', l:'Alto score (A+B)', h:'topo da base', good:true},
-          {v:Math.round(convA)+'%', l:'Conversão faixa A', h:'WON entre os A', good:convA>convAll}
+          {v:nf(data.length), l:t('kpi_scored'), h:t('kpi_scored_h')},
+          {v:String(avgScore), l:t('kpi_avg'), h:t('kpi_avg_h')},
+          {v:pctAB+'%', l:t('kpi_ab'), h:t('kpi_ab_h'), good:true},
+          {v:Math.round(convA)+'%', l:t('kpi_convA'), h:t('kpi_convA_h'), good:convA>convAll}
         ];
         var insight;
+        var multStr = LANG()==='pt' ? mult.toFixed(1).replace('.',',') : mult.toFixed(1);
         if(aDeals.length && convAll>0 && mult>=1.1){
-          insight='Leads <b>faixa A</b> convertem <b>'+Math.round(convA)+'%</b> contra <b>'+Math.round(convAll)+'%</b> da base, <b>'+mult.toFixed(1).replace('.',',')+'x</b> mais. O score separa quem fecha.';
+          insight = LANG()==='pt'
+            ? 'Leads <b>faixa A</b> convertem <b>'+Math.round(convA)+'%</b> contra <b>'+Math.round(convAll)+'%</b> da base, <b>'+multStr+'x</b> mais. O score separa quem fecha.'
+            : '<b>Band A</b> leads convert at <b>'+Math.round(convA)+'%</b> versus <b>'+Math.round(convAll)+'%</b> across the base, <b>'+multStr+'x</b> more. The score separates who closes.';
         } else {
-          insight='<b>'+pctAB+'%</b> da base está no topo do score (faixas A e B), o grupo prioritário para o time comercial.';
+          insight = LANG()==='pt'
+            ? '<b>'+pctAB+'%</b> da base está no topo do score (faixas A e B), o grupo prioritário para o time comercial.'
+            : '<b>'+pctAB+'%</b> of the base sits at the top of the score (bands A and B), the priority group for the sales team.';
         }
         var band=document.getElementById('exec-band'); if(band) band.style.display='block';
         var kw=document.getElementById('exec-kpis');
@@ -1204,12 +1294,17 @@
       }
 
       const emptyScorePercent = (emptyScore / total * 100).toFixed(1);
-      diag([
+      diag((LANG() === 'pt' ? [
         `Linhas: ${fmt.format(total)} (${fmt.format(data.length)} com data válida).`,
         emptyScore ? `Sem score: ${fmt.format(emptyScore)} (${emptyScorePercent}%), classificados como D.` : null,
         invalidScore ? `Score fora de 0-100: ${fmt.format(invalidScore)}.` : null,
         `Faixas: A >= ${thresholds.A}, B >= ${thresholds.B}, C >= ${thresholds.C}, D < ${thresholds.C}.`
-      ].filter(Boolean).join(' '));
+      ] : [
+        `Rows: ${fmt.format(total)} (${fmt.format(data.length)} with a valid date).`,
+        emptyScore ? `No score: ${fmt.format(emptyScore)} (${emptyScorePercent}%), classified as D.` : null,
+        invalidScore ? `Score outside 0-100: ${fmt.format(invalidScore)}.` : null,
+        `Bands: A >= ${thresholds.A}, B >= ${thresholds.B}, C >= ${thresholds.C}, D < ${thresholds.C}.`
+      ]).filter(Boolean).join(' '));
 
       // ----- Agregações Globais para Tabelas -----
       // Aplicar filtros globais e de data antes de popular as tabelas
@@ -1229,6 +1324,7 @@
 
       // ----- Rerender all charts -----
       function renderAllCharts() {
+        renderExecBand(data); // re-localiza KPIs e insight na língua ativa
         renderConversion({ showAvg: chkAvg?.checked, showHighlight: chkHighlight?.checked });
         renderDistribution({ showAvg: chkDistAvg?.checked, showHighlight: chkDistHighlight?.checked });
         renderStatus();
@@ -1238,6 +1334,7 @@
         renderHeatmap();
         renderConvVol();
         renderTables(); // Atualizar tabelas quando filtros mudarem
+        populateCalendarMonths(); // re-rotula o seletor de mês na locale ativa (preserva seleção)
         renderCalendar();
       }
 
@@ -1269,7 +1366,7 @@
           toolbox: {
             right: 10,
             iconStyle:{borderColor:'#8a8a94'},
-            feature: { saveAsImage: { show:true, name:'conversao_por_faixa' } }
+            feature: { saveAsImage: { show:true, name:'conversion_by_band' } }
           },
           tooltip:{
             trigger:'axis',
@@ -1277,29 +1374,30 @@
             formatter: (params) => {
               const i = params[0].dataIndex;
               const cls = convCats[i];
-              const t = totals[i] ?? 0;
+              const tot = totals[i] ?? 0;
               const w = won[i] ?? 0;
               const l = baseByClass.get(cls).filter(x=> x.status==='LOST').length;
               const o = baseByClass.get(cls).filter(x=> x.status==='OPEN').length;
               const rate = convRate[i] ?? 0;
               return [
-                `<b>${cls}</b>`,
-                `Conversão: <b>${rate}%</b>`,
-                `Ganhos: ${fmt.format(w)}`,
-                `Perdas: ${fmt.format(l)}`,
-                `Abertos: ${fmt.format(o)}`,
-                `Total: ${fmt.format(t)}`
+                `<b>${escHtml(klassLabel(cls))}</b>`,
+                `${t('tt_conv')}: <b>${rate}%</b>`,
+                `${t('tt_won')}: ${fmt.format(w)}`,
+                `${t('tt_lost')}: ${fmt.format(l)}`,
+                `${t('tt_open')}: ${fmt.format(o)}`,
+                `${t('tt_total')}: ${fmt.format(tot)}`
               ].join('<br/>');
             }
           },
-          xAxis:{ 
-            type:'category', 
-            data: convCats, 
+          xAxis:{
+            type:'category',
+            data: convCats,
             axisLabel:{
               color:'#d4d4d8',
               interval: 0,
-              fontSize: 11
-            } 
+              fontSize: 11,
+              formatter: (v) => klassLabel(v)
+            }
           },
           yAxis:{
             type:'value',
@@ -1307,7 +1405,7 @@
             splitLine:{lineStyle:{color:'rgba(248,247,243,.08)'}}
           },
           series:[{
-            name:'Conversão %',
+            name: t('s_convpct'),
             type:'bar',
             data: convRate.map((v,i)=>({ value: v, itemStyle:{ color: getClassColor(convCats[i]) } })),
             label:{
@@ -1325,11 +1423,11 @@
             markLine: showAvg ? {
               symbol:'none',
               lineStyle:{type:'dashed', color:'#8a8a94'},
-              label:{ color:'#d4d4d8', formatter: (p)=> `Média ${Number(p.value).toFixed(1)}%` },
+              label:{ color:'#d4d4d8', formatter: (p)=> `${t('avg')} ${Number(p.value).toLocaleString(LOCALE(), {minimumFractionDigits:1, maximumFractionDigits:1})}%` },
               data: [{ yAxis: avgValue }]
             } : { data: [] },
             markPoint: showHighlight ? {
-              data:[{type:'max', name:'Maior'},{type:'min', name:'Menor'}],
+              data:[{type:'max', name:t('mk_max')},{type:'min', name:t('mk_min')}],
               label:{color:'#f8f7f3'},
               itemStyle:{color:'#8a8a94'}
             } : { data: [] }
@@ -1381,13 +1479,13 @@
         const months = Array.from(monthlyData.keys()).sort();
         distributionMonths = months;
         
-        // Função para formatar mês com nome
+        // Função para formatar mês com nome (na locale ativa)
         const formatMonthName = (monthKey) => {
           const [year, month] = monthKey.split('-');
-          const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-          const monthIndex = parseInt(month) - 1;
+          const raw = new Date(Number(year), parseInt(month) - 1, 1).toLocaleDateString(LOCALE(), { month: 'short' });
+          const label = raw.replace('.', '');
           const shortYear = year.slice(2); // Últimos 2 dígitos do ano
-          return `${monthNames[monthIndex]}/${shortYear}`;
+          return `${label.charAt(0).toUpperCase() + label.slice(1)}/${shortYear}`;
         };
         
         // Calcula médias mensais
@@ -1412,14 +1510,14 @@
             baseSeries.markLine = showAvg ? {
               symbol: 'none',
               lineStyle: { type: 'dashed', color: '#8a8a94' },
-              label: { color: '#d4d4d8', formatter: (p) => `Média ${fmt.format(Math.round(p.value))}` },
+              label: { color: '#d4d4d8', formatter: (p) => `${t('avg')} ${fmt.format(Math.round(p.value))}` },
               data: [{ yAxis: simpleAvgValue }]
             } : { data: [] };
 
             baseSeries.markPoint = showHighlight ? {
               data: [
-                { type: 'max', name: 'Maior', coord: [months.indexOf(months[monthlyTotals.indexOf(Math.max(...monthlyTotals))]), Math.max(...monthlyTotals)] },
-                { type: 'min', name: 'Menor', coord: [months.indexOf(months[monthlyTotals.indexOf(Math.min(...monthlyTotals))]), Math.min(...monthlyTotals)] }
+                { type: 'max', name: t('mk_max'), coord: [months.indexOf(months[monthlyTotals.indexOf(Math.max(...monthlyTotals))]), Math.max(...monthlyTotals)] },
+                { type: 'min', name: t('mk_min'), coord: [months.indexOf(months[monthlyTotals.indexOf(Math.min(...monthlyTotals))]), Math.min(...monthlyTotals)] }
               ],
               label: { color: '#f8f7f3' },
               itemStyle: { color: '#8a8a94' }
@@ -1434,33 +1532,33 @@
           toolbox: {
             right: 10,
             iconStyle: {borderColor: '#8a8a94'},
-            feature: { saveAsImage: { show: true, name: 'distribuicao_por_faixa' } }
+            feature: { saveAsImage: { show: true, name: 'distribution_by_band' } }
           },
           tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'shadow' },
             formatter: (params) => {
-              const monthLabel = params[0].axisValue;
               const monthIndex = params[0].dataIndex;
               const monthKey = months[monthIndex];
-              
-              // Formatar como "Mês/Ano" para o tooltip
+
+              // Formatar como "Mês/Ano" para o tooltip (na locale ativa)
               const [year, month] = monthKey.split('-');
-              const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-              const monthName = monthNames[parseInt(month) - 1];
-              
+              const raw = new Date(Number(year), parseInt(month) - 1, 1).toLocaleDateString(LOCALE(), { month: 'long' });
+              const monthName = raw.charAt(0).toUpperCase() + raw.slice(1);
+
               let tooltip = `<b>${monthName}/${year}</b><br/>`;
               let total = 0;
               params.forEach(param => {
-                tooltip += `${param.seriesName}: ${fmt.format(param.value)}<br/>`;
+                tooltip += `${escHtml(klassLabel(param.seriesName))}: ${fmt.format(param.value)}<br/>`;
                 total += param.value;
               });
-              tooltip += `<b>Total: ${fmt.format(total)}</b>`;
+              tooltip += `<b>${t('tt_total')}: ${fmt.format(total)}</b>`;
               return tooltip;
             }
           },
           legend: {
             data: CLASSES,
+            formatter: (name) => klassLabel(name),
             textStyle: { color: '#d4d4d8' },
             top: 10,
             right: 60
@@ -1545,11 +1643,22 @@
           toolbox: {
             right: 10,
             iconStyle:{borderColor:'#8a8a94'},
-            feature: { saveAsImage: { show:true, name:'status_por_faixa' } }
+            feature: { saveAsImage: { show:true, name:'status_by_band' } }
           },
-          tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+          tooltip:{
+            trigger:'axis',
+            axisPointer:{type:'shadow'},
+            formatter: (params) => {
+              if (!params || !params.length) return '';
+              let total = 0;
+              let out = `<b>${escHtml(klassLabel(params[0].name))}</b><br/>`;
+              params.forEach(p => { out += `${p.marker} ${p.seriesName}: <b>${fmt.format(p.value)}</b><br/>`; total += p.value; });
+              out += `${t('tt_total')}: <b>${fmt.format(total)}</b>`;
+              return out;
+            }
+          },
           legend:{ data:statuses, top: 5 },
-          xAxis:{ type:'category', data: CLASSES, axisLabel:{ interval: 0, fontSize: 11 } },
+          xAxis:{ type:'category', data: CLASSES, axisLabel:{ interval: 0, fontSize: 11, formatter: (v) => klassLabel(v) } },
           yAxis:{ type:'value' },
           series: seriesStatus,
           grid:{left:50,right:20,top:45,bottom:35}
@@ -1611,7 +1720,7 @@
           toolbox: {
             right: 10,
             iconStyle:{borderColor:'#8a8a94'},
-            feature: { saveAsImage: { show:true, name:'top_tags_por_faixa' } }
+            feature: { saveAsImage: { show:true, name:'top_tags_by_band' } }
           },
           tooltip: {
             trigger: 'axis',
@@ -1620,12 +1729,12 @@
               if (!params || !params.length) return '';
               let total = 0;
               let out = `<b>${escHtml(params[0].name)}</b><br/>`;
-              params.forEach(p => { out += `${p.marker} ${escHtml(p.seriesName)}: <b>${fmt.format(p.value)}</b><br/>`; total += p.value; });
-              out += `Total: <b>${fmt.format(total)}</b>`;
+              params.forEach(p => { out += `${p.marker} ${escHtml(klassLabel(p.seriesName))}: <b>${fmt.format(p.value)}</b><br/>`; total += p.value; });
+              out += `${t('tt_total')}: <b>${fmt.format(total)}</b>`;
               return out;
             }
           },
-          legend: { data: CLASSES, top: 0 },
+          legend: { data: CLASSES, formatter: (name) => klassLabel(name), top: 0 },
           grid: { left: 10, right: 20, top: 40, bottom: 10, containLabel: true },
           xAxis: { type: 'value' },
           yAxis: { type: 'category', data: tagNames, inverse: true, axisLabel: { fontSize: 11 } },
@@ -1672,7 +1781,7 @@
           toolbox: {
             right: 10,
             iconStyle:{borderColor:'#8a8a94'},
-            feature: { saveAsImage: { show:true, name:'desfecho_por_faixa' } }
+            feature: { saveAsImage: { show:true, name:'outcome_by_band' } }
           },
           tooltip: {
             trigger: 'axis',
@@ -1680,7 +1789,7 @@
             formatter: (params) => {
               if (!params || !params.length) return '';
               const i = params[0].dataIndex;
-              let out = `<b>${escHtml(params[0].name)}</b> · ${fmt.format(totals[i])} leads<br/>`;
+              let out = `<b>${escHtml(klassLabel(params[0].name))}</b> · ${fmt.format(totals[i])} leads<br/>`;
               params.forEach(p => {
                 out += `${p.marker} ${p.seriesName}: <b>${fmt.format(abs[p.seriesName][i])}</b> (${p.value}%)<br/>`;
               });
@@ -1689,7 +1798,7 @@
           },
           legend: { data: ['WON','OPEN','LOST'], top: 0 },
           grid: { left: 45, right: 20, top: 40, bottom: 30 },
-          xAxis: { type: 'category', data: CLASSES, axisLabel: { interval: 0, fontSize: 11 } },
+          xAxis: { type: 'category', data: CLASSES, axisLabel: { interval: 0, fontSize: 11, formatter: (v) => klassLabel(v) } },
           yAxis: { type: 'value', max: 100, axisLabel: { formatter: '{value}%' } },
           series
         });
@@ -1747,13 +1856,13 @@
           toolbox: {
             right: 10,
             iconStyle:{borderColor:'#8a8a94'},
-            feature: { saveAsImage: { show:true, name:'principais_origens' } }
+            feature: { saveAsImage: { show:true, name:'top_origins_by_band' } }
           },
           tooltip: {
             trigger: 'item',
             formatter: (params) => {
               const bar = originBars[params.dataIndex];
-              return `<b>${bar.klass}</b><br/>${bar.origin}<br/>Total: <b>${fmt.format(params.value)}</b>`;
+              return `<b>${escHtml(klassLabel(bar.klass))}</b><br/>${escHtml(bar.origin)}<br/>${t('tt_total')}: <b>${fmt.format(params.value)}</b>`;
             }
           },
           xAxis: {
@@ -1784,10 +1893,10 @@
                 const origemText = origem.join(' · ');
                 // Truncar origem se muito longa
                 const maxLen = 35;
-                const displayOrigem = origemText.length > maxLen 
-                  ? origemText.substring(0, maxLen) + '...' 
+                const displayOrigem = origemText.length > maxLen
+                  ? origemText.substring(0, maxLen) + '...'
                   : origemText;
-                return `{b|${faixa}} {a|${displayOrigem}}`;
+                return `{b|${klassLabel(faixa)}} {a|${displayOrigem}}`;
               },
               rich: {
                 a: {
@@ -1882,7 +1991,7 @@
 
         if (!minDate || !maxDate) {
           charts.heatmap.setOption({
-            title: { text: 'Sem dados para exibir', left: 'center', top: 'center', textStyle: { color: '#8a8a94', fontSize: 15 } }
+            title: { text: t('no_data'), left: 'center', top: 'center', textStyle: { color: '#8a8a94', fontSize: 15 } }
           }, true);
           return;
         }
@@ -1909,10 +2018,10 @@
           }
         }
 
-        const fmtDate = d => d.toLocaleDateString('pt-BR');
+        const fmtDate = d => d.toLocaleDateString(LOCALE());
         const shortLabel = date => {
           const [y, m, dd] = date.split('-').map(Number);
-          return `${dd}/${m}`;
+          return LANG() === 'pt' ? `${dd}/${m}` : `${m}/${dd}`;
         };
 
         if (heatmapViewMode === 'lines') {
@@ -1932,9 +2041,17 @@
 
           charts.heatmap.setOption({
             backgroundColor: 'transparent',
-            toolbox: { right: 10, iconStyle: { borderColor: '#8a8a94' }, feature: { saveAsImage: { show: true, name: 'leads_por_dia_linhas' } } },
-            tooltip: { trigger: 'axis' },
-            legend: { data: CLASSES, top: 5, left: 'center' },
+            toolbox: { right: 10, iconStyle: { borderColor: '#8a8a94' }, feature: { saveAsImage: { show: true, name: 'leads_per_day_lines' } } },
+            tooltip: {
+              trigger: 'axis',
+              formatter: (params) => {
+                if (!params || !params.length) return '';
+                let out = `<b>${escHtml(params[0].axisValueLabel ?? params[0].axisValue)}</b><br/>`;
+                params.forEach(p => { out += `${p.marker} ${escHtml(klassLabel(p.seriesName))}: <b>${fmt.format(p.value ?? 0)}</b><br/>`; });
+                return out;
+              }
+            },
+            legend: { data: CLASSES, formatter: (name) => klassLabel(name), top: 5, left: 'center' },
             grid: { left: '3%', right: '4%', bottom: '3%', top: 50, containLabel: true },
             xAxis: {
               type: 'category',
@@ -1959,7 +2076,7 @@
 
           charts.heatmap.setOption({
             backgroundColor: 'transparent',
-            toolbox: { right: 10, iconStyle: { borderColor: '#8a8a94' }, feature: { saveAsImage: { show: true, name: 'heatmap_leads' } } },
+            toolbox: { right: 10, iconStyle: { borderColor: '#8a8a94' }, feature: { saveAsImage: { show: true, name: 'leads_heatmap' } } },
             tooltip: {
               position: 'top',
               formatter: (params) => {
@@ -1968,8 +2085,8 @@
                 const klass = CLASSES[params.value[1]];
                 if (!date || !klass) return '';
                 const [y, m, dd] = date.split('-').map(Number);
-                const dateStr = new Date(y, m - 1, dd).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
-                return `<b>${dateStr}</b><br/>${escHtml(klass)}<br/>Leads: <b>${fmt.format(params.value[2])}</b>`;
+                const dateStr = new Date(y, m - 1, dd).toLocaleDateString(LOCALE(), { weekday: 'short', day: '2-digit', month: 'short' });
+                return `<b>${dateStr}</b><br/>${escHtml(klassLabel(klass))}<br/>Leads: <b>${fmt.format(params.value[2])}</b>`;
               }
             },
             grid: { height: '65%', top: '10%', left: 100, right: 40, bottom: '18%' },
@@ -1983,7 +2100,7 @@
               type: 'category',
               data: CLASSES,
               splitArea: { show: true },
-              axisLabel: { fontSize: 12 }
+              axisLabel: { fontSize: 12, formatter: (v) => klassLabel(v) }
             },
             visualMap: {
               min: 0,
@@ -2008,8 +2125,8 @@
 
         const rangeEl = document.getElementById('heatmap_range');
         if (rangeEl) {
-          const viewModeLabel = heatmapViewMode === 'lines' ? ' · linhas' : '';
-          rangeEl.textContent = `(${fmtDate(minDate)} a ${fmtDate(maxDate)}${viewModeLabel})`;
+          const viewModeLabel = heatmapViewMode === 'lines' ? t('hm_lines') : '';
+          rangeEl.textContent = `(${fmtDate(minDate)} ${t('range_to')} ${fmtDate(maxDate)}${viewModeLabel})`;
         }
 
         charts.heatmap.off('click');
@@ -2019,7 +2136,7 @@
               const date = dates[params.value[0]];
               if (date) {
                 const [y, m, dd] = date.split('-').map(Number);
-                addGlobalFilter({ type: 'day', value: date, label: new Date(y, m - 1, dd).toLocaleDateString('pt-BR') });
+                addGlobalFilter({ type: 'day', value: date, label: new Date(y, m - 1, dd).toLocaleDateString(LOCALE()) });
               }
             }
           });
@@ -2056,7 +2173,7 @@
         const worst = performances.reduce((min, p) => p.score < min.score && p.volume > 0 ? p : min);
         const insightEl = document.getElementById('convvol_insight');
         if (insightEl) {
-          insightEl.innerHTML = `<strong>Melhor:</strong> ${escHtml(best.klass)} (${fmt.format(best.won)} ganhos, ${best.convRate}%) · <strong>Atenção:</strong> ${escHtml(worst.klass)} (${worst.convRate}% conv.) · `;
+          insightEl.innerHTML = `<strong>${t('cv_best')}:</strong> ${escHtml(klassLabel(best.klass))} (${fmt.format(best.won)} ${t('cv_wins')}, ${best.convRate}%) · <strong>${t('cv_watch')}:</strong> ${escHtml(klassLabel(worst.klass))} (${worst.convRate}% ${t('cv_conv')}) · `;
         }
 
         const scatterData = CLASSES.map((k, i) => ({
@@ -2067,26 +2184,26 @@
 
         setOptionEnhanced(charts.convvol, {
           backgroundColor: 'transparent',
-          toolbox: { right: 10, iconStyle: { borderColor: '#8a8a94' }, feature: { saveAsImage: { show: true, name: 'matriz_performance' } } },
+          toolbox: { right: 10, iconStyle: { borderColor: '#8a8a94' }, feature: { saveAsImage: { show: true, name: 'performance_matrix' } } },
           tooltip: {
             trigger: 'item',
             formatter: (params) => {
               const idx = CLASSES.indexOf(params.name);
               if (idx < 0) return '';
               return [
-                `<b>${escHtml(params.name)}</b>`,
-                `Volume: <b>${fmt.format(totals[idx])}</b>`,
-                `Ganhos: <b>${fmt.format(won[idx])}</b>`,
-                `Perdas: <b>${fmt.format(lost[idx])}</b>`,
-                `Abertos: <b>${fmt.format(open[idx])}</b>`,
-                `Taxa de conversão: <b>${convRate[idx]}%</b>`
+                `<b>${escHtml(klassLabel(params.name))}</b>`,
+                `${t('tt_vol')}: <b>${fmt.format(totals[idx])}</b>`,
+                `${t('tt_won')}: <b>${fmt.format(won[idx])}</b>`,
+                `${t('tt_lost')}: <b>${fmt.format(lost[idx])}</b>`,
+                `${t('tt_open')}: <b>${fmt.format(open[idx])}</b>`,
+                `${t('tt_convrate')}: <b>${convRate[idx]}%</b>`
               ].join('<br/>');
             }
           },
           grid: { left: 70, right: 60, top: 40, bottom: 60, containLabel: true },
           xAxis: {
             type: 'value',
-            name: 'Volume de Leads',
+            name: t('ax_vol'),
             nameLocation: 'middle',
             nameGap: 36,
             axisLabel: { formatter: (val) => fmt.format(val) },
@@ -2094,7 +2211,7 @@
           },
           yAxis: {
             type: 'value',
-            name: 'Taxa de Conversão (%)',
+            name: t('ax_conv'),
             nameLocation: 'middle',
             nameGap: 46,
             axisLabel: { formatter: '{value}%' },
@@ -2111,7 +2228,7 @@
             label: {
               show: true,
               position: 'top',
-              formatter: '{b}',
+              formatter: (p) => klassLabel(p.name),
               color: '#d4d4d8',
               fontSize: 11
             },
@@ -2123,8 +2240,8 @@
               lineStyle: { color: '#8a8a94', width: 1, type: 'dashed' },
               label: { color: '#8a8a94', fontSize: 11 },
               data: [
-                { xAxis: avgVolume, label: { formatter: 'Vol. médio', position: 'insideEndTop' } },
-                { yAxis: avgConvRate, label: { formatter: 'Conv. média', position: 'insideEndTop' } }
+                { xAxis: avgVolume, label: { formatter: t('ml_avgvol'), position: 'insideEndTop' } },
+                { yAxis: avgConvRate, label: { formatter: t('ml_avgconv'), position: 'insideEndTop' } }
               ]
             }
           }]
@@ -2156,10 +2273,11 @@
         calendarMonthSelect.innerHTML = months.map(m => {
           const [year, month] = m.split('-');
           const date = new Date(year, month - 1, 1);
-          const label = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+          const label = date.toLocaleDateString(LOCALE(), { month: 'long', year: 'numeric' });
           return `<option value="${m}">${label.charAt(0).toUpperCase() + label.slice(1)}</option>`;
         }).join('');
-        selectedCalendarMonth = months[0] || null;
+        // preserva a seleção atual (repopulado em cada render p/ troca de idioma)
+        if (!selectedCalendarMonth || !months.includes(selectedCalendarMonth)) selectedCalendarMonth = months[0] || null;
         if (selectedCalendarMonth) calendarMonthSelect.value = selectedCalendarMonth;
       }
 
@@ -2187,7 +2305,7 @@
 
         charts.calendarPies.setOption({
           backgroundColor: 'transparent',
-          toolbox: { right: 10, iconStyle: { borderColor: '#8a8a94' }, feature: { saveAsImage: { show: true, name: 'atividade_diaria' } } },
+          toolbox: { right: 10, iconStyle: { borderColor: '#8a8a94' }, feature: { saveAsImage: { show: true, name: 'daily_activity' } } },
           tooltip: {
             formatter: (params) => {
               if (!params || !Array.isArray(params.value)) return '';
@@ -2195,10 +2313,10 @@
               const c = dailyClassCount.get(date);
               if (!c) return '';
               const [y, m, dd] = date.split('-').map(Number);
-              const dateStr = new Date(y, m - 1, dd).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+              const dateStr = new Date(y, m - 1, dd).toLocaleDateString(LOCALE(), { weekday: 'short', day: '2-digit', month: 'short' });
               let out = `<b>${dateStr}</b><br/>`;
-              CLASSES.forEach(cls => { out += `${escHtml(cls)}: <b>${fmt.format(c[cls])}</b><br/>`; });
-              out += `Total: <b>${fmt.format(c.total)}</b>`;
+              CLASSES.forEach(cls => { out += `${escHtml(klassLabel(cls))}: <b>${fmt.format(c[cls])}</b><br/>`; });
+              out += `${t('tt_total')}: <b>${fmt.format(c.total)}</b>`;
               return out;
             }
           },
@@ -2222,7 +2340,7 @@
             itemStyle: { color: '#1a1a1e', borderWidth: 2, borderColor: '#131316' },
             yearLabel: { show: false },
             monthLabel: { show: false },
-            dayLabel: { firstDay: 1, nameMap: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], color: '#8a8a94' },
+            dayLabel: { firstDay: 1, nameMap: LANG() === 'pt' ? ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], color: '#8a8a94' },
             splitLine: { show: false }
           },
           series: [{
@@ -2241,7 +2359,7 @@
         const rangeEl = document.getElementById('calendar_range');
         if (rangeEl) {
           const [year, month] = targetMonth.split('-');
-          const monthName = new Date(year, month - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+          const monthName = new Date(year, month - 1, 1).toLocaleDateString(LOCALE(), { month: 'long', year: 'numeric' });
           rangeEl.textContent = `(${monthName.charAt(0).toUpperCase() + monthName.slice(1)})`;
         }
 
@@ -2250,7 +2368,7 @@
           if (params.componentType === 'series' && Array.isArray(params.value) && params.value[0]) {
             const date = params.value[0];
             const [y, m, dd] = date.split('-').map(Number);
-            addGlobalFilter({ type: 'day', value: date, label: new Date(y, m - 1, dd).toLocaleDateString('pt-BR') });
+            addGlobalFilter({ type: 'day', value: date, label: new Date(y, m - 1, dd).toLocaleDateString(LOCALE()) });
           }
         });
       }
@@ -2297,7 +2415,7 @@
           const toggleBtn = document.createElement('button');
           toggleBtn.className = 'table-toggle';
           toggleBtn.innerHTML = '▼';
-          toggleBtn.title = 'Minimizar/Expandir';
+          toggleBtn.title = t('tb_toggle');
           
           header.appendChild(titleEl);
           header.appendChild(toggleBtn);
@@ -2329,28 +2447,33 @@
           tbl.appendChild(container);
         }
         
-        renderTable('Conversão por Faixa', ['Faixa','Leads','Ganhos','Conversão %'], CLASSES.map((k,i)=>({
-          'Faixa': k, 'Leads': fmt.format(tableTotals[i]), 'Ganhos': fmt.format(tableWon[i]), 'Conversão %': (tableConvRate[i] ?? 0).toLocaleString('pt-BR')
+        const H = {
+          band: t('th_band'), leads: t('th_leads'), won: t('th_won'), convpct: t('th_convpct'),
+          total: t('th_total'), tag: t('th_tag'), occ: t('th_occ'), origin: t('th_origin')
+        };
+
+        renderTable(t('tb_conv_title'), [H.band, H.leads, H.won, H.convpct], CLASSES.map((k,i)=>({
+          [H.band]: klassLabel(k), [H.leads]: fmt.format(tableTotals[i]), [H.won]: fmt.format(tableWon[i]), [H.convpct]: (tableConvRate[i] ?? 0).toLocaleString(LOCALE())
         })));
-        renderTable('Status por Faixa', ['Faixa','WON','LOST','OPEN','Total'], CLASSES.map((k,i)=>({
-          'Faixa':k,'WON':fmt.format(tableWon[i]), 'LOST':fmt.format(tableLost[i]), 'OPEN':fmt.format(tableOpen[i]), 'Total':fmt.format(tableTotals[i])
+        renderTable(t('tb_status_title'), [H.band,'WON','LOST','OPEN',H.total], CLASSES.map((k,i)=>({
+          [H.band]: klassLabel(k), 'WON':fmt.format(tableWon[i]), 'LOST':fmt.format(tableLost[i]), 'OPEN':fmt.format(tableOpen[i]), [H.total]:fmt.format(tableTotals[i])
         })));
-        
+
         const tagRows = [];
         for(const k of CLASSES){
           const counts = new Map();
-          tableBaseByClass.get(k).forEach(d=> d.tags.forEach(t=> counts.set(t,(counts.get(t)||0)+1)));
-          for(const [t,c] of topN(counts, 10)) tagRows.push({'Faixa':k, 'Tag': t, 'Ocorrências': fmt.format(c)});
+          tableBaseByClass.get(k).forEach(d=> d.tags.forEach(tag=> counts.set(tag,(counts.get(tag)||0)+1)));
+          for(const [tag,c] of topN(counts, 10)) tagRows.push({[H.band]: klassLabel(k), [H.tag]: tag, [H.occ]: fmt.format(c)});
         }
-        renderTable('Top 10 Tags por Faixa', ['Faixa','Tag','Ocorrências'], tagRows);
-        
+        renderTable(t('tb_tags_title'), [H.band, H.tag, H.occ], tagRows);
+
         const origRows = [];
         for(const k of CLASSES){
           const counts = new Map();
           tableBaseByClass.get(k).forEach(d=> counts.set(d.origin, (counts.get(d.origin)||0)+1));
-          for(const [o,c] of topN(counts, 5)) origRows.push({'Faixa':k,'Origem':o,'Leads':fmt.format(c)});
+          for(const [o,c] of topN(counts, 5)) origRows.push({[H.band]: klassLabel(k), [H.origin]:o, [H.leads]:fmt.format(c)});
         }
-        renderTable('Principais Origens por Faixa', ['Faixa','Origem','Leads'], origRows);
+        renderTable(t('tb_orig_title'), [H.band, H.origin, H.leads], origRows);
       }
       
       // Renderizar tabelas inicialmente
@@ -2372,7 +2495,7 @@
         const [endYear, endMonth, endDay] = globalDateEnd.split('-').map(Number);
         const start = new Date(startYear, startMonth - 1, startDay);
         const end = new Date(endYear, endMonth - 1, endDay);
-        globalDateInfo.textContent = `${start.toLocaleDateString('pt-BR')} até ${end.toLocaleDateString('pt-BR')}`;
+        globalDateInfo.textContent = `${start.toLocaleDateString(LOCALE())} ${t('until')} ${end.toLocaleDateString(LOCALE())}`;
       } else {
         globalDateInfo.textContent = '';
       }
@@ -2383,13 +2506,13 @@
       const startVal = globalDateStartInput?.value;
       const endVal = globalDateEndInput?.value;
       if (!startVal || !endVal) {
-        alert('Por favor, selecione as datas de início e fim.');
+        alert(t('alert_dates'));
         return;
       }
       const [startYear, startMonth, startDay] = startVal.split('-').map(Number);
       const [endYear, endMonth, endDay] = endVal.split('-').map(Number);
       if (new Date(startYear, startMonth - 1, startDay) > new Date(endYear, endMonth - 1, endDay)) {
-        alert('A data de início não pode ser posterior à data de fim.');
+        alert(t('alert_order'));
         return;
       }
       globalDateStart = startVal;
@@ -2413,83 +2536,83 @@
   <div class="modal-overlay" id="modalMetodologia">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Metodologia - Lead Scoring ABCD</h2>
+        <h2 data-i18n="m_title">Methodology - Lead Scoring ABCD</h2>
         <button class="modal-close" onclick="closeMetodologiaModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <h3>Como usar este dashboard:</h3>
-        <p style="background: rgba(37,99,235,0.15); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
-          <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: var(--accent-soft);">leadscoring.csv</code><br>
-          <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar dados de leads com pontuação IA do sistema.</span>
+        <h3 data-i18n="m_h_use">How to use this dashboard:</h3>
+        <p style="background: rgba(37,99,235,0.15); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;" data-i18n="m_file">
+          <strong>Required file:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: var(--accent-soft);">leadscoring.csv</code><br>
+          <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Export lead data with the AI score from your system.</span>
         </p>
-        <ul style="margin-bottom: 16px;">
-          <li><strong>Faça upload de um arquivo CSV</strong> contendo leads com as seguintes colunas:
+        <ul style="margin-bottom: 16px;" data-i18n="m_use">
+          <li><strong>Upload a CSV file</strong> containing leads with the following columns:
             <ul style="margin-top: 4px;">
-              <li><strong>Obrigatórias:</strong>
+              <li><strong>Required:</strong>
                 <ul style="margin-left: 20px; font-size: 11px;">
-                  <li><code>deal_created_at</code> ou <code>created_at</code> - Data de criação do lead</li>
-                  <li><code>ia_score</code> ou <code>score</code> - Pontuação do lead (0-100)</li>
+                  <li><code>deal_created_at</code> or <code>created_at</code> - Lead creation date</li>
+                  <li><code>ia_score</code> or <code>score</code> - Lead score (0-100)</li>
                 </ul>
               </li>
-              <li><strong>Opcionais:</strong>
+              <li><strong>Optional:</strong>
                 <ul style="margin-left: 20px; font-size: 11px;">
                   <li><code>deal_status</code> - Status (WON, LOST, OPEN)</li>
-                  <li><code>c_tags</code> ou <code>contact_tags</code> - Tags do contato</li>
-                  <li><code>origin_name</code> ou <code>origin_group_name</code> - Origem do lead</li>
-                  <li><code>deal_id</code> ou <code>contact_id</code> - Identificador único</li>
-                  <li><code>segment</code> ou <code>segmento</code> - Segmento de mercado</li>
+                  <li><code>c_tags</code> or <code>contact_tags</code> - Contact tags</li>
+                  <li><code>origin_name</code> or <code>origin_group_name</code> - Lead origin</li>
+                  <li><code>deal_id</code> or <code>contact_id</code> - Unique identifier</li>
+                  <li><code>segment</code> or <code>segmento</code> - Market segment</li>
                 </ul>
               </li>
             </ul>
           </li>
         </ul>
 
-        <h3>Classificação ABCD:</h3>
-        <ul>
-          <li><strong>A - Hot:</strong> Score ≥ 80 (leads quentes, alta prioridade)</li>
-          <li><strong>B - Warm:</strong> Score 60-79 (leads mornos, média prioridade)</li>
-          <li><strong>C - Cold:</strong> Score 40-59 (leads frios, baixa prioridade)</li>
-          <li><strong>D - Low:</strong> Score < 40 (leads muito frios)</li>
-          <li><em>Thresholds podem ser ajustados automaticamente por quantis (P75, P50, P25)</em></li>
+        <h3 data-i18n="m_h_class">ABCD classification:</h3>
+        <ul data-i18n="m_class">
+          <li><strong>A - Hot:</strong> Score ≥ 80 (hot leads, top priority)</li>
+          <li><strong>B - Warm:</strong> Score 60-79 (warm leads, medium priority)</li>
+          <li><strong>C - Cold:</strong> Score 40-59 (cold leads, low priority)</li>
+          <li><strong>D - Low:</strong> Score < 40 (very cold leads)</li>
+          <li><em>Thresholds can be adjusted automatically by quantiles (P75, P50, P25)</em></li>
         </ul>
 
-        <h3>Processamento automático:</h3>
-        <ul>
-          <li><strong>Normalização de scores:</strong> Converte valores decimais (ex: 0.85 → 85)</li>
-          <li><strong>Normalização de status:</strong> Agrupa variações (ganho/won/ganha → WON)</li>
-          <li><strong>Parseamento de datas:</strong> Suporta formatos brasileiros e ISO</li>
-          <li><strong>Detecção de colunas:</strong> Reconhece aliases automaticamente</li>
-          <li><strong>Validação de dados:</strong> Diagnóstico de valores nulos/inválidos</li>
-          <li><strong>Filtro global de datas:</strong> Analise períodos específicos</li>
+        <h3 data-i18n="m_h_proc">Automatic processing:</h3>
+        <ul data-i18n="m_proc">
+          <li><strong>Score normalization:</strong> Converts decimal values (e.g. 0.85 → 85)</li>
+          <li><strong>Status normalization:</strong> Groups variations (won/ganho/ganha → WON)</li>
+          <li><strong>Date parsing:</strong> Supports Brazilian and ISO formats</li>
+          <li><strong>Column detection:</strong> Recognizes aliases automatically</li>
+          <li><strong>Data validation:</strong> Diagnostics for null/invalid values</li>
+          <li><strong>Global date filter:</strong> Analyze specific periods</li>
         </ul>
 
-        <h3>Visualizações disponíveis:</h3>
-        <ul>
-          <li><strong>Conversão e distribuição por faixa:</strong> quanto cada faixa converte e quanto volume carrega</li>
-          <li><strong>Status e desfecho por faixa:</strong> composição WON / OPEN / LOST em absoluto e em percentual</li>
-          <li><strong>Top tags e principais origens:</strong> de onde vem cada faixa e o que a caracteriza</li>
-          <li><strong>Leads por dia e faixa:</strong> heatmap ou linhas, com corte de outliers</li>
-          <li><strong>Matriz conversão vs volume:</strong> cada faixa posicionada por volume e taxa de conversão</li>
-          <li><strong>Calendário mensal:</strong> volume diário com composição de faixas no tooltip</li>
-          <li><strong>Tabelas resumo:</strong> detalhamento numérico para conferência</li>
+        <h3 data-i18n="m_h_viz">Available visualizations:</h3>
+        <ul data-i18n="m_viz">
+          <li><strong>Conversion and distribution by band:</strong> how much each band converts and how much volume it carries</li>
+          <li><strong>Status and outcome by band:</strong> WON / OPEN / LOST mix in absolute numbers and in percent</li>
+          <li><strong>Top tags and top origins:</strong> where each band comes from and what characterizes it</li>
+          <li><strong>Leads per day and band:</strong> heatmap or lines, with outlier trimming</li>
+          <li><strong>Conversion vs volume matrix:</strong> each band positioned by volume and conversion rate</li>
+          <li><strong>Monthly calendar:</strong> daily volume with the band mix in the tooltip</li>
+          <li><strong>Summary tables:</strong> numeric breakdown for verification</li>
         </ul>
 
-        <h3>Dicas de uso:</h3>
-        <ul>
-          <li>Clique em barras, bolhas ou células dos gráficos para aplicar <strong>filtros cruzados</strong>; os filtros ativos aparecem como chips na barra do topo</li>
-          <li>Use o <strong>período global</strong> na barra do topo para recortar toda a análise</li>
-          <li>As faixas A/B/C/D usam uma <strong>rampa azul ordinal</strong>: quanto mais escuro, melhor a faixa; verde e vermelho ficam reservados para status (WON/LOST)</li>
+        <h3 data-i18n="m_h_tips">Usage tips:</h3>
+        <ul data-i18n="m_tips">
+          <li>Click bars, bubbles or cells in the charts to apply <strong>cross filters</strong>; active filters appear as chips in the top bar</li>
+          <li>Use the <strong>global period</strong> in the top bar to slice the whole analysis</li>
+          <li>The A/B/C/D bands use an <strong>ordinal blue ramp</strong>: the darker, the better the band; green and red are reserved for status (WON/LOST)</li>
         </ul>
 
-        <h3>Notas importantes:</h3>
-        <ul>
-          <li><strong>100% seguro:</strong> Nenhum dado é enviado para servidores (processamento local)</li>
-          <li><strong>Performance:</strong> Otimizado para datasets com até 50.000 registros</li>
-          <li><strong>Leads sem score:</strong> entram na faixa D e aparecem no diagnóstico abaixo</li>
+        <h3 data-i18n="m_h_notes">Important notes:</h3>
+        <ul data-i18n="m_notes">
+          <li><strong>100% safe:</strong> No data is sent to servers (local processing)</li>
+          <li><strong>Performance:</strong> Optimized for datasets with up to 50,000 records</li>
+          <li><strong>Leads without a score:</strong> fall into band D and show up in the diagnostics below</li>
         </ul>
 
-        <h3>Diagnóstico da última importação:</h3>
-        <p id="import-notes" class="muted" style="font-size:12px;">Nenhum arquivo processado ainda.</p>
+        <h3 data-i18n="m_h_diag">Diagnostics of the last import:</h3>
+        <p id="import-notes" class="muted" style="font-size:12px;">No file processed yet.</p>
       </div>
     </div>
   </div>
@@ -2525,6 +2648,120 @@
       closeMetodologiaModal();
     }
   });
+  </script>
+
+  <script>
+  // ========== SELETOR DE IDIOMA (EN default estático; PT via dicionário) ==========
+  (function () {
+    const PT = {
+      hdesc: 'score de lead · faixas A a D · conversão por faixa',
+      btn_meth: 'Metodologia',
+      fb_period: 'período', fb_apply: 'Aplicar', fb_clear: 'Limpar', fb_filters: 'filtros',
+      fb_empty: 'nenhum · clique em qualquer gráfico para filtrar', fb_clearall: 'Limpar tudo',
+      xk: '<b>//</b> resumo executivo',
+      xq: 'O que o score de lead separa de fato: quanto o grupo de alto score converte acima do restante da base.',
+      c1h: 'Taxa de Conversão por Faixa',
+      c1i: 'Percentual de deals convertidos em cada faixa de score (A a D)',
+      c1s: 'Percentual de deals convertidos em cada faixa de score.',
+      o_avg: 'Média ponderada', o_hl: 'Destaque máx/mín',
+      c1f: 'Faixas: <span class="pill">A ≥ 80</span> <span class="pill">B 60-79</span> <span class="pill">C 40-59</span> <span class="pill">D &lt; 40</span>',
+      c2h: 'Distribuição de Deals por Faixa',
+      c2i: 'Volume mensal de deals empilhado por faixa ABCD',
+      c2s: 'Quantos deals caem em cada faixa, mês a mês.',
+      o_davg: 'Média simples', o_hl2: 'Destaque máx/mín',
+      c3h: 'Status por Faixa (WON/LOST/OPEN)',
+      c3i: 'Distribuição de status de negociação por faixa de score',
+      c3s: 'Composição de status da negociação (ganho, perda, aberto) por faixa.',
+      c4h: 'Top Tags por Faixa',
+      c4i: 'As 8 tags mais frequentes da base e a composição de faixas dentro de cada uma',
+      c4s: 'Top 8 tags da base e como cada uma se distribui entre as faixas.',
+      c4f: 'Clique em uma barra para filtrar pela tag.',
+      c5h: 'Desfecho por Faixa (100%)',
+      c5i: 'Participação de WON, OPEN e LOST dentro de cada faixa, em percentual',
+      c5s: 'Participação de ganhos, abertos e perdidos dentro de cada faixa.',
+      c5f: 'Barras somam 100% por faixa; o tooltip traz os valores absolutos. Clique para filtrar pela faixa.',
+      c6h: 'Principais Origens por Faixa',
+      c6i: 'Top origens de tráfego por faixa ABCD, identificando canais de maior qualidade',
+      c6s: 'Canais de origem que mais alimentam cada faixa.',
+      o_osort: 'Ordenar por volume',
+      c6f: 'Fonte: coluna <code>origin_name</code>. Clique em uma barra para filtrar por origem.',
+      c7h: 'Leads por Dia e Faixa',
+      c7i: 'Volume de leads criados por dia e por faixa de score, como heatmap ou linhas',
+      c7s: 'Concentração de leads por dia e por faixa de score.',
+      o_mode: 'Modo:', opt_lines: 'Linhas',
+      o_period: 'Período:', opt_d30: '30 dias', opt_d60: '60 dias', opt_d90: '90 dias', opt_d120: '120 dias', opt_d180: '180 dias',
+      o_outl: 'Remover outliers',
+      c7f: 'Intensidade de leads criados por dia e faixa. Clique em uma célula para filtrar por dia específico.',
+      c8h: 'Matriz de Performance: Conversão vs Volume',
+      c8i: 'Cada faixa posicionada por volume de leads e taxa de conversão; linhas tracejadas marcam as médias',
+      c8s: 'Cada faixa posicionada por volume e por taxa de conversão.',
+      c8f: 'Tamanho da bolha = total de leads. Linhas tracejadas marcam as médias de volume e de conversão.',
+      c9h: 'Atividade Diária',
+      c9i: 'Volume total de leads criados por dia; o tooltip detalha a composição A/B/C/D',
+      c9s: 'Volume diário de leads no mês, com a composição de faixas no tooltip.',
+      o_month: 'Mês:', o_loading: 'Carregando...',
+      c9f: 'Intensidade = leads criados no dia. Clique em um dia para filtrar.',
+      c10h: 'Tabelas Resumo',
+      c10s: 'Detalhamento numérico por faixa para conferência.',
+      m_title: 'Metodologia - Lead Scoring ABCD',
+      m_h_use: 'Como usar este dashboard:',
+      m_file: '<strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: var(--accent-soft);">leadscoring.csv</code><br><span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar dados de leads com pontuação IA do sistema.</span>',
+      m_use: '<li><strong>Faça upload de um arquivo CSV</strong> contendo leads com as seguintes colunas:<ul style="margin-top: 4px;"><li><strong>Obrigatórias:</strong><ul style="margin-left: 20px; font-size: 11px;"><li><code>deal_created_at</code> ou <code>created_at</code> - Data de criação do lead</li><li><code>ia_score</code> ou <code>score</code> - Pontuação do lead (0-100)</li></ul></li><li><strong>Opcionais:</strong><ul style="margin-left: 20px; font-size: 11px;"><li><code>deal_status</code> - Status (WON, LOST, OPEN)</li><li><code>c_tags</code> ou <code>contact_tags</code> - Tags do contato</li><li><code>origin_name</code> ou <code>origin_group_name</code> - Origem do lead</li><li><code>deal_id</code> ou <code>contact_id</code> - Identificador único</li><li><code>segment</code> ou <code>segmento</code> - Segmento de mercado</li></ul></li></ul></li>',
+      m_h_class: 'Classificação ABCD:',
+      m_class: '<li><strong>A - Hot</strong> (A - Quente)<strong>:</strong> Score ≥ 80 (leads quentes, alta prioridade)</li><li><strong>B - Warm</strong> (B - Morno)<strong>:</strong> Score 60-79 (leads mornos, média prioridade)</li><li><strong>C - Cold</strong> (C - Frio)<strong>:</strong> Score 40-59 (leads frios, baixa prioridade)</li><li><strong>D - Low</strong> (D - Baixo)<strong>:</strong> Score &lt; 40 (leads muito frios)</li><li><em>Thresholds podem ser ajustados automaticamente por quantis (P75, P50, P25)</em></li>',
+      m_h_proc: 'Processamento automático:',
+      m_proc: '<li><strong>Normalização de scores:</strong> Converte valores decimais (ex: 0.85 → 85)</li><li><strong>Normalização de status:</strong> Agrupa variações (ganho/won/ganha → WON)</li><li><strong>Parseamento de datas:</strong> Suporta formatos brasileiros e ISO</li><li><strong>Detecção de colunas:</strong> Reconhece aliases automaticamente</li><li><strong>Validação de dados:</strong> Diagnóstico de valores nulos/inválidos</li><li><strong>Filtro global de datas:</strong> Analise períodos específicos</li>',
+      m_h_viz: 'Visualizações disponíveis:',
+      m_viz: '<li><strong>Conversão e distribuição por faixa:</strong> quanto cada faixa converte e quanto volume carrega</li><li><strong>Status e desfecho por faixa:</strong> composição WON / OPEN / LOST em absoluto e em percentual</li><li><strong>Top tags e principais origens:</strong> de onde vem cada faixa e o que a caracteriza</li><li><strong>Leads por dia e faixa:</strong> heatmap ou linhas, com corte de outliers</li><li><strong>Matriz conversão vs volume:</strong> cada faixa posicionada por volume e taxa de conversão</li><li><strong>Calendário mensal:</strong> volume diário com composição de faixas no tooltip</li><li><strong>Tabelas resumo:</strong> detalhamento numérico para conferência</li>',
+      m_h_tips: 'Dicas de uso:',
+      m_tips: '<li>Clique em barras, bolhas ou células dos gráficos para aplicar <strong>filtros cruzados</strong>; os filtros ativos aparecem como chips na barra do topo</li><li>Use o <strong>período global</strong> na barra do topo para recortar toda a análise</li><li>As faixas A/B/C/D usam uma <strong>rampa azul ordinal</strong>: quanto mais escuro, melhor a faixa; verde e vermelho ficam reservados para status (WON/LOST)</li>',
+      m_h_notes: 'Notas importantes:',
+      m_notes: '<li><strong>100% seguro:</strong> Nenhum dado é enviado para servidores (processamento local)</li><li><strong>Performance:</strong> Otimizado para datasets com até 50.000 registros</li><li><strong>Leads sem score:</strong> entram na faixa D e aparecem no diagnóstico abaixo</li>',
+      m_h_diag: 'Diagnóstico da última importação:'
+    };
+    const META = {
+      en: { title: 'Lead Scoring (ABCD) | Felippe Yann' },
+      pt: { title: 'Lead Scoring (ABCD) | Felippe Yann' }
+    };
+    const EN = {}; const ATTRS = ['title', 'aria'];
+    document.querySelectorAll('[data-i18n]').forEach(el => { EN[el.getAttribute('data-i18n')] = el.innerHTML; });
+    ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(el => {
+      const real = a === 'aria' ? 'aria-label' : a;
+      el.setAttribute('data-en-' + a, el.getAttribute(real) || '');
+    }));
+
+    window.applyLang = function (lang) {
+      lang = lang === 'pt' ? 'pt' : 'en';
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = (lang === 'pt' ? PT : EN)[el.getAttribute('data-i18n')];
+        if (v != null) el.innerHTML = v;
+      });
+      ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(el => {
+        const real = a === 'aria' ? 'aria-label' : a;
+        const v = el.getAttribute('data-' + (lang === 'pt' ? 'pt' : 'en') + '-' + a);
+        if (v != null) el.setAttribute(real, v);
+      }));
+      document.documentElement.setAttribute('lang', lang === 'pt' ? 'pt-BR' : 'en');
+      document.title = META[lang].title;
+      document.querySelectorAll('[data-lang-btn]').forEach(b => {
+        const on = b.getAttribute('data-lang-btn') === lang;
+        b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
+      });
+      try { localStorage.setItem('lang', lang); } catch (e) {}
+      // diagnóstico inicial (ainda sem importação) na língua ativa
+      if (!diagHasRun) {
+        const el = document.getElementById('import-notes');
+        if (el) el.textContent = t('diag_none');
+      }
+      // re-localiza chips + info de data e re-renderiza tudo (charts/tabelas/exec)
+      updateGlobalDateInfo();
+      if (window.DK && window.DK.relabel) window.DK.relabel();
+      if (window.__onbCtaRebuild) window.__onbCtaRebuild();
+      renderAllChartsRef();
+    };
+    document.querySelectorAll('[data-lang-btn]').forEach(b => b.addEventListener('click', () => applyLang(b.getAttribute('data-lang-btn'))));
+    applyLang(LANG());
+  })();
   </script>
 
 
@@ -2578,6 +2815,48 @@
   var CFG = null;
   var els = {};
   var mode = 'empty'; // 'empty' | 'demo' | 'user'
+  var lastUserFile = null;
+
+  /* ---------- idioma (ingles default; 'pt' via localStorage 'lang') ---------- */
+  function dkLang() { var l = 'en'; try { l = localStorage.getItem('lang') || 'en'; } catch (e) {} return l === 'pt' ? 'pt' : 'en'; }
+  var DK_STR = {
+    en: {
+      kicker: '[ <b>data</b> ]',
+      fill: 'Auto-fill with sample data',
+      upload: 'Upload CSV', uploads: 'Upload CSVs',
+      help: 'How to build the CSV',
+      panelTitle: 'How to use your data',
+      panelIntro: 'This dashboard is fed by a CSV exported from your CRM or source spreadsheet. Parsing happens 100% in the browser: no file ever leaves your machine. Download the template below, replace the sample rows with your data and upload it back. Columns marked with <span class="dk-req">*</span> are required; the rest can be empty.',
+      thCol: 'column', thType: 'type', thWhat: 'what it is', thEx: 'example',
+      tplBtn: 'Download CSV template', upThis: 'Upload this file',
+      panelFoot: 'Just browsing? The <b style="color:#f8f7f3">Auto-fill</b> button generates a synthetic dataset that follows this exact contract and renders every chart instantly.',
+      stDemo: '<b>sample data</b>', stUser: '<b>your data</b>',
+      stNone: 'no data loaded', stFail: 'failed to generate sample data',
+      badge: '<b>sample data</b> &middot; upload your CSV to use yours'
+    },
+    pt: {
+      kicker: '[ <b>dados</b> ]',
+      fill: 'Preencher automaticamente',
+      upload: 'Enviar CSV', uploads: 'Enviar CSVs',
+      help: 'Como montar o CSV',
+      panelTitle: 'Como usar seus dados',
+      panelIntro: 'Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.',
+      thCol: 'coluna', thType: 'tipo', thWhat: 'o que e', thEx: 'exemplo',
+      tplBtn: 'Baixar template CSV', upThis: 'Enviar este arquivo',
+      panelFoot: 'Prefere so olhar? O botao <b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que respeita exatamente esse contrato e renderiza todos os graficos na hora.',
+      stDemo: '<b>dados de exemplo</b>', stUser: '<b>seus dados</b>',
+      stNone: 'sem dados carregados', stFail: 'falha ao gerar dados de exemplo',
+      badge: '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus'
+    }
+  };
+  function S(k) { var d = DK_STR[dkLang()]; return (d && d[k]) || DK_STR.en[k] || k; }
+  function pickCfg(base, enVal) { return dkLang() === 'pt' ? base : (enVal || base); }
+  function summaryText() {
+    try {
+      if (dkLang() === 'en' && CFG && CFG.summary_en) return CFG.summary_en();
+      return CFG && CFG.summary ? CFG.summary() : '';
+    } catch (e) { return ''; }
+  }
 
   /* ---------- utilitarios ---------- */
 
@@ -2709,35 +2988,30 @@
 
   function panelHTML() {
     var out = '<div class="dk-pin">';
-    out += '<h2 class="dk-h">Como usar seus dados</h2>';
-    out += '<p class="dk-p">Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. '
-        + 'O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. '
-        + 'Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. '
-        + 'Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.</p>';
+    out += '<h2 class="dk-h">' + S('panelTitle') + '</h2>';
+    out += '<p class="dk-p">' + S('panelIntro') + '</p>';
 
     CFG.files.forEach(function (f, i) {
       var s = sampleOf(f)[0] || {};
       out += '<div class="dk-file">';
       out += '<div class="dk-fh"><span class="dk-fn">' + esc(f.name) + '</span><span class="dk-fa">';
-      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">Baixar template CSV</button>';
-      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">Enviar este arquivo</button>';
+      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">' + S('tplBtn') + '</button>';
+      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">' + S('upThis') + '</button>';
       out += '</span></div>';
-      out += '<p class="dk-fd">' + esc(f.desc) + '</p>';
+      out += '<p class="dk-fd">' + esc(pickCfg(f.desc, f.desc_en)) + '</p>';
       out += '<div class="dk-scroll"><table class="dk-t"><thead><tr>'
-          + '<th>coluna</th><th>tipo</th><th>o que e</th><th>exemplo</th>'
+          + '<th>' + S('thCol') + '</th><th>' + S('thType') + '</th><th>' + S('thWhat') + '</th><th>' + S('thEx') + '</th>'
           + '</tr></thead><tbody>';
       f.cols.forEach(function (c) {
         out += '<tr><td class="c">' + esc(c.n) + (c.req ? '<span class="dk-req">*</span>' : '') + '</td>'
-            + '<td class="t">' + esc(c.t) + '</td>'
-            + '<td>' + esc(c.d) + '</td>'
+            + '<td class="t">' + esc(pickCfg(c.t, c.t_en)) + '</td>'
+            + '<td>' + esc(pickCfg(c.d, c.d_en)) + '</td>'
             + '<td class="x">' + esc(s[c.n]) + '</td></tr>';
       });
       out += '</tbody></table></div></div>';
     });
 
-    out += '<p class="dk-p" style="margin:2px 0 0">Prefere so olhar? O botao '
-        + '<b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que '
-        + 'respeita exatamente esse contrato e renderiza todos os graficos na hora.</p>';
+    out += '<p class="dk-p" style="margin:2px 0 0">' + S('panelFoot') + '</p>';
     out += '</div>';
     return out;
   }
@@ -2749,14 +3023,14 @@
     bar.setAttribute('aria-label', 'Dados do dashboard');
 
     var many = CFG.files.filter(function (f) { return !!f.input; }).length > 1;
-    var upLabel = many ? 'Enviar CSVs' : 'Enviar CSV';
+    var upLabel = many ? S('uploads') : S('upload');
     var hasInput = CFG.files.some(function (f) { return !!f.input; });
 
     var inner = '<div class="dk-in">'
-      + '<span class="dk-k">[ <b>dados</b> ]</span>'
-      + '<button type="button" class="dk-btn p" data-dk="fill">Preencher automaticamente</button>'
+      + '<span class="dk-k">' + S('kicker') + '</span>'
+      + '<button type="button" class="dk-btn p" data-dk="fill">' + S('fill') + '</button>'
       + (hasInput ? '<button type="button" class="dk-btn" data-dk="upload">' + upLabel + '</button>' : '')
-      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">Como montar o CSV &#9656;</button>'
+      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">' + S('help') + ' &#9656;</button>'
       + '<span class="dk-sep"></span>'
       + '<span class="dk-st" data-dk="status"></span>'
       + '</div>'
@@ -2787,7 +3061,7 @@
 
     var badge = document.createElement('div');
     badge.className = 'dk-badge';
-    badge.innerHTML = '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus';
+    badge.innerHTML = S('badge');
     els.badge = badge;
 
     document.body.insertBefore(bar, document.body.firstChild);
@@ -2846,7 +3120,7 @@
     var open = (force === undefined) ? !els.panel.classList.contains('open') : !!force;
     els.panel.classList.toggle('open', open);
     els.help.setAttribute('aria-expanded', String(open));
-    els.help.innerHTML = 'Como montar o CSV ' + (open ? '&#9662;' : '&#9656;');
+    els.help.innerHTML = S('help') + ' ' + (open ? '&#9662;' : '&#9656;');
     reflow();
     if (typeof CFG.onResize === 'function') CFG.onResize();
   }
@@ -2888,7 +3162,7 @@
           // espera o dashboard terminar de montar antes do primeiro preenchimento
           waitReady(0);
         } else {
-          setStatus('sem dados carregados');
+          setStatus(S('stNone'));
         }
       };
       if (document.readyState === 'loading') {
@@ -2901,18 +3175,32 @@
         CFG.fill();
         mode = 'demo';
         if (els.badge) els.badge.style.display = '';
-        setStatus('<b>dados de exemplo</b> &middot; ' + (CFG.summary ? CFG.summary() : 'base sintetica'));
+        setStatus(S('stDemo') + ' &middot; ' + summaryText());
       } catch (e) {
         console.error('[DK] falha ao preencher:', e);
-        setStatus('falha ao gerar dados de exemplo');
+        setStatus(S('stFail'));
       }
     },
 
     markUserData: function (name) {
       mode = 'user';
+      lastUserFile = name || null;
       if (els.badge) els.badge.style.display = 'none';
-      setStatus('<b>seus dados</b> &middot; ' + esc(name || 'CSV enviado'));
+      setStatus(S('stUser') + ' &middot; ' + esc(name || 'CSV'));
       toggleHelp(false);
+    },
+
+    relabel: function () {
+      if (!els.bar) return;
+      var open = els.panel && els.panel.classList.contains('open');
+      if (els.bar.parentNode) els.bar.parentNode.removeChild(els.bar);
+      if (els.badge && els.badge.parentNode) els.badge.parentNode.removeChild(els.badge);
+      lastH = -1;
+      build();
+      if (open) toggleHelp(true);
+      if (mode === 'demo') { if (els.badge) els.badge.style.display = ''; setStatus(S('stDemo') + ' &middot; ' + summaryText()); }
+      else if (mode === 'user') { if (els.badge) els.badge.style.display = 'none'; setStatus(S('stUser') + ' &middot; ' + esc(lastUserFile || 'CSV')); }
+      else setStatus(S('stNone'));
     },
 
     mode: function () { return mode; }
@@ -2980,12 +3268,14 @@
       input: '#csvFile',
       desc: 'Export de negocios do CRM com o score do lead. Uma linha por negocio. '
           + 'As faixas A/B/C/D sao derivadas do score: A >= 80, B 60-79, C 40-59, D < 40.',
+      desc_en: 'CRM deal export with the lead score. One row per deal. '
+          + 'Bands A/B/C/D derive from the score: A >= 80, B 60-79, C 40-59, D < 40.',
       cols: [
-        { n: 'deal_created_at', t: 'data AAAA-MM-DD', d: 'Criacao do negocio. Alimenta os cortes por periodo.', req: 1 },
-        { n: 'ia_score', t: 'inteiro 0-100', d: 'Score do lead. Define a faixa ABCD.', req: 1 },
-        { n: 'deal_status', t: 'WON | LOST | OPEN', d: 'Situacao do negocio. Base da taxa de conversao por faixa.', req: 1 },
-        { n: 'c_tags', t: 'lista separada por virgula', d: 'Tags do contato. Alimenta o ranking de tags por faixa.' },
-        { n: 'origin_name', t: 'texto', d: 'Origem do lead. Alimenta o heatmap origem x faixa.' }
+        { n: 'deal_created_at', t: 'data AAAA-MM-DD', t_en: 'date YYYY-MM-DD', d: 'Criacao do negocio. Alimenta os cortes por periodo.', d_en: 'Deal creation date. Drives the period slicing.', req: 1 },
+        { n: 'ia_score', t: 'inteiro 0-100', t_en: 'integer 0-100', d: 'Score do lead. Define a faixa ABCD.', d_en: 'Lead score. Defines the ABCD band.', req: 1 },
+        { n: 'deal_status', t: 'WON | LOST | OPEN', d: 'Situacao do negocio. Base da taxa de conversao por faixa.', d_en: 'Deal status. Basis of the conversion rate per band.', req: 1 },
+        { n: 'c_tags', t: 'lista separada por virgula', t_en: 'comma-separated list', d: 'Tags do contato. Alimenta o ranking de tags por faixa.', d_en: 'Contact tags. Feeds the tag ranking per band.' },
+        { n: 'origin_name', t: 'texto', t_en: 'text', d: 'Origem do lead. Alimenta o heatmap origem x faixa.', d_en: 'Lead origin. Feeds the origin x band breakdown.' }
       ],
       sample: function () { return GEN(); }
     }],
@@ -2995,7 +3285,8 @@
       buildReport(data);
       LAST = data.length;
     },
-    summary: function () { return LAST.toLocaleString('pt-BR') + ' negocios'; }
+    summary: function () { return LAST.toLocaleString('pt-BR') + ' negocios'; },
+    summary_en: function () { return LAST.toLocaleString('en-US') + ' deals'; }
   });
 })();
 </script>
@@ -3023,6 +3314,28 @@
 </style>
 <script id="onb-cta">
 (function(){
+  function oLang(){ var l='en'; try{ l=localStorage.getItem('lang')||'en'; }catch(e){} return l==='pt'?'pt':'en'; }
+  var OT={
+    en:{ h:'How to read this panel',
+      s1:'<li><b>Executive summary</b>: the essentials of the period are right at the top.</li>',
+      s2:'<li><b>Filters</b>: slice by period and segment to investigate.</li>',
+      s3:'<li><b>Panels</b>: each one has a subtitle saying what it shows; hover the info icons for details.</li>',
+      k:'// sales analytics',
+      ch:'Sample dashboards from a RevOps analytics system built by Felippe Yann.',
+      cs:'Want this kind of visibility over your sales operation?',
+      b1:'See all dashboards', b2:'View portfolio', b3:'Chat on LinkedIn',
+      mail:'Prefer email? ' },
+    pt:{ h:'Como ler este painel',
+      s1:'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>',
+      s2:'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>',
+      s3:'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>',
+      k:'// analytics comercial',
+      ch:'Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.',
+      cs:'Quer visibilidade assim no seu comercial?',
+      b1:'Ver todos os dashboards', b2:'Ver portf\u00f3lio', b3:'Falar no LinkedIn',
+      mail:'Prefere conversar por e-mail? ' }
+  };
+  function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
     try{
@@ -3030,11 +3343,9 @@
         var onb=document.createElement('div');
         onb.className='onb-card';
         onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">Como ler este painel</div>'
+          +'<div class="onb-h">'+OS('h')+'</div>'
           +'<ol class="onb-steps">'
-          +'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>'
-          +'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>'
-          +'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>'
+          +OS('s1')+OS('s2')+OS('s3')
           +'</ol>';
         band.parentNode.insertBefore(onb, band.nextSibling);
         onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
@@ -3043,18 +3354,22 @@
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
-      cta.innerHTML='<div class="cta-txt"><div class="cta-k">// analytics comercial</div>'
-        +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
-        +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
+      cta.innerHTML='<div class="cta-txt"><div class="cta-k">'+OS('k')+'</div>'
+        +'<div class="cta-h">'+OS('ch')+'</div>'
+        +'<div class="cta-s">'+OS('cs')+'</div></div>'
         +'<div class="cta-actions">'
-        +'<a class="cta-btn primary" href="index.html">Ver todos os dashboards</a>'
-        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
-        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
+        +'<a class="cta-btn primary" href="index.html">'+OS('b1')+'</a>'
+        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">'+OS('b2')+'</a>'
+        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">'+OS('b3')+'</a>'
         +'</div>';
       (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
-      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML='Prefere conversar por e-mail? <a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
+      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML=OS('mail')+'<a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
     }
   }
+  window.__onbCtaRebuild=function(){
+    ['.onb-card','.cta-band','.cta-mail'].forEach(function(sel){ var e=document.querySelector(sel); if(e&&e.parentNode) e.parentNode.removeChild(e); });
+    build();
+  };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
 })();
 </script>
