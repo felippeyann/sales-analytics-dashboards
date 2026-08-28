@@ -2,703 +2,616 @@
 <!--
   ╔═══════════════════════════════════════════════════════════╗
   ║  Analytics Dashboard - Produtividade SDR                  ║
-  ║  Versão: v1.0                                             ║
-  ║  Última atualização: 10/11/2025                           ║
+  ║  Versão: v2.0                                             ║
   ║  Descrição: Dashboard de análise de produtividade SDR     ║
   ║             com métricas de atividades e performance      ║
   ╚═══════════════════════════════════════════════════════════╝
 -->
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
+<meta charset="utf-8"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Produtividade SDR</title>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <style>
-    :root {
-      --bg: #0a0a0b;
-      --card: #131316;
-      --grid: #232328;
-      --text: #f4f4f5;
-      --muted: #a9a9b3;
-      --accent: #2563eb;
-      --accent-glow: rgba(37,99,235,0.15);
-      --ok: #22c55e;
-      --warn: #f59e0b;
-      --danger: #ef4444;
-    }
-    
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; padding: 0; }
-    body {
-      margin: 0;
-      background: linear-gradient(180deg, var(--bg) 0%, #060608 60%, var(--bg) 100%);
-      color: var(--text);
-      font: 500 14px/1.5 "Space Grotesk", system-ui, -apple-system, sans-serif;
-    }
-    
-    /* Header */
-    header {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 50;
-      background: linear-gradient(180deg, rgba(11,11,15,0.98) 0%, rgba(11,11,15,0.85) 100%);
-      background-image: 
-        radial-gradient(at 10% 30%, var(--accent-glow), transparent),
-        linear-gradient(180deg, rgba(11,11,15,0.98) 0%, rgba(11,11,15,0.85) 100%);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--grid);
-      transition: transform 0.3s ease-in-out;
-    }
-    .header-hidden {
-      transform: translateY(-100%);
-    }
-    .wrap {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 16px 20px;
-    }
-    .title {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .title h1 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 700;
-    }
-    .badge {
-      font-size: 11px;
-      padding: 3px 10px;
-      border: 1px solid var(--grid);
-      border-radius: 20px;
-      color: var(--muted);
-    }
-    
-    .uploader {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .uploader input[type=file] {
-      background: var(--card);
-      border: 1px dashed var(--grid);
-      padding: 10px 16px;
-      border-radius: 12px;
-      color: var(--muted);
-      max-width: 400px;
-      font-size: 13px;
-      cursor: pointer;
-    }
-    .uploader input[type=file]:hover {
-      border-color: var(--accent);
-    }
-    .hint {
-      color: var(--muted);
-      font-size: 12px;
-    }
-    
-    .controls {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .control-group {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .control-group label {
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .control-group select {
-      background: var(--card);
-      border: 1px solid var(--grid);
-      padding: 6px 12px;
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 13px;
-    }
-    .control-group input[type=checkbox] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-      accent-color: var(--accent);
-    }
-    .control-group input[type=date] {
-      cursor: pointer;
-      font-family: inherit;
-    }
-    .control-group input[type=date]::-webkit-calendar-picker-indicator {
-      cursor: pointer;
-      filter: invert(1);
-    }
-    
-    /* Main */
-    main {
-      padding-top: 180px;
-      min-height: 100vh;
-    }
-    
-    /* Chart Card */
-    .chart-card {
-      background: var(--card);
-      border: 1px solid var(--grid);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    .chart-card h2 {
-      margin: 0 0 16px 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .chart-card .chart {
-      width: 100%;
-      height: 320px;
-    }
-    
-    /* Metrics toggles */
-    .metrics-toggles {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding: 16px;
-      background: var(--accent-glow);
-      border: 1px solid var(--grid);
-      border-radius: 12px;
-    }
-    .metric-toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: var(--card);
-      border: 1px solid var(--grid);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .metric-toggle:hover {
-      background: var(--accent-glow);
-      border-color: var(--accent);
-    }
-    .metric-toggle input {
-      cursor: pointer;
-      accent-color: var(--accent);
-    }
-    .metric-toggle label {
-      cursor: pointer;
-      font-size: 13px;
-      color: var(--text);
-      user-select: none;
-    }
-    
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 80px 20px;
-      color: var(--muted);
-    }
-    .empty-state h3 {
-      font-size: 18px;
-      margin-bottom: 8px;
-      color: var(--text);
-    }
-    
-    /* Loading */
-    #loadingBar {
-      margin-bottom: 20px;
-    }
-    #loadingBar > div {
-      background: var(--card);
-      border: 1px solid var(--grid);
-      border-radius: 12px;
-      padding: 16px;
-    }
-    #progressBar {
-      height: 8px;
-      background: linear-gradient(90deg, var(--accent), #60a5fa);
-      border-radius: 4px;
-      transition: width 0.3s;
-      box-shadow: 0 0 10px var(--accent-glow);
-    }
-    
-    /* Grid System */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 20px;
-      margin-top: 20px;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--grid);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .card h2 {
-      margin: 0 0 12px 0;
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .card h2 small {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 400;
-    }
-    .card h2[data-number]::before {
-      content: attr(data-number);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      background: var(--accent-glow);
-      color: var(--accent);
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-    .row-6 { grid-column: span 6; }
-    .row-12 { grid-column: span 12; }
-    
-    /* Info Icon & Tooltip */
-    .info-icon {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 16px;
-      height: 16px;
-      background: rgba(108,99,255,0.15);
-      color: var(--accent);
-      border-radius: 50%;
-      font-size: 10px;
-      cursor: help;
-      margin-left: auto;
-    }
-    .info-icon .tooltip {
-      visibility: hidden;
-      opacity: 0;
-      position: absolute;
-      bottom: 130%;
-      right: 0;
-      background: var(--bg);
-      color: var(--text);
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--grid);
-      font-size: 11px;
-      white-space: nowrap;
-      z-index: 100;
-      transition: opacity 0.2s;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    .info-icon:hover .tooltip {
-      visibility: visible;
-      opacity: 1;
-    }
-    
-    /* Filters & Controls */
-    .opts {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-      padding: 12px;
-      background: rgba(255,255,255,0.02);
-      border-radius: 8px;
-      border: 1px solid var(--grid);
-    }
-    .opts label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--muted);
-      cursor: pointer;
-      user-select: none;
-    }
-    .opts input[type="checkbox"] {
-      cursor: pointer;
-      accent-color: var(--accent);
-    }
-    .opts select, .date-filter {
-      padding: 6px 10px;
-      background: var(--bg);
-      border: 1px solid var(--grid);
-      border-radius: 6px;
-      color: var(--text);
-      font-size: 12px;
-      cursor: pointer;
-      font-family: inherit;
-    }
-    .date-filter-label {
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 600;
-    }
-    
-    /* Quick Filters (Pills) */
-    .quick-filters {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin: 12px 0;
-    }
-    .filter-pill {
-      padding: 6px 12px;
-      background: var(--accent-glow);
-      border: 1px solid rgba(37,99,235,0.3);
-      border-radius: 20px;
-      font-size: 11px;
-      color: var(--accent);
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .filter-pill:hover {
-      background: var(--accent-glow);
-      border-color: var(--accent);
-    }
-    .filter-pill.active {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-    
-    /* Ranking Table */
-    .ranking-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    .ranking-table thead th {
-      text-align: left;
-      padding: 12px 8px;
-      border-bottom: 2px solid var(--grid);
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      user-select: none;
-    }
-    .ranking-table thead th:hover {
-      color: var(--accent);
-    }
-    .ranking-table tbody tr {
-      border-bottom: 1px solid var(--grid);
-      transition: background 0.2s;
-    }
-    .ranking-table tbody tr:hover {
-      background: rgba(255,255,255,0.02);
-    }
-    .ranking-table tbody td {
-      padding: 12px 8px;
-    }
-    .ranking-table .rank-num {
-      color: var(--accent);
-      font-weight: 700;
-      font-size: 14px;
-    }
-    .ranking-table .sdr-name {
-      font-weight: 600;
-    }
-    .ranking-table .mini-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .ranking-table .bar-container {
-      flex: 1;
-      height: 6px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .ranking-table .bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), #60a5fa);
-      border-radius: 3px;
-      transition: width 0.3s;
-    }
-    .ranking-table .percent-badge {
-      padding: 2px 8px;
-      background: rgba(34,197,94,0.15);
-      color: var(--ok);
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .ranking-table .percent-badge.low {
-      background: rgba(239,68,68,0.15);
-      color: var(--danger);
-    }
-    .ranking-table .percent-badge.mid {
-      background: rgba(245,158,11,0.15);
-      color: var(--warn);
-    }
-    
-    @media (max-width: 768px) {
-      header .wrap { padding: 12px; }
-      .title h1 { font-size: 16px; }
-      .chart-card { padding: 16px; }
-      .chart-card .chart { height: 270px; }
-      .row-6, .row-12 { grid-column: span 12; }
-    }
-  </style>
-  <style>.uploader,.upload-section,#emptyState{display:none!important}</style>
-</head>
-<style id="exec-band-css">
-.exec-band{background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:5px 5px 0 0 rgba(0,0,0,0.5);padding:22px 24px;margin:0 0 18px 0;font-family:'Space Grotesk',system-ui,sans-serif}
-.exec-band .exec-kicker{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a94;margin-bottom:8px}
-.exec-band .exec-kicker b{color:#2563eb}
-.exec-band .exec-q{font-size:15px;line-height:1.5;color:#f8f7f3;max-width:80ch;margin-bottom:18px}
-.exec-band .exec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
-.exec-band .exec-kpi{background:#1a1a1e;border:1px solid rgba(248,247,243,0.08);padding:14px 16px}
-.exec-band .exec-kpi .ev{font-size:30px;font-weight:700;line-height:1;color:#f8f7f3;font-variant-numeric:tabular-nums}
-.exec-band .exec-kpi .ev.good{color:#4ade80}
-.exec-band .exec-kpi .el{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a94;margin-top:8px}
-.exec-band .exec-kpi .eh{font-size:12px;color:#6b6b73;margin-top:3px}
-.exec-band .exec-insight{border-left:3px solid #2563eb;padding:10px 0 10px 14px;font-size:14px;line-height:1.55;color:#c9c9d0}
-.exec-band .exec-insight b{color:#f8f7f3;font-weight:600}
-.exec-band .exec-insight .ei-tag{display:inline-block;font-family:'Space Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;border:1px solid rgba(37,99,235,0.4);padding:1px 7px;margin-right:8px;vertical-align:middle}
-@media(max-width:720px){.exec-band .exec-kpis{grid-template-columns:repeat(2,1fr)}}
-.panel-sub{font-family:'Space Grotesk',system-ui,sans-serif;font-size:13px;line-height:1.45;color:#8a8a94;margin:-4px 0 16px;max-width:82ch}
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Produtividade SDR | Felippe Yann</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+  /* ===== tokens (fonte única de verdade do arquivo) ===== */
+  :root{
+    --bg:#0a0a0b;
+    --panel:#131316;
+    --card:#1a1a1e;
+    --card-h:#232328;
+    --ink:#f8f7f3; --ink-2:#d4d4d8; --ink-3:#a1a1aa; --ink-4:#8a8a94;
+    --accent:#2563eb;
+    --accent-soft:#60a5fa;
+    --accent-glow:rgba(37,99,235,0.15);
+    --ok:#4ade80; --warn:#fbbf24; --bad:#f87171;
+    --line:rgba(248,247,243,.09); --line-strong:rgba(248,247,243,.18);
+    --sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --r:12px; --r-sm:8px;
+    /* aliases legados (consumidos por JS/markup antigos) */
+    --muted:var(--ink-4);
+    --text:var(--ink);
+    --grid:var(--line-strong);
+    --danger:var(--bad);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink-2);font-family:var(--sans);font-size:14px}
+  a{color:var(--accent-soft);text-decoration:none}
+  button{font-family:var(--sans)}
+
+  /* ===== header (sticky, compacto) ===== */
+  header{
+    position:sticky;top:0;z-index:60;
+    background:rgba(10,10,11,.92);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .wrap{max-width:1400px;margin:0 auto;padding:0 20px}
+  .hdr-in{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;padding:8px 0}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .logo{
+    width:30px;height:30px;border-radius:var(--r-sm);flex:none;
+    background:var(--accent);color:#fff;
+    font-family:var(--mono);font-weight:700;font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .desc{color:var(--ink-4);font-size:11px;font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  @media (max-width:760px){ .desc{display:none} h1{font-size:14px} }
+  .version-badge{display:inline-block;background:var(--accent-glow);border:1px solid rgba(37,99,235,.4);color:var(--accent-soft);font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:10px;margin-left:8px;letter-spacing:0.5px;vertical-align:middle}
+  .hint{color:var(--ink-4);font-size:12px}
+
+  /* ===== filter bar ===== */
+  .filterbar{border-top:1px solid var(--line);background:rgba(19,19,22,.9)}
+  .fb-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 0}
+  .fb-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);white-space:nowrap}
+  .fb-sep{width:1px;height:22px;background:var(--line-strong);flex:none}
+
+  /* ===== cards e grid ===== */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line-strong);
+    border-radius:var(--r);padding:16px 18px;
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+  }
+  .grid{
+    display:grid; gap:14px;
+    grid-template-columns: repeat(12, 1fr);
+  }
+  .col-12{grid-column:span 12}
+  .col-6{grid-column:span 6}
+  .col-4{grid-column:span 4}
+  .col-8{grid-column:span 8}
+  @media (max-width: 980px){
+    .col-6,.col-4,.col-8{grid-column:span 12}
+  }
+
+  .panel{margin-top:16px;padding-bottom:8px}
+  .card h2{
+    margin:0 0 4px 0;font-size:14px;font-weight:700;color:var(--ink);letter-spacing:.01em;
+    display:flex;align-items:center;gap:8px
+  }
+  .card h2[data-number]::before{
+    content:attr(data-number);
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;
+    background:var(--accent-glow);color:var(--accent-soft);
+    border-radius:6px;font-size:10px;font-weight:700;font-family:var(--mono);flex-shrink:0;
+  }
+  .panel-sub{font-size:13px;line-height:1.45;color:var(--ink-4);margin:-2px 0 14px;max-width:82ch}
+
+  .topic-head{
+    display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;row-gap:4px;margin-bottom:6px;
+  }
+  .topic-head h2{align-self:center}
+  @media (max-width:760px){
+    .topic-head{grid-template-columns:1fr;}
+    .topic-head .topic-actions{justify-content:flex-start}
+  }
+  .topic-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .topic-actions.nowrap{flex-wrap:nowrap;white-space:nowrap}
+  .toggle-label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;font-size:12px}
+  .toggle-label input[type="checkbox"]{cursor:pointer;accent-color:var(--accent);width:16px;height:16px;}
+  .toggle-label span{color:var(--ink-3);font-weight:500;}
+
+  /* ===== KPIs (linha única) ===== */
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{
+    background:var(--card);
+    border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;min-width:0
+  }
+  .kpi .label{color:var(--ink-4);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .value{font-size:24px;font-weight:700;margin-top:6px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+  .kpi .value.good{color:var(--ok)}
+  .kpi .value.bad{color:var(--bad)}
+  .kpi .subv{color:var(--ink-4);font-size:11.5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ===== faixa executiva ===== */
+  .exec-band{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);padding:18px 20px;margin-bottom:16px}
+  .exec-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-bottom:8px}
+  .exec-kicker b{color:var(--accent);font-weight:700}
+  .exec-q{color:var(--ink);font-size:15px;font-weight:500;margin:0 0 14px;max-width:82ch;line-height:1.45}
+  .exec-insight{border-left:3px solid var(--accent);padding:6px 0 6px 14px;color:var(--ink-2);font-size:14px;line-height:1.55}
+  .exec-insight .ei-tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-soft);border:1px solid rgba(37,99,235,.4);padding:1px 7px;margin-right:8px}
+  .exec-insight b{color:var(--ink);font-weight:700}
+
+  /* ===== botões ===== */
+  .btn{
+    background:var(--accent);border:1px solid var(--accent);color:#fff;
+    padding:8px 14px;font-weight:700;border-radius:var(--r-sm);
+    cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease;
+    font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;line-height:1.2
+  }
+  .btn:hover{background:#1d4ed8;border-color:#1d4ed8}
+  .btn.secondary{
+    background:transparent;border:1px solid var(--line-strong);color:var(--ink-2)
+  }
+  .btn.secondary:hover{background:var(--card-h);border-color:var(--line-strong)}
+  .btn.sm{padding:6px 10px;font-size:10.5px}
+  .btn:disabled{background:var(--card);border-color:var(--line);color:var(--ink-4);cursor:not-allowed}
+
+  input,select{
+    background:var(--card);border:1px solid var(--line-strong);
+    color:var(--ink-2);padding:7px 10px;border-radius:var(--r-sm);font-size:12px;font-family:var(--sans)
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+  }
+
+  .chart{width:100%;height:280px}
+  .chart.tall{height:320px}
+  .chart.extra-tall{height:380px}
+
+  /* ===== ⓘ tooltip ===== */
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 17px;
+    height: 17px;
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--ink-4);
+    background: none;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    cursor: help;
+    transition: color .2s ease, border-color .2s ease;
+    position: relative;
+    z-index: 100;
+    flex: none;
+  }
+  .info-icon:hover {
+    color: var(--accent-soft);
+    border-color: var(--accent);
+    z-index: 10000;
+  }
+  .info-icon .tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card-h);
+    color: var(--ink-2);
+    padding: 10px 14px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    white-space: normal;
+    width: 260px;
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 1.5;
+    z-index: 10001;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+  .info-icon .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--line-strong);
+  }
+  .info-icon:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* ===== controles locais dos painéis ===== */
+  .opts {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    background: var(--card);
+    border-radius: var(--r-sm);
+    border: 1px solid var(--line);
+  }
+  .opts label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-3);
+    cursor: pointer;
+    user-select: none;
+  }
+  .opts input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+  .date-filter-label {
+    font-size: 10.5px;
+    font-family: var(--mono);
+    color: var(--ink-4);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+  .date-filter { cursor: pointer; }
+
+  /* ===== estados ===== */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--ink-4);
+  }
+  .empty-state h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .empty-state code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent-soft);
+    background: var(--accent-glow);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  #loadingBar { margin-bottom: 16px; }
+  .loading-box {
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r);
+    padding: 16px;
+  }
+  .loading-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .loading-head #loadingText { color: var(--ink-4); }
+  .loading-head #loadingProgress { color: var(--accent-soft); font-weight: 700; font-family: var(--mono); }
+  .loading-track {
+    width: 100%;
+    height: 8px;
+    background: var(--accent-glow);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  #progressBar {
+    height: 8px;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+
+  /* ===== tabela de ranking ===== */
+  .ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .ranking-table thead th {
+    text-align: left;
+    padding: 9px 8px;
+    border-bottom: 1px solid var(--line-strong);
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .ranking-table tbody tr {
+    border-bottom: 1px solid var(--line);
+    transition: background 0.2s;
+  }
+  .ranking-table tbody tr:hover {
+    background: var(--card);
+  }
+  .ranking-table tbody td {
+    padding: 9px 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .ranking-table .rank-num {
+    color: var(--accent-soft);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .ranking-table .sdr-name {
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .ranking-table .mini-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .ranking-table .bar-container {
+    height: 6px;
+    background: var(--card);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .ranking-table .bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .ranking-table .percent-badge {
+    padding: 2px 8px;
+    background: rgba(74,222,128,0.12);
+    color: var(--ok);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .ranking-table .percent-badge.low {
+    background: rgba(248,113,113,0.14);
+    color: var(--bad);
+  }
+  .ranking-table .percent-badge.mid {
+    background: rgba(251,191,36,0.14);
+    color: var(--warn);
+  }
+
+  /* ===== funil ===== */
+  .funnel-body{padding:8px 4px 4px}
+  .funnel-step{font-family:var(--mono);font-size:11px;line-height:1;color:var(--ink-4);letter-spacing:.04em;margin:2px 0 8px 156px}
+  .funnel-row{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .funnel-lbl{width:140px;flex:0 0 140px;text-align:right}
+  .funnel-lbl b{display:block;font-weight:600;color:var(--ink);font-size:14px}
+  .funnel-lbl small{font-family:var(--mono);font-size:11px;line-height:1.3;color:var(--ink-4)}
+  .funnel-track{flex:1;background:var(--card);border:1px solid var(--line);height:46px;position:relative;overflow:hidden;border-radius:var(--r-sm)}
+  .funnel-fill{height:100%;display:flex;align-items:center;padding-left:12px;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+  .funnel-pct{width:52px;flex:0 0 52px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:600}
+
+  /* ===== modal de diagnóstico ===== */
+  .health-modal{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
+  .health-modal-content{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);max-width:800px;width:100%;max-height:80vh;overflow:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .health-modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line-strong)}
+  .health-modal-head h3{margin:0;color:var(--ink);font-size:16px}
+  .health-modal-head .btn-group{display:flex;gap:8px}
+  .health-report{font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--ink-2);margin:0;white-space:pre-wrap;word-break:break-word}
+
+  @media (max-width: 768px) {
+    .card { padding: 14px; }
+    .chart { height: 260px; }
+    .funnel-lbl{width:110px;flex-basis:110px}
+    .funnel-step{margin-left:126px}
+  }
 </style>
+<style>.uploader,.upload-section,#emptyState{display:none!important}</style>
+</head>
 <body>
-  <header>
-    <div class="wrap">
-      <div class="title">
-        <h1>Produtividade SDR</h1>
-        <span class="badge">Analytics Hub v1.0</span>
-        <button id="healthCheckBtn" style="margin-left: auto; padding: 6px 12px; background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; display: none; font-family: inherit;">Diagnóstico</button>
+<header>
+  <div class="wrap hdr-in">
+    <div class="brand">
+      <div class="logo">&gt;_</div>
+      <div>
+        <h1>Produtividade SDR <span class="version-badge">demo</span></h1>
+        <div class="desc">prospecção · atividades por SDR · CSV de atividades do CRM</div>
       </div>
-      
-      <div class="uploader">
-        <input type="file" id="csvFile" accept=".csv" />
-        <span id="fileStatus" class="hint">CSV de <strong>atividades</strong> (activity_date, activity_type, user_id, duration)</span>
+    </div>
+    <div class="hdr-actions">
+      <input type="file" id="csvFile" accept=".csv" hidden/>
+      <span id="fileStatus" class="hint" hidden></span>
+    </div>
+  </div>
+  <div class="filterbar">
+    <div class="wrap fb-in">
+      <span class="fb-label">período</span>
+      <input type="date" id="dateStart" class="date-filter">
+      <input type="date" id="dateEnd" class="date-filter">
+      <button id="applyDateFilter" class="btn sm">Aplicar</button>
+      <button id="clearDateFilter" class="btn secondary sm">Limpar</button>
+      <span class="fb-sep"></span>
+      <span class="fb-label">sdr</span>
+      <select id="sdrSelect">
+        <option value="Todos_Media">Todos (Média do Time)</option>
+        <option value="Todos_Total">Todos (Números Totais)</option>
+      </select>
+      <span class="fb-sep"></span>
+      <label class="toggle-label"><input type="checkbox" id="hideWeekends" checked/><span>Ocultar fins de semana</span></label>
+      <label class="toggle-label"><input type="checkbox" id="hideZeros" checked/><span>Ocultar dias zerados</span></label>
+      <span class="fb-sep"></span>
+      <button id="healthCheckBtn" class="btn secondary sm" style="display:none">Diagnóstico</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap panel">
+  <section class="exec-band" id="exec-band">
+    <div class="exec-kicker"><b>//</b> resumo executivo</div>
+    <div class="exec-q">Quem produz no topo do funil e onde a atividade de prospecção vira reunião: volume, taxa de conexão e agendamentos por SDR.</div>
+    <div class="kpis" id="exec-kpis" style="margin-bottom:14px"></div>
+    <div class="exec-insight" id="exec-insight"></div>
+  </section>
+
+  <div id="loadingBar" style="display:none">
+    <div class="loading-box">
+      <div class="loading-head">
+        <span id="loadingText">Carregando...</span>
+        <span id="loadingProgress">0%</span>
       </div>
-      
-      <div class="controls">
-        <div class="control-group">
-          <label>Data Início:</label>
-          <input type="date" id="dateStart" style="padding: 8px; border-radius: 8px; border: 1px solid var(--grid); background: var(--card); color: var(--text); font-family: inherit;" />
+      <div class="loading-track"><div id="progressBar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div id="emptyState" class="empty-state">
+    <h3>Nenhum arquivo carregado</h3>
+    <p>Envie o CSV de atividades exportado do CRM: uma linha por atividade registrada.</p>
+    <p style="font-size:12px;margin-top:12px">
+      Colunas esperadas: <code>activity_date</code>, <code>activity_type</code>, <code>user_id</code>, <code>duration</code>, <code>activity_id</code>, <code>deal_id</code>.
+      O painel "Como montar o CSV", na barra de dados no topo da página, traz o contrato completo e um template para download.
+    </p>
+  </div>
+
+  <div id="dashboard" style="display:none">
+    <div class="grid">
+      <!-- VIZ 01: Timeline de Atividades (small multiples alinhados) -->
+      <section class="card col-12">
+        <div class="topic-head">
+          <h2 data-number="01">Timeline de Atividades
+            <span class="info-icon">ⓘ<span class="tooltip">Métrica escolhida (linha, painel de cima) alinhada dia a dia ao volume de agendamentos (barras, painel de baixo). Cada painel tem escala própria começando em zero.</span></span>
+          </h2>
+          <div class="topic-actions nowrap">
+            <span class="date-filter-label">Métrica:</span>
+            <select id="tlMetricSelect" class="date-filter">
+              <option value="tentativas" selected>Tentativas</option>
+              <option value="ligacoes">Ligações</option>
+              <option value="conexoes">Conexões</option>
+              <option value="emails">Emails</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="tarefas">Tarefas</option>
+              <option value="quantidade">Quantidade</option>
+              <option value="duracao">Duração total (HH:MM)</option>
+            </select>
+          </div>
         </div>
-        
-        <div class="control-group">
-          <label>Data Fim:</label>
-          <input type="date" id="dateEnd" style="padding: 8px; border-radius: 8px; border: 1px solid var(--grid); background: var(--card); color: var(--text); font-family: inherit;" />
+        <div class="panel-sub">Volume diário da métrica selecionada, com o volume de agendamentos do mesmo dia logo abaixo, no mesmo eixo de tempo.</div>
+        <div id="mainChart" class="chart extra-tall"></div>
+      </section>
+
+      <!-- VIZ 02: Funil de Conversão -->
+      <section class="card col-6">
+        <h2 data-number="02">Funil de Conversão
+          <span class="info-icon">ⓘ<span class="tooltip">Da ligação à reunião marcada: volume em cada etapa do funil de prospecção e a taxa de passagem entre elas.</span></span>
+        </h2>
+        <div class="panel-sub">Quanto cada etapa da prospecção retém e a taxa de passagem entre elas.</div>
+        <div id="funnelBody" class="funnel-body"></div>
+      </section>
+
+      <!-- VIZ 03: Heatmap de Atividade Semanal -->
+      <section class="card col-6">
+        <h2 data-number="03">Heatmap de Atividade por Dia da Semana
+          <span class="info-icon">ⓘ<span class="tooltip">Intensidade de atividades por dia da semana ao longo do período selecionado. Quanto mais claro, maior o volume.</span></span>
+        </h2>
+        <div class="panel-sub">Concentração de esforço por dia da semana, filtrável por métrica, SDR e período.</div>
+        <div class="opts">
+          <span class="date-filter-label">Métrica:</span>
+          <select id="heatmap_metric" class="date-filter">
+            <option value="all" selected>Todas atividades</option>
+            <option value="CALL">Ligações</option>
+            <option value="EMAIL">Emails</option>
+            <option value="TASK">Tarefas</option>
+            <option value="WHATSAPP">WhatsApp</option>
+          </select>
+          <span class="date-filter-label">SDR:</span>
+          <select id="heatmap_sdr" class="date-filter">
+            <option value="all" selected>Todos os SDRs</option>
+          </select>
+          <span class="date-filter-label">Período:</span>
+          <select id="heatmap_period" class="date-filter">
+            <option value="30" selected>Últimos 30 dias</option>
+            <option value="60">Últimos 60 dias</option>
+            <option value="90">Últimos 90 dias</option>
+          </select>
+          <label><input type="checkbox" id="heatmap_hideWeekends"/><span>Ocultar fins de semana</span></label>
         </div>
-        
-        <div class="control-group">
-          <button id="applyDateFilter" style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: inherit;">Aplicar</button>
-          <button id="clearDateFilter" style="padding: 8px 16px; background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; cursor: pointer; font-family: inherit;">Limpar</button>
-        </div>
-        
-        <div class="control-group">
-          <label>SDR:</label>
-          <select id="sdrSelect">
-            <option value="Todos_Media">Todos (Média do Time)</option>
-            <option value="Todos_Total">Todos (Números Totais)</option>
+        <div id="heatmapChart" class="chart tall"></div>
+      </section>
+
+      <!-- VIZ 04: Ranking de SDRs -->
+      <section class="card col-12">
+        <h2 data-number="04">Ranking de SDRs
+          <span class="info-icon">ⓘ<span class="tooltip">Comparação de performance com taxas de conversão e eficiência por SDR.</span></span>
+        </h2>
+        <div class="panel-sub">Comparativo de produtividade por SDR, ordenável por volume, taxa de conexão ou agendamentos.</div>
+        <div class="opts">
+          <span class="date-filter-label">Período:</span>
+          <select id="ranking_period" class="date-filter">
+            <option value="7">Últimos 7 dias</option>
+            <option value="15">Últimos 15 dias</option>
+            <option value="30" selected>Últimos 30 dias</option>
+            <option value="90">Últimos 90 dias</option>
+            <option value="all">Todo período</option>
+          </select>
+          <span class="date-filter-label">Ordenar por:</span>
+          <select id="ranking_sort" class="date-filter">
+            <option value="tentativas">Tentativas</option>
+            <option value="conexoes">Conexões</option>
+            <option value="taxa_conexao" selected>Taxa de Conexão (%)</option>
+            <option value="agendamentos">Agendamentos</option>
+            <option value="taxa_agend">Taxa Agend/Conexão (%)</option>
           </select>
         </div>
-        
-        <div class="control-group">
-          <input type="checkbox" id="hideWeekends" checked />
-          <label for="hideWeekends">Ocultar sábados e domingos</label>
-        </div>
-        
-        <div class="control-group">
-          <input type="checkbox" id="hideZeros" checked />
-          <label for="hideZeros">Ocultar dias zerados</label>
-        </div>
-      </div>
+        <div id="rankingTable" style="overflow-x:auto;"></div>
+      </section>
     </div>
-  </header>
-  
-  <main>
-    <section class="exec-band" id="exec-band">
-      <div class="exec-kicker"><b>//</b> resumo executivo</div>
-      <div class="exec-q">Quem produz no topo do funil e onde a atividade de prospecção vira reunião: volume, taxa de conexão e agendamentos por SDR.</div>
-      <div class="exec-kpis" id="exec-kpis"></div>
-      <div class="exec-insight" id="exec-insight"></div>
-    </section>
-    <div class="wrap">
-      <div id="loadingBar" style="display: none;">
-        <div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span id="loadingText" style="font-size: 13px; color: var(--muted);">Carregando...</span>
-            <span id="loadingProgress" style="font-size: 13px; color: var(--accent); font-weight: 600;">0%</span>
-          </div>
-          <div style="width: 100%; height: 8px; background: rgba(108,99,255,0.1); border-radius: 4px; overflow: hidden;">
-            <div id="progressBar" style="width: 0%;"></div>
-          </div>
-        </div>
-      </div>
-      
-      <div id="emptyState" class="empty-state">
-        <h3>Nenhum arquivo carregado</h3>
-        <p>Faça upload do CSV agregado de produtividade SDR</p>
-        <p style="font-size: 12px; margin-top: 12px; color: var(--muted);">
-          Colunas esperadas: Data, Nome, Agendamentos, Reuniões realizadas, Ligações, Emails, Tarefas, Quantidade, WhatsApp, Tentativas, Conexões, Duração (HH:MM)
-        </p>
-      </div>
-      
-      <div id="dashboard" style="display: none;">
-        <!-- Metrics toggles -->
-        <div class="metrics-toggles" id="metricsToggles"></div>
-        
-        <!-- Grid Layout -->
-        <div class="grid">
-          <!-- VIZ 01: Timeline de Atividades -->
-          <section class="card row-12">
-            <h2 data-number="01">Timeline de Atividades
-              <span class="info-icon">ⓘ<span class="tooltip">Evolução temporal de todas as métricas de produtividade</span></span>
-            </h2>
-            <div class="panel-sub">Volume diário de cada tipo de atividade ao longo do período, com eixos configuráveis para comparar métricas.</div>
-            
-            <!-- Controles de Eixo Y -->
-            <div class="opts" style="margin-bottom: 16px;">
-              <span class="date-filter-label">Eixo Y Esquerdo:</span>
-              <select id="leftAxisSelect" class="date-filter">
-                <option value="">Nenhuma métrica</option>
-                <option value="ligacoes">Ligações</option>
-                <option value="emails">Emails</option>
-                <option value="tarefas">Tarefas</option>
-                <option value="quantidade">Quantidade</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="tentativas" selected>Tentativas</option>
-                <option value="conexoes">Conexões</option>
-                <option value="duracao">Duração total (HH:MM)</option>
-                <option value="agendamentos">Agendamentos</option>
-              </select>
-              
-              <span class="date-filter-label" style="margin-left: 16px;">Eixo Y Direito:</span>
-              <select id="rightAxisSelect" class="date-filter">
-                <option value="">Nenhuma métrica</option>
-                <option value="ligacoes">Ligações</option>
-                <option value="emails">Emails</option>
-                <option value="tarefas">Tarefas</option>
-                <option value="quantidade">Quantidade</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="tentativas">Tentativas</option>
-                <option value="conexoes">Conexões</option>
-                <option value="duracao">Duração total (HH:MM)</option>
-                <option value="agendamentos" selected>Agendamentos</option>
-              </select>
-            </div>
-            
-            <div id="mainChart" class="chart" style="height: 300px;"></div>
-          </section>
-          
-          <!-- VIZ 02: Ranking de SDRs -->
-          <section class="card row-12">
-            <h2 data-number="02">Ranking de SDRs
-              <span class="info-icon">ⓘ<span class="tooltip">Comparação de performance com taxas de conversão e eficiência</span></span>
-            </h2>
-            <div class="panel-sub">Comparativo de produtividade por SDR, ordenável por volume, taxa de conexão ou agendamentos.</div>
-            <div class="opts">
-              <span class="date-filter-label">Período:</span>
-              <select id="ranking_period" class="date-filter">
-                <option value="7">Últimos 7 dias</option>
-                <option value="15">Últimos 15 dias</option>
-                <option value="30" selected>Últimos 30 dias</option>
-                <option value="90">Últimos 90 dias</option>
-                <option value="all">Todo período</option>
-              </select>
-              <span class="date-filter-label">Ordenar por:</span>
-              <select id="ranking_sort" class="date-filter">
-                <option value="tentativas">Tentativas</option>
-                <option value="conexoes">Conexões</option>
-                <option value="taxa_conexao" selected>Taxa de Conexão (%)</option>
-                <option value="agendamentos">Agendamentos</option>
-                <option value="taxa_agend">Taxa Agend/Conexão (%)</option>
-              </select>
-            </div>
-            <div id="rankingTable" style="overflow-x:auto;"></div>
-          </section>
-          
-          <!-- VIZ 03: Heatmap de Atividade Semanal -->
-          <section class="card row-12">
-            <h2 data-number="03">Heatmap de Atividade por Dia da Semana
-              <span class="info-icon">ⓘ<span class="tooltip">Intensidade de atividades por dia da semana ao longo do período selecionado</span></span>
-            </h2>
-            <div class="panel-sub">Concentração de esforço por dia da semana, filtrável por métrica, SDR e período.</div>
-            <div class="opts">
-              <span class="date-filter-label">Métrica:</span>
-              <select id="heatmap_metric" class="date-filter">
-                <option value="all" selected>Todas atividades</option>
-                <option value="CALL">Ligações</option>
-                <option value="EMAIL">Emails</option>
-                <option value="TASK">Tarefas</option>
-                <option value="WHATSAPP">WhatsApp</option>
-              </select>
-              <span class="date-filter-label">SDR:</span>
-              <select id="heatmap_sdr" class="date-filter">
-                <option value="all" selected>Todos os SDRs</option>
-              </select>
-              <span class="date-filter-label">Período:</span>
-              <select id="heatmap_period" class="date-filter">
-                <option value="30" selected>Últimos 30 dias</option>
-                <option value="60">Últimos 60 dias</option>
-                <option value="90">Últimos 90 dias</option>
-              </select>
-              <label style="margin-left: 20px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
-                <input type="checkbox" id="heatmap_hideWeekends" style="cursor: pointer;" />
-                <span style="font-size: 13px;">Ocultar fins de semana</span>
-              </label>
-            </div>
-            <div id="weekLegend" style="padding: 12px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; margin-bottom: 16px; font-size: 12px; color: #94a3b8; line-height: 1.8; max-height: 120px; overflow-y: auto;"></div>
-            <div id="heatmapChart" class="chart" style="height: 400px;"></div>
-          </section>
-          <section class="card row-12">
-            <h2 data-number="04">Funil de Conversão
-              <span class="info-icon">ⓘ<span class="tooltip">Da ligação à reunião marcada: volume em cada etapa do funil de prospecção e a taxa de passagem entre elas.</span></span>
-            </h2>
-            <div class="panel-sub">Da ligação à reunião marcada: quanto cada etapa da prospecção retém e a taxa de passagem entre elas.</div>
-            <div id="funnelBody" style="padding:10px 4px 4px;"></div>
-          </section>
-        </div>
-      </div>
-    </div>
-  </main>
-  
+  </div>
+</main>
+
   <script>
+    /* ---------- Tema de visualização ----------
+       Paleta categórica validada (banda de luminosidade, croma, separação CVD,
+       piso de visão normal e contraste vs #131316). Ordem fixa; nunca ciclar.
+       Escalas ordinais (etapas de funil, magnitude) usam rampa de UM matiz. */
+    const CAT_PALETTE = ['#2563eb','#d95926','#199e70','#c98500','#d55181','#008300','#9085e9','#e66767'];
+    const SEQ_BLUE = ['#16233f','#1d3a6b','#1f55a3','#2f74d0','#60a5fa'];
+    const FUNNEL_RAMP = ['#7db4f7','#3b82f6','#1d4ed8'];
+    echarts.registerTheme('demo', {
+      color: CAT_PALETTE,
+      backgroundColor: 'transparent',
+      textStyle: { fontFamily: '"Space Grotesk",system-ui,sans-serif', color: '#d4d4d8' },
+      legend: { textStyle: { color: '#a1a1aa', fontSize: 11 }, itemWidth: 12, itemHeight: 12, icon: 'rect' },
+      tooltip: { backgroundColor: '#131316', borderColor: 'rgba(248,247,243,.18)', borderWidth: 1, textStyle: { color: '#d4d4d8', fontSize: 12 } },
+      categoryAxis: { axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisTick: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisLabel: { color: '#8a8a94' }, splitLine: { show: false } },
+      valueAxis: { axisLine: { show: false }, axisLabel: { color: '#8a8a94' }, splitLine: { lineStyle: { color: 'rgba(248,247,243,.07)' } } }
+    });
+    function makeChart(el){ echarts.dispose(el); return echarts.init(el, 'demo'); }
+    // resize: um único listener global cuida das instâncias memoizadas (fim do script)
+    const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
     // ==================== GLOBALS ====================
     let RAW_ACTIVITIES = []; // Atividades brutas do CSV (não agregadas)
     let RAW = []; // Dados agregados por data×SDR
     let DATA = [];
     let chart = null;
-    let rankingChart = null;
     let heatmapChart = null;
     let dateFilterStart = null;
     let dateFilterEnd = null;
-    
+    let timelineMetric = 'tentativas'; // métrica do painel de cima da timeline
+
     // Whitelist de SDRs válidos
     const SDR_WHITELIST = [
       'Alexandre Assis',
@@ -715,20 +628,20 @@
       'Sophia Braga',
       'Pamela Evangelista'
     ];
-    
+
     // Datas excluídas da média do time
     const EXCLUDED_DATES = ['2025-09-05', '2025-09-26', '2025-10-03'];
-    
+
     // ==================== FUNÇÕES GLOBAIS DE CÁLCULO ====================
     // Garantir consistência entre todos os visualizadores
-    
+
     /**
      * Verifica se uma atividade é uma TENTATIVA (ligação)
      */
     function isTentativa(activity) {
       return activity.type === 'CALL';
     }
-    
+
     /**
      * Verifica se uma atividade é uma CONEXÃO (ligação com conversa)
      */
@@ -736,42 +649,42 @@
       const dur = parseFloat(activity.duration) || 0;
       return activity.type === 'CALL' && dur >= 1.0;
     }
-    
+
     /**
      * Verifica se uma atividade é um AGENDAMENTO
      */
     function isAgendamento(activity) {
       const tipo = activity.type || '';
       const rawRow = activity.rawData || {};
-      
+
       // Critério 1: Tipos específicos de atividade
       if (['MEETING', 'SCHEDULE', 'RESCHEDULE'].includes(tipo)) {
         return true;
       }
-      
+
       // Critério 2: TASK com "agend" no título
       if (tipo === 'TASK') {
         const title = (rawRow.activity_title || rawRow.subject || '').toLowerCase();
         return title.includes('agend');
       }
-      
+
       return false;
     }
-    
+
     /**
      * Verifica se uma atividade é EMAIL
      */
     function isEmail(activity) {
       return ['EMAIL', 'MAIL'].includes(activity.type);
     }
-    
+
     /**
      * Verifica se uma atividade é WHATSAPP
      */
     function isWhatsApp(activity) {
       return activity.type === 'WHATSAPP';
     }
-    
+
     /**
      * Verifica se uma atividade é TAREFA (exceto agendamentos)
      */
@@ -780,65 +693,14 @@
       // Se é TASK mas também é agendamento, não conta como tarefa
       return !isAgendamento(activity);
     }
-    
+
     /**
      * Obtém a duração de uma atividade em minutos
      */
     function getDuracao(activity) {
       return parseFloat(activity.duration) || 0;
     }
-    
-    /**
-     * VALIDAÇÃO: Verifica consistência entre dados agregados e dados brutos
-     * Deve ser chamada após aggregateActivities() para debug
-     */
-    function validateDataConsistency() {
-      console.log('Validando consistência dos dados...');
-      
-      // Somar totais de RAW (agregado)
-      const aggregatedTotals = {
-        tentativas: RAW.reduce((sum, r) => sum + (r.tentativas || 0), 0),
-        conexoes: RAW.reduce((sum, r) => sum + (r.conexoes || 0), 0),
-        agendamentos: RAW.reduce((sum, r) => sum + (r.agendamentos || 0), 0),
-        ligacoes: RAW.reduce((sum, r) => sum + (r.ligacoes || 0), 0),
-        emails: RAW.reduce((sum, r) => sum + (r.emails || 0), 0),
-        tarefas: RAW.reduce((sum, r) => sum + (r.tarefas || 0), 0),
-        whatsapp: RAW.reduce((sum, r) => sum + (r.whatsapp || 0), 0)
-      };
-      
-      // Recalcular totais de RAW_ACTIVITIES usando funções globais
-      const rawTotals = {
-        tentativas: RAW_ACTIVITIES.filter(a => isTentativa(a)).length,
-        conexoes: RAW_ACTIVITIES.filter(a => isConexao(a)).length,
-        agendamentos: RAW_ACTIVITIES.filter(a => isAgendamento(a)).length,
-        ligacoes: RAW_ACTIVITIES.filter(a => isTentativa(a)).length, // Mesma coisa que tentativas
-        emails: RAW_ACTIVITIES.filter(a => isEmail(a)).length,
-        tarefas: RAW_ACTIVITIES.filter(a => isTarefa(a)).length,
-        whatsapp: RAW_ACTIVITIES.filter(a => isWhatsApp(a)).length
-      };
-      
-      // Comparar
-      let hasErrors = false;
-      Object.keys(aggregatedTotals).forEach(key => {
-        const agg = aggregatedTotals[key];
-        const raw = rawTotals[key];
-        const match = agg === raw;
-        
-        if (!match) {
-          console.error(`INCONSISTÊNCIA em ${key}: Agregado=${agg}, Bruto=${raw}`);
-          hasErrors = true;
-        } else {
-          console.log(`${key}: ${agg} (consistente)`);
-        }
-      });
-      
-      if (!hasErrors) {
-        console.log('Todos os dados estão consistentes!');
-      }
-      
-      return !hasErrors;
-    }
-    
+
     // User mapping integrado (do USERS.csv)
     const USER_MAP = {
       "13126143-4322-4313-bf1e-2815a53c4538": { email: "wesley@demo.com", name: "Wesley Rosa" },
@@ -911,29 +773,24 @@
       "a3c8f66d-6a3f-41aa-af2f-df151a0ecf54": { email: "mateus.farias+123@demo.com", name: "Mateus Farias [IA]" },
       "7ab00f25-bf1b-49bb-b139-0d9f427ced09": { email: "pedro.crespo+123@demo.com", name: "Pedro Crespo [IA]" },
       "bd7762eb-9b30-4c07-9ff6-a376697683fa": { email: "danielle+123@demo.com", name: "Danielle [IA]" },
-      "21cbec0c-4dab-4311-aac6-6b48ca9a4313": { email: "amanda+789@demo.com", name: "Amanda [IA]" },
       "9bf7d409-cf79-420e-a0a9-7aa22f82a061": { email: "alexandre@demo.com", name: "Alexandre Assis" }
     };
-    
-    // Métricas disponíveis
+
+    // Métricas disponíveis. Cada uma ocupa um slot único da paleta categórica,
+    // na ordem do objeto; Agendamentos mantém o laranja de destaque (#d95926)
+    // e Duração usa o azul-claro de apoio (--accent-soft), fora dos 8 slots.
     const METRICS = [
-      { key: 'ligacoes', label: 'Ligações', color: '#60a5fa' },       
-      { key: 'emails', label: 'Emails', color: '#2563eb' },          
-      { key: 'tarefas', label: 'Tarefas', color: '#10B981' },        
-      { key: 'quantidade', label: 'Quantidade', color: '#60a5fa' },  
-      { key: 'whatsapp', label: 'WhatsApp', color: '#22C55E' },      
-      { key: 'tentativas', label: 'Tentativas', color: '#2563eb' },  
-      { key: 'conexoes', label: 'Conexões', color: '#14B8A6' },      
-      { key: 'duracao', label: 'Duração total (HH:MM)', color: '#0284c7' }, 
-      { key: 'agendamentos', label: 'Agendamentos', color: '#EF4444' } 
+      { key: 'ligacoes', label: 'Ligações', color: '#2563eb' },
+      { key: 'emails', label: 'Emails', color: '#199e70' },
+      { key: 'tarefas', label: 'Tarefas', color: '#c98500' },
+      { key: 'quantidade', label: 'Quantidade', color: '#d55181' },
+      { key: 'whatsapp', label: 'WhatsApp', color: '#008300' },
+      { key: 'tentativas', label: 'Tentativas', color: '#9085e9' },
+      { key: 'conexoes', label: 'Conexões', color: '#e66767' },
+      { key: 'duracao', label: 'Duração total (HH:MM)', color: '#60a5fa' },
+      { key: 'agendamentos', label: 'Agendamentos', color: '#d95926' }
     ];
-    
-    let activeMetrics = METRICS.map(m => m.key); // Todas ativas por padrão
-    
-    // Controle de eixos Y - métricas atribuídas aos eixos
-    let leftAxisMetric = 'tentativas';  // Padrão: Tentativas no eixo esquerdo
-    let rightAxisMetric = 'agendamentos'; // Padrão: Agendamentos no eixo direito
-    
+
     // ==================== UTILS ====================
     function parseDate(str) {
       if (!str) return null;
@@ -948,29 +805,28 @@
       }
       return new Date(str);
     }
-    
+
     function formatDate(str) {
       const date = parseDate(str);
       if (!date) return str;
       const d = date.getDate().toString().padStart(2, '0');
       const m = (date.getMonth() + 1).toString().padStart(2, '0');
-      const y = date.getFullYear();
       return `${d}/${m}`;
     }
-    
+
     function toISO(str) {
       const date = parseDate(str);
       if (!date) return str;
       return date.toISOString().split('T')[0];
     }
-    
+
     function isWeekend(dateStr) {
       const date = parseDate(dateStr);
       if (!date) return false;
       const day = date.getDay();
       return day === 0 || day === 6;
     }
-    
+
     function parseNumber(val) {
       if (val === null || val === undefined || val === '') return 0;
       if (typeof val === 'number') return val;
@@ -978,11 +834,11 @@
       const num = parseFloat(str);
       return isNaN(num) ? 0 : num;
     }
-    
+
     function parseDuration(val) {
       if (!val) return 0;
       const str = String(val).trim();
-      
+
       // HH:MM:SS
       const hhmmss = str.match(/^(\d+):(\d{2}):(\d{2})$/);
       if (hhmmss) {
@@ -991,7 +847,7 @@
         const s = parseInt(hhmmss[3]);
         return Math.round(h * 60 + m + s / 60);
       }
-      
+
       // MM:SS
       const mmss = str.match(/^(\d+):(\d{2})$/);
       if (mmss) {
@@ -999,13 +855,13 @@
         const s = parseInt(mmss[2]);
         return Math.round(m + s / 60);
       }
-      
+
       // Número puro
       const num = parseNumber(val);
       if (num > 300) return Math.round(num / 60); // Provável segundos
       return Math.round(num); // Já é minutos
     }
-    
+
     // Função para converter minutos em formato HH:MM
     function formatMinutesToHHMM(minutes) {
       if (!minutes || minutes === 0) return '00:00';
@@ -1013,29 +869,29 @@
       const mins = Math.round(minutes % 60);
       return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
     }
-    
+
     // ==================== CSV UPLOAD ====================
     document.getElementById('csvFile').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      
+
       if (!file.name.toLowerCase().endsWith('.csv')) {
         alert('Por favor, selecione um arquivo CSV válido.');
         e.target.value = '';
         return;
       }
-      
+
       const loadingBar = document.getElementById('loadingBar');
       const progressBar = document.getElementById('progressBar');
       const loadingText = document.getElementById('loadingText');
       const loadingProgress = document.getElementById('loadingProgress');
-      
+
       loadingBar.style.display = 'block';
       progressBar.style.width = '0%';
-      document.getElementById('fileStatus').textContent = '⏳ Carregando...';
-      
+      document.getElementById('fileStatus').textContent = 'Carregando...';
+
       const chunks = [];
-      
+
       Papa.parse(file, {
         header: true,
         skipEmptyLines: true,
@@ -1050,7 +906,7 @@
           progressBar.style.width = '100%';
           loadingProgress.textContent = '100%';
           loadingText.textContent = 'Processando dados...';
-          
+
           setTimeout(() => {
             processData(chunks);
             loadingBar.style.display = 'none';
@@ -1065,65 +921,40 @@
         }
       });
     });
-    
+
     // ==================== DATA PROCESSING ====================
     function processData(rows) {
       if (rows.length === 0) {
         alert('Arquivo CSV vazio');
         return;
       }
-      
+
       const headers = Object.keys(rows[0]);
-      console.log('Headers detectados:', headers);
-      console.log('TODAS as colunas disponíveis:', headers.join(', '));
-      console.log('Primeira linha de exemplo (completa):', rows[0]);
-      
-      // Verificar colunas relacionadas a resultado/status de atividade
-      const resultColumns = headers.filter(h => 
-        h.toLowerCase().includes('result') || 
-        h.toLowerCase().includes('status') || 
-        h.toLowerCase().includes('outcome') ||
-        h.toLowerCase().includes('answered') ||
-        h.toLowerCase().includes('responded')
-      );
-      console.log('Colunas de resultado/status encontradas:', resultColumns.length > 0 ? resultColumns : 'Nenhuma');
-      
+
       // Detectar se é CSV de atividades (activity_date, activity_type, user_id)
       const isActivityCSV = headers.includes('activity_date') && headers.includes('activity_type') && headers.includes('user_id');
-      
+
       if (!isActivityCSV) {
         alert('Erro: O arquivo CSV não contém as colunas esperadas (activity_date, activity_type, user_id).');
         return;
       }
-      
-      console.log('CSV de atividades detectado. Processando...');
-      
+
       RAW = [];
       RAW_ACTIVITIES = [];   // substitui a base a cada carga, em vez de acumular
-      let skippedCount = 0;
-      let whitelistRejects = 0;
-      let emptyTypeCount = 0;
-      
-      rows.forEach((row, idx) => {
+
+      rows.forEach((row) => {
         const dateStr = row.activity_date;
-        if (!dateStr) {
-          skippedCount++;
-          return;
-        }
-        
+        if (!dateStr) return;
+
         // Mapear user_id para nome
         const user = USER_MAP[row.user_id] || { email: '', name: 'Desconhecido' };
         const sdrName = user.name;
-        
+
         // Aplicar whitelist
-        if (!SDR_WHITELIST.includes(sdrName)) {
-          whitelistRejects++;
-          if (whitelistRejects <= 5) console.log(`SDR não está na whitelist: "${sdrName}" (user_id: ${row.user_id})`);
-          return;
-        }
-        
+        if (!SDR_WHITELIST.includes(sdrName)) return;
+
         const iso = toISO(dateStr);
-        
+
         // Detectar coluna de tipo de atividade (pode ter nomes diferentes)
         let type = '';
         if (row.activity_type) {
@@ -1139,21 +970,7 @@
             type = String(row[typeKey]).toUpperCase();
           }
         }
-        
-        // Contar tipos vazios
-        if (!type || type === 'UNKNOWN') {
-          emptyTypeCount++;
-        }
-        
-        // Debug primeiras linhas - mostrar TODAS as colunas relevantes
-        if (RAW_ACTIVITIES.length < 5) {
-          console.log(`  [${RAW_ACTIVITIES.length}] ${sdrName} - ${iso} - ${type || 'SEM TIPO'}`);
-          console.log(`    • activity_type valor bruto:`, row.activity_type, `(tipo: ${typeof row.activity_type})`);
-          console.log(`    • activity_id: ${row.activity_id}`);
-          console.log(`    • deal_id: ${row.deal_id}`);
-          console.log(`    • Objeto completo:`, row);
-        }
-        
+
         RAW_ACTIVITIES.push({
           date: iso,
           dateDisplay: formatDate(dateStr),
@@ -1164,117 +981,102 @@
           rawData: row
         });
       });
-      
-      console.log(`Resumo do processamento:`);
-      console.log(`  - Total de linhas no CSV: ${rows.length}`);
-      console.log(`  - Linhas ignoradas (sem data): ${skippedCount}`);
-      console.log(`  - Rejeitadas (whitelist): ${whitelistRejects}`);
-      console.log(`  - Linhas processadas: ${RAW_ACTIVITIES.length}`);
-      console.log(`  - Linhas sem tipo de atividade: ${emptyTypeCount}`);
-      console.log(`  - SDRs únicos:`, [...new Set(RAW_ACTIVITIES.map(r => r.sdr))]);
-      
-      if (emptyTypeCount > 0) {
-        console.warn(`ATENÇÃO: ${emptyTypeCount} atividades sem tipo! Verifique os objetos completos acima.`);
-      }
-      
+
       if (RAW_ACTIVITIES.length === 0) {
-        alert('Nenhuma linha válida encontrada no CSV. Verifique o console para detalhes.');
+        alert('Nenhuma linha válida encontrada no CSV. Confira se as colunas activity_date, activity_type e user_id estão preenchidas.');
         return;
       }
-      
+
       // Mostrar botão de diagnóstico
-      document.getElementById('healthCheckBtn').style.display = 'block';
-      
+      document.getElementById('healthCheckBtn').style.display = '';
+
       aggregateActivities();
     }
-    
-    // ==================== DIAGNÓSTICO DE SAÚDE DOS DADOS ====================
+
+    // ==================== DIAGNÓSTICO: RESUMO DE QUALIDADE DOS DADOS ====================
     function showHealthCheck() {
       if (RAW_ACTIVITIES.length === 0) {
         alert('Carregue um CSV primeiro!');
         return;
       }
-      
-      console.log('Executando diagnóstico de saúde dos dados...');
-      
+
       // 1. Análise de completude
       const totalRows = RAW_ACTIVITIES.length;
-      const uniqueDates = [...new Set(RAW_ACTIVITIES.map(r => r.date))];
+      const uniqueDates = [...new Set(RAW_ACTIVITIES.map(r => r.date))].sort();
       const uniqueSDRs = [...new Set(RAW_ACTIVITIES.map(r => r.sdr))];
       const uniqueTypes = [...new Set(RAW_ACTIVITIES.map(r => r.type))];
-      
+
       // 2. Análise de tipos de atividade
       const typeDistribution = {};
       RAW_ACTIVITIES.forEach(row => {
         typeDistribution[row.type] = (typeDistribution[row.type] || 0) + 1;
       });
-      
+
       // 3. Análise de SDRs
       const sdrStats = {};
       RAW_ACTIVITIES.forEach(row => {
         if (!sdrStats[row.sdr]) {
-          sdrStats[row.sdr] = { total: 0, types: {} };
+          sdrStats[row.sdr] = { total: 0 };
         }
         sdrStats[row.sdr].total++;
-        sdrStats[row.sdr].types[row.type] = (sdrStats[row.sdr].types[row.type] || 0) + 1;
       });
-      
+
       // 4. Análise temporal
       const dateRange = {
-        min: uniqueDates.sort()[0],
-        max: uniqueDates.sort()[uniqueDates.length - 1]
+        min: uniqueDates[0],
+        max: uniqueDates[uniqueDates.length - 1]
       };
       const daysDiff = Math.ceil((new Date(dateRange.max) - new Date(dateRange.min)) / (1000 * 60 * 60 * 24));
       const expectedDays = daysDiff + 1;
       const coveragePercent = ((uniqueDates.length / expectedDays) * 100).toFixed(1);
-      
-      // 5. Detectar problemas
+
+      // 5. Detectar limitações da base
       const issues = [];
       const warnings = [];
-      
-      // Verificar duração sempre zero
+
+      // Duração sempre zero
       const totalDuration = RAW_ACTIVITIES.reduce((sum, r) => sum + parseFloat(r.duration || 0), 0);
       if (totalDuration === 0) {
-        warnings.push('Todas as durações (duration) são 0 - Conexões e Duração sempre zeradas');
+        warnings.push('Todas as durações (duration) são 0: Conexões e Duração ficam sempre zeradas');
       }
-      
-      // Verificar SDRs com poucas atividades
+
+      // SDRs com poucas atividades
       Object.entries(sdrStats).forEach(([sdr, stats]) => {
         if (stats.total < 10) {
           warnings.push(`${sdr} tem apenas ${stats.total} atividades no período`);
         }
       });
-      
-      // Verificar cobertura temporal
+
+      // Cobertura temporal
       if (parseFloat(coveragePercent) < 70) {
         warnings.push(`Cobertura temporal baixa: ${coveragePercent}% (${uniqueDates.length} de ${expectedDays} dias com dados)`);
       }
-      
-      // Verificar tipos de atividade desconhecidos
+
+      // Tipos de atividade fora do vocabulário conhecido
       const knownTypes = ['CALL', 'EMAIL', 'MAIL', 'TASK', 'WHATSAPP', 'MEETING', 'SCHEDULE', 'RESCHEDULE'];
       const unknownTypes = uniqueTypes.filter(type => !knownTypes.includes(type));
-      
+
       if (unknownTypes.includes('UNKNOWN') || unknownTypes.includes('undefined')) {
-        issues.push(`CSV sem coluna de tipo de atividade válida! Verifique o console para ver as colunas disponíveis.`);
+        issues.push('Parte das linhas veio sem tipo de atividade: confira se a coluna activity_type está preenchida no export do CRM.');
       }
-      
+
       unknownTypes.forEach(type => {
         if (type !== 'UNKNOWN' && type !== 'undefined') {
-          warnings.push(`Tipo de atividade não mapeado: "${type}" - Adicione ao switch case se necessário`);
+          warnings.push(`Tipo de atividade não reconhecido: "${type}" (não entra nas métricas de ligações, e-mails, WhatsApp ou tarefas)`);
         }
       });
-      
+
       // Montar relatório
-      let report = 'DIAGNÓSTICO DE SAÚDE DOS DADOS\n';
+      let report = 'RESUMO DE QUALIDADE DOS DADOS\n';
       report += '═'.repeat(60) + '\n\n';
-      
+
       report += 'VISÃO GERAL\n';
       report += `  • Total de atividades: ${totalRows.toLocaleString('pt-BR')}\n`;
       report += `  • Período: ${dateRange.min} até ${dateRange.max} (${daysDiff} dias)\n`;
       report += `  • Dias com dados: ${uniqueDates.length} (${coveragePercent}% cobertura)\n`;
       report += `  • SDRs ativos: ${uniqueSDRs.length}\n`;
       report += `  • Tipos de atividade: ${uniqueTypes.length}\n\n`;
-      
+
       report += 'DISTRIBUIÇÃO POR TIPO\n';
       Object.entries(typeDistribution)
         .sort((a, b) => b[1] - a[1])
@@ -1283,7 +1085,7 @@
           report += `  • ${type}: ${count.toLocaleString('pt-BR')} (${percent}%)\n`;
         });
       report += '\n';
-      
+
       report += 'TOP 5 SDRs (por volume)\n';
       Object.entries(sdrStats)
         .sort((a, b) => b[1].total - a[1].total)
@@ -1293,110 +1095,67 @@
           report += `  • ${sdr}: ${stats.total.toLocaleString('pt-BR')} (${percent}%)\n`;
         });
       report += '\n';
-      
+
       if (warnings.length > 0) {
         report += 'AVISOS\n';
         warnings.forEach(w => report += `  ${w}\n`);
         report += '\n';
       }
-      
+
       if (issues.length > 0) {
-        report += 'PROBLEMAS CRÍTICOS\n';
+        report += 'LIMITAÇÕES DA BASE\n';
         issues.forEach(i => report += `  ${i}\n`);
         report += '\n';
-        report += 'AÇÃO NECESSÁRIA\n';
-        report += '  → Abra o Console (F12) e verifique:\n';
-        report += '     • Mensagem: "TODAS as colunas disponíveis:"\n';
-        report += '     • Mensagem: "Linha completa:" (primeiras 5 linhas)\n';
-        report += '  → Identifique qual coluna contém o tipo de atividade\n';
-        report += '  → Reporte ao desenvolvedor para ajuste do código\n\n';
       }
-      
+
       if (issues.length === 0 && warnings.length === 0) {
-        report += 'Nenhum problema detectado!\n\n';
+        report += 'Nenhum problema detectado.\n\n';
       }
-      
+
       report += '═'.repeat(60);
-      
-      console.log(report);
-      
-      // Criar modal customizado com botão de copiar
+
+      // Modal com botão de copiar
       const existingModal = document.getElementById('healthModal');
       if (existingModal) existingModal.remove();
-      
+
       const modal = document.createElement('div');
       modal.id = 'healthModal';
-      modal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background: rgba(0,0,0,0.8); z-index: 10000; 
-        display: flex; align-items: center; justify-content: center;
-        padding: 20px; box-sizing: border-box;
-      `;
-      
+      modal.className = 'health-modal';
+
       const content = document.createElement('div');
-      content.style.cssText = `
-        background: #131316; border: 1px solid #232328; border-radius: 12px;
-        max-width: 800px; width: 100%; max-height: 80vh; overflow: auto;
-        padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-      `;
-      
+      content.className = 'health-modal-content';
+
       const header = document.createElement('div');
-      header.style.cssText = `
-        display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #232328;
-      `;
-      
+      header.className = 'health-modal-head';
+
       const title = document.createElement('h3');
-      title.textContent = 'Diagnóstico de Saúde dos Dados';
-      title.style.cssText = 'margin: 0; color: #22c55e; font-size: 18px;';
-      
+      title.textContent = 'Resumo de qualidade dos dados';
+
       const btnGroup = document.createElement('div');
-      btnGroup.style.cssText = 'display: flex; gap: 8px;';
-      
+      btnGroup.className = 'btn-group';
+
       const copyBtn = document.createElement('button');
       copyBtn.textContent = 'Copiar';
-      copyBtn.style.cssText = `
-        padding: 6px 12px; background: var(--accent-glow); 
-        color: var(--accent); border: 1px solid rgba(37,99,235,0.3); 
-        border-radius: 6px; cursor: pointer; font-weight: 600; 
-        font-family: inherit; font-size: 13px;
-      `;
+      copyBtn.className = 'btn secondary sm';
       copyBtn.onclick = () => {
         navigator.clipboard.writeText(report).then(() => {
           const originalText = copyBtn.textContent;
           copyBtn.textContent = 'Copiado!';
-          copyBtn.style.background = 'rgba(34,197,94,0.2)';
-          copyBtn.style.color = '#22c55e';
-          copyBtn.style.borderColor = 'rgba(34,197,94,0.3)';
-          setTimeout(() => {
-            copyBtn.textContent = originalText;
-            copyBtn.style.background = 'rgba(108,99,255,0.2)';
-            copyBtn.style.color = 'var(--accent)';
-            copyBtn.style.borderColor = 'rgba(37,99,235,0.3)';
-          }, 2000);
+          setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
         }).catch(err => {
           alert('Erro ao copiar: ' + err);
         });
       };
-      
+
       const closeBtn = document.createElement('button');
-      closeBtn.textContent = '';
-      closeBtn.style.cssText = `
-        padding: 6px 12px; background: rgba(239,68,68,0.2); 
-        color: #ef4444; border: 1px solid rgba(239,68,68,0.3); 
-        border-radius: 6px; cursor: pointer; font-weight: 600; 
-        font-family: inherit; font-size: 13px;
-      `;
+      closeBtn.textContent = 'Fechar';
+      closeBtn.className = 'btn sm';
       closeBtn.onclick = () => modal.remove();
-      
+
       const pre = document.createElement('pre');
       pre.textContent = report;
-      pre.style.cssText = `
-        font-family: 'Courier New', monospace; font-size: 12px; 
-        line-height: 1.6; color: #f4f4f5; margin: 0; 
-        white-space: pre-wrap; word-break: break-word;
-      `;
-      
+      pre.className = 'health-report';
+
       btnGroup.appendChild(copyBtn);
       btnGroup.appendChild(closeBtn);
       header.appendChild(title);
@@ -1405,29 +1164,19 @@
       content.appendChild(pre);
       modal.appendChild(content);
       document.body.appendChild(modal);
-      
+
       // Fechar ao clicar fora
       modal.onclick = (e) => {
         if (e.target === modal) modal.remove();
       };
     }
-    
+
     function aggregateActivities() {
-      console.log('Agregando atividades por data e SDR...');
-      console.log('ℹ  Usando funções globais de cálculo para garantir consistência');
-      
       const byDateSdr = {};
-      
-      // Debug: contar tipos de atividade
-      const typeCount = {};
-      RAW_ACTIVITIES.forEach(row => {
-        typeCount[row.type] = (typeCount[row.type] || 0) + 1;
-      });
-      console.log('Distribuição de tipos de atividade:', typeCount);
-      
+
       RAW_ACTIVITIES.forEach(row => {
         const key = `${row.date}__${row.sdr}`;
-        
+
         if (!byDateSdr[key]) {
           byDateSdr[key] = {
             date: row.date,
@@ -1445,67 +1194,41 @@
             reunioes: 0
           };
         }
-        
+
         const agg = byDateSdr[key];
         agg.quantidade++; // Conta todas as atividades
-        
+
         // Usar funções globais de cálculo
         if (isTentativa(row)) {
           agg.ligacoes++;
           agg.tentativas++;
           agg.duracao += getDuracao(row);
         }
-        
+
         if (isConexao(row)) {
           agg.conexoes++;
         }
-        
+
         if (isEmail(row)) {
           agg.emails++;
         }
-        
+
         if (isTarefa(row)) {
           agg.tarefas++;
         }
-        
+
         if (isWhatsApp(row)) {
           agg.whatsapp++;
         }
-        
+
         if (isAgendamento(row)) {
           agg.agendamentos++;
           agg.reunioes++;
         }
       });
-      
+
       RAW = Object.values(byDateSdr);
-      console.log(`Atividades agregadas: ${RAW.length} linhas (data × SDR)`);
-      
-      // Debug: mostrar amostra de agregados
-      const sample = RAW.slice(0, 3);
-      sample.forEach(s => {
-        console.log(`  ${s.sdr} - ${s.dateDisplay}: Ligações=${s.ligacoes}, Tentativas=${s.tentativas}, Conexões=${s.conexoes}, Agendamentos=${s.agendamentos}, Quantidade=${s.quantidade}`);
-      });
-      
-      // Validar consistência dos dados
-      validateDataConsistency();
-      
-      // Debug: verificar SDRs com tentativas zeradas
-      const sdrStats = {};
-      RAW.forEach(row => {
-        if (!sdrStats[row.sdr]) {
-          sdrStats[row.sdr] = { tentativas: 0, ligacoes: 0, quantidade: 0 };
-        }
-        sdrStats[row.sdr].tentativas += row.tentativas;
-        sdrStats[row.sdr].ligacoes += row.ligacoes;
-        sdrStats[row.sdr].quantidade += row.quantidade;
-      });
-      
-      console.log('Total por SDR:');
-      Object.entries(sdrStats).forEach(([sdr, stats]) => {
-        console.log(`  - ${sdr}: Tentativas=${stats.tentativas}, Ligações=${stats.ligacoes}, Total atividades=${stats.quantidade}`);
-      });
-      
+
       populateSDRSelect();
       populateHeatmapSDRs();
       applyFilters();
@@ -1513,81 +1236,83 @@
       renderHeatmap();
       renderExec();
       renderFunnel();
-      function renderFunnel(){
-        var acts=(typeof RAW_ACTIVITIES!=='undefined'?RAW_ACTIVITIES:[])||[];
-        var tent=0,conex=0,agend=0;
-        acts.forEach(function(a){ if(isTentativa(a))tent++; if(isConexao(a))conex++; if(isAgendamento(a))agend++; });
-        var top=Math.max(tent,1);
-        var nf=function(n){return (n||0).toLocaleString('pt-BR');};
-        var stages=[
-          {l:'Ligações', s:'tentativas de contato', n:tent, c:'#1d4ed8'},
-          {l:'Conexões', s:'ligações com conversa', n:conex, c:'#2563eb'},
-          {l:'Agendamentos', s:'reuniões marcadas', n:agend, c:'#22c55e'}
-        ];
-        var steps=[null, (tent>0?Math.round(conex/tent*100):0)+'% das ligações conectaram', (conex>0?Math.round(agend/conex*100):0)+'% das conexões agendaram'];
-        var html='';
-        stages.forEach(function(st,i){
-          var w=Math.max(6, Math.round(st.n/top*100)), pct=Math.round(st.n/top*100);
-          if(i>0) html+='<div style="font:11px/1 \'Space Mono\',ui-monospace,monospace;color:#8a8a94;letter-spacing:.04em;margin:2px 0 8px 156px;">↓ '+steps[i]+'</div>';
-          html+='<div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">'
-            +'<div style="width:140px;flex:0 0 140px;text-align:right;">'
-              +'<div style="font-weight:600;color:#f8f7f3;font-size:14px;">'+st.l+'</div>'
-              +'<div style="font:11px/1.3 \'Space Mono\',ui-monospace,monospace;color:#6b6b73;">'+st.s+'</div>'
-            +'</div>'
-            +'<div style="flex:1;background:#111114;border:1px solid rgba(248,247,243,0.06);height:46px;position:relative;overflow:hidden;">'
-              +'<div style="width:'+w+'%;height:100%;background:'+st.c+';display:flex;align-items:center;padding-left:12px;color:#fff;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;">'+nf(st.n)+'</div>'
-            +'</div>'
-            +'<div style="width:52px;flex:0 0 52px;text-align:right;font-variant-numeric:tabular-nums;color:#c9c9d0;font-weight:600;">'+pct+'%</div>'
-          +'</div>';
-        });
-        var el=document.getElementById('funnelBody');
-        if(el) el.innerHTML=html;
-      }
-      function renderExec(){
-        var acts = (typeof RAW_ACTIVITIES!=='undefined' ? RAW_ACTIVITIES : []) || [];
-        var total = acts.length;
-        var sdrs = {}; acts.forEach(function(a){ if(a && a.sdr) sdrs[a.sdr]=1; });
-        var nSdr = Object.keys(sdrs).length;
-        var tent=0, conex=0, agend=0, bySdr={};
-        acts.forEach(function(a){
-          if(isTentativa(a)) tent++;
-          if(isConexao(a)) conex++;
-          var ag = isAgendamento(a);
-          if(ag) agend++;
-          var s = (a&&a.sdr)||'-';
-          if(!bySdr[s]) bySdr[s]={ag:0};
-          if(ag) bySdr[s].ag++;
-        });
-        var connRate = tent>0 ? Math.round(conex/tent*100) : 0;
-        var topSdr=null, topAg=-1;
-        Object.keys(bySdr).forEach(function(s){ if(bySdr[s].ag>topAg){ topAg=bySdr[s].ag; topSdr=s; } });
-        var nf=function(n){ return (n||0).toLocaleString('pt-BR'); };
-        var kpis=[
-          {v:nf(total), l:'Atividades', h:'no período'},
-          {v:nf(nSdr), l:'SDRs ativos', h:'com atividade'},
-          {v:connRate+'%', l:'Taxa de conexão', h:'conexões / tentativas', good:connRate>=30},
-          {v:nf(agend), l:'Agendamentos', h:'gerados', good:agend>0}
-        ];
-        var insight = (topSdr && topAg>0)
-          ? '<b>'+topSdr+'</b> lidera em agendamentos ('+nf(topAg)+') no período, convertendo prospecção em reuniões.'
-          : '<b>'+nf(agend)+'</b> agendamentos gerados a partir de <b>'+nf(total)+'</b> atividades de prospecção.';
-        var kw=document.getElementById('exec-kpis');
-        if(kw) kw.innerHTML=kpis.map(function(k){ return '<div class="exec-kpi"><div class="ev'+(k.good?' good':'')+'">'+k.v+'</div><div class="el">'+k.l+'</div><div class="eh">'+k.h+'</div></div>'; }).join('');
-        var iw=document.getElementById('exec-insight');
-        if(iw) iw.innerHTML='<span class="ei-tag">insight</span>'+insight;
-      }
     }
-    
+
+    // ==================== FUNIL DE CONVERSÃO ====================
+    function renderFunnel() {
+      var acts = RAW_ACTIVITIES || [];
+      var tent = 0, conex = 0, agend = 0;
+      acts.forEach(function (a) { if (isTentativa(a)) tent++; if (isConexao(a)) conex++; if (isAgendamento(a)) agend++; });
+      var top = Math.max(tent, 1);
+      var nf = function (n) { return (n || 0).toLocaleString('pt-BR'); };
+      // Etapas de funil são ordinais: rampa azul de um matiz só, do claro ao escuro.
+      var stages = [
+        { l: 'Ligações', s: 'tentativas de contato', n: tent, c: FUNNEL_RAMP[0], tc: '#0a0a0b' },
+        { l: 'Conexões', s: 'ligações com conversa', n: conex, c: FUNNEL_RAMP[1], tc: '#fff' },
+        { l: 'Agendamentos', s: 'reuniões marcadas', n: agend, c: FUNNEL_RAMP[2], tc: '#fff' }
+      ];
+      var steps = [null, (tent > 0 ? Math.round(conex / tent * 100) : 0) + '% das ligações conectaram', (conex > 0 ? Math.round(agend / conex * 100) : 0) + '% das conexões agendaram'];
+      var html = '';
+      stages.forEach(function (st, i) {
+        var w = Math.max(6, Math.round(st.n / top * 100)), pct = Math.round(st.n / top * 100);
+        if (i > 0) html += '<div class="funnel-step">↓ ' + steps[i] + '</div>';
+        html += '<div class="funnel-row">'
+          + '<div class="funnel-lbl"><b>' + st.l + '</b><small>' + st.s + '</small></div>'
+          + '<div class="funnel-track"><div class="funnel-fill" style="width:' + w + '%;background:' + st.c + ';color:' + st.tc + ';">' + nf(st.n) + '</div></div>'
+          + '<div class="funnel-pct">' + pct + '%</div>'
+          + '</div>';
+      });
+      var el = document.getElementById('funnelBody');
+      if (el) el.innerHTML = html;
+    }
+
+    // ==================== RESUMO EXECUTIVO (KPIs + insight) ====================
+    function renderExec() {
+      var acts = RAW_ACTIVITIES || [];
+      var total = acts.length;
+      var sdrs = {}; acts.forEach(function (a) { if (a && a.sdr) sdrs[a.sdr] = 1; });
+      var nSdr = Object.keys(sdrs).length;
+      var tent = 0, conex = 0, agend = 0, bySdr = {};
+      acts.forEach(function (a) {
+        if (isTentativa(a)) tent++;
+        if (isConexao(a)) conex++;
+        var ag = isAgendamento(a);
+        if (ag) agend++;
+        var s = (a && a.sdr) || '-';
+        if (!bySdr[s]) bySdr[s] = { ag: 0 };
+        if (ag) bySdr[s].ag++;
+      });
+      var connRate = tent > 0 ? Math.round(conex / tent * 100) : 0;
+      var topSdr = null, topAg = -1;
+      Object.keys(bySdr).forEach(function (s) { if (bySdr[s].ag > topAg) { topAg = bySdr[s].ag; topSdr = s; } });
+      var nf = function (n) { return (n || 0).toLocaleString('pt-BR'); };
+      var kpis = [
+        { v: nf(total), l: 'Atividades', h: 'no período' },
+        { v: nf(nSdr), l: 'SDRs ativos', h: 'com atividade' },
+        { v: connRate + '%', l: 'Taxa de conexão', h: 'conexões / tentativas', cls: connRate >= 30 ? 'good' : '' },
+        { v: nf(agend), l: 'Agendamentos', h: 'gerados' }
+      ];
+      var insight = (topSdr && topAg > 0)
+        ? '<b>' + escHtml(topSdr) + '</b> lidera em agendamentos (' + nf(topAg) + ') no período, convertendo prospecção em reuniões.'
+        : '<b>' + nf(agend) + '</b> agendamentos gerados a partir de <b>' + nf(total) + '</b> atividades de prospecção.';
+      var kw = document.getElementById('exec-kpis');
+      if (kw) kw.innerHTML = kpis.map(function (k) {
+        return '<div class="kpi"><div class="label">' + k.l + '</div><div class="value' + (k.cls ? ' ' + k.cls : '') + '">' + k.v + '</div><div class="subv">' + k.h + '</div></div>';
+      }).join('');
+      var iw = document.getElementById('exec-insight');
+      if (iw) iw.innerHTML = '<span class="ei-tag">insight</span>' + insight;
+    }
+
     function populateSDRSelect() {
       const select = document.getElementById('sdrSelect');
       const sdrs = [...new Set(RAW.map(r => r.sdr))].sort();
-      
+
       // Preservar as opções "Todos"
       select.innerHTML = `
         <option value="Todos_Media">Todos (Média do Time)</option>
         <option value="Todos_Total">Todos (Números Totais)</option>
       `;
-      
+
       sdrs.forEach(sdr => {
         const opt = document.createElement('option');
         opt.value = sdr;
@@ -1595,42 +1320,27 @@
         select.appendChild(opt);
       });
     }
-    
+
     // ==================== FILTERS & AGGREGATION ====================
     function applyFilters() {
-      console.log('Aplicando filtros...');
-      
       const selectedSDR = document.getElementById('sdrSelect').value;
       const hideWeekends = document.getElementById('hideWeekends').checked;
       const hideZeros = document.getElementById('hideZeros').checked;
-      
-      console.log('  - SDR selecionado:', selectedSDR);
-      console.log('  - Ocultar fins de semana:', hideWeekends);
-      console.log('  - Ocultar zeros:', hideZeros);
-      console.log('  - Filtro de data:', dateFilterStart, 'até', dateFilterEnd);
-      console.log('  - Métricas ativas:', activeMetrics);
-      
+
       let filtered = [...RAW];
-      console.log('  - RAW.length:', RAW.length);
-      
+
       // Filtrar por data (se configurado)
       if (dateFilterStart && dateFilterEnd) {
-        const beforeDateFilter = filtered.length;
         filtered = filtered.filter(r => {
           return r.date >= dateFilterStart && r.date <= dateFilterEnd;
         });
-        console.log(`  - Filtro de data aplicado: ${beforeDateFilter} → ${filtered.length}`);
       }
-      
+
       // Filtrar por SDR ou calcular média/total
       if (selectedSDR === 'Todos_Media') {
-        console.log('  Calculando média do time...');
-        
         // Remover datas excluídas
-        const beforeExclusion = filtered.length;
         filtered = filtered.filter(r => !EXCLUDED_DATES.includes(r.date));
-        console.log(`  - Datas excluídas removidas: ${beforeExclusion - filtered.length}`);
-        
+
         // Agrupar por data e calcular média
         const byDate = {};
         filtered.forEach(r => {
@@ -1650,7 +1360,7 @@
               duracao: []
             };
           }
-          
+
           byDate[r.date].agendamentos.push(r.agendamentos);
           byDate[r.date].reunioes.push(r.reunioes);
           byDate[r.date].ligacoes.push(r.ligacoes);
@@ -1662,9 +1372,7 @@
           byDate[r.date].conexoes.push(r.conexoes);
           byDate[r.date].duracao.push(r.duracao);
         });
-        
-        console.log(`  - Datas únicas agrupadas: ${Object.keys(byDate).length}`);
-        
+
         DATA = Object.values(byDate).map(d => ({
           date: d.date,
           dateDisplay: d.dateDisplay,
@@ -1680,8 +1388,6 @@
           duracao: avg(d.duracao) // Duração pode ser decimal (minutos)
         }));
       } else if (selectedSDR === 'Todos_Total') {
-        console.log('  Calculando total absoluto do time...');
-        
         // Agrupar por data e somar
         const byDate = {};
         filtered.forEach(r => {
@@ -1701,7 +1407,7 @@
               duracao: 0
             };
           }
-          
+
           byDate[r.date].agendamentos += r.agendamentos;
           byDate[r.date].reunioes += r.reunioes;
           byDate[r.date].ligacoes += r.ligacoes;
@@ -1713,17 +1419,12 @@
           byDate[r.date].conexoes += r.conexoes;
           byDate[r.date].duracao += r.duracao;
         });
-        
-        console.log(`  - Datas únicas agrupadas: ${Object.keys(byDate).length}`);
-        
+
         DATA = Object.values(byDate);
       } else {
-        console.log(`  Filtrando por SDR individual: ${selectedSDR}`);
-        
         // Filtrar por SDR individual
         filtered = filtered.filter(r => r.sdr === selectedSDR);
-        console.log(`  - Linhas após filtro SDR: ${filtered.length}`);
-        
+
         // Agrupar por data (soma se múltiplas linhas)
         const byDate = {};
         filtered.forEach(r => {
@@ -1743,7 +1444,7 @@
               duracao: 0
             };
           }
-          
+
           byDate[r.date].agendamentos += r.agendamentos;
           byDate[r.date].reunioes += r.reunioes;
           byDate[r.date].ligacoes += r.ligacoes;
@@ -1755,9 +1456,7 @@
           byDate[r.date].conexoes += r.conexoes;
           byDate[r.date].duracao += r.duracao;
         });
-        
-        console.log(`  - Datas únicas agrupadas: ${Object.keys(byDate).length}`);
-        
+
         DATA = Object.values(byDate).map(d => ({
           ...d,
           // Arredondar para inteiro (visão individual)
@@ -1773,289 +1472,116 @@
           duracao: Math.round(d.duracao)
         }));
       }
-      
-      console.log(`  - DATA após agregação: ${DATA.length} linhas`);
-      
+
       // Ordenar por data
       DATA.sort((a, b) => a.date.localeCompare(b.date));
-      
+
       // Aplicar filtros de exibição
       if (hideWeekends) {
-        const beforeWeekend = DATA.length;
         DATA = DATA.filter(d => !isWeekend(d.date));
-        console.log(`  - Fins de semana removidos: ${beforeWeekend - DATA.length}`);
       }
-      
+
       if (hideZeros) {
-        const beforeZeros = DATA.length;
         DATA = DATA.filter(d => {
-          // Dia zerado se todas as métricas ativas + agendamentos = 0
-          const sum = activeMetrics.reduce((acc, key) => acc + (d[key] || 0), 0);
+          // Dia zerado se todas as métricas somam 0
+          const sum = METRICS.reduce((acc, m) => acc + (d[m.key] || 0), 0);
           return sum > 0;
         });
-        console.log(`  - Dias zerados removidos: ${beforeZeros - DATA.length}`);
       }
-      
-      console.log(`Filtros aplicados. DATA final: ${DATA.length} linhas`);
-      if (DATA.length > 0) {
-        console.log('  - Primeira linha:', DATA[0]);
-        console.log('  - Última linha:', DATA[DATA.length - 1]);
-      }
-      
+
       renderChart();
     }
-    
+
     function avg(arr) {
       if (arr.length === 0) return 0;
       const sum = arr.reduce((acc, v) => acc + v, 0);
       return parseFloat((sum / arr.length).toFixed(2)); // 2 casas decimais
     }
-    
-    // ==================== RENDERING ====================
-    function renderMetricsToggles() {
-      console.log('Renderizando checkboxes de métricas...');
-      const container = document.getElementById('metricsToggles');
-      
-      if (!container) {
-        console.error('Container metricsToggles não encontrado!');
-        return;
-      }
-      
-      // Sempre recriar para refletir mudanças nos eixos
-      container.innerHTML = '';
-      console.log('  - Métricas disponíveis:', METRICS.length);
-      console.log('  - Métricas ativas:', activeMetrics);
-      console.log('  - Eixo esquerdo:', leftAxisMetric);
-      console.log('  - Eixo direito:', rightAxisMetric);
-      
-      // Determinar quais métricas mostrar (apenas as que estão nos eixos)
-      const availableMetrics = METRICS.filter(m => 
-        m.key === leftAxisMetric || m.key === rightAxisMetric
-      );
-      
-      if (availableMetrics.length === 0) {
-        container.innerHTML = '<p style="color: var(--muted); font-size: 13px; margin: 0;">Selecione métricas nos eixos Y para visualizar</p>';
-        return;
-      }
-      
-      availableMetrics.forEach((metric, idx) => {
-        const div = document.createElement('div');
-        div.className = 'metric-toggle';
-        
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = `metric_${metric.key}`;
-        checkbox.checked = activeMetrics.includes(metric.key);
-        checkbox.addEventListener('change', (e) => {
-          console.log(`Checkbox ${metric.key} alterado para: ${e.target.checked}`);
-          console.log(`   - Antes:`, activeMetrics);
-          
-          if (e.target.checked) {
-            if (!activeMetrics.includes(metric.key)) {
-              activeMetrics.push(metric.key);
-            }
-          } else {
-            activeMetrics = activeMetrics.filter(k => k !== metric.key);
-          }
-          
-          console.log(`   - Depois:`, activeMetrics);
-          console.log(`   - Chamando renderChart()...`);
-          renderChart(); // Apenas re-renderiza o gráfico, sem re-agregar dados
-        });
-        
-        const label = document.createElement('label');
-        label.htmlFor = `metric_${metric.key}`;
-        label.textContent = metric.label;
-        label.style.color = metric.color;
-        
-        // Indicar qual eixo
-        const axisIndicator = document.createElement('span');
-        axisIndicator.style.cssText = 'font-size: 10px; color: var(--muted); margin-left: 4px;';
-        axisIndicator.textContent = metric.key === leftAxisMetric ? '(Esq)' : '(Dir)';
-        
-        div.appendChild(checkbox);
-        div.appendChild(label);
-        div.appendChild(axisIndicator);
-        container.appendChild(div);
-        
-        if (idx < 3) {
-          console.log(`  [${idx}] Criado: ${metric.label} (${metric.key}) - checked: ${checkbox.checked}`);
-        }
-      });
-      
-      console.log(`${availableMetrics.length} checkboxes criados no container`);
-      console.log('  - Children no container:', container.children.length);
-    }
-    
-    // ==================== VIZ 01: TIMELINE DE ATIVIDADES ====================
-    // USA DADOS DE RAW/DATA (já agregados usando funções globais)
+
+    // ==================== VIZ 01: TIMELINE (small multiples alinhados) ====================
+    // Dois painéis empilhados no mesmo eixo de tempo: métrica escolhida (linha)
+    // em cima e agendamentos (barras) embaixo, cada um com escala própria a
+    // partir de zero. Sem eixo duplo.
     function renderChart() {
-      console.log('Renderizando gráfico...');
-      console.log('  - DATA.length:', DATA.length);
-      console.log('  - Métricas ativas:', activeMetrics);
-      console.log('  - Eixo esquerdo:', leftAxisMetric);
-      console.log('  - Eixo direito:', rightAxisMetric);
-      
       if (DATA.length === 0) {
-        console.warn('Nenhum dado para renderizar');
         document.getElementById('dashboard').style.display = 'none';
-        document.getElementById('emptyState').style.display = 'block';
-        document.getElementById('emptyState').innerHTML = '<h3>Nenhum dado</h3><p>Ajuste os filtros</p>';
+        const es = document.getElementById('emptyState');
+        es.style.display = 'block';
+        es.innerHTML = '<h3>Nenhum dado</h3><p>Ajuste os filtros</p>';
         return;
       }
-      
+
       document.getElementById('emptyState').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      
-      if (!document.getElementById('metricsToggles').hasChildNodes()) {
-        renderMetricsToggles();
-      }
-      
-      if (!chart) {
-        console.log('  - Inicializando ECharts...');
-        chart = echarts.init(document.getElementById('mainChart'));
-      }
-      
+
+      const metric = METRICS.find(m => m.key === timelineMetric) || METRICS.find(m => m.key === 'tentativas');
+      const isDur = metric.key === 'duracao';
       const dates = DATA.map(d => d.dateDisplay);
-      console.log('  - Datas no eixo X:', dates.length, '→', dates.slice(0, 5), '...');
-      
-      // Determinar quais métricas devem ser exibidas
-      const metricsToShow = new Set();
-      if (leftAxisMetric) metricsToShow.add(leftAxisMetric);
-      if (rightAxisMetric) metricsToShow.add(rightAxisMetric);
-      
-      const series = METRICS
-        .filter(m => activeMetrics.includes(m.key) && metricsToShow.has(m.key))
-        .map(m => {
-          const data = DATA.map(d => d[m.key] || 0);
-          console.log(`  - Série "${m.label}":`, data.slice(0, 5), `... (total: ${data.length} valores)`);
-          
-          // Determinar qual eixo usar
-          let yAxisIndex = 0;
-          let lineStyle = 'solid';
-          
-          if (m.key === rightAxisMetric) {
-            yAxisIndex = 1;
-            lineStyle = 'dashed'; // Linha tracejada para o eixo direito
-          }
-          
-          return {
-            name: m.label,
-            type: 'line',
-            yAxisIndex: yAxisIndex,
-            data: data,
-            smooth: true,
-            lineStyle: {
-              width: lineStyle === 'dashed' ? 2 : 3,
-              type: lineStyle
-            },
-            itemStyle: { color: m.color },
-            symbol: 'circle',
-            symbolSize: 6
-          };
-        });
-      
-      console.log(`  - Total de séries: ${series.length}`);
-      
-      // Determinar labels dos eixos Y
-      const leftMetric = METRICS.find(m => m.key === leftAxisMetric);
-      const rightMetric = METRICS.find(m => m.key === rightAxisMetric);
-      
-      const leftAxisName = leftMetric ? leftMetric.label : 'Atividades';
-      const rightAxisName = rightMetric ? rightMetric.label : '';
-      
-      const leftAxisColor = leftMetric ? leftMetric.color : '#a9a9b3';
-      const rightAxisColor = rightMetric ? rightMetric.color : '#a9a9b3';
-      
-      const option = {
-        backgroundColor: 'transparent',
+      const topData = DATA.map(d => d[metric.key] || 0);
+      const agData = DATA.map(d => d.agendamentos || 0);
+
+      chart = makeChart(document.getElementById('mainChart'));
+      chart.setOption({
+        legend: { data: [metric.label, 'Agendamentos'], top: 0 },
         tooltip: {
           trigger: 'axis',
-          backgroundColor: '#131316',
-          borderColor: '#232328',
-          textStyle: { color: '#f4f4f5' },
           formatter: (params) => {
-            let result = `<b>${params[0].axisValueLabel}</b><br/>`;
+            let result = `<b>${escHtml(params[0].axisValueLabel)}</b><br/>`;
             params.forEach(p => {
               let value = p.value;
               // Se for a série de duração, converter para HH:MM
-              if (p.seriesName.includes('Duração')) {
+              if (String(p.seriesName).includes('Duração')) {
                 value = formatMinutesToHHMM(p.value);
               }
-              result += `${p.marker} ${p.seriesName}: <b>${value}</b><br/>`;
+              result += `${p.marker} ${escHtml(p.seriesName)}: <b>${value}</b><br/>`;
             });
             return result;
           }
         },
-        grid: {
-          left: 60,
-          right: rightAxisMetric ? 60 : 20, // Mais espaço à direita se houver eixo direito
-          top: 40,
-          bottom: 60
-        },
-        xAxis: {
-          type: 'category',
-          data: dates,
-          axisLabel: { color: '#a9a9b3', rotate: 45 },
-          axisLine: { lineStyle: { color: '#232328' } }
-        },
+        axisPointer: { link: [{ xAxisId: ['tlTop', 'tlBot'] }] },
+        grid: [
+          { left: 64, right: 16, top: 34, height: '38%' },
+          { left: 64, right: 16, top: '58%', height: '24%' }
+        ],
+        xAxis: [
+          { id: 'tlTop', type: 'category', gridIndex: 0, data: dates, axisLabel: { show: false }, axisTick: { show: false } },
+          { id: 'tlBot', type: 'category', gridIndex: 1, data: dates, axisLabel: { rotate: 45 } }
+        ],
         yAxis: [
           {
-            type: 'value',
-            name: leftAxisName,
-            nameTextStyle: { color: leftAxisColor, fontWeight: 600 },
-            position: 'left',
-            axisLabel: { 
-              color: leftAxisColor,
-              formatter: (value) => {
-                // Se duração está no eixo esquerdo, formatar em HH:MM
-                if (leftAxisMetric === 'duracao') {
-                  return formatMinutesToHHMM(value);
-                }
-                return value;
-              }
-            },
-            splitLine: { lineStyle: { color: '#232328', type: 'dashed' } }
+            id: 'tlYTop', type: 'value', gridIndex: 0, min: 0,
+            name: metric.label, nameTextStyle: { color: '#a1a1aa', fontSize: 11 },
+            axisLabel: { formatter: (value) => isDur ? formatMinutesToHHMM(value) : value }
           },
           {
-            type: 'value',
-            name: rightAxisName,
-            nameTextStyle: { color: rightAxisColor, fontWeight: 600 },
-            position: 'right',
-            axisLabel: { 
-              color: rightAxisColor,
-              formatter: (value) => {
-                // Se duração está no eixo direito, formatar em HH:MM
-                if (rightAxisMetric === 'duracao') {
-                  return formatMinutesToHHMM(value);
-                }
-                return value;
-              }
-            },
-            splitLine: { show: false }
+            id: 'tlYBot', type: 'value', gridIndex: 1, min: 0,
+            name: 'Agendamentos', nameTextStyle: { color: '#a1a1aa', fontSize: 11 }
           }
         ],
-        series: series
-      };
-      
-      console.log('  - Aplicando configuração ao gráfico...');
-      chart.setOption(option, true);
-      console.log('Gráfico renderizado com sucesso!');
+        series: [
+          {
+            name: metric.label, type: 'line', xAxisId: 'tlTop', yAxisId: 'tlYTop', data: topData,
+            smooth: true, symbol: 'circle', symbolSize: 5,
+            lineStyle: { width: 2, color: '#2563eb' }, itemStyle: { color: '#2563eb' }
+          },
+          {
+            name: 'Agendamentos', type: 'bar', xAxisId: 'tlBot', yAxisId: 'tlYBot', data: agData,
+            barMaxWidth: 14, itemStyle: { color: '#d95926' }
+          }
+        ]
+      });
     }
-    
-    // ==================== VIZ 02: RANKING DE SDRs ====================
+
+    // ==================== VIZ 04: RANKING DE SDRs ====================
     // USA FUNÇÕES GLOBAIS: isTentativa(), isConexao(), isAgendamento(), getDuracao()
     function renderRanking() {
-      const period = parseInt(document.getElementById('ranking_period').value);
+      const periodVal = document.getElementById('ranking_period').value;
       const sortBy = document.getElementById('ranking_sort').value;
-      
-      console.log('VIZ 02 - Debug Ranking:');
-      console.log(`  Período selecionado: ${period === 'all' ? 'Todo período' : `Últimos ${period} dias`}`);
-      console.log(`  Total de atividades brutas: ${RAW_ACTIVITIES.length}`);
-      
+
       // Filtrar atividades brutas por período
       let filteredActivities = RAW_ACTIVITIES;
-      if (period !== 'all') {
+      if (periodVal !== 'all') {
+        const period = parseInt(periodVal);
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - period);
         filteredActivities = RAW_ACTIVITIES.filter(a => {
@@ -2063,46 +1589,13 @@
           return actDate >= cutoffDate;
         });
       }
-      
-      console.log(`  Atividades após filtro de período: ${filteredActivities.length}`);
-      
-      // Debug: verificar atividades do Alexandre Assis
-      const aleksisActivities = filteredActivities.filter(a => a.sdr === 'Alexandre Assis');
-      console.log(`  Atividades de Alexandre Assis: ${aleksisActivities.length}`);
-      if (aleksisActivities.length > 0) {
-        const tiposUnicos = [...new Set(aleksisActivities.map(a => a.type))];
-        console.log(`    Tipos de atividade únicos:`, tiposUnicos);
-        
-        // Distribuição por tipo
-        const distribuicao = {};
-        aleksisActivities.forEach(a => {
-          distribuicao[a.type] = (distribuicao[a.type] || 0) + 1;
-        });
-        console.log(`    Distribuição por tipo:`, distribuicao);
-        console.log(`    Primeiras 5 atividades (completas):`, aleksisActivities.slice(0, 5));
-        
-        const tentativasAleksis = aleksisActivities.filter(a => isTentativa(a));
-        const conexoesAleksis = aleksisActivities.filter(a => isConexao(a));
-        console.log(`    Tentativas (CALL): ${tentativasAleksis.length}`);
-        console.log(`    Conexões (CALL >= 1min): ${conexoesAleksis.length}`);
-        
-        // Se não há CALLs, mostrar o que tem
-        if (tentativasAleksis.length === 0) {
-          console.warn(`    ATENÇÃO: Alexandre não tem atividades do tipo CALL!`);
-          console.log(`    Verificar tipos brutos no CSV:`, aleksisActivities.slice(0, 3).map(a => ({
-            tipo_processado: a.type,
-            activity_type_csv: a.rawData?.activity_type,
-            linha_completa: a.rawData
-          })));
-        }
-      }
-      
+
       // Agregar por SDR contando atividades brutas
       const bySdr = {};
       const allDays = new Set();
       filteredActivities.forEach(a => {
         const sdrName = a.sdr;
-        
+
         if (!bySdr[sdrName]) {
           bySdr[sdrName] = {
             sdr: sdrName,
@@ -2114,27 +1607,22 @@
           };
         }
         { const _d = new Date(a.date); if(!isNaN(_d)){ const _dk = _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0'); bySdr[sdrName].daily[_dk] = (bySdr[sdrName].daily[_dk]||0)+1; allDays.add(_dk); } }
-        
+
         // Usar funções globais de cálculo
         if (isTentativa(a)) {
           bySdr[sdrName].tentativas++;
         }
-        
+
         if (isConexao(a)) {
           bySdr[sdrName].conexoes++;
           bySdr[sdrName].duracao += getDuracao(a);
         }
-        
+
         if (isAgendamento(a)) {
           bySdr[sdrName].agendamentos++;
         }
       });
-      
-      // Debug: mostrar resultados da agregação
-      if (bySdr['Alexandre Assis']) {
-        console.log(`  Resultados agregados para Alexandre Assis:`, bySdr['Alexandre Assis']);
-      }
-      
+
       // Calcular taxas
       const ranking = Object.values(bySdr).map(s => ({
         ...s,
@@ -2142,13 +1630,13 @@
         taxa_agend: s.tentativas > 0 ? (s.agendamentos / s.tentativas * 100) : 0,
         duracao_media: s.conexoes > 0 ? (s.duracao / s.conexoes) : 0
       }));
-      
+
       // Ordenar
       ranking.sort((a, b) => b[sortBy] - a[sortBy]);
-      
+
       // Renderizar tabela
       const container = document.getElementById('rankingTable');
-      const maxTentativas = Math.max(...ranking.map(s => s.tentativas));
+      const maxTentativas = Math.max(1, ...ranking.map(s => s.tentativas));
       const dayList = Array.from(allDays).sort();
       function sparkline(daily){
         if(!dayList.length) return '';
@@ -2159,9 +1647,9 @@
         const lastX = ((n-1)*step).toFixed(1), lastY = (H-3 - (vals[n-1]/max)*(H-6)).toFixed(1);
         return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="vertical-align:middle;" role="img" aria-label="tendência de atividade">'
           +'<polyline points="'+pts+'" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>'
-          +'<circle cx="'+lastX+'" cy="'+lastY+'" r="2.2" fill="#4ade80"/></svg>';
+          +'<circle cx="'+lastX+'" cy="'+lastY+'" r="2.2" fill="#60a5fa"/></svg>';
       }
-      
+
       container.innerHTML = `
         <table class="ranking-table">
           <thead>
@@ -2181,7 +1669,7 @@
             ${ranking.map((s, idx) => `
               <tr>
                 <td class="rank-num">${idx + 1}</td>
-                <td class="sdr-name">${s.sdr}</td>
+                <td class="sdr-name">${escHtml(s.sdr)}</td>
                 <td style="text-align: right;">
                   <div class="mini-bar">
                     <span style="min-width: 40px; text-align: right;">${s.tentativas}</span>
@@ -2210,44 +1698,44 @@
         </table>
       `;
     }
-    
+
     // ==================== VIZ 03: HEATMAP SEMANAL ====================
     // USA DADOS DE RAW (já agregados usando funções globais)
     function renderHeatmap() {
       const metric = document.getElementById('heatmap_metric').value;
       const sdr = document.getElementById('heatmap_sdr').value;
       const period = parseInt(document.getElementById('heatmap_period').value);
-      const hideWeekends = document.getElementById('heatmap_hideWeekends').checked;
-      
+      const hideWeekendsHm = document.getElementById('heatmap_hideWeekends').checked;
+
       // Filtrar dados
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - period);
       const cutoffISO = cutoffDate.toISOString().split('T')[0];
-      
+
       let filtered = RAW.filter(r => r.date >= cutoffISO);
       if (sdr !== 'all') {
         filtered = filtered.filter(r => r.sdr === sdr);
       }
-      
+
       // Agrupar por data e extrair semana + dia da semana
       const weekDayMap = {}; // Chave: "Semana X__DiaDaSemana" → Valor
       const weeksSet = new Set();
       const weekDatesMap = {}; // Mapear semana → {startDate, endDate}
-      
+
       filtered.forEach(r => {
         const date = new Date(r.date + 'T12:00:00');
         const dayOfWeek = date.getDay(); // 0=Dom, 6=Sáb
-        
+
         // Pular fins de semana se necessário
-        if (hideWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
+        if (hideWeekendsHm && (dayOfWeek === 0 || dayOfWeek === 6)) {
           return;
         }
-        
+
         // Calcular número da semana (simplificado: diferença de semanas desde início do ano)
         const startOfYear = new Date(date.getFullYear(), 0, 1);
         const diffDays = Math.floor((date - startOfYear) / (1000 * 60 * 60 * 24));
         const weekNum = Math.floor(diffDays / 7) + 1;
-        
+
         // Rastrear datas min/max para cada semana
         if (!weekDatesMap[weekNum]) {
           weekDatesMap[weekNum] = { startDate: date, endDate: date };
@@ -2259,27 +1747,27 @@
             weekDatesMap[weekNum].endDate = date;
           }
         }
-        
+
         // Obter valor da métrica
-        const value = metric === 'all' ? (r.quantidade || 0) : 
+        const value = metric === 'all' ? (r.quantidade || 0) :
                      metric === 'CALL' ? (r.ligacoes || 0) :
                      metric === 'EMAIL' ? (r.emails || 0) :
                      metric === 'TASK' ? (r.tarefas || 0) :
                      metric === 'WHATSAPP' ? (r.whatsapp || 0) : 0;
-        
+
         const key = `${weekNum}__${dayOfWeek}`;
         weekDayMap[key] = (weekDayMap[key] || 0) + value;
         weeksSet.add(weekNum);
       });
-      
+
       // Converter para array ordenado de semanas
       const weeks = Array.from(weeksSet).sort((a, b) => a - b);
-      const daysToShow = hideWeekends ? [1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5, 6];
-      
+      const daysToShow = hideWeekendsHm ? [1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5, 6];
+
       // Preparar dados para ECharts [weekIndex, dayIndex, value]
       const heatmapData = [];
       let maxValue = 0;
-      
+
       weeks.forEach((weekNum, weekIndex) => {
         daysToShow.forEach((dayOfWeek, dayIndex) => {
           const key = `${weekNum}__${dayOfWeek}`;
@@ -2288,51 +1776,26 @@
           maxValue = Math.max(maxValue, value);
         });
       });
-      
-      // Renderizar
-      if (!heatmapChart) {
-        heatmapChart = echarts.init(document.getElementById('heatmapChart'));
-      }
-      
+
       const allDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      const days = hideWeekends ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] : allDays;
-      
-      // Criar labels de semana com datas
+      const days = hideWeekendsHm ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] : allDays;
+
+      // Labels de semana com o intervalo de datas (dispensa legenda separada)
       const weekLabels = weeks.map(w => {
         const dates = weekDatesMap[w];
         if (!dates) return `Sem ${w}`;
-        
-        const formatDate = (d) => {
+
+        const fmtShort = (d) => {
           const day = String(d.getDate()).padStart(2, '0');
           const month = String(d.getMonth() + 1).padStart(2, '0');
           return `${day}/${month}`;
         };
-        
-        return `Sem ${w} (${formatDate(dates.startDate)}-${formatDate(dates.endDate)})`;
+
+        return `Sem ${w} (${fmtShort(dates.startDate)}-${fmtShort(dates.endDate)})`;
       });
-      
-      // Atualizar legenda de semanas acima do gráfico
-      const legendEl = document.getElementById('weekLegend');
-      if (legendEl) {
-        const legendItems = weeks.map(w => {
-          const dates = weekDatesMap[w];
-          if (!dates) return `<span><b>Sem ${w}:</b> -</span>`;
-          
-          const formatDateFull = (d) => {
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = d.getFullYear();
-            return `${day}/${month}/${year}`;
-          };
-          
-          return `<span style="margin-right: 18px; white-space: nowrap;"><b style="color: #60a5fa;">Sem ${w}:</b> ${formatDateFull(dates.startDate)} - ${formatDateFull(dates.endDate)}</span>`;
-        }).join('');
-        
-        legendEl.innerHTML = `<div style="display: flex; flex-wrap: wrap; gap: 8px;">${legendItems}</div>`;
-      }
-      
+
+      heatmapChart = makeChart(document.getElementById('heatmapChart'));
       heatmapChart.setOption({
-        backgroundColor: 'transparent',
         tooltip: {
           position: 'top',
           formatter: (params) => {
@@ -2340,83 +1803,73 @@
             const dates = weekDatesMap[weekNum];
             const day = days[params.value[1]];
             const value = Math.round(params.value[2]);
-            
+
             let dateRange = '';
             if (dates) {
-              const formatDateFull = (d) => {
-                const day = String(d.getDate()).padStart(2, '0');
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const year = d.getFullYear();
-                return `${day}/${month}/${year}`;
+              const fmtFull = (d) => {
+                const dd = String(d.getDate()).padStart(2, '0');
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                return `${dd}/${mm}/${d.getFullYear()}`;
               };
-              dateRange = `<br/><span style="color: #94a3b8; font-size: 11px;">${formatDateFull(dates.startDate)} - ${formatDateFull(dates.endDate)}</span>`;
+              dateRange = `<br/><span style="color:var(--ink-4);font-size:11px;">${fmtFull(dates.startDate)} - ${fmtFull(dates.endDate)}</span>`;
             }
-            
+
             return `<b>Semana ${weekNum} - ${day}</b>${dateRange}<br/>Atividades: ${value}`;
           }
         },
         grid: {
-          left: '10%',
-          right: '5%',
-          top: '5%',
-          bottom: '12%',
+          left: 10,
+          right: 10,
+          top: 10,
+          bottom: 42,
           containLabel: true
         },
         xAxis: {
           type: 'category',
           data: weekLabels,
-          splitArea: { show: true },
-          axisLabel: { 
-            color: '#cbd5e1', 
-            fontSize: 11,
+          axisLabel: {
+            fontSize: 10,
             interval: 0,
-            rotate: weeks.length > 8 ? 45 : 0
+            rotate: weeks.length > 5 ? 45 : 0
           }
         },
         yAxis: {
           type: 'category',
           data: days,
-          splitArea: { show: true },
-          axisLabel: { color: '#cbd5e1', fontSize: 12, fontWeight: 600 }
+          axisLabel: { fontSize: 11 }
         },
         visualMap: {
           min: 0,
-          max: maxValue,
+          max: Math.max(1, maxValue),
           calculable: true,
           orient: 'horizontal',
           left: 'center',
-          bottom: '2%',
-          inRange: {
-            color: ['#0b0f1a', '#0c4a6e', '#075985', '#0284c7', '#60a5fa']
-          },
-          textStyle: { color: '#cbd5e1', fontSize: 11 }
+          bottom: 0,
+          itemWidth: 16,
+          inRange: { color: SEQ_BLUE },
+          textStyle: { color: '#8a8a94', fontSize: 11 }
         },
         series: [{
           name: 'Atividades',
           type: 'heatmap',
           data: heatmapData,
-          label: {
-            show: true,
-            formatter: (params) => Math.round(params.value[2]) || '',
-            color: '#fff',
-            fontSize: 10,
-            fontWeight: 600
-          },
+          label: { show: false },
+          itemStyle: { borderColor: '#131316', borderWidth: 1 },
           emphasis: {
             itemStyle: {
               shadowBlur: 10,
-              shadowColor: 'rgba(59, 130, 246, 0.5)'
+              shadowColor: 'rgba(37,99,235,0.5)'
             }
           }
         }]
-      }, true);
+      });
     }
-    
+
     // Popula select de SDRs no heatmap
     function populateHeatmapSDRs() {
       const select = document.getElementById('heatmap_sdr');
       const sdrs = [...new Set(RAW.map(r => r.sdr))].sort();
-      
+
       select.innerHTML = '<option value="all">Todos os SDRs</option>';
       sdrs.forEach(sdr => {
         const opt = document.createElement('option');
@@ -2425,40 +1878,31 @@
         select.appendChild(opt);
       });
     }
-    
+
     // Event listeners
     document.getElementById('healthCheckBtn').addEventListener('click', showHealthCheck);
     document.getElementById('sdrSelect').addEventListener('change', applyFilters);
     document.getElementById('hideWeekends').addEventListener('change', applyFilters);
     document.getElementById('hideZeros').addEventListener('change', applyFilters);
-    
-    // Event listeners para controles de eixo Y (VIZ 01)
-    document.getElementById('leftAxisSelect')?.addEventListener('change', (e) => {
-      leftAxisMetric = e.target.value;
-      console.log('Eixo esquerdo alterado para:', leftAxisMetric || 'Nenhuma');
-      renderMetricsToggles(); // Recriar checkboxes com novas métricas
+
+    // Métrica do painel de cima da timeline (VIZ 01)
+    document.getElementById('tlMetricSelect')?.addEventListener('change', (e) => {
+      timelineMetric = e.target.value;
       renderChart();
     });
-    
-    document.getElementById('rightAxisSelect')?.addEventListener('change', (e) => {
-      rightAxisMetric = e.target.value;
-      console.log('Eixo direito alterado para:', rightAxisMetric || 'Nenhuma');
-      renderMetricsToggles(); // Recriar checkboxes com novas métricas
-      renderChart();
-    });
-    
-    // Event listeners para novos visualizadores
+
+    // Event listeners para os demais visualizadores
     document.getElementById('ranking_period')?.addEventListener('change', renderRanking);
     document.getElementById('ranking_sort')?.addEventListener('change', renderRanking);
     document.getElementById('heatmap_metric')?.addEventListener('change', renderHeatmap);
     document.getElementById('heatmap_sdr')?.addEventListener('change', renderHeatmap);
     document.getElementById('heatmap_period')?.addEventListener('change', renderHeatmap);
     document.getElementById('heatmap_hideWeekends')?.addEventListener('change', renderHeatmap);
-    
+
     document.getElementById('applyDateFilter').addEventListener('click', () => {
       const start = document.getElementById('dateStart').value;
       const end = document.getElementById('dateEnd').value;
-      
+
       if (start && end) {
         if (start > end) {
           alert('Data inicial não pode ser maior que data final!');
@@ -2466,80 +1910,29 @@
         }
         dateFilterStart = start;
         dateFilterEnd = end;
-        console.log('Filtro de data aplicado:', dateFilterStart, 'até', dateFilterEnd);
         applyFilters();
       } else {
         alert('Preencha ambas as datas (início e fim)');
       }
     });
-    
+
     document.getElementById('clearDateFilter').addEventListener('click', () => {
       dateFilterStart = null;
       dateFilterEnd = null;
       document.getElementById('dateStart').value = '';
       document.getElementById('dateEnd').value = '';
-      console.log('Filtro de data removido');
       applyFilters();
     });
-    
+
     window.addEventListener('resize', () => {
       if (chart) chart.resize();
       if (heatmapChart) heatmapChart.resize();
     });
-    
-    // ==================== HEADER STICKY COM SCROLL ====================
-    const header = document.querySelector('header');
-    const scrollThreshold = 10;
-    
-    window.addEventListener('scroll', function() {
-      let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      
-      if (scrollTop > scrollThreshold) {
-        header.classList.add('header-hidden');
-      } else {
-        header.classList.remove('header-hidden');
-      }
-    }, false);
-    
+
     // A base de exemplo e o upload de CSV sao controlados pela barra de dados (DATAKIT),
     // no fim do arquivo. Nao gere dados aqui: duas fontes concorrentes se somavam na mesma base.
 
   </script>
-</body>
-</html>
-    console.log('Validação automática executada após agregação de dados');
-    console.log('');
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
 <script>
 /* ==========================================================================
