@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="pt-br" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Analytics Dashboards | Felippe Yann</title>
-<meta name="description" content="Oito dashboards interativos de BI comercial (vanilla JS + ECharts), com dados 100% sintéticos. Demos ao vivo.">
+<meta name="description" content="Eight interactive sales & marketing BI dashboards (vanilla JS + ECharts), 100% synthetic data. Live demos.">
 <meta property="og:title" content="Sales & Marketing Analytics Dashboards">
-<meta property="og:description" content="Oito dashboards interativos de BI comercial, dados 100% sintéticos.">
+<meta property="og:description" content="Eight interactive sales & marketing BI dashboards, 100% synthetic data.">
 <meta property="og:image" content="https://felippeyann.github.io/sales-analytics-dashboards/docs/social-card.png">
 <meta name="theme-color" content="#0a0a0b">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
@@ -62,6 +62,11 @@
   .nav-r a:hover { color: var(--ink); }
   .toggle { width: 36px; height: 36px; display: grid; place-items: center; cursor: pointer; background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink); font-size: 15px; }
   .toggle:hover { transform: translateY(-2px); }
+  .lang-sw { display: flex; align-items: center; height: 36px; padding: 0 8px; background: var(--surface); border: 1px solid var(--line-strong); font-family: var(--mono); }
+  .lang-sw button { background: none; border: 0; cursor: pointer; font-family: var(--mono); font-size: 12px; letter-spacing: .06em; color: var(--ink-4); padding: 0 5px; }
+  .lang-sw button:hover { color: var(--ink); }
+  .lang-sw button.on { color: var(--accent-soft); font-weight: 700; }
+  .lang-sw .sep { color: var(--ink-4); font-size: 11px; opacity: .5; }
   @media (max-width: 640px) { .nav-r .nl { display: none; } }
 
   /* hero */
@@ -88,7 +93,7 @@
   .shead .k b { color: var(--accent); }
   h2 { font-family: var(--sans); font-weight: 700; text-transform: uppercase; font-size: clamp(24px,3.4vw,34px); letter-spacing: -.02em; color: var(--ink); }
 
-  /* cards grid — 2 col, big previews */
+  /* cards grid: 2 col, big previews */
   .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 26px; }
   @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
   .card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line-strong); box-shadow: var(--shadow-card); color: inherit; overflow: hidden; transition: transform .12s ease, box-shadow .12s ease; }
@@ -96,7 +101,8 @@
   .thumb { aspect-ratio: 16/10; overflow: hidden; border-bottom: 1px solid var(--line-strong); background: var(--surface-2); position: relative; }
   .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; transition: transform .5s cubic-bezier(.2,.7,.2,1); }
   .card:hover .thumb img { transform: scale(1.05); }
-  .thumb::after { content: "ABRIR →"; position: absolute; right: 12px; bottom: 12px; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .1em; color: #fff; background: var(--accent); padding: 6px 12px; opacity: 0; transform: translateY(6px); transition: opacity .18s ease, transform .18s ease; }
+  .thumb::after { content: "OPEN →"; position: absolute; right: 12px; bottom: 12px; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .1em; color: #fff; background: var(--accent); padding: 6px 12px; opacity: 0; transform: translateY(6px); transition: opacity .18s ease, transform .18s ease; }
+  html[lang="pt-BR"] .thumb::after { content: "ABRIR →"; }
   .card:hover .thumb::after { opacity: 1; transform: none; }
   .body { padding: 22px 24px 24px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
   .cn { display: flex; align-items: baseline; gap: 12px; font-family: var(--mono); font-size: 12px; }
@@ -131,55 +137,58 @@
   <div class="wrap nav-in">
     <a class="logo" href="https://felippeyann.github.io/"><span class="p">&gt;_</span> FELIPPE_YANN <span class="dim">/ sales-analytics</span></a>
     <div class="nav-r">
-      <a class="nl" href="https://felippeyann.github.io/">&larr; PORTFOLIO</a>
+      <a class="nl" href="https://felippeyann.github.io/" data-i18n="nav1">&larr; PORTFOLIO</a>
       <a class="nl" href="https://github.com/felippeyann/sales-analytics-dashboards">GITHUB</a>
-      <button class="toggle" id="themeToggle" aria-label="Toggle theme" title="Tema claro/escuro">&#9790;</button>
+      <div class="lang-sw" role="group" aria-label="Language" data-pt-aria="Idioma">
+        <button type="button" data-lang-btn="en" aria-pressed="true">EN</button><span class="sep">/</span><button type="button" data-lang-btn="pt" aria-pressed="false">PT</button>
+      </div>
+      <button class="toggle" id="themeToggle" aria-label="Toggle theme" data-pt-aria="Alternar tema" title="Light/dark" data-pt-title="Tema claro/escuro">&#9790;</button>
     </div>
   </div>
 </nav>
 
 <header class="hero">
   <div class="wrap">
-    <p class="kicker reveal">BI &amp; Analytics <b>//</b> dados sintéticos</p>
-    <h1 class="reveal">Oito dashboards que<br><span class="hl">rodaram o comercial.</span></h1>
-    <p class="sub reveal">Coleção de dashboards interativos de BI construídos para a operação comercial de um SaaS B2B: funil de vendas, produtividade de SDRs, lead scoring, monitoramento de pipeline. Cada um é um HTML único (vanilla JS + ECharts). Tudo aqui roda com dados 100% sintéticos.</p>
+    <p class="kicker reveal" data-i18n="hk">BI &amp; Analytics <b>//</b> synthetic data</p>
+    <h1 class="reveal" data-i18n="h1">Eight dashboards that<br><span class="hl">ran a sales operation.</span></h1>
+    <p class="sub reveal" data-i18n="sub">A collection of interactive BI dashboards built for the sales operation of a B2B SaaS: sales funnel, SDR productivity, lead scoring, pipeline monitoring. Each one is a single HTML file (vanilla JS + ECharts). Everything here runs on 100% synthetic data.</p>
     <div class="chips reveal">
       <span class="chip"><b>8</b> dashboards</span>
       <span class="chip"><b>ECharts 6</b> · vanilla JS</span>
       <span class="chip"><b>100%</b> client-side</span>
-      <span class="chip">dados <b>sintéticos</b></span>
+      <span class="chip" data-i18n="ch4"><b>synthetic</b> data</span>
     </div>
     <div class="cta reveal">
-      <a class="btn primary" href="#dashboards">Ver dashboards &darr;</a>
-      <a class="btn" href="https://github.com/felippeyann/sales-analytics-dashboards">Repositório &rarr;</a>
+      <a class="btn primary" href="#dashboards" data-i18n="cta1">View dashboards &darr;</a>
+      <a class="btn" href="https://github.com/felippeyann/sales-analytics-dashboards" data-i18n="cta2">Repository &rarr;</a>
     </div>
   </div>
 </header>
 
 <main class="wrap">
   <section id="dashboards">
-    <div class="shead reveal"><span class="k"><b>01</b> / demos ao vivo</span><h2>Dashboards</h2></div>
+    <div class="shead reveal"><span class="k" data-i18n="s1k"><b>01</b> / live demos</span><h2>Dashboards</h2></div>
     <div class="grid">
 
       <a class="card reveal" href="01_agendamentos.html">
-        <div class="thumb"><img src="docs/previews/01_agendamentos.webp" alt="Análise de Agendamentos" loading="lazy"></div>
+        <div class="thumb"><img src="docs/previews/01_agendamentos.webp" alt="Bookings Analysis" data-pt-alt="Análise de Agendamentos" loading="lazy"></div>
         <div class="body">
-          <div class="cn"><span class="idx">01</span><span class="st">Funil de Topo · SDR</span></div>
-          <h3>Análise de Agendamentos</h3>
-          <p>Mapeamento completo dos agendamentos de reunião: origem UTM, squad, velocidade de atribuição (TA), taxa de conversão por canal, filtros cruzados interativos e insights por IA.</p>
-          <div class="tags"><span class="pill">UTM Sankey</span><span class="pill">Filtros cruzados</span><span class="pill">Gemini AI</span><span class="pill">Exportar PDF</span></div>
-          <div class="foot">Abrir dashboard &rarr;</div>
+          <div class="cn"><span class="idx">01</span><span class="st" data-i18n="d1s">Top of funnel · SDR</span></div>
+          <h3 data-i18n="d1h">Bookings Analysis</h3>
+          <p data-i18n="d1p">Complete mapping of meeting bookings: UTM origin, squad, assignment speed (TA), conversion rate by channel, interactive cross-filters and AI insights.</p>
+          <div class="tags" data-i18n="d1t"><span class="pill">UTM Sankey</span><span class="pill">Cross filters</span><span class="pill">Gemini AI</span><span class="pill">PDF export</span></div>
+          <div class="foot" data-i18n="open">Open dashboard &rarr;</div>
         </div>
       </a>
 
       <a class="card reveal" href="02_produtividade_sdr.html">
-        <div class="thumb"><img src="docs/previews/02_produtividade_sdr.webp" alt="Produtividade SDR" loading="lazy"></div>
+        <div class="thumb"><img src="docs/previews/02_produtividade_sdr.webp" alt="SDR Productivity" data-pt-alt="Produtividade SDR" loading="lazy"></div>
         <div class="body">
-          <div class="cn"><span class="idx">02</span><span class="st">Performance individual</span></div>
-          <h3>Produtividade SDR</h3>
-          <p>Acompanhamento diário da produtividade de cada SDR: ligações, conexões, agendamentos, WhatsApp, e-mails, tarefas. Ranking individual com média do time e metas configuráveis.</p>
-          <div class="tags"><span class="pill">Ranking SDRs</span><span class="pill">Heatmap diário</span><span class="pill">Metas</span><span class="pill">Multi-métrica</span></div>
-          <div class="foot">Abrir dashboard &rarr;</div>
+          <div class="cn"><span class="idx">02</span><span class="st" data-i18n="d2s">Individual performance</span></div>
+          <h3 data-i18n="d2h">SDR Productivity</h3>
+          <p data-i18n="d2p">Daily tracking of each SDR's productivity: calls, connections, bookings, WhatsApp, emails, tasks. Individual ranking with team average and configurable goals.</p>
+          <div class="tags" data-i18n="d2t"><span class="pill">SDR ranking</span><span class="pill">Daily heatmap</span><span class="pill">Goals</span><span class="pill">Multi-metric</span></div>
+          <div class="foot" data-i18n="open">Open dashboard &rarr;</div>
         </div>
       </a>
 
@@ -188,64 +197,64 @@
         <div class="body">
           <div class="cn"><span class="idx">03</span><span class="st">Social Selling · Pipeline</span></div>
           <h3>Stage Monitoring</h3>
-          <p>Monitoramento em tempo real de mudanças de stage no pipeline de Social Selling. Sankey de fluxo, tempo médio por stage, ranking e identificação de gargalos.</p>
-          <div class="tags"><span class="pill">Sankey Flow</span><span class="pill">Tempo por stage</span><span class="pill">Gargalos</span><span class="pill">Timeline</span></div>
-          <div class="foot">Abrir dashboard &rarr;</div>
+          <p data-i18n="d3p">Real-time monitoring of stage changes in the Social Selling pipeline. Flow Sankey, average time per stage, ranking and bottleneck detection.</p>
+          <div class="tags" data-i18n="d3t"><span class="pill">Sankey flow</span><span class="pill">Time per stage</span><span class="pill">Bottlenecks</span><span class="pill">Timeline</span></div>
+          <div class="foot" data-i18n="open">Open dashboard &rarr;</div>
         </div>
       </a>
 
       <a class="card reveal" href="04_leadscoring.html">
         <div class="thumb"><img src="docs/previews/04_leadscoring.webp" alt="Lead Scoring" loading="lazy"></div>
         <div class="body">
-          <div class="cn"><span class="idx">04</span><span class="st">Qualificação · Score IA</span></div>
+          <div class="cn"><span class="idx">04</span><span class="st" data-i18n="d4s">Qualification · AI score</span></div>
           <h3>Lead Scoring (ABCD)</h3>
-          <p>Relatório interativo de lead scoring com classificação ABCD baseada em IA. Correlação score × conversão, distribuição por origem, análise temporal e segmentação por tags.</p>
-          <div class="tags"><span class="pill">Score IA</span><span class="pill">Classificação ABCD</span><span class="pill">Conversão</span><span class="pill">Segmentação</span></div>
-          <div class="foot">Abrir dashboard &rarr;</div>
+          <p data-i18n="d4p">Interactive lead-scoring report with AI-based ABCD classification. Score × conversion correlation, distribution by origin, time analysis and tag segmentation.</p>
+          <div class="tags" data-i18n="d4t"><span class="pill">AI score</span><span class="pill">ABCD classes</span><span class="pill">Conversion</span><span class="pill">Segmentation</span></div>
+          <div class="foot" data-i18n="open">Open dashboard &rarr;</div>
         </div>
       </a>
 
       <a class="card reveal" href="05_primeiro_agendamento.html">
-        <div class="thumb"><img src="docs/previews/05_primeiro_agendamento.webp" alt="Tempo ao 1º Agendamento" loading="lazy"></div>
+        <div class="thumb"><img src="docs/previews/05_primeiro_agendamento.webp" alt="Time to First Booking" data-pt-alt="Tempo ao 1º Agendamento" loading="lazy"></div>
         <div class="body">
-          <div class="cn"><span class="idx">05</span><span class="st">IA vs Humano</span></div>
-          <h3>Tempo ao 1º Agendamento</h3>
-          <p>Benchmark de velocidade de resposta comparando SDRs humanos com SDRs com IA. Mede o tempo do lead até o primeiro agendamento, distribuição e análise de tendência.</p>
-          <div class="tags"><span class="pill">IA vs Humano</span><span class="pill">Benchmark</span><span class="pill">Distribuição</span><span class="pill">Tendência</span></div>
-          <div class="foot">Abrir dashboard &rarr;</div>
+          <div class="cn"><span class="idx">05</span><span class="st" data-i18n="d5s">AI vs human</span></div>
+          <h3 data-i18n="d5h">Time to First Booking</h3>
+          <p data-i18n="d5p">Response-speed benchmark comparing human SDRs with AI-assisted SDRs. Measures the time from lead to first booking, distribution and trend analysis.</p>
+          <div class="tags" data-i18n="d5t"><span class="pill">AI vs human</span><span class="pill">Benchmark</span><span class="pill">Distribution</span><span class="pill">Trend</span></div>
+          <div class="foot" data-i18n="open">Open dashboard &rarr;</div>
         </div>
       </a>
 
       <a class="card reveal" href="06_newsradar.html">
         <div class="thumb"><img src="docs/previews/06_newsradar.webp" alt="NewsRadar Editorial" loading="lazy"></div>
         <div class="body">
-          <div class="cn"><span class="idx">06</span><span class="st">Editorial · Curadoria</span></div>
+          <div class="cn"><span class="idx">06</span><span class="st" data-i18n="d6s">Editorial · Curation</span></div>
           <h3>NewsRadar Editorial</h3>
-          <p>Dashboard editorial para análise de curadoria de notícias com IA. Volume por fonte, score de relevância, keyword explorer (word cloud, rede, heatmap) e tendências de conteúdo.</p>
-          <div class="tags"><span class="pill">Score IA</span><span class="pill">Fontes</span><span class="pill">Keywords</span><span class="pill">Tendências</span></div>
-          <div class="foot">Abrir dashboard &rarr;</div>
+          <p data-i18n="d6p">Editorial dashboard for AI news-curation analysis. Volume by source, relevance score, keyword explorer (word cloud, network, heatmap) and content trends.</p>
+          <div class="tags" data-i18n="d6t"><span class="pill">AI score</span><span class="pill">Sources</span><span class="pill">Keywords</span><span class="pill">Trends</span></div>
+          <div class="foot" data-i18n="open">Open dashboard &rarr;</div>
         </div>
       </a>
 
       <a class="card reveal" href="07_segmentacao.html">
-        <div class="thumb"><img src="docs/previews/07_segmentacao.webp" alt="Segmentação" loading="lazy"></div>
+        <div class="thumb"><img src="docs/previews/07_segmentacao.webp" alt="Market Segmentation" data-pt-alt="Segmentação de Mercado" loading="lazy"></div>
         <div class="body">
           <div class="cn"><span class="idx">07</span><span class="st">ICP · Deals</span></div>
-          <h3>Segmentação de Mercado</h3>
-          <p>Segmentação de deals por ICP com dicionário de termos canônicos. Classifica leads em segmentos automaticamente e detecta conflitos e novos termos.</p>
-          <div class="tags"><span class="pill">ICP</span><span class="pill">Dicionário</span><span class="pill">Conflitos</span><span class="pill">Exportar CSV</span></div>
-          <div class="foot">Abrir dashboard &rarr;</div>
+          <h3 data-i18n="d7h">Market Segmentation</h3>
+          <p data-i18n="d7p">Deal segmentation by ICP with a canonical-terms dictionary. Automatically classifies leads into segments and flags conflicts and new terms.</p>
+          <div class="tags" data-i18n="d7t"><span class="pill">ICP</span><span class="pill">Dictionary</span><span class="pill">Conflicts</span><span class="pill">CSV export</span></div>
+          <div class="foot" data-i18n="open">Open dashboard &rarr;</div>
         </div>
       </a>
 
       <a class="card reveal" href="08_gradiente_metas.html">
-        <div class="thumb"><img src="docs/previews/08_gradiente_metas.webp" alt="Gradiente de Metas" loading="lazy"></div>
+        <div class="thumb"><img src="docs/previews/08_gradiente_metas.webp" alt="Goal Gradient" data-pt-alt="Gradiente de Metas" loading="lazy"></div>
         <div class="body">
-          <div class="cn"><span class="idx">08</span><span class="st">TV · Gamificado</span></div>
-          <h3>Gradiente de Metas</h3>
-          <p>Dashboard gamificado para TV (1920×1080) com progresso de vendas por semana. Redistribuição de déficit (diluir ou cascata), timeline por dia e cards com pulsação na semana vigente.</p>
-          <div class="tags"><span class="pill">TV 1920×1080</span><span class="pill">Redistribuição</span><span class="pill">Timeline</span><span class="pill">Auto-refresh</span></div>
-          <div class="foot">Abrir dashboard &rarr;</div>
+          <div class="cn"><span class="idx">08</span><span class="st" data-i18n="d8s">TV · Gamified</span></div>
+          <h3 data-i18n="d8h">Goal Gradient</h3>
+          <p data-i18n="d8p">Gamified TV dashboard (1920×1080) with weekly sales progress. Deficit redistribution (dilute or cascade), day-by-day timeline and pulsing cards on the current week.</p>
+          <div class="tags" data-i18n="d8t"><span class="pill">TV 1920×1080</span><span class="pill">Redistribution</span><span class="pill">Timeline</span><span class="pill">Auto-refresh</span></div>
+          <div class="foot" data-i18n="open">Open dashboard &rarr;</div>
         </div>
       </a>
 
@@ -253,7 +262,7 @@
   </section>
 
   <section id="stack" style="padding-bottom:60px;">
-    <div class="shead reveal"><span class="k"><b>02</b> / toolbox</span><h2>Stack técnica</h2></div>
+    <div class="shead reveal"><span class="k"><b>02</b> / toolbox</span><h2 data-i18n="s2h">Tech stack</h2></div>
     <div class="stackwrap reveal">
       <span class="tk">HTML5 / CSS3</span><span class="tk">JavaScript ES6+</span><span class="tk">ECharts 6</span><span class="tk">PapaParse</span><span class="tk">Google Apps Script</span><span class="tk">Google Sheets API</span><span class="tk">Gemini AI API</span><span class="tk">BigQuery</span><span class="tk">PostgreSQL</span>
     </div>
@@ -262,8 +271,8 @@
 
 <footer>
   <div class="wrap">
-    <div class="note">&gt;_ todos os dashboards exibem dados fictícios, gerados para demonstração</div>
-    <p>Construídos para a operação comercial de um SaaS B2B &middot; stack: HTML + ECharts + Google Apps Script &middot; <a href="https://felippeyann.github.io/">felippeyann.github.io</a></p>
+    <div class="note" data-i18n="fn">&gt;_ all dashboards display fictional data, generated for demonstration</div>
+    <p data-i18n="fp">Built for the sales operation of a B2B SaaS &middot; stack: HTML + ECharts + Google Apps Script &middot; <a href="https://felippeyann.github.io/">felippeyann.github.io</a></p>
   </div>
 </footer>
 
@@ -286,6 +295,77 @@
   addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 8), { passive: true });
   const obs = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } }), { threshold: .1 });
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  // language selector: EN is the default (static HTML); PT swaps in from the dict below
+  (function () {
+    const PT = {
+      nav1: '&larr; PORTF&Oacute;LIO',
+      hk: 'BI &amp; Analytics <b>//</b> dados sint&eacute;ticos',
+      h1: 'Oito dashboards que<br><span class="hl">rodaram o comercial.</span>',
+      sub: 'Cole&ccedil;&atilde;o de dashboards interativos de BI constru&iacute;dos para a opera&ccedil;&atilde;o comercial de um SaaS B2B: funil de vendas, produtividade de SDRs, lead scoring, monitoramento de pipeline. Cada um &eacute; um HTML &uacute;nico (vanilla JS + ECharts). Tudo aqui roda com dados 100% sint&eacute;ticos.',
+      ch4: 'dados <b>sint&eacute;ticos</b>',
+      cta1: 'Ver dashboards &darr;', cta2: 'Reposit&oacute;rio &rarr;',
+      s1k: '<b>01</b> / demos ao vivo', s2h: 'Stack t&eacute;cnica',
+      open: 'Abrir dashboard &rarr;',
+      d1s: 'Funil de Topo &middot; SDR', d1h: 'An&aacute;lise de Agendamentos',
+      d1p: 'Mapeamento completo dos agendamentos de reuni&atilde;o: origem UTM, squad, velocidade de atribui&ccedil;&atilde;o (TA), taxa de convers&atilde;o por canal, filtros cruzados interativos e insights por IA.',
+      d1t: '<span class="pill">UTM Sankey</span><span class="pill">Filtros cruzados</span><span class="pill">Gemini AI</span><span class="pill">Exportar PDF</span>',
+      d2s: 'Performance individual', d2h: 'Produtividade SDR',
+      d2p: 'Acompanhamento di&aacute;rio da produtividade de cada SDR: liga&ccedil;&otilde;es, conex&otilde;es, agendamentos, WhatsApp, e-mails, tarefas. Ranking individual com m&eacute;dia do time e metas configur&aacute;veis.',
+      d2t: '<span class="pill">Ranking SDRs</span><span class="pill">Heatmap di&aacute;rio</span><span class="pill">Metas</span><span class="pill">Multi-m&eacute;trica</span>',
+      d3p: 'Monitoramento em tempo real de mudan&ccedil;as de stage no pipeline de Social Selling. Sankey de fluxo, tempo m&eacute;dio por stage, ranking e identifica&ccedil;&atilde;o de gargalos.',
+      d3t: '<span class="pill">Sankey Flow</span><span class="pill">Tempo por stage</span><span class="pill">Gargalos</span><span class="pill">Timeline</span>',
+      d4s: 'Qualifica&ccedil;&atilde;o &middot; Score IA',
+      d4p: 'Relat&oacute;rio interativo de lead scoring com classifica&ccedil;&atilde;o ABCD baseada em IA. Correla&ccedil;&atilde;o score &times; convers&atilde;o, distribui&ccedil;&atilde;o por origem, an&aacute;lise temporal e segmenta&ccedil;&atilde;o por tags.',
+      d4t: '<span class="pill">Score IA</span><span class="pill">Classifica&ccedil;&atilde;o ABCD</span><span class="pill">Convers&atilde;o</span><span class="pill">Segmenta&ccedil;&atilde;o</span>',
+      d5s: 'IA vs Humano', d5h: 'Tempo ao 1&ordm; Agendamento',
+      d5p: 'Benchmark de velocidade de resposta comparando SDRs humanos com SDRs com IA. Mede o tempo do lead at&eacute; o primeiro agendamento, distribui&ccedil;&atilde;o e an&aacute;lise de tend&ecirc;ncia.',
+      d5t: '<span class="pill">IA vs Humano</span><span class="pill">Benchmark</span><span class="pill">Distribui&ccedil;&atilde;o</span><span class="pill">Tend&ecirc;ncia</span>',
+      d6s: 'Editorial &middot; Curadoria',
+      d6p: 'Dashboard editorial para an&aacute;lise de curadoria de not&iacute;cias com IA. Volume por fonte, score de relev&acirc;ncia, keyword explorer (word cloud, rede, heatmap) e tend&ecirc;ncias de conte&uacute;do.',
+      d6t: '<span class="pill">Score IA</span><span class="pill">Fontes</span><span class="pill">Keywords</span><span class="pill">Tend&ecirc;ncias</span>',
+      d7h: 'Segmenta&ccedil;&atilde;o de Mercado',
+      d7p: 'Segmenta&ccedil;&atilde;o de deals por ICP com dicion&aacute;rio de termos can&ocirc;nicos. Classifica leads em segmentos automaticamente e detecta conflitos e novos termos.',
+      d7t: '<span class="pill">ICP</span><span class="pill">Dicion&aacute;rio</span><span class="pill">Conflitos</span><span class="pill">Exportar CSV</span>',
+      d8s: 'TV &middot; Gamificado', d8h: 'Gradiente de Metas',
+      d8p: 'Dashboard gamificado para TV (1920&times;1080) com progresso de vendas por semana. Redistribui&ccedil;&atilde;o de d&eacute;ficit (diluir ou cascata), timeline por dia e cards com pulsa&ccedil;&atilde;o na semana vigente.',
+      d8t: '<span class="pill">TV 1920&times;1080</span><span class="pill">Redistribui&ccedil;&atilde;o</span><span class="pill">Timeline</span><span class="pill">Auto-refresh</span>',
+      fn: '&gt;_ todos os dashboards exibem dados fict&iacute;cios, gerados para demonstra&ccedil;&atilde;o',
+      fp: 'Constru&iacute;dos para a opera&ccedil;&atilde;o comercial de um SaaS B2B &middot; stack: HTML + ECharts + Google Apps Script &middot; <a href="https://felippeyann.github.io/">felippeyann.github.io</a>'
+    };
+    const META = {
+      en: { title: 'Analytics Dashboards | Felippe Yann', desc: 'Eight interactive sales & marketing BI dashboards (vanilla JS + ECharts), 100% synthetic data. Live demos.' },
+      pt: { title: 'Dashboards de Analytics | Felippe Yann', desc: 'Oito dashboards interativos de BI comercial (vanilla JS + ECharts), com dados 100% sintéticos. Demos ao vivo.' }
+    };
+    const EN = {}; const ATTRS = ['alt', 'title', 'aria'];
+    document.querySelectorAll('[data-i18n]').forEach(el => { EN[el.getAttribute('data-i18n')] = el.innerHTML; });
+    ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(el => {
+      const real = a === 'aria' ? 'aria-label' : a;
+      el.setAttribute('data-en-' + a, el.getAttribute(real) || '');
+    }));
+    function apply(lang) {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = (lang === 'pt' ? PT : EN)[el.getAttribute('data-i18n')];
+        if (v != null) el.innerHTML = v;
+      });
+      ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(el => {
+        const real = a === 'aria' ? 'aria-label' : a;
+        el.setAttribute(real, el.getAttribute('data-' + (lang === 'pt' ? 'pt' : 'en') + '-' + a));
+      }));
+      document.documentElement.setAttribute('lang', lang === 'pt' ? 'pt-BR' : 'en');
+      document.title = META[lang].title;
+      const md = document.querySelector('meta[name="description"]');
+      if (md) md.setAttribute('content', META[lang].desc);
+      document.querySelectorAll('[data-lang-btn]').forEach(b => {
+        const on = b.getAttribute('data-lang-btn') === lang;
+        b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+      });
+      try { localStorage.setItem('lang', lang); } catch (e) {}
+    }
+    let saved = 'en';
+    try { saved = localStorage.getItem('lang') || 'en'; } catch (e) {}
+    apply(saved === 'pt' ? 'pt' : 'en');
+    document.querySelectorAll('[data-lang-btn]').forEach(b => b.addEventListener('click', () => apply(b.getAttribute('data-lang-btn'))));
+  })();
 </script>
 </body>
 </html>
