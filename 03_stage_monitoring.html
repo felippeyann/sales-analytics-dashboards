@@ -1,753 +1,343 @@
 <!DOCTYPE html>
 <!--
-  ╔═══════════════════════════════════════════════════════════╗
-  ║  Analytics Dashboard - Stage Monitoring                  ║
-  ║  Versão: v1.2 PRO                                        ║
-  ║  Última atualização: 20/01/2026                          ║
-  ║  Descrição: Dashboard BI profissional para monitoramento ║
-  ║             de mudanças de stage no pipeline Social Selling║
-  ║  Stages: Base → Ativação → Condução → Conexão →          ║
-  ║          Conversão → Passagem para SDR                   ║
-  ║                                                          ║
-  ║  CHANGELOG v1.2:                                         ║
-  ║  - Sankey com fluxo real de transições (from_stage)      ║
-  ║  - Volume chart com gradient e % participação            ║
-  ║  - Tempo chart com identificação de gargalos             ║
-  ║  - Timeline com dataZoom e identificação de pico         ║
-  ║  - Performance com taxa de retenção destacada            ║
-  ║  - Distribuição tempo com análise por faixa              ║
-  ║  - Ranking com medalhas e % do máximo                    ║
-  ║  - Tooltips enriquecidos com insights contextuais        ║
-  ╚═══════════════════════════════════════════════════════════╝
+  Stage Monitoring | Felippe Yann
+  Versao: v2.0 (redesign enterprise)
+  Pipeline: Base > Ativacao > Conducao > Conexao > Conversao > Passagem para SDR
+  Monitoramento de mudancas de etapa no funil de social selling:
+  volume, tempo de permanencia, retencao e fluxo entre etapas.
 -->
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Dashboard BI para monitoramento de stages do pipeline Social Selling" />
-  <meta http-equiv="cache-control" content="no-cache" />
-  <meta http-equiv="expires" content="0" />
-  <meta http-equiv="pragma" content="no-cache" />
-  <title>Relatório Interativo – Monitoramento de Stages</title>
+  <meta name="description" content="Dashboard BI para monitoramento de etapas do pipeline de social selling" />
+  <title>Stage Monitoring | Felippe Yann</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
-    :root{
-      --bg:#0a0a0b; --panel:#131316; --card:#1a1a1e; --muted:#9ca3af; --text:#e5e7eb;
-      --accent:#2563eb; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --line:#232328;
-      --accent-light:#93c5fd; --accent-dark:#1d4ed8;
-      --accent-glow:rgba(37,99,235,0.15);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      background:linear-gradient(180deg,#0a0f1d 0%,#0a0a0b 60%,#0a0f1d 100%);
-      color:var(--text);
-      font:300 clamp(12px,1.2vw,14px)/1.4 'Montserrat',system-ui,-apple-system,sans-serif;
-    }
-    header{
-      position: fixed; 
-      top: 0;
-      width: 100%; 
-      z-index: 50;
-      background:linear-gradient(180deg, rgba(10,15,29,0.95) 0%, rgba(10,15,29,0.80) 100%);
-      backdrop-filter: blur(6px);
-      border-bottom:1px solid var(--line);
-      transition: transform 0.3s ease-in-out; 
-    }
-    .header-hidden {
-      transform: translateY(-100%); 
-    }
-    .wrap{width:100%;max-width:1360px;margin:0 auto;padding:12px clamp(12px,3vw,16px)}
-    .title{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .title h1{margin:0;font-size:clamp(14px,1.8vw,18px);color:var(--accent);font-weight:500}
-    .badge{font-size:10px;padding:2px 6px;border:1px solid var(--line);border-radius:20px;color:var(--muted);font-weight:400}
+  /* ===== tokens (fonte única de verdade do arquivo) ===== */
+  :root{
+    --bg:#0a0a0b;
+    --panel:#131316;
+    --card:#1a1a1e;
+    --card-h:#232328;
+    --ink:#f8f7f3; --ink-2:#d4d4d8; --ink-3:#a1a1aa; --ink-4:#8a8a94;
+    --accent:#2563eb;
+    --accent-soft:#60a5fa;
+    --accent-glow:rgba(37,99,235,0.15);
+    --ok:#4ade80; --warn:#fbbf24; --bad:#f87171;
+    --line:rgba(248,247,243,.09); --line-strong:rgba(248,247,243,.18);
+    --sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --r:12px; --r-sm:8px;
+    /* aliases legados (consumidos por JS/markup antigos) */
+    --muted:var(--ink-4);
+    --text:var(--ink);
+    --accent-2:var(--accent-soft);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink-2);font-family:var(--sans);font-size:14px}
+  a{color:var(--accent-soft);text-decoration:none}
+  button{font-family:var(--sans)}
 
-    .uploader{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
-    .uploader input[type=file]{background:var(--panel);border:1px dashed #334155;padding:8px;border-radius:10px;color:var(--muted);width:100%;max-width:360px;font-size:12px}
-    .hint{color:var(--muted);font-size:10px;font-weight:300}
+  /* ===== header (sticky, compacto) ===== */
+  header{
+    position:sticky;top:0;z-index:60;
+    background:rgba(10,10,11,.92);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .wrap{max-width:1400px;margin:0 auto;padding:0 20px}
+  .hdr-in{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;padding:8px 0}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .logo{
+    width:30px;height:30px;border-radius:var(--r-sm);flex:none;
+    background:var(--accent);color:#fff;
+    font-family:var(--mono);font-weight:700;font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .desc{color:var(--ink-4);font-size:11px;font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  @media (max-width:760px){ .desc{display:none} h1{font-size:14px} }
+  .version-badge{display:inline-block;background:var(--accent-glow);border:1px solid rgba(37,99,235,.4);color:var(--accent-soft);font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:10px;margin-left:8px;letter-spacing:0.5px;vertical-align:middle}
 
-    /* Menu de navegação minimizável */
-    .nav-container{
-      margin-top:12px;
-      background:linear-gradient(135deg, #0a0a0b 0%, #1e293b 100%);
-      border:1px solid #232328;
-      border-radius:12px;
-      overflow:hidden;
-      transition:all 0.3s ease;
-    }
-    .nav-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:10px 14px;
-      cursor:pointer;
-      user-select:none;
-      background:var(--accent-glow);
-      border-bottom:1px solid transparent;
-      transition:all 0.2s ease;
-    }
-    .nav-header:hover{
-      background:rgba(56, 189, 248, 0.1);
-      border-bottom-color:#232328;
-    }
-    .nav-title{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      color:#cbd5e1;
-      font-size:13px;
-      font-weight:600;
-    }
-    .nav-title svg{
-      transition:transform 0.3s ease;
-    }
-    .nav-container.collapsed .nav-title svg{
-      transform:rotate(-90deg);
-    }
-    .nav-badge{
-      background:var(--accent);
-      color:#0a0a0b;
-      font-size:10px;
-      font-weight:700;
-      padding:2px 6px;
-      border-radius:10px;
-      min-width:20px;
-      text-align:center;
-    }
-    .grid {
-      display: grid;
-      gap: 24px;
-      margin-top: 20px;
-      grid-template-columns: 1fr;
-    }
-    
-    /* Layout 2 colunas para telas médias e grandes */
-    @media (min-width: 800px) {
-      .grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-    
-    /* Card que ocupa linha inteira (para o gráfico de evolução) */
-    .full-width {
-      grid-column: 1 / -1;
-    }
-    .card{
-      background:
-        radial-gradient(1200px 300px at 10% -10%,var(--accent-glow),transparent),
-        radial-gradient(900px 300px at 90% -20%,rgba(37,99,235,0.08),transparent);
-      border:1px solid var(--line);border-radius:14px;padding:clamp(16px,2.5vw,24px);
-      scroll-margin-top: 120px;
-    }
-    .card h2{margin:0 0 8px 0;display:flex;align-items:center;gap:8px;font-size:clamp(13px,1.6vw,15px);font-weight:500}
-    .card h2 small{color:var(--muted);font-weight:300}
-    
-    /* Numeração dos visualizadores */
-    .card h2::before {
-      content: attr(data-number);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 24px;
-      height: 24px;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-      color: #0a0f1d;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 0 4px;
-      box-shadow: 0 2px 8px var(--accent-glow);
-      flex-shrink: 0;
-    }
+  /* ===== filter bar ===== */
+  .filterbar{border-top:1px solid var(--line);background:rgba(19,19,22,.9)}
+  .fb-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 0}
+  .fb-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);white-space:nowrap}
+  .fb-sep{width:1px;height:22px;background:var(--line-strong);flex:none}
 
-    @media(min-width:1280px){ .wrap{max-width:1360px} }
+  /* chips de filtros ativos, inline na barra */
+  .active-filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+  .filter-chip{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--accent-glow);border:1px solid rgba(37,99,235,.4);border-radius:999px;
+    padding:3px 6px 3px 11px;font-size:12px;
+  }
+  .filter-chip-label{display:inline-flex;align-items:baseline;gap:6px;min-width:0}
+  .filter-chip strong{color:var(--accent-soft);font-family:var(--mono);font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em}
+  .filter-chip-value{color:var(--ink);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+  .chip-remove{border:none;background:none;color:var(--ink-4);cursor:pointer;padding:0 4px;font-size:13px;line-height:1;border-radius:50%}
+  .chip-remove::before{content:'×'}
+  .chip-remove:hover{color:var(--bad)}
 
-    .chart{width:100%;height:clamp(350px,45vw,450px)}
-    #chart_sankey{height:clamp(400px,55vw,600px)}
-    #chart_timeline{height:clamp(350px,50vw,500px)}
+  /* indicador de período dos dados */
+  .data-period{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--ink-4);white-space:nowrap;flex-wrap:wrap}
+  .data-period strong{color:var(--ink-2);font-weight:700}
+  .data-period .count{background:var(--accent);color:#fff;padding:1px 7px;border-radius:10px;font-weight:700;font-size:10px}
 
-    /* Controles de filtro */
-    .filters-panel {
-      background: rgba(17, 24, 39, 0.8);
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .filter-group label {
-      color: #cbd5e1;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .filter-group select,
-    .filter-group input[type="date"] {
-      background: var(--panel);
-      border: 1px solid #374151;
-      color: var(--text);
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-    .filter-group select:focus,
-    .filter-group input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--accent-glow);
-    }
+  /* ===== cards e grid ===== */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line-strong);
+    border-radius:var(--r);padding:16px 18px;
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+    scroll-margin-top:120px;
+  }
+  .card h2{margin:0 0 4px 0;font-size:14px;font-weight:700;color:var(--ink);letter-spacing:.01em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .grid{display:grid;gap:14px;margin-top:16px;grid-template-columns:1fr}
+  @media (min-width:900px){ .grid{grid-template-columns:1fr 1fr} }
+  .full-width{grid-column:1 / -1}
+  .panel{margin-top:16px}
+  .panel-sub{font-size:13px;line-height:1.45;color:var(--ink-4);margin:-2px 0 12px;max-width:82ch}
 
-    /* KPIs */
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
-      margin: 20px 0;
-    }
-    .kpi-card {
-      background: linear-gradient(135deg, rgba(17, 24, 39, 0.8) 0%, rgba(30, 41, 59, 0.4) 100%);
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .kpi-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-light));
-    }
-    .kpi-value {
-      font-size: clamp(20px, 3vw, 28px);
-      font-weight: 700;
-      color: var(--accent);
-      margin: 0;
-    }
-    .kpi-label {
-      color: #9ca3af;
-      font-size: 12px;
-      margin: 4px 0 0 0;
-      font-weight: 500;
-    }
-    .kpi-delta {
-      font-size: 11px;
-      margin-top: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-    .kpi-delta.positive { color: #22c55e; }
-    .kpi-delta.negative { color: #ef4444; }
-    .kpi-delta.neutral { color: #9ca3af; }
-    .kpi-sublabel {
-      font-size: 10px;
-      color: #6b7280;
-      margin-top: 2px;
-    }
+  /* ===== KPIs (linha única) ===== */
+  .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+  @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:600px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{
+    background:var(--card);
+    border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;min-width:0
+  }
+  .kpi .label{color:var(--ink-4);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .value{font-size:24px;font-weight:700;margin-top:6px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+  .kpi .value.good{color:var(--ok)}
+  .kpi .value.bad{color:var(--bad)}
+  .kpi .subv{color:var(--ink-4);font-size:11.5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-    /* Active filter pills */
-    .active-filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 12px 0;
-      min-height: 24px;
-    }
-    .filter-pill {
-      background: var(--accent-glow);
-      border: 1px solid var(--accent);
-      color: var(--text);
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      animation: fadeIn 0.3s ease;
-    }
-    .filter-pill .remove {
-      background: none;
-      border: none;
-      color: var(--accent);
-      cursor: pointer;
-      padding: 0;
-      font-size: 14px;
-      line-height: 1;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+  /* ===== faixa executiva ===== */
+  .exec-band{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);padding:18px 20px;margin-bottom:16px}
+  .exec-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-bottom:8px}
+  .exec-kicker b{color:var(--accent);font-weight:700}
+  .exec-q{color:var(--ink);font-size:15px;font-weight:500;margin:0 0 14px;max-width:82ch;line-height:1.45}
+  .exec-insight{border-left:3px solid var(--accent);padding:6px 0 6px 14px;color:var(--ink-2);font-size:14px;line-height:1.55}
+  .exec-insight .ei-tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-soft);border:1px solid rgba(37,99,235,.4);padding:1px 7px;margin-right:8px}
+  .exec-insight b{color:var(--ink);font-weight:700}
 
-    .foot{color:#94a3b8;font-size:12px;margin-top:6px}
-    .pill{display:inline-block;padding:2px 8px;border:1px solid #334155;border-radius:999px;color:#cbd5e1;font-size:12px}
-    .ok{color:#86efac}.warn{color:#fde68a}.danger{color:#fca5a5}
-    .muted{color:var(--muted)}
+  /* ===== botões ===== */
+  .btn{
+    background:var(--accent);border:1px solid var(--accent);color:#fff;
+    padding:8px 14px;font-weight:700;border-radius:var(--r-sm);
+    cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease;
+    font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;line-height:1.2
+  }
+  .btn:hover{background:#1d4ed8;border-color:#1d4ed8}
+  .btn.secondary{background:transparent;border:1px solid var(--line-strong);color:var(--ink-2)}
+  .btn.secondary:hover{background:var(--card-h);border-color:var(--line-strong)}
+  .btn.sm{padding:6px 10px;font-size:10.5px}
+  .btn:disabled{background:var(--card);border-color:var(--line);color:var(--ink-4);cursor:not-allowed}
+  .topic-actions .btn.secondary.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-    /* Info tooltips */
-    .info-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      margin-left: 8px;
-      font-size: 12px;
-      font-weight: bold;
-      color: #9ca3af;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid #334155;
-      border-radius: 50%;
-      cursor: help;
-      transition: all 0.3s ease;
-      position: relative;
-      z-index: 100;
-    }
-    
-    .info-icon:hover {
-      color: var(--accent);
-      background: var(--accent-glow);
-      border-color: var(--accent);
-      transform: scale(1.1);
-      z-index: 10000;
-    }
-    
-    .info-icon .tooltip {
-      visibility: hidden;
-      opacity: 0;
-      position: absolute;
-      bottom: calc(100% + 12px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(17, 24, 39, 0.98);
-      color: #e5e7eb;
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: 1px solid var(--accent);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      white-space: nowrap;
-      font-size: 12px;
-      font-weight: normal;
-      line-height: 1.5;
-      z-index: 10001;
-      transition: all 0.3s ease;
-      pointer-events: none;
-      min-width: 200px;
-    }
-    
-    .info-icon .tooltip::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 6px solid transparent;
-      border-top-color: var(--accent);
-    }
-    
-    .info-icon:hover .tooltip {
-      visibility: visible;
-      opacity: 1;
-    }
+  .topic-head{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;row-gap:4px;margin-bottom:6px}
+  .topic-head h2{align-self:center}
+  @media (max-width:760px){
+    .topic-head{grid-template-columns:1fr}
+    .topic-head .topic-actions{justify-content:flex-start}
+  }
+  .topic-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 40px;
-      color: var(--muted);
-    }
-    .loading.show {
-      display: block;
-    }
+  input,select{
+    background:var(--card);border:1px solid var(--line-strong);
+    color:var(--ink-2);padding:7px 10px;border-radius:var(--r-sm);font-size:12px;font-family:var(--sans)
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(0.8);cursor:pointer}
 
-    /* Tabela de entradas/saídas */
-    .stage-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: rgba(17, 24, 39, 0.6);
-      border-radius: 8px;
-      overflow: hidden;
-      font-size: 13px;
-    }
-    .stage-table th,
-    .stage-table td {
-      padding: 12px 16px;
-      text-align: left;
-      border-bottom: 1px solid #374151;
-    }
-    .stage-table th {
-      background: var(--accent-glow);
-      color: var(--accent);
-      font-weight: 600;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    /* Alinhamento específico por coluna */
-    .stage-table th:nth-child(1), /* STAGE */
-    .stage-table td:nth-child(1) {
-      text-align: left;
-    }
-    .stage-table th:nth-child(2), /* ENTRADAS */
-    .stage-table td:nth-child(2),
-    .stage-table th:nth-child(3), /* SAÍDAS */
-    .stage-table td:nth-child(3),
-    .stage-table th:nth-child(4), /* SALDO */
-    .stage-table td:nth-child(4) {
-      text-align: center;
-      min-width: 80px;
-    }
-    .stage-table th:nth-child(5), /* TAXA RETENÇÃO */
-    .stage-table td:nth-child(5) {
-      text-align: center;
-      min-width: 120px;
-    }
-    .stage-table td {
-      color: var(--text);
-      font-weight: 400;
-    }
-    .stage-table tr:hover {
-      background: rgba(153, 41, 234, 0.05);
-    }
-    .stage-table .number {
-      font-weight: 500;
-      font-family: 'Courier New', monospace;
-    }
-    .stage-table .positive {
-      color: #22c55e;
-      font-weight: 500;
-    }
-    .stage-table .negative {
-      color: #ef4444;
-      font-weight: 500;
-    }
+  .chart{width:100%;height:300px}
+  .chart.tall{height:340px}
+  #chart_sankey{height:420px}
 
-    /* Estado atual por stage */
-    .current-state {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      margin: 16px 0;
-    }
-    .state-card {
-      background: linear-gradient(135deg, rgba(17, 24, 39, 0.8) 0%, rgba(30, 41, 59, 0.4) 100%);
-      border: 1px solid #374151;
-      border-radius: 8px;
-      padding: 12px;
-      text-align: center;
-      position: relative;
-      transition: all 0.3s ease;
-    }
-    .state-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-    .state-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      border-radius: 8px 8px 0 0;
-    }
-    .state-value {
-      font-size: clamp(16px, 2.5vw, 20px);
-      font-weight: 600;
-      margin: 0;
-      color: var(--text);
-    }
-    .state-label {
-      color: #9ca3af;
-      font-size: 10px;
-      margin: 4px 0 0 0;
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
+  /* ===== info icon ===== */
+  .info-icon{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:17px;height:17px;margin-left:6px;font-size:11px;font-weight:bold;
+    color:var(--ink-4);background:none;border:1px solid var(--line-strong);border-radius:50%;
+    cursor:help;transition:color .2s ease,border-color .2s ease;position:relative;z-index:100;flex:none;
+  }
+  .info-icon:hover{color:var(--accent-soft);border-color:var(--accent);z-index:10000}
+  .info-icon .tooltip{
+    visibility:hidden;opacity:0;position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);
+    background:var(--card-h);color:var(--ink-2);padding:10px 14px;border-radius:var(--r-sm);
+    border:1px solid var(--line-strong);box-shadow:0 8px 24px rgba(0,0,0,0.4);
+    white-space:normal;width:260px;font-size:12px;font-weight:normal;line-height:1.5;
+    z-index:10001;transition:opacity 0.2s ease;pointer-events:none;
+  }
+  .info-icon .tooltip::after{
+    content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:6px solid transparent;border-top-color:var(--line-strong);
+  }
+  .info-icon:hover .tooltip{visibility:visible;opacity:1}
 
-    /* Summary Box - Insights */
-    .summary-box {
-      background: linear-gradient(135deg, var(--accent-glow) 0%, rgba(56, 189, 248, 0.05) 100%);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin: 20px 0;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    .summary-icon {
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-    .summary-content {
-      flex: 1;
-    }
-    .summary-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 4px;
-    }
-    .summary-text {
-      font-size: 12px;
-      color: #cbd5e1;
-      line-height: 1.5;
-    }
-    .summary-text strong {
-      color: #f8fafc;
-    }
+  .foot{color:var(--ink-4);font-size:12px;margin:10px 0 0}
+  .muted{color:var(--ink-4)}
 
-    /* Highlight badges */
-    .highlight-max {
-      background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.05));
-      border: 1px solid rgba(34, 197, 94, 0.4);
-      color: #86efac;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 600;
-      margin-left: 8px;
-    }
-    .highlight-min {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
-      border: 1px solid rgba(239, 68, 68, 0.4);
-      color: #fca5a5;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 600;
-      margin-left: 8px;
-    }
-    .highlight-warn {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
-      border: 1px solid rgba(245, 158, 11, 0.4);
-      color: #fde68a;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 600;
-      margin-left: 8px;
-    }
+  /* ===== loading ===== */
+  .loading{display:none;text-align:center;padding:40px;color:var(--ink-4)}
+  .loading.show{display:block}
 
-    /* Data period indicator */
-    .data-period {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      background: rgba(17, 24, 39, 0.6);
-      border: 1px solid #374151;
-      border-radius: 8px;
-      font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 16px;
-    }
-    .data-period strong {
-      color: var(--text);
-    }
-    .data-period .count {
-      background: var(--accent);
-      color: #0a0f1d;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 11px;
-    }
+  /* ===== tabela de entradas/saídas ===== */
+  .stage-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:var(--r-sm);overflow:hidden;font-size:12.5px}
+  .stage-table th,.stage-table td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line)}
+  .stage-table th{
+    background:var(--card-h);color:var(--ink-3);font-family:var(--mono);font-weight:700;
+    font-size:10px;text-transform:uppercase;letter-spacing:.06em;
+  }
+  .stage-table th:nth-child(2),.stage-table td:nth-child(2),
+  .stage-table th:nth-child(3),.stage-table td:nth-child(3),
+  .stage-table th:nth-child(4),.stage-table td:nth-child(4){text-align:center;min-width:80px}
+  .stage-table th:nth-child(5),.stage-table td:nth-child(5){text-align:center;min-width:120px}
+  .stage-table td{color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .stage-table tr:hover{background:var(--card-h)}
+  .stage-table .number{font-weight:600;font-family:var(--mono)}
+  .stage-table .positive{color:var(--ok)}
+  .stage-table .negative{color:var(--bad)}
 
+  /* ===== estado atual por etapa ===== */
+  .current-state{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0 4px}
+  .state-card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);
+    padding:12px;text-align:center;position:relative;overflow:hidden;
+  }
+  .state-card:hover{border-color:var(--line-strong)}
+  .state-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--stage-color,var(--line-strong))}
+  .state-value{font-size:20px;font-weight:700;margin:0;color:var(--ink);font-variant-numeric:tabular-nums}
+  .state-label{color:var(--ink-4);font-size:10px;margin:4px 0 0;font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em}
+
+  /* ===== box de insights ===== */
+  .summary-box{
+    background:var(--panel);border:1px solid var(--line-strong);border-left:3px solid var(--accent);
+    border-radius:var(--r);padding:14px 18px;margin:16px 0;
+  }
+  .summary-title{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-soft);margin-bottom:6px}
+  .summary-text{font-size:13px;color:var(--ink-2);line-height:1.55}
+  .summary-text strong{color:var(--ink)}
   </style>
-  <style>.uploader,.upload-section{display:none!important}</style>
 </head>
-<style id="exec-band-css">
-.exec-band{background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:5px 5px 0 0 rgba(0,0,0,0.5);padding:22px 24px;margin:0 0 18px 0;font-family:'Space Grotesk',system-ui,sans-serif}
-.exec-band .exec-kicker{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a94;margin-bottom:8px}
-.exec-band .exec-kicker b{color:#2563eb}
-.exec-band .exec-q{font-size:15px;line-height:1.5;color:#f8f7f3;max-width:80ch;margin-bottom:18px}
-.exec-band .exec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
-.exec-band .exec-kpi{background:#1a1a1e;border:1px solid rgba(248,247,243,0.08);padding:14px 16px}
-.exec-band .exec-kpi .ev{font-size:30px;font-weight:700;line-height:1;color:#f8f7f3;font-variant-numeric:tabular-nums}
-.exec-band .exec-kpi .ev.good{color:#4ade80}
-.exec-band .exec-kpi .el{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a94;margin-top:8px}
-.exec-band .exec-kpi .eh{font-size:12px;color:#6b6b73;margin-top:3px}
-.exec-band .exec-insight{border-left:3px solid #2563eb;padding:10px 0 10px 14px;font-size:14px;line-height:1.55;color:#c9c9d0}
-.exec-band .exec-insight b{color:#f8f7f3;font-weight:600}
-.exec-band .exec-insight .ei-tag{display:inline-block;font-family:'Space Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;border:1px solid rgba(37,99,235,0.4);padding:1px 7px;margin-right:8px;vertical-align:middle}
-@media(max-width:720px){.exec-band .exec-kpis{grid-template-columns:repeat(2,1fr)}}
-.panel-sub{font-family:'Space Grotesk',system-ui,sans-serif;font-size:13px;line-height:1.45;color:#8a8a94;margin:-4px 0 16px;max-width:82ch}
-</style>
 <body>
 
 <header id="header">
-  <div class="wrap">
-    <div class="title">
-      <h1>Monitoramento de Stages - Social Selling</h1>
-      <span class="badge">v1.2 PRO</span>
+  <div class="wrap hdr-in">
+    <div class="brand">
+      <div class="logo">&gt;_</div>
+      <div>
+        <h1>Monitoramento de Stages <span class="version-badge">demo</span></h1>
+        <div class="desc">pipeline social selling · Base → Ativação → Condução → Conexão → Conversão → SDR</div>
+      </div>
     </div>
-    <div class="uploader">
-      <input type="file" id="fileUpload" accept=".csv" />
-      <span class="hint">Formato: CSV com colunas deal_id, stage_label, entered_at_sp, time_in_stage</span>
+    <div class="hdr-actions">
+      <input type="file" id="fileUpload" accept=".csv" hidden />
     </div>
-    
+  </div>
+  <div class="filterbar">
+    <div class="wrap fb-in">
+      <span class="fb-label">período</span>
+      <select id="filterPeriod" title="Período rápido">
+        <option value="all">Todos os dados</option>
+        <option value="7">7 dias</option>
+        <option value="15">15 dias</option>
+        <option value="30">30 dias</option>
+        <option value="60">60 dias</option>
+        <option value="90">90 dias</option>
+      </select>
+      <input type="date" id="filterDateStart" title="Data início" />
+      <input type="date" id="filterDateEnd" title="Data fim" />
+      <span class="fb-sep"></span>
+      <span class="fb-label">etapa</span>
+      <select id="filterStage" title="Stage atual">
+        <option value="all">Todos os stages</option>
+      </select>
+      <select id="filterFromStage" title="Stage de origem">
+        <option value="all">Qualquer origem</option>
+      </select>
+      <span class="fb-sep"></span>
+      <div class="data-period" id="dataPeriodIndicator" style="display:none;">
+        <span>de <strong id="periodStart">-</strong> até <strong id="periodEnd">-</strong></span>
+        <span class="count" id="recordCount">0</span>
+        <span>registros ·</span>
+        <span id="uniqueDeals">0</span>
+        <span>deals únicos</span>
+      </div>
+      <div class="active-filters" id="activeFilters"></div>
+    </div>
   </div>
 </header>
 
-<div style="height: 80px;"></div>
-
 <main>
+  <div class="wrap panel">
+
     <section class="exec-band" id="exec-band">
       <div class="exec-kicker"><b>//</b> resumo executivo</div>
       <div class="exec-q">Onde os leads avançam e onde travam ao longo das etapas do funil, e qual estágio concentra a maior perda.</div>
-      <div class="exec-kpis" id="exec-kpis"></div>
+      <div class="kpis" id="kpis" style="margin-bottom:14px"></div>
       <div class="exec-insight" id="exec-insight"></div>
     </section>
-  <div class="wrap">
-    
-    <!-- Controles de Filtro -->
-    <div class="filters-panel">
-      <div class="filter-group">
-        <label for="filterPeriod">Período Rápido</label>
-        <select id="filterPeriod">
-          <option value="all">Todos os dados</option>
-          <option value="7">7 dias</option>
-          <option value="15">15 dias</option>
-          <option value="30" selected>30 dias</option>
-          <option value="60">60 dias</option>
-          <option value="90">90 dias</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label for="filterStage">Stage Atual</label>
-        <select id="filterStage">
-          <option value="all">Todos os stages</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label for="filterFromStage">Stage de Origem</label>
-        <select id="filterFromStage">
-          <option value="all">Qualquer origem</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label for="filterDateStart">Data Início</label>
-        <input type="date" id="filterDateStart" />
-      </div>
-      <div class="filter-group">
-        <label for="filterDateEnd">Data Fim</label>
-        <input type="date" id="filterDateEnd" />
-      </div>
-    </div>
-
-    <!-- Indicador de Período de Dados -->
-    <div class="data-period" id="dataPeriodIndicator" style="display:none;">
-      Período: <strong id="periodStart">-</strong> até <strong id="periodEnd">-</strong>
-      &nbsp;•&nbsp; <span class="count" id="recordCount">0</span> registros
-      &nbsp;•&nbsp; <span id="uniqueDeals">0</span> deals únicos
-    </div>
-
-    <!-- Filtros Ativos -->
-    <div class="active-filters" id="activeFilters"></div>
 
     <!-- Loading -->
     <div class="loading" id="loadingIndicator">
       <p>Carregando dados...</p>
     </div>
 
-    <!-- KPIs -->
-    <div class="kpis" id="kpis" style="display:none;">
-      <div class="kpi-card">
-        <div class="kpi-value" id="kpi-total-moves">-</div>
-        <div class="kpi-label">Total Movimentações</div>
-        <div class="kpi-sublabel">mudanças de stage</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value" id="kpi-total-deals">-</div>
-        <div class="kpi-label">Deals Únicos</div>
-        <div class="kpi-sublabel">no período</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value" id="kpi-avg-time">-</div>
-        <div class="kpi-label">Tempo Médio</div>
-        <div class="kpi-sublabel">por stage</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value" id="kpi-conversion-rate">-</div>
-        <div class="kpi-label">Taxa de Conversão</div>
-        <div class="kpi-sublabel">para SDR</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value" id="kpi-bottleneck">-</div>
-        <div class="kpi-label">Maior Volume</div>
-        <div class="kpi-sublabel">stage mais ativo</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value" id="kpi-velocity">-</div>
-        <div class="kpi-label">Velocidade/Dia</div>
-        <div class="kpi-sublabel">média de moves</div>
-      </div>
-    </div>
-
     <!-- Insights Summary -->
     <div class="summary-box" id="insightsSummary" style="display:none;">
-      <span class="summary-icon"></span>
-      <div class="summary-content">
-        <div class="summary-title">Insights do Funil</div>
-        <div class="summary-text" id="insightsText">Carregue dados para gerar insights automáticos...</div>
-      </div>
+      <div class="summary-title">Insights do funil</div>
+      <div class="summary-text" id="insightsText">Carregue dados para gerar insights automáticos...</div>
     </div>
 
     <!-- Estado Atual por Stage -->
     <div class="card" id="current-state" style="display:none;">
-      <h2 data-number="00">Estado Atual - Deals por Stage
-        <span class="info-icon">i
+      <h2>Estado atual · deals por etapa
+        <span class="info-icon">ⓘ
           <span class="tooltip">Quantidade atual de deals em cada stage (saldo acumulado mais recente)</span>
         </span>
       </h2>
-            <div class="panel-sub">Distribuição atual de deals em cada etapa do funil.</div>
+      <div class="panel-sub">Distribuição atual de deals em cada etapa do funil.</div>
       <div class="current-state" id="current-state-grid"></div>
-      <p class="foot">Snapshot atual do funil - distribuição de deals por stage</p>
+      <p class="foot">Snapshot atual do funil: distribuição de deals por etapa</p>
     </div>
 
     <div class="grid">
 
-      <!-- Evolução do Saldo - NO TOPO -->
-      <div class="card full-width" id="chart2">
-        <h2 data-number="02">Evolução do Saldo por Stage
-          <span class="info-icon">i
-            <span class="tooltip">Estoque de deals em cada stage ao longo do tempo</span>
-          </span>
-        </h2>
-            <div class="panel-sub">Como o saldo acumulado de cada etapa evolui ao longo do tempo.</div>
-        <div class="chart" id="chart_saldo"></div>
-        <p class="foot">Evolução do estoque - acúmulo e liberação de deals</p>
+      <!-- Evolução temporal (saldo + entradas, fundidos) -->
+      <div class="card full-width" id="chart-temporal">
+        <div class="topic-head">
+          <h2>Evolução temporal · saldo e entradas
+            <span class="info-icon">ⓘ
+              <span class="tooltip">Saldo acumulado de deals por stage ao longo do tempo, ou entradas diárias empilhadas por stage. Use o zoom para investigar períodos.</span>
+            </span>
+          </h2>
+          <div class="topic-actions">
+            <button type="button" id="tglSaldo" class="btn secondary sm active">Saldo acumulado</button>
+            <button type="button" id="tglEntradas" class="btn secondary sm">Entradas por dia</button>
+          </div>
+        </div>
+        <div class="panel-sub">Como o estoque de cada etapa evolui, e quanto entra por dia em cada uma.</div>
+        <div class="chart tall" id="chart_temporal"></div>
+        <p class="foot">Evolução do estoque e do fluxo diário de deals por etapa</p>
       </div>
 
-      <!-- LINHA 1 - ESQUERDA: Tabela Entradas/Saídas -->
+      <!-- Tabela Entradas/Saídas -->
       <div class="card" id="chart1">
-        <h2 data-number="01">Entradas e Saídas por Stage
-          <span class="info-icon">i
-            <span class="tooltip">Resumo detalhado de movimentação - quantos entraram e saíram de cada stage</span>
+        <h2>Entradas e saídas · por etapa
+          <span class="info-icon">ⓘ
+            <span class="tooltip">Resumo detalhado de movimentação: quantos entraram e saíram de cada stage</span>
           </span>
         </h2>
-            <div class="panel-sub">Fluxo de entradas e saídas de deals em cada etapa no período.</div>
+        <div class="panel-sub">Fluxo de entradas e saídas de deals em cada etapa no período.</div>
         <div style="overflow-x: auto;">
           <table class="stage-table" id="entries-exits-table">
             <thead>
@@ -766,91 +356,79 @@
             </tbody>
           </table>
         </div>
-        <p class="foot">Análise quantitativa da movimentação entre stages</p>
+        <p class="foot">Análise quantitativa da movimentação entre etapas</p>
       </div>
 
-      <!-- LINHA 1 - DIREITA: Volume por Stage -->
+      <!-- Volume por Stage -->
       <div class="card" id="chart3">
-        <h2 data-number="03">Volume de Entradas por Stage
-          <span class="info-icon">i
+        <h2>Volume de entradas · por etapa
+          <span class="info-icon">ⓘ
             <span class="tooltip">Quantidade de deals que entraram em cada stage no período selecionado</span>
           </span>
         </h2>
-            <div class="panel-sub">Quantos deals entraram em cada etapa, ordenado por volume.</div>
+        <div class="panel-sub">Quantos deals entraram em cada etapa, na ordem do funil.</div>
         <div class="chart" id="chart_volume"></div>
-        <p class="foot">Total de entradas por stage - visão de volume e distribuição</p>
+        <p class="foot">Total de entradas por etapa: visão de volume e distribuição</p>
       </div>
 
-      <!-- LINHA 2 - ESQUERDA: Tempo nos Stages -->
+      <!-- Tempo nos Stages -->
       <div class="card" id="chart4">
-        <h2 data-number="04">Tempo Médio nos Stages
-          <span class="info-icon">i
-            <span class="tooltip">Tempo médio que deals ficam em cada stage antes de avançar ou sair</span>
+        <h2>Tempo médio · permanência por etapa
+          <span class="info-icon">ⓘ
+            <span class="tooltip">Tempo médio que deals ficam em cada stage antes de avançar ou sair. A barra destacada é o gargalo do funil.</span>
           </span>
         </h2>
-            <div class="panel-sub">Permanência média dos deals em cada etapa, em dias.</div>
+        <div class="panel-sub">Permanência média dos deals em cada etapa, com o gargalo destacado.</div>
         <div class="chart" id="chart_tempo"></div>
-        <p class="foot">Análise de velocidade - identificação de gargalos no funil</p>
+        <p class="foot">Análise de velocidade: identificação de gargalos no funil</p>
       </div>
 
-      <!-- LINHA 2 - DIREITA: Fluxo de Conversão (Sankey) -->
-      <div class="card" id="chart5">
-        <h2 data-number="05">Fluxo de Conversão entre Stages
-          <span class="info-icon">i
-            <span class="tooltip">Visualização do fluxo de deals entre stages - largura representa volume</span>
+      <!-- Retenção por Stage -->
+      <div class="card" id="chart7">
+        <h2>Retenção · % que permanece por etapa
+          <span class="info-icon">ⓘ
+            <span class="tooltip">Percentual de deals que entraram no stage e ainda não saíram. O volume de entradas aparece no tooltip.</span>
           </span>
         </h2>
-            <div class="panel-sub">Passagem de deals de uma etapa para a etapa seguinte.</div>
+        <div class="panel-sub">Taxa de retenção por etapa: onde o funil segura e onde perde.</div>
+        <div class="chart" id="chart_performance"></div>
+        <p class="foot">Eficiência de cada etapa: onde há mais perdas e oportunidades</p>
+      </div>
+
+      <!-- Fluxo de Conversão (Sankey) -->
+      <div class="card full-width" id="chart5">
+        <h2>Fluxo entre etapas · diagrama de conversão
+          <span class="info-icon">ⓘ
+            <span class="tooltip">Visualização do fluxo de deals entre stages: a largura representa o volume</span>
+          </span>
+        </h2>
+        <div class="panel-sub">Passagem de deals de uma etapa para a etapa seguinte.</div>
         <div class="chart" id="chart_sankey"></div>
         <p class="foot">Diagrama de Sankey mostrando perdas e avanços no funil</p>
       </div>
 
-      <!-- LINHA 3 - ESQUERDA: Timeline Diária -->
-      <div class="card" id="chart6">
-        <h2 data-number="06">Movimentação Diária
-          <span class="info-icon">i
-            <span class="tooltip">Evolução diária de entradas e saídas por stage ao longo do tempo</span>
-          </span>
-        </h2>
-            <div class="panel-sub">Volume de movimentações de deals por dia.</div>
-        <div class="chart" id="chart_timeline"></div>
-        <p class="foot">Tendências temporais e sazonalidade nas mudanças de stage</p>
-      </div>
-
-      <!-- LINHA 3 - DIREITA: Performance por Stage -->
-      <div class="card" id="chart7">
-        <h2 data-number="07">Performance e Taxa de Conversão
-          <span class="info-icon">i
-            <span class="tooltip">Taxa de conversão e perda em cada stage do funil</span>
-          </span>
-        </h2>
-            <div class="panel-sub">Conversão e desempenho consolidados por etapa.</div>
-        <div class="chart" id="chart_performance"></div>
-        <p class="foot">Eficiência de cada stage - onde há mais perdas e oportunidades</p>
-      </div>
-
-      <!-- LINHA 4 - ESQUERDA: Distribuição de Tempo -->
+      <!-- Distribuição de Tempo -->
       <div class="card" id="chart8">
-        <h2 data-number="08">Distribuição de Tempo nos Stages
-          <span class="info-icon">i
-            <span class="tooltip">Histograma mostrando distribuição de tempo em cada stage (P50, P90)</span>
+        <h2>Distribuição de tempo · por faixa
+          <span class="info-icon">ⓘ
+            <span class="tooltip">Distribuição do tempo de permanência por faixa, empilhada por stage</span>
           </span>
         </h2>
-            <div class="panel-sub">Dispersão do tempo de permanência dos deals por etapa.</div>
+        <div class="panel-sub">Dispersão do tempo de permanência dos deals por etapa.</div>
         <div class="chart" id="chart_distribuicao"></div>
-        <p class="foot">Variabilidade no tempo - outliers e padrões de comportamento</p>
+        <p class="foot">Variabilidade no tempo: outliers e padrões de comportamento</p>
       </div>
 
-      <!-- LINHA 4 - DIREITA: Ranking de Stages -->
+      <!-- Ranking de Stages -->
       <div class="card" id="chart9">
-        <h2 data-number="09">Ranking de Stages por Volume Total
-          <span class="info-icon">i
+        <h2>Ranking de movimentação · entradas e saídas
+          <span class="info-icon">ⓘ
             <span class="tooltip">Comparação de stages por volume total (entradas + saídas) no período</span>
           </span>
         </h2>
-            <div class="panel-sub">Etapas ordenadas pelo volume total de deals no período.</div>
+        <div class="panel-sub">Etapas ordenadas pelo volume total de deals no período.</div>
         <div class="chart" id="chart_ranking"></div>
-        <p class="foot">Identificação de stages mais ativos e críticos do funil</p>
+        <p class="foot">Identificação das etapas mais ativas do funil</p>
       </div>
 
     </div>
@@ -859,64 +437,66 @@
 </main>
 
 <script>
-// Global variables
+// Estado global
 let rawData = [];
-let filteredData = [];
 let dailyData = [];
-let charts = {};
+let filteredData = [];    // linhas agregadas por dia+stage (alimentam os gráficos)
+let filteredRecords = []; // registros individuais filtrados (sankey, deals únicos)
+let temporalMode = 'saldo';
 
-// Stage configuration - cores otimizadas para contraste
+/* ---------- Tema de visualização ----------
+   Paleta categórica validada (banda de luminosidade, croma, separação CVD,
+   piso de visão normal e contraste vs #131316). Ordem fixa; nunca ciclar.
+   Stages de funil são ORDINAIS: rampa de UM matiz, nunca hues. */
+const CAT_PALETTE = ['#2563eb','#d95926','#199e70','#c98500','#d55181','#008300','#9085e9','#e66767'];
+const SEQ_BLUE = ['#16233f','#1d3a6b','#1f55a3','#2f74d0','#60a5fa'];
+echarts.registerTheme('demo', {
+  color: CAT_PALETTE,
+  backgroundColor: 'transparent',
+  textStyle: { fontFamily: '"Space Grotesk",system-ui,sans-serif', color: '#d4d4d8' },
+  legend: { textStyle: { color: '#a1a1aa', fontSize: 11 }, itemWidth: 12, itemHeight: 12, icon: 'rect' },
+  tooltip: { backgroundColor: '#131316', borderColor: 'rgba(248,247,243,.18)', borderWidth: 1, textStyle: { color: '#d4d4d8', fontSize: 12 } },
+  categoryAxis: { axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisTick: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisLabel: { color: '#8a8a94' }, splitLine: { show: false } },
+  valueAxis: { axisLine: { show: false }, axisLabel: { color: '#8a8a94' }, splitLine: { lineStyle: { color: 'rgba(248,247,243,.07)' } } }
+});
+function makeChart(el){ echarts.dispose(el); return echarts.init(el, 'demo'); }
+function addResize(chart){ window.addEventListener('resize', () => { if (chart && !chart.isDisposed()) chart.resize(); }); }
+const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// Configuração de stages: escala ORDINAL, rampa azul de 1 matiz na ordem do funil
+const STAGE_FALLBACK = '#8a8a94';
 const STAGES = {
-  'Base': { order: 1, color: '#64748b', label: 'Base' },
-  'Ativação': { order: 2, color: '#3b82f6', label: 'Ativação' },
-  'Condução': { order: 3, color: '#8b5cf6', label: 'Condução' },
-  'Conexão': { order: 4, color: '#a855f7', label: 'Conexão' },
-  'Conversão': { order: 5, color: '#22c55e', label: 'Conversão' },
-  'Passagem para SDR': { order: 6, color: '#f59e0b', label: 'SDR' }
+  'Base':              { order: 1, color: '#93c5fd', label: 'Base' },
+  'Ativação':          { order: 2, color: '#60a5fa', label: 'Ativação' },
+  'Condução':          { order: 3, color: '#3b82f6', label: 'Condução' },
+  'Conexão':           { order: 4, color: '#2563eb', label: 'Conexão' },
+  'Conversão':         { order: 5, color: '#1d4ed8', label: 'Conversão' },
+  'Passagem para SDR': { order: 6, color: '#1e3a8a', label: 'SDR' }
 };
+function stageColor(stage){ return STAGES[stage]?.color || STAGE_FALLBACK; }
+function stageLabel(stage){ return STAGES[stage]?.label || stage; }
 
-// Utility functions
-function formatDuration(duration) {
-  if (!duration) return 'N/A';
-  
-  // Parse PostgreSQL interval format
-  const match = duration.match(/(\d+)\s*days?\s*(\d+):(\d+):(\d+)/);
-  if (match) {
-    const days = parseInt(match[1]);
-    const hours = parseInt(match[2]);
-    const minutes = parseInt(match[3]);
-    
-    if (days > 0) {
-      return `${days}d ${hours}h`;
-    } else if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    } else {
-      return `${minutes}m`;
+// dataZoom padrão (inside + slider), tokens do arquivo
+function makeDataZoom(len){
+  const start = len > 30 ? 70 : 0;
+  return [
+    { type: 'inside', start, end: 100 },
+    {
+      type: 'slider', height: 20, bottom: 0, start, end: 100,
+      borderColor: 'rgba(248,247,243,.18)',
+      backgroundColor: 'rgba(19,19,22,.6)',
+      fillerColor: 'rgba(37,99,235,.2)',
+      handleStyle: { color: '#2563eb' },
+      textStyle: { color: '#8a8a94', fontSize: 10 }
     }
-  }
-  
-  // Parse time only format
-  const timeMatch = duration.match(/(\d+):(\d+):(\d+)/);
-  if (timeMatch) {
-    const hours = parseInt(timeMatch[1]);
-    const minutes = parseInt(timeMatch[2]);
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    } else {
-      return `${minutes}m`;
-    }
-  }
-  
-  return duration;
+  ];
 }
 
+// Utility functions
 function formatNumber(num) {
   if (!num && num !== 0) return '0';
   const value = parseFloat(num);
   if (isNaN(value)) return '0';
-  
-  // Para números normais, usar formatação brasileira
   return new Intl.NumberFormat('pt-BR', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 1
@@ -927,8 +507,6 @@ function formatTime(seconds) {
   if (!seconds && seconds !== 0) return 'N/A';
   const value = parseFloat(seconds);
   if (isNaN(value)) return 'N/A';
-  
-  // Para tempo em segundos, converter para formato legível
   if (value > 86400) { // Mais de 1 dia
     const days = Math.floor(value / 86400);
     const hours = Math.floor((value % 86400) / 3600);
@@ -939,76 +517,51 @@ function formatTime(seconds) {
     return `${hours}h ${minutes}m`;
   } else if (value > 60) { // Mais de 1 minuto
     const minutes = Math.floor(value / 60);
-    const seconds = Math.floor(value % 60);
-    return `${minutes}m ${seconds}s`;
+    const secs = Math.floor(value % 60);
+    return `${minutes}m ${secs}s`;
   } else {
     return `${Math.round(value)}s`;
   }
 }
 
-function parseDate(dateStr) {
-  return new Date(dateStr);
-}
-
 function getExitValue(record) {
   // Tentar diferentes campos para saídas (em ordem de prioridade)
-  return parseInt(record.deals_exited) || 
-         parseInt(record.deals_out) || 
-         parseInt(record.exits) || 
+  return parseInt(record.deals_exited) ||
+         parseInt(record.deals_out) ||
+         parseInt(record.exits) ||
          parseInt(record.saidas) || 0;
 }
 
 function parsePostgresInterval(interval) {
   // Parse PostgreSQL interval format: "X days HH:MM:SS.microseconds"
   if (!interval) return 0;
-  
   let totalSeconds = 0;
-  
-  // Match days
   const daysMatch = interval.match(/(\d+)\s*days?/i);
   if (daysMatch) {
     totalSeconds += parseInt(daysMatch[1]) * 86400;
   }
-  
-  // Match time HH:MM:SS
   const timeMatch = interval.match(/(\d+):(\d+):([\d.]+)/);
   if (timeMatch) {
     totalSeconds += parseInt(timeMatch[1]) * 3600; // hours
     totalSeconds += parseInt(timeMatch[2]) * 60;   // minutes
     totalSeconds += parseFloat(timeMatch[3]);      // seconds
   }
-  
   return totalSeconds;
 }
-
-// Header auto-hide
-let lastScrollTop = 0;
-window.addEventListener('scroll', function() {
-  const header = document.getElementById('header');
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  
-  if (scrollTop > lastScrollTop && scrollTop > 200) {
-    header.classList.add('header-hidden');
-  } else {
-    header.classList.remove('header-hidden');
-  }
-  
-  lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-}, false);
 
 // File upload handler
 document.getElementById('fileUpload').addEventListener('change', function(event) {
   const file = event.target.files[0];
   if (file) {
     document.getElementById('loadingIndicator').classList.add('show');
-    
+
     Papa.parse(file, {
       header: true,
       complete: function(results) {
         if (results.data && results.data.length > 0) {
           // Detect data type based on columns
           const columns = Object.keys(results.data[0]);
-          
+
           if (columns.includes('day_sp')) {
             // Daily aggregated data
             dailyData = results.data.filter(row => row.day_sp && row.stage_label);
@@ -1041,38 +594,34 @@ function processData() {
   } else if (rawData.length > 0) {
     processRawData();
   }
-  
-  console.log('processData finished, filteredData length:', filteredData.length);
-  
+
   updateFilters();
   updateKPIs();
   renderAllCharts();
-  
+
   // Show KPIs, charts e indicadores
-  document.getElementById('kpis').style.display = 'grid';
   document.getElementById('current-state').style.display = 'block';
   document.getElementById('dataPeriodIndicator').style.display = 'flex';
-  document.getElementById('insightsSummary').style.display = 'flex';
+  document.getElementById('insightsSummary').style.display = 'block';
 }
 
 function processAggregatedData() {
   filteredData = [...dailyData];
-  console.log('processAggregatedData: filteredData length:', filteredData.length);
+  filteredRecords = [];
 }
 
 function processRawData() {
-  // Armazenar dados originais processados
   const processedRecords = [];
-  
+
   rawData.forEach(record => {
     const day = record.entered_day_sp || record.event_day_sp;
     const stage = record.stage_label;
-    
+
     if (!day || !stage) return;
-    
+
     // Parse time_in_stage do formato PostgreSQL
     const timeInStageSeconds = parsePostgresInterval(record.time_in_stage);
-    
+
     processedRecords.push({
       deal_id: record.deal_id,
       stage_label: stage,
@@ -1089,13 +638,21 @@ function processRawData() {
       has_exited: !!record.exited_at_sp
     });
   });
-  
-  // Agregar por dia e stage
+
+  allRecords = processedRecords;
+  filteredRecords = processedRecords;
+  filteredData = aggregateRecords(processedRecords);
+}
+
+let allRecords = [];
+
+// Agrega registros individuais por dia+stage (formato que os gráficos consomem)
+function aggregateRecords(records) {
   const dailyAgg = {};
-  
-  processedRecords.forEach(record => {
+
+  records.forEach(record => {
     const key = `${record.day_sp}_${record.stage_label}`;
-    
+
     if (!dailyAgg[key]) {
       dailyAgg[key] = {
         day_sp: record.day_sp,
@@ -1108,38 +665,32 @@ function processRawData() {
         deal_ids: new Set()
       };
     }
-    
+
     dailyAgg[key].deals_entered++;
     dailyAgg[key].deal_ids.add(record.deal_id);
-    
+
     if (record.has_exited) {
       dailyAgg[key].deals_exited++;
     }
-    
+
     if (record.time_in_stage_seconds > 0) {
       dailyAgg[key].time_values.push(record.time_in_stage_seconds);
     }
-    
+
     if (record.from_stage) {
-      dailyAgg[key].from_stages[record.from_stage] = 
+      dailyAgg[key].from_stages[record.from_stage] =
         (dailyAgg[key].from_stages[record.from_stage] || 0) + 1;
     }
   });
-  
-  filteredData = Object.values(dailyAgg).map(agg => ({
+
+  return Object.values(dailyAgg).map(agg => ({
     ...agg,
     deal_count: agg.deal_ids.size,
-    avg_time_in_stage: agg.time_values.length > 0 ? 
+    avg_time_in_stage: agg.time_values.length > 0 ?
       agg.time_values.reduce((sum, t) => sum + t, 0) / agg.time_values.length : 0,
     median_time_in_stage: agg.time_values.length > 0 ?
       agg.time_values.sort((a, b) => a - b)[Math.floor(agg.time_values.length / 2)] : 0
   }));
-  
-  // Guardar registros processados para análises detalhadas
-  window.processedRecords = processedRecords;
-  
-  console.log('Converted raw data to aggregated format:', filteredData.length, 'records');
-  console.log('Processed individual records:', processedRecords.length);
 }
 
 // Filter functions
@@ -1151,34 +702,34 @@ function updateFilters() {
   const uniqueStages = [...new Set(filteredData.map(d => d.stage_label))].sort(
     (a, b) => (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0)
   );
-  
+
   stageSelect.innerHTML = '<option value="all">Todos os stages</option>';
   fromStageSelect.innerHTML = '<option value="all">Qualquer origem</option>';
-  
+
   uniqueStages.forEach(stage => {
     const option1 = document.createElement('option');
     option1.value = stage;
     option1.textContent = stage;
     stageSelect.appendChild(option1);
-    
+
     const option2 = document.createElement('option');
     option2.value = stage;
     option2.textContent = stage;
     fromStageSelect.appendChild(option2);
   });
-  
+
   // Set date range
   const dates = filteredData.map(d => d.day_sp).filter(d => d);
   if (dates.length > 0) {
     dates.sort();
     document.getElementById('filterDateStart').value = dates[0];
     document.getElementById('filterDateEnd').value = dates[dates.length - 1];
-    
+
     // Atualizar indicador de período
     document.getElementById('periodStart').textContent = formatDateBR(dates[0]);
     document.getElementById('periodEnd').textContent = formatDateBR(dates[dates.length - 1]);
   }
-  
+
   // Add event listeners apenas uma vez
   if (!filtersInitialized) {
     ['filterPeriod', 'filterStage', 'filterFromStage', 'filterDateStart', 'filterDateEnd'].forEach(id => {
@@ -1195,52 +746,42 @@ function formatDateBR(dateStr) {
 }
 
 function applyFilters() {
-  console.log('applyFilters called');
   const period = document.getElementById('filterPeriod').value;
   const stage = document.getElementById('filterStage').value;
   const fromStage = document.getElementById('filterFromStage').value;
   const dateStart = document.getElementById('filterDateStart').value;
   const dateEnd = document.getElementById('filterDateEnd').value;
-  
-  // Use uma cópia dos dados originais, não modifique filteredData
-  let filtered = [...(dailyData.length > 0 ? dailyData : rawData)];
-  console.log('Starting with original data length:', filtered.length);
-  
-  // Period filter
+
+  let cutoffISO = null;
   if (period !== 'all') {
     const days = parseInt(period);
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
-    filtered = filtered.filter(d => new Date(d.day_sp) >= cutoffDate);
-    console.log('After period filter:', filtered.length);
+    cutoffISO = cutoffDate.toISOString().slice(0, 10);
   }
-  
-  // Stage filter
-  if (stage !== 'all') {
-    filtered = filtered.filter(d => d.stage_label === stage);
-    console.log('After stage filter:', filtered.length);
+
+  if (allRecords.length > 0) {
+    // Base de registros individuais: filtra e re-agrega (mantém from_stage e deals únicos honestos)
+    let recs = [...allRecords];
+    if (cutoffISO) recs = recs.filter(r => r.day_sp >= cutoffISO);
+    if (stage !== 'all') recs = recs.filter(r => r.stage_label === stage);
+    if (fromStage !== 'all') recs = recs.filter(r => r.from_stage === fromStage);
+    if (dateStart) recs = recs.filter(r => r.day_sp >= dateStart);
+    if (dateEnd) recs = recs.filter(r => r.day_sp <= dateEnd);
+
+    filteredRecords = recs;
+    filteredData = aggregateRecords(recs);
+  } else {
+    // Base já agregada por dia+stage
+    let filtered = [...dailyData];
+    if (cutoffISO) filtered = filtered.filter(d => d.day_sp >= cutoffISO);
+    if (stage !== 'all') filtered = filtered.filter(d => d.stage_label === stage);
+    if (dateStart) filtered = filtered.filter(d => d.day_sp >= dateStart);
+    if (dateEnd) filtered = filtered.filter(d => d.day_sp <= dateEnd);
+    filteredData = filtered;
+    filteredRecords = [];
   }
-  
-  // From Stage filter (origin)
-  if (fromStage !== 'all') {
-    filtered = filtered.filter(d => d.from_stage === fromStage);
-    console.log('After fromStage filter:', filtered.length);
-  }
-  
-  // Date range filter
-  if (dateStart) {
-    filtered = filtered.filter(d => d.day_sp >= dateStart);
-    console.log('After start date filter:', filtered.length);
-  }
-  if (dateEnd) {
-    filtered = filtered.filter(d => d.day_sp <= dateEnd);
-    console.log('After end date filter:', filtered.length);
-  }
-  
-  // Update filtered data
-  filteredData = filtered;
-  console.log('Final filteredData length:', filteredData.length);
-  
+
   updateActiveFilters();
   updateKPIs();
   renderAllCharts();
@@ -1249,18 +790,18 @@ function applyFilters() {
 function updateActiveFilters() {
   const container = document.getElementById('activeFilters');
   container.innerHTML = '';
-  
+
   const period = document.getElementById('filterPeriod').value;
   const stage = document.getElementById('filterStage').value;
   const fromStage = document.getElementById('filterFromStage').value;
   const dateStart = document.getElementById('filterDateStart').value;
   const dateEnd = document.getElementById('filterDateEnd').value;
-  
+
   if (period !== 'all') {
     addFilterPill(container, 'Período', period + ' dias', 'filterPeriod');
   }
   if (stage !== 'all') {
-    addFilterPill(container, 'Stage Atual', stage, 'filterStage');
+    addFilterPill(container, 'Stage', stage, 'filterStage');
   }
   if (fromStage !== 'all') {
     addFilterPill(container, 'Origem', fromStage, 'filterFromStage');
@@ -1275,10 +816,10 @@ function updateActiveFilters() {
 
 function addFilterPill(container, label, value, filterId) {
   const pill = document.createElement('div');
-  pill.className = 'filter-pill';
+  pill.className = 'filter-chip';
   pill.innerHTML = `
-    <span>${label}: ${value}</span>
-    <button class="remove" onclick="clearFilter('${filterId}')">&times;</button>
+    <span class="filter-chip-label"><strong>${escHtml(label)}</strong><span class="filter-chip-value">${escHtml(value)}</span></span>
+    <button type="button" class="chip-remove" onclick="clearFilter('${filterId}')" aria-label="Remover filtro"></button>
   `;
   container.appendChild(pill);
 }
@@ -1296,32 +837,28 @@ function clearFilter(filterId) {
 // KPI calculations
 function updateKPIs() {
   if (filteredData.length === 0) return;
-  
+
   // Total de movimentações
   const totalMoves = filteredData.reduce((sum, d) => sum + (parseInt(d.deals_entered) || 0), 0);
-  document.getElementById('kpi-total-moves').textContent = formatNumber(totalMoves);
-  
+
   // Deals únicos
   const uniqueDeals = new Set();
-  if (window.processedRecords) {
-    window.processedRecords.forEach(r => uniqueDeals.add(r.deal_id));
+  if (filteredRecords.length > 0) {
+    filteredRecords.forEach(r => uniqueDeals.add(r.deal_id));
   } else {
     filteredData.forEach(d => {
       if (d.deal_ids) d.deal_ids.forEach(id => uniqueDeals.add(id));
     });
   }
   const totalDeals = uniqueDeals.size || totalMoves;
-  document.getElementById('kpi-total-deals').textContent = formatNumber(totalDeals);
-  document.getElementById('uniqueDeals').textContent = formatNumber(totalDeals);
-  
+
   // Tempo médio por stage
   const avgTimes = filteredData
     .filter(d => d.avg_time_in_stage && d.avg_time_in_stage > 0)
     .map(d => d.avg_time_in_stage);
-  const avgTime = avgTimes.length > 0 ? 
+  const avgTime = avgTimes.length > 0 ?
     avgTimes.reduce((sum, t) => sum + t, 0) / avgTimes.length : 0;
-  document.getElementById('kpi-avg-time').textContent = formatTime(avgTime);
-  
+
   // Taxa de conversão para SDR
   const sdrDeals = filteredData
     .filter(d => d.stage_label === 'Passagem para SDR')
@@ -1329,9 +866,8 @@ function updateKPIs() {
   const baseDeals = filteredData
     .filter(d => d.stage_label === 'Base' || d.stage_label === 'Ativação')
     .reduce((sum, d) => sum + (parseInt(d.deals_entered) || 0), 0);
-  const conversionRate = baseDeals > 0 ? (sdrDeals / baseDeals * 100).toFixed(1) : 0;
-  document.getElementById('kpi-conversion-rate').textContent = conversionRate + '%';
-  
+  const conversionRate = baseDeals > 0 ? (sdrDeals / baseDeals * 100).toFixed(1) : '0';
+
   // Stage com maior volume
   const stageVolumes = {};
   filteredData.forEach(d => {
@@ -1340,85 +876,91 @@ function updateKPIs() {
   });
   const sortedStages = Object.entries(stageVolumes).sort((a, b) => b[1] - a[1]);
   const bottleneck = sortedStages[0] ? sortedStages[0][0] : '-';
-  document.getElementById('kpi-bottleneck').textContent = STAGES[bottleneck]?.label || bottleneck;
-  
+
   // Velocidade (movimentações por dia)
   const dates = [...new Set(filteredData.map(d => d.day_sp))].filter(d => d);
-  const velocity = dates.length > 0 ? (totalMoves / dates.length).toFixed(1) : 0;
-  document.getElementById('kpi-velocity').textContent = velocity;
-  
-  // Atualizar contadores
+  const velocity = dates.length > 0 ? (totalMoves / dates.length).toFixed(1) : '0';
+
+  // Contadores do indicador de período
   document.getElementById('recordCount').textContent = formatNumber(filteredData.length);
-  
-  // Gerar insights
+  document.getElementById('uniqueDeals').textContent = formatNumber(totalDeals);
+
+  // Linha única de KPIs na faixa executiva, direto dos dados
+  renderKPIs({ totalMoves, totalDeals, avgTime, conversionRate, bottleneck, velocity });
   generateInsights(stageVolumes, avgTime, conversionRate, velocity);
-  renderExec();
-  function renderExec(){
-    var txt=function(id){ var el=document.getElementById(id); return el?el.textContent.trim():'-'; };
-    var deals=txt('kpi-total-deals'), conv=txt('kpi-conversion-rate'), avg=txt('kpi-avg-time'), bott=txt('kpi-bottleneck'), vel=txt('kpi-velocity');
-    var convNum=parseFloat((conv||'').replace('%','').replace(',','.'));
-    var kpis=[
-      {v:deals, l:'Deals na base', h:'no período'},
-      {v:conv, l:'Conversão p/ SDR', h:'da base à passagem', good:isFinite(convNum)&&convNum>=20},
-      {v:avg, l:'Tempo médio/etapa', h:'permanência'},
-      {v:vel, l:'Velocidade', h:'movimentações/dia'}
-    ];
-    var insight='<b>'+bott+'</b> concentra o maior volume de deals no funil, o ponto a monitorar para destravar a passagem para SDR.';
-    var kw=document.getElementById('exec-kpis');
-    if(kw) kw.innerHTML=kpis.map(function(k){ return '<div class="exec-kpi"><div class="ev'+(k.good?' good':'')+'">'+k.v+'</div><div class="el">'+k.l+'</div><div class="eh">'+k.h+'</div></div>'; }).join('');
-    var iw=document.getElementById('exec-insight');
-    if(iw) iw.innerHTML='<span class="ei-tag">insight</span>'+insight;
+  renderExecInsight(stageLabel(bottleneck));
+}
+
+function renderKPIs(k) {
+  const wrap = document.getElementById('kpis');
+  if (!wrap) return;
+  const convNum = parseFloat(String(k.conversionRate).replace(',', '.'));
+  const kpis = [
+    { label: 'Movimentações', value: formatNumber(k.totalMoves), sub: 'mudanças de etapa' },
+    { label: 'Deals únicos', value: formatNumber(k.totalDeals), sub: 'no período' },
+    { label: 'Tempo médio/etapa', value: formatTime(k.avgTime), sub: 'permanência' },
+    { label: 'Conversão p/ SDR', value: k.conversionRate + '%', sub: 'da base à passagem', cls: isFinite(convNum) && convNum >= 20 ? 'good' : '' },
+    { label: 'Maior volume', value: escHtml(stageLabel(k.bottleneck)), sub: 'etapa mais ativa' },
+    { label: 'Velocidade/dia', value: k.velocity, sub: 'movimentações/dia' }
+  ];
+  wrap.innerHTML = kpis.map(i =>
+    `<div class="kpi"><div class="label">${i.label}</div><div class="value${i.cls ? ' ' + i.cls : ''}">${i.value}</div><div class="subv">${i.sub}</div></div>`
+  ).join('');
+}
+
+function renderExecInsight(bottleneckLabel) {
+  const iw = document.getElementById('exec-insight');
+  if (iw) {
+    iw.innerHTML = '<span class="ei-tag">insight</span><b>' + escHtml(bottleneckLabel) +
+      '</b> concentra o maior volume de deals no funil, o ponto a monitorar para destravar a passagem para SDR.';
   }
 }
 
 function generateInsights(stageVolumes, avgTime, conversionRate, velocity) {
   const insights = [];
-  
+
   // Ordenar stages por volume
   const sortedStages = Object.entries(stageVolumes).sort((a, b) => b[1] - a[1]);
   const topStage = sortedStages[0];
-  const lowStage = sortedStages[sortedStages.length - 1];
-  
-  if (topStage && lowStage) {
-    insights.push(`<strong>${topStage[0]}</strong> é o stage mais ativo com ${formatNumber(topStage[1])} movimentações.`);
+
+  if (topStage) {
+    insights.push(`<strong>${escHtml(topStage[0])}</strong> é o stage mais ativo com ${formatNumber(topStage[1])} movimentações.`);
   }
-  
+
   if (parseFloat(conversionRate) < 10) {
     insights.push(`Taxa de conversão de <strong>${conversionRate}%</strong> está abaixo do esperado.`);
   } else if (parseFloat(conversionRate) >= 20) {
-    insights.push(`Taxa de conversão de <strong>${conversionRate}%</strong> está excelente!`);
+    insights.push(`Taxa de conversão de <strong>${conversionRate}%</strong> está acima da referência de 20%.`);
   }
-  
+
   if (avgTime > 86400 * 3) { // mais de 3 dias
-    insights.push(`⏳ Tempo médio de <strong>${formatTime(avgTime)}</strong> por stage pode indicar gargalos.`);
+    insights.push(`Tempo médio de <strong>${formatTime(avgTime)}</strong> por stage pode indicar gargalos.`);
   }
-  
+
   if (velocity > 50) {
-    insights.push(`Alta velocidade de <strong>${velocity}</strong> movimentações/dia indica funil ativo.`);
+    insights.push(`Velocidade de <strong>${velocity}</strong> movimentações/dia indica funil ativo.`);
   }
-  
-  const insightsText = insights.length > 0 ? insights.join(' &nbsp;•&nbsp; ') : 'Dados carregados com sucesso. Explore os filtros para análises detalhadas.';
+
+  const insightsText = insights.length > 0 ? insights.join(' &nbsp;·&nbsp; ') : 'Dados carregados com sucesso. Explore os filtros para análises detalhadas.';
   document.getElementById('insightsText').innerHTML = insightsText;
 }
 
 // Chart rendering functions
 function renderAllCharts() {
-  console.log('renderAllCharts called, filteredData length:', filteredData.length);
   renderCurrentState();
+  renderTemporalChart();
+  renderEntriesExitsTable();
   renderVolumeChart();
   renderTempoChart();
-  renderSankeyChart();
-  renderTimelineChart();
   renderPerformanceChart();
+  renderSankeyChart();
   renderDistribuicaoChart();
   renderRankingChart();
-  renderEntriesExitsTable();
-  renderSaldoChart();
 }
 
 function renderCurrentState() {
   const grid = document.getElementById('current-state-grid');
-  
+
   // Get latest saldo_acumulado for each stage
   const currentState = {};
   filteredData.forEach(d => {
@@ -1431,7 +973,7 @@ function renderCurrentState() {
       }
     }
   });
-  
+
   // If no saldo data, use simple aggregation
   if (Object.keys(currentState).length === 0) {
     filteredData.forEach(d => {
@@ -1440,145 +982,79 @@ function renderCurrentState() {
       currentState[d.stage_label].value -= parseInt(d.deals_exited) || 0;
     });
   }
-  
-  const sortedStages = Object.keys(currentState).sort((a, b) => 
+
+  const sortedStages = Object.keys(currentState).sort((a, b) =>
     (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0));
-  
+
   grid.innerHTML = sortedStages.map(stage => {
     const value = currentState[stage]?.value || 0;
-    const color = STAGES[stage]?.color || '#9929ea';
-    
     return `
-      <div class="state-card" style="--stage-color: ${color}">
-        <div class="state-value">${value}</div>
-        <div class="state-label">${stage}</div>
+      <div class="state-card" style="--stage-color: ${stageColor(stage)}">
+        <div class="state-value">${formatNumber(value)}</div>
+        <div class="state-label">${escHtml(stage)}</div>
       </div>
     `;
   }).join('');
-  
-  // Add hover effects with stage colors
-  sortedStages.forEach(stage => {
-    const color = STAGES[stage]?.color || '#9929ea';
-    const cards = grid.querySelectorAll('.state-card');
-    const index = sortedStages.indexOf(stage);
-    if (cards[index]) {
-      cards[index].style.setProperty('--stage-color', color);
-      cards[index].addEventListener('mouseenter', function() {
-        this.style.borderColor = color;
-      });
-      cards[index].addEventListener('mouseleave', function() {
-        this.style.borderColor = '#374151';
-      });
-    }
-  });
 }
 
 function renderVolumeChart() {
-  const chartDom = document.getElementById('chart_volume');
-  const chart = echarts.init(chartDom);
-  
+  const el = document.getElementById('chart_volume');
+  if (!el) return;
+  const chart = makeChart(el);
+
   const stageData = {};
   filteredData.forEach(d => {
     if (!stageData[d.stage_label]) stageData[d.stage_label] = 0;
     stageData[d.stage_label] += parseInt(d.deals_entered) || 0;
   });
-  
-  const sortedStages = Object.keys(stageData).sort((a, b) => 
+
+  const sortedStages = Object.keys(stageData).sort((a, b) =>
     (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0));
-  
-  const values = sortedStages.map(stage => stageData[stage]);
-  const maxValue = Math.max(...values);
-  const minValue = Math.min(...values.filter(v => v > 0));
-  const total = values.reduce((a, b) => a + b, 0);
-  
-  const option = {
-    backgroundColor: 'transparent',
-    grid: { left: '8%', right: '8%', top: '15%', bottom: '20%' },
+
+  const total = sortedStages.reduce((sum, s) => sum + stageData[s], 0);
+
+  chart.setOption({
+    grid: { left: 10, right: 14, top: 24, bottom: 6, containLabel: true },
     xAxis: {
       type: 'category',
-      data: sortedStages,
-      axisLabel: { 
-        color: '#9ca3af', 
-        fontSize: 10, 
-        rotate: 30,
-        interval: 0
-      },
-      axisLine: { lineStyle: { color: '#374151' } }
+      data: sortedStages.map(s => stageLabel(s)),
+      axisLabel: { interval: 0, rotate: 20, fontSize: 10 },
+      axisTick: { alignWithLabel: true }
     },
     yAxis: {
       type: 'value',
-      axisLabel: { 
-        color: '#9ca3af', 
-        fontSize: 11,
-        formatter: (value) => formatNumber(value)
-      },
-      splitLine: { lineStyle: { color: '#232328' } }
+      axisLabel: { formatter: (value) => formatNumber(value) }
     },
     series: [{
       type: 'bar',
-      data: sortedStages.map(stage => {
-        const value = stageData[stage];
-        const percent = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-        const color = STAGES[stage]?.color || '#7c3aed';
-        
-        return { 
-          value, 
-          percent,
-          itemStyle: { 
-            color: {
-              type: 'linear',
-              x: 0, y: 0, x2: 0, y2: 1,
-              colorStops: [
-                { offset: 0, color: color },
-                { offset: 1, color: color + '80' }
-              ]
-            },
-            borderRadius: [4, 4, 0, 0],
-            borderColor: value === maxValue ? '#22c55e' : value === minValue ? '#ef4444' : 'transparent',
-            borderWidth: value === maxValue || value === minValue ? 2 : 0
-          }
-        };
-      }),
       barWidth: '55%',
-      label: {
-        show: true,
-        position: 'top',
-        color: '#e5e7eb',
-        fontSize: 10,
-        formatter: (params) => `${formatNumber(params.value)}\n(${params.data.percent}%)`
-      },
-      animationDuration: 800,
-      animationEasing: 'elasticOut'
+      data: sortedStages.map(stage => ({
+        value: stageData[stage],
+        percent: total > 0 ? ((stageData[stage] / total) * 100).toFixed(1) : 0,
+        itemStyle: { color: stageColor(stage), borderRadius: [3, 3, 0, 0] }
+      })),
+      animationDuration: 700
     }],
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(17, 24, 39, 0.95)',
-      borderColor: '#9929ea',
-      textStyle: { color: '#e5e7eb' },
       formatter: (params) => {
         const p = params[0];
-        const isMax = p.value === maxValue;
-        const isMin = p.value === minValue;
-        let badge = '';
-        if (isMax) badge = '<span style="color:#22c55e">↑ MÁXIMO</span>';
-        if (isMin) badge = '<span style="color:#ef4444">↓ MÍNIMO</span>';
-        return `<b>${p.name}</b> ${badge}<br>Entradas: <b>${formatNumber(p.value)}</b><br>Participação: <b>${p.data.percent}%</b>`;
+        return `<b>${p.name}</b><br>Entradas: <b>${formatNumber(p.value)}</b><br>Participação: <b>${p.data.percent}%</b>`;
       }
     }
-  };
-  
-  chart.setOption(option);
-  charts['volume'] = chart;
+  });
+  addResize(chart);
 }
 
 function renderTempoChart() {
-  const chartDom = document.getElementById('chart_tempo');
-  const chart = echarts.init(chartDom);
-  
+  const el = document.getElementById('chart_tempo');
+  if (!el) return;
+  const chart = makeChart(el);
+
   const stageAvgTime = {};
   const stageCounts = {};
-  
+
   filteredData.forEach(d => {
     if (d.avg_time_in_stage && d.avg_time_in_stage > 0) {
       if (!stageAvgTime[d.stage_label]) {
@@ -1589,130 +1065,99 @@ function renderTempoChart() {
       stageCounts[d.stage_label]++;
     }
   });
-  
-  const sortedStages = Object.keys(stageAvgTime).sort((a, b) => 
+
+  const sortedStages = Object.keys(stageAvgTime).sort((a, b) =>
     (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0));
-  
+
   if (sortedStages.length === 0) {
     chart.setOption({
-      backgroundColor: 'transparent',
       title: {
         text: 'Sem dados de tempo disponíveis',
         left: 'center',
         top: 'center',
-        textStyle: { color: '#6b7280', fontSize: 14 }
+        textStyle: { color: '#8a8a94', fontSize: 14, fontWeight: 'normal' }
       }
     });
-    charts['tempo'] = chart;
+    addResize(chart);
     return;
   }
-  
+
   const avgTimes = sortedStages.map(stage => stageAvgTime[stage] / stageCounts[stage]);
-  const maxTime = Math.max(...avgTimes);
-  const minTime = Math.min(...avgTimes.filter(t => t > 0));
+  // Gargalo por índice (não por igualdade de float)
+  const maxIdx = avgTimes.reduce((mi, v, i, arr) => (v > arr[mi] ? i : mi), 0);
   const avgOverall = avgTimes.reduce((a, b) => a + b, 0) / avgTimes.length;
-  
-  const option = {
-    backgroundColor: 'transparent',
-    grid: { left: '8%', right: '8%', top: '15%', bottom: '20%' },
+
+  chart.setOption({
+    grid: { left: 10, right: 14, top: 28, bottom: 6, containLabel: true },
     xAxis: {
       type: 'category',
-      data: sortedStages,
-      axisLabel: { color: '#9ca3af', fontSize: 10, rotate: 30, interval: 0 },
-      axisLine: { lineStyle: { color: '#374151' } }
+      data: sortedStages.map(s => stageLabel(s)),
+      axisLabel: { interval: 0, rotate: 20, fontSize: 10 },
+      axisTick: { alignWithLabel: true }
     },
     yAxis: {
       type: 'value',
-      axisLabel: { 
-        color: '#9ca3af', 
-        fontSize: 11,
-        formatter: (value) => formatTime(value)
-      },
-      splitLine: { lineStyle: { color: '#232328' } }
+      axisLabel: { formatter: (value) => formatTime(value) }
     },
     series: [{
       type: 'bar',
-      data: sortedStages.map(stage => {
-        const avgTime = stageAvgTime[stage] / stageCounts[stage];
-        const isBottleneck = avgTime === maxTime;
-        const isFastest = avgTime === minTime;
-        const color = STAGES[stage]?.color || '#7c3aed';
-        
-        return { 
-          value: avgTime,
-          isBottleneck,
-          isFastest, 
-          itemStyle: { 
-            color: isBottleneck ? '#ef4444' : isFastest ? '#22c55e' : {
-              type: 'linear',
-              x: 0, y: 0, x2: 0, y2: 1,
-              colorStops: [
-                { offset: 0, color: color },
-                { offset: 1, color: color + '80' }
-              ]
-            },
-            borderRadius: [4, 4, 0, 0]
-          }
-        };
-      }),
       barWidth: '55%',
-      label: {
-        show: true,
-        position: 'top',
-        color: '#e5e7eb',
-        fontSize: 10,
-        formatter: (params) => {
-          const label = formatTime(params.value);
-          if (params.data.isBottleneck) return `${label}`;
-          if (params.data.isFastest) return `${label}`;
-          return label;
-        }
-      },
+      data: avgTimes.map((value, idx) => ({
+        value,
+        isBottleneck: idx === maxIdx,
+        itemStyle: {
+          color: idx === maxIdx ? '#f87171' : stageColor(sortedStages[idx]),
+          borderRadius: [3, 3, 0, 0]
+        },
+        label: idx === maxIdx ? {
+          show: true,
+          position: 'top',
+          formatter: (p) => formatTime(p.value),
+          color: '#f87171',
+          fontSize: 10
+        } : { show: false }
+      })),
       markLine: {
         silent: true,
         symbol: 'none',
-        lineStyle: { color: '#f59e0b', type: 'dashed', width: 2 },
-        data: [{ yAxis: avgOverall, label: { formatter: 'Média', color: '#f59e0b', fontSize: 10 } }]
+        lineStyle: { color: '#8a8a94', type: 'dashed', width: 1.5 },
+        data: [{ yAxis: avgOverall, label: { formatter: 'Média', color: '#8a8a94', fontSize: 10 } }]
       },
-      animationDuration: 800
+      animationDuration: 700
     }],
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(17, 24, 39, 0.95)',
-      borderColor: '#9929ea',
-      textStyle: { color: '#e5e7eb' },
       formatter: (params) => {
         const p = params[0];
-        let status = '';
-        if (p.data.isBottleneck) status = '<br><span style="color:#ef4444">GARGALO - Tempo mais alto</span>';
-        if (p.data.isFastest) status = '<br><span style="color:#22c55e">EFICIENTE - Tempo mais baixo</span>';
+        const status = p.data.isBottleneck
+          ? '<br><span style="color:#f87171">Gargalo: maior tempo médio do funil</span>'
+          : '';
         return `<b>${p.name}</b><br>Tempo médio: <b>${formatTime(p.value)}</b>${status}`;
       }
     }
-  };
-  
-  chart.setOption(option);
-  charts['tempo'] = chart;
+  });
+  addResize(chart);
 }
 
 function renderSankeyChart() {
-  const chartDom = document.getElementById('chart_sankey');
-  const chart = echarts.init(chartDom);
-  
+  const el = document.getElementById('chart_sankey');
+  if (!el) return;
+  const chart = makeChart(el);
+
   // Calcular fluxo real de transições entre stages
   const transitions = {};
   const stagesInData = new Set();
-  
-  if (window.processedRecords && window.processedRecords.length > 0) {
-    window.processedRecords.forEach(record => {
+
+  if (filteredRecords.length > 0) {
+    filteredRecords.forEach(record => {
       if (record.from_stage && record.stage_label && record.from_stage !== record.stage_label) {
         // Só considerar transições válidas (stages conhecidos)
         if (STAGES[record.from_stage] && STAGES[record.stage_label]) {
           // Só permitir transições "para frente" (ordem crescente) para evitar ciclos
           const fromOrder = STAGES[record.from_stage].order;
           const toOrder = STAGES[record.stage_label].order;
-          
+
           if (fromOrder < toOrder) {
             const key = `${record.from_stage}|${record.stage_label}`;
             transitions[key] = (transitions[key] || 0) + 1;
@@ -1723,29 +1168,28 @@ function renderSankeyChart() {
       }
     });
   }
-  
-  // Se não houver transições válidas, usar fallback baseado em volume
+
   let links = Object.entries(transitions)
     .map(([key, value]) => {
       const [source, target] = key.split('|');
       return { source, target, value };
     })
     .filter(link => link.value > 0);
-  
+
   // Fallback: criar links sequenciais baseados na ordem dos stages
   if (links.length === 0) {
     const sortedStages = Object.keys(STAGES).sort((a, b) => STAGES[a].order - STAGES[b].order);
     const stageVolumes = {};
-    
+
     filteredData.forEach(d => {
       if (!stageVolumes[d.stage_label]) stageVolumes[d.stage_label] = 0;
       stageVolumes[d.stage_label] += parseInt(d.deals_entered) || 0;
     });
-    
+
     for (let i = 0; i < sortedStages.length - 1; i++) {
       const sourceVol = stageVolumes[sortedStages[i]] || 0;
       const targetVol = stageVolumes[sortedStages[i + 1]] || 0;
-      
+
       if (sourceVol > 0 || targetVol > 0) {
         const flowValue = Math.min(sourceVol || 1, targetVol || 1);
         links.push({
@@ -1758,40 +1202,38 @@ function renderSankeyChart() {
       }
     }
   }
-  
+
   // Criar nodes apenas para stages que aparecem nos links
   const nodesInLinks = new Set();
   links.forEach(link => {
     nodesInLinks.add(link.source);
     nodesInLinks.add(link.target);
   });
-  
+
   const nodes = Array.from(nodesInLinks)
     .sort((a, b) => (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0))
     .map(stage => ({
       name: stage,
-      itemStyle: { color: STAGES[stage]?.color || '#7c3aed' }
+      itemStyle: { color: stageColor(stage) }
     }));
-  
+
   // Se ainda não houver dados válidos, mostrar mensagem
   if (nodes.length === 0 || links.length === 0) {
     chart.setOption({
-      backgroundColor: 'transparent',
       title: {
         text: 'Aguardando dados de transição...',
         subtext: 'Carregue um CSV com from_stage_label para ver o fluxo',
         left: 'center',
         top: 'center',
-        textStyle: { color: '#9ca3af', fontSize: 14 },
-        subtextStyle: { color: '#6b7280', fontSize: 11 }
+        textStyle: { color: '#a1a1aa', fontSize: 14, fontWeight: 'normal' },
+        subtextStyle: { color: '#8a8a94', fontSize: 11 }
       }
     });
-    charts['sankey'] = chart;
+    addResize(chart);
     return;
   }
-  
-  const option = {
-    backgroundColor: 'transparent',
+
+  chart.setOption({
     series: [{
       type: 'sankey',
       layout: 'none',
@@ -1801,22 +1243,19 @@ function renderSankeyChart() {
       nodeWidth: 20,
       data: nodes,
       links: links,
-      lineStyle: { 
-        color: 'gradient', 
+      lineStyle: {
+        color: 'gradient',
         curveness: 0.5,
         opacity: 0.4
       },
-      label: { 
-        color: '#e5e7eb', 
+      label: {
+        color: '#d4d4d8',
         fontSize: 11,
         fontWeight: 500
       }
     }],
     tooltip: {
       trigger: 'item',
-      backgroundColor: 'rgba(17, 24, 39, 0.95)',
-      borderColor: '#9929ea',
-      textStyle: { color: '#e5e7eb' },
       formatter: (params) => {
         if (params.dataType === 'edge') {
           return `<b>${params.data.source}</b> → <b>${params.data.target}</b><br>Movimentações: ${formatNumber(params.data.value)}`;
@@ -1824,134 +1263,134 @@ function renderSankeyChart() {
         return `<b>${params.name}</b>`;
       }
     }
-  };
-  
-  chart.setOption(option);
-  charts['sankey'] = chart;
+  });
+  addResize(chart);
 }
 
-function renderTimelineChart() {
-  const chartDom = document.getElementById('chart_timeline');
-  const chart = echarts.init(chartDom);
-  
-  // Group by date
+// Evolução temporal: um card, dois modos (saldo acumulado | entradas por dia)
+function setTemporalMode(mode) {
+  if (temporalMode === mode) return;
+  temporalMode = mode;
+  document.getElementById('tglSaldo').classList.toggle('active', mode === 'saldo');
+  document.getElementById('tglEntradas').classList.toggle('active', mode === 'entradas');
+  renderTemporalChart();
+}
+document.getElementById('tglSaldo').addEventListener('click', () => setTemporalMode('saldo'));
+document.getElementById('tglEntradas').addEventListener('click', () => setTemporalMode('entradas'));
+
+function renderTemporalChart() {
+  const el = document.getElementById('chart_temporal');
+  if (!el) return;
+  const chart = makeChart(el);
+
+  // Agrupar por dia e stage
   const dateData = {};
-  let totalByDate = {};
   filteredData.forEach(d => {
     if (!d.day_sp) return;
-    if (!dateData[d.day_sp]) {
-      dateData[d.day_sp] = {};
-      totalByDate[d.day_sp] = 0;
+    if (!dateData[d.day_sp]) dateData[d.day_sp] = {};
+
+    if (temporalMode === 'saldo') {
+      // Use saldo_acumulado if available, otherwise calculate
+      const saldo = d.saldo_acumulado ? parseInt(d.saldo_acumulado) :
+        (parseInt(d.deals_entered) || 0) - getExitValue(d);
+      if (!dateData[d.day_sp][d.stage_label]) {
+        dateData[d.day_sp][d.stage_label] = saldo;
+      } else {
+        dateData[d.day_sp][d.stage_label] = Math.max(dateData[d.day_sp][d.stage_label], saldo);
+      }
+    } else {
+      dateData[d.day_sp][d.stage_label] =
+        (dateData[d.day_sp][d.stage_label] || 0) + (parseInt(d.deals_entered) || 0);
     }
-    if (!dateData[d.day_sp][d.stage_label]) dateData[d.day_sp][d.stage_label] = 0;
-    const count = parseInt(d.deals_entered) || 0;
-    dateData[d.day_sp][d.stage_label] += count;
-    totalByDate[d.day_sp] += count;
   });
-  
+
   const dates = Object.keys(dateData).sort();
   const stages = Object.keys(STAGES).sort((a, b) => STAGES[a].order - STAGES[b].order);
-  
-  // Identificar dia de pico
-  const maxDayValue = Math.max(...Object.values(totalByDate));
-  const peakDay = Object.keys(totalByDate).find(d => totalByDate[d] === maxDayValue);
-  
-  const series = stages.map(stage => ({
-    name: STAGES[stage].label || stage,
-    type: 'line',
-    stack: 'Total',
-    areaStyle: { opacity: 0.4 },
-    data: dates.map(date => dateData[date][stage] || 0),
-    smooth: true,
-    lineStyle: { width: 1.5 },
-    itemStyle: { color: STAGES[stage].color },
-    emphasis: { focus: 'series' }
-  }));
-  
-  const option = {
-    backgroundColor: 'transparent',
-    grid: { left: '8%', right: '8%', top: '18%', bottom: '20%' },
+
+  let series;
+  if (temporalMode === 'saldo') {
+    // Saldo acumulado: linhas por stage (não empilhado, sem área)
+    const cumulativeData = {};
+    stages.forEach(stage => {
+      cumulativeData[stage] = [];
+      let runningTotal = 0;
+      dates.forEach(date => {
+        const dailyValue = dateData[date][stage] || 0;
+        if (dailyValue > 0) runningTotal = dailyValue;
+        cumulativeData[stage].push(runningTotal);
+      });
+    });
+
+    series = stages.map(stage => ({
+      name: stageLabel(stage),
+      type: 'line',
+      data: cumulativeData[stage],
+      smooth: true,
+      showSymbol: false,
+      lineStyle: { width: 2, color: stageColor(stage) },
+      itemStyle: { color: stageColor(stage) },
+      emphasis: { focus: 'series' }
+    }));
+  } else {
+    // Entradas por dia: barras empilhadas por stage
+    series = stages.map(stage => ({
+      name: stageLabel(stage),
+      type: 'bar',
+      stack: 'entradas',
+      data: dates.map(date => dateData[date][stage] || 0),
+      itemStyle: { color: stageColor(stage) },
+      emphasis: { focus: 'series' }
+    }));
+  }
+
+  chart.setOption({
+    grid: { left: 10, right: 14, top: 30, bottom: 44, containLabel: true },
     xAxis: {
       type: 'category',
       data: dates,
-      axisLabel: { 
-        color: '#9ca3af', 
-        fontSize: 10, 
-        rotate: 45,
+      axisLabel: {
+        fontSize: 10,
         formatter: (value) => {
           const [y, m, d] = value.split('-');
           return `${d}/${m}`;
         }
-      },
-      axisLine: { lineStyle: { color: '#374151' } }
+      }
     },
     yAxis: {
       type: 'value',
-      axisLabel: { 
-        color: '#9ca3af', 
-        fontSize: 11,
-        formatter: (value) => formatNumber(value)
-      },
-      splitLine: { lineStyle: { color: '#232328' } }
+      axisLabel: { formatter: (value) => formatNumber(value) }
     },
-    legend: {
-      top: 0,
-      textStyle: { color: '#9ca3af', fontSize: 10 },
-      itemGap: 10,
-      itemWidth: 12
-    },
-    dataZoom: [
-      {
-        type: 'inside',
-        start: dates.length > 30 ? 70 : 0,
-        end: 100
-      },
-      {
-        type: 'slider',
-        show: dates.length > 15,
-        height: 20,
-        bottom: 0,
-        borderColor: '#374151',
-        backgroundColor: 'rgba(15, 23, 42, 0.5)',
-        fillerColor: 'rgba(153, 41, 234, 0.2)',
-        handleStyle: { color: '#9929ea' },
-        textStyle: { color: '#9ca3af', fontSize: 10 }
-      }
-    ],
+    legend: { top: 0 },
+    dataZoom: makeDataZoom(dates.length),
     series: series,
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(17, 24, 39, 0.95)',
-      borderColor: '#9929ea',
-      textStyle: { color: '#e5e7eb', fontSize: 12 },
+      axisPointer: { type: temporalMode === 'saldo' ? 'line' : 'shadow' },
       formatter: (params) => {
         const date = params[0].axisValue;
         const [y, m, d] = date.split('-');
-        const total = params.reduce((sum, p) => sum + (p.value || 0), 0);
-        const isPeak = date === peakDay;
-        
-        let tooltip = `<b>${d}/${m}/${y}</b> ${isPeak ? '<span style="color:#22c55e">▲ DIA PICO</span>' : ''}<br>`;
-        tooltip += `Total: <b>${formatNumber(total)}</b><br><br>`;
-        
+        const total = params.reduce((sum, p) => sum + (typeof p.value === 'number' ? p.value : 0), 0);
+
+        let tooltip = `<b>${d}/${m}/${y}</b><br>`;
+        tooltip += `${temporalMode === 'saldo' ? 'Saldo total' : 'Entradas'}: <b>${formatNumber(total)}</b><br>`;
+
         params.filter(p => p.value > 0).forEach(param => {
           const percent = total > 0 ? ((param.value / total) * 100).toFixed(0) : 0;
           tooltip += `<span style="color:${param.color}">●</span> ${param.seriesName}: ${formatNumber(param.value)} (${percent}%)<br>`;
         });
-        
+
         return tooltip;
       }
-    },
-    animationDuration: 1000
-  };
-  
-  chart.setOption(option);
-  charts['timeline'] = chart;
+    }
+  }, true);
+  addResize(chart);
 }
 
 function renderPerformanceChart() {
-  const chartDom = document.getElementById('chart_performance');
-  const chart = echarts.init(chartDom);
-  
+  const el = document.getElementById('chart_performance');
+  if (!el) return;
+  const chart = makeChart(el);
+
   const stagePerformance = {};
   filteredData.forEach(d => {
     if (!stagePerformance[d.stage_label]) {
@@ -1960,170 +1399,84 @@ function renderPerformanceChart() {
     stagePerformance[d.stage_label].entered += parseInt(d.deals_entered) || 0;
     stagePerformance[d.stage_label].exited += getExitValue(d);
   });
-  
-  const stages = Object.keys(stagePerformance).sort((a, b) => 
+
+  const stages = Object.keys(stagePerformance).sort((a, b) =>
     (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0));
-  
-  const enteredData = stages.map(stage => stagePerformance[stage].entered);
+
   const retentionData = stages.map(stage => {
     const entered = stagePerformance[stage].entered;
     const exited = stagePerformance[stage].exited;
     return entered > 0 && exited > 0 ? ((entered - exited) / entered * 100) : (entered > 0 ? 100 : 0);
   });
-  
-  // Identificar melhor e pior taxa
-  const validRetention = retentionData.filter(r => r < 100);
-  const minRetention = Math.min(...validRetention);
-  const maxRetention = Math.max(...validRetention);
-  
-  const option = {
-    backgroundColor: 'transparent',
-    grid: { left: '10%', right: '12%', top: '18%', bottom: '18%' },
+
+  chart.setOption({
+    grid: { left: 10, right: 14, top: 24, bottom: 6, containLabel: true },
     xAxis: {
       type: 'category',
-      data: stages.map(s => STAGES[s]?.label || s),
-      axisLabel: { 
-        color: '#9ca3af', 
-        fontSize: 10, 
-        rotate: 30,
-        interval: 0
-      },
-      axisLine: { lineStyle: { color: '#374151' } }
+      data: stages.map(s => stageLabel(s)),
+      axisLabel: { interval: 0, rotate: 20, fontSize: 10 },
+      axisTick: { alignWithLabel: true }
     },
-    yAxis: [
-      {
-        type: 'value',
-        position: 'left',
-        name: 'Volume',
-        nameTextStyle: { color: '#9ca3af', fontSize: 10 },
-        axisLabel: { 
-          color: '#9ca3af', 
-          fontSize: 11,
-          formatter: (value) => formatNumber(value)
-        },
-        splitLine: { lineStyle: { color: '#232328' } }
-      },
-      {
-        type: 'value',
-        position: 'right',
-        name: 'Retenção',
-        nameTextStyle: { color: '#22c55e', fontSize: 10 },
-        min: 0,
-        max: 100,
-        axisLabel: { 
-          color: '#22c55e', 
-          fontSize: 11, 
-          formatter: '{value}%'
-        }
-      }
-    ],
-    series: [
-      {
-        name: 'Volume',
-        type: 'bar',
-        data: enteredData.map((value, idx) => ({
-          value,
-          itemStyle: {
-            color: {
-              type: 'linear',
-              x: 0, y: 0, x2: 0, y2: 1,
-              colorStops: [
-                { offset: 0, color: '#9929ea' },
-                { offset: 1, color: '#6b21a8' }
-              ]
-            },
-            borderRadius: [4, 4, 0, 0]
-          }
-        })),
-        barWidth: '45%',
-        animationDuration: 800
-      },
-      {
-        name: 'Taxa Retenção',
-        type: 'line',
-        yAxisIndex: 1,
-        data: retentionData.map((value, idx) => ({
-          value,
-          itemStyle: {
-            color: value === minRetention ? '#ef4444' : 
-                   value === maxRetention ? '#22c55e' : '#22c55e'
-          }
-        })),
-        lineStyle: { color: '#22c55e', width: 3, type: 'solid' },
-        symbol: 'circle',
-        symbolSize: (value) => value === minRetention || value === maxRetention ? 12 : 8,
-        label: {
-          show: true,
-          position: 'top',
-          formatter: (params) => `${params.value.toFixed(0)}%`,
-          fontSize: 10,
-          color: (params) => params.value === minRetention ? '#ef4444' : '#22c55e'
-        },
-        animationDuration: 1200
-      }
-    ],
-    legend: {
-      top: 0,
-      textStyle: { color: '#9ca3af', fontSize: 11 },
-      itemGap: 20
+    yAxis: {
+      type: 'value',
+      min: 0,
+      max: 100,
+      axisLabel: { formatter: '{value}%' }
     },
+    series: [{
+      name: 'Taxa de retenção',
+      type: 'bar',
+      barWidth: '55%',
+      itemStyle: { color: '#2563eb', borderRadius: [3, 3, 0, 0] },
+      data: retentionData.map(v => +v.toFixed(1)),
+      animationDuration: 700
+    }],
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(17, 24, 39, 0.95)',
-      borderColor: '#9929ea',
-      textStyle: { color: '#e5e7eb' },
+      axisPointer: { type: 'shadow' },
       formatter: (params) => {
-        const stage = stages[params[0].dataIndex];
+        const idx = params[0].dataIndex;
+        const stage = stages[idx];
         const data = stagePerformance[stage];
-        const retention = retentionData[params[0].dataIndex];
-        const isWorst = retention === minRetention && retention < 100;
-        const isBest = retention === maxRetention && retention < 100;
-        
-        let status = '';
-        if (isWorst) status = '<br><span style="color:#ef4444">Menor retenção - atenção!</span>';
-        if (isBest) status = '<br><span style="color:#22c55e">Melhor retenção</span>';
-        
-        return `<b>${STAGES[stage]?.label || stage}</b>${status}<br>
-          <span style="color:#9929ea">●</span> Entradas: <b>${formatNumber(data.entered)}</b><br>
-          <span style="color:#ef4444">●</span> Saídas: <b>${formatNumber(data.exited)}</b><br>
-          <span style="color:#22c55e">●</span> Retenção: <b>${retention.toFixed(1)}%</b>`;
+        return `<b>${stageLabel(stage)}</b><br>` +
+          `Retenção: <b>${retentionData[idx].toFixed(1)}%</b><br>` +
+          `Entradas: ${formatNumber(data.entered)}<br>` +
+          `Saídas: ${formatNumber(data.exited)}`;
       }
     }
-  };
-  
-  chart.setOption(option);
-  charts['performance'] = chart;
+  });
+  addResize(chart);
 }
 
 function renderDistribuicaoChart() {
-  const chartDom = document.getElementById('chart_distribuicao');
-  const chart = echarts.init(chartDom);
-  
-  // Analyze time distribution based on real data
+  const el = document.getElementById('chart_distribuicao');
+  if (!el) return;
+  const chart = makeChart(el);
+
+  // Faixas de tempo de permanência
   const timeRanges = [
-    { label: '<1h', min: 0, max: 3600, emoji: '' },
-    { label: '1-6h', min: 3600, max: 21600, emoji: '' },
-    { label: '6-24h', min: 21600, max: 86400, emoji: '' },
-    { label: '1-3d', min: 86400, max: 259200, emoji: '' },
-    { label: '3-7d', min: 259200, max: 604800, emoji: '' },
-    { label: '>7d', min: 604800, max: Infinity, emoji: '⏳' }
+    { label: '<1h', min: 0, max: 3600 },
+    { label: '1-6h', min: 3600, max: 21600 },
+    { label: '6-24h', min: 21600, max: 86400 },
+    { label: '1-3d', min: 86400, max: 259200 },
+    { label: '3-7d', min: 259200, max: 604800 },
+    { label: '>7d', min: 604800, max: Infinity }
   ];
-  
+
   const stageDistribution = {};
   Object.keys(STAGES).forEach(stage => {
     stageDistribution[stage] = new Array(timeRanges.length).fill(0);
   });
-  
+
   let totalRecords = 0;
-  
-  // Processar dados reais
+
   filteredData.forEach(d => {
     const timeInSeconds = parseFloat(d.avg_time_in_stage) || 0;
     if (timeInSeconds === 0) return;
-    
+
     const stage = d.stage_label;
     if (!stageDistribution[stage]) return;
-    
+
     for (let i = 0; i < timeRanges.length; i++) {
       if (timeInSeconds >= timeRanges[i].min && timeInSeconds < timeRanges[i].max) {
         const count = parseInt(d.deals_entered) || 1;
@@ -2133,102 +1486,62 @@ function renderDistribuicaoChart() {
       }
     }
   });
-  
-  // Calcular totais por faixa de tempo
+
   const rangeTotals = timeRanges.map((_, i) => {
     return Object.keys(stageDistribution).reduce((sum, stage) => sum + stageDistribution[stage][i], 0);
   });
-  const maxRangeTotal = Math.max(...rangeTotals);
-  const peakRangeIdx = rangeTotals.indexOf(maxRangeTotal);
-  
+
   const series = Object.keys(STAGES).map(stage => ({
-    name: STAGES[stage].label || stage,
+    name: stageLabel(stage),
     type: 'bar',
     stack: 'distribution',
-    data: stageDistribution[stage].map((val, idx) => ({
-      value: val,
-      rangeTotal: rangeTotals[idx],
-      isPeak: idx === peakRangeIdx
-    })),
-    itemStyle: { 
-      color: STAGES[stage].color,
-      borderRadius: [2, 2, 0, 0]
-    },
-    emphasis: {
-      itemStyle: { shadowBlur: 10, shadowColor: 'rgba(153, 41, 234, 0.5)' }
-    }
+    data: stageDistribution[stage],
+    itemStyle: { color: stageColor(stage), borderRadius: [2, 2, 0, 0] }
   }));
-  
-  const option = {
-    backgroundColor: 'transparent',
-    grid: { left: '8%', right: '8%', top: '18%', bottom: '12%' },
+
+  chart.setOption({
+    grid: { left: 10, right: 14, top: 28, bottom: 6, containLabel: true },
     xAxis: {
       type: 'category',
       data: timeRanges.map(r => r.label),
-      axisLabel: { 
-        color: '#e5e7eb', 
-        fontSize: 11,
-        fontWeight: 500,
-        formatter: (value, idx) => {
-          const isPeak = idx === peakRangeIdx;
-          return isPeak ? `${timeRanges[idx].emoji} ${value}` : value;
-        }
-      },
-      axisLine: { lineStyle: { color: '#374151' } }
+      axisLabel: { fontSize: 11 }
     },
     yAxis: {
       type: 'value',
-      axisLabel: { 
-        color: '#9ca3af', 
-        fontSize: 11,
-        formatter: (value) => formatNumber(value)
-      },
-      splitLine: { lineStyle: { color: '#232328' } }
+      axisLabel: { formatter: (value) => formatNumber(value) }
     },
-    legend: {
-      top: 0,
-      textStyle: { color: '#9ca3af', fontSize: 10 },
-      itemGap: 12,
-      itemWidth: 12,
-      itemHeight: 8
-    },
+    legend: { top: 0 },
     series: series,
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(17, 24, 39, 0.95)',
-      borderColor: '#9929ea',
-      textStyle: { color: '#e5e7eb', fontSize: 12 },
       formatter: (params) => {
         const rangeIdx = params[0].dataIndex;
         const range = timeRanges[rangeIdx];
         const total = rangeTotals[rangeIdx];
         const percent = totalRecords > 0 ? ((total / totalRecords) * 100).toFixed(1) : 0;
-        const isPeak = rangeIdx === peakRangeIdx;
-        
-        let tooltip = `<b>${range.emoji} ${range.label}</b> ${isPeak ? '<span style="color:#22c55e">▲ PICO</span>' : ''}<br>`;
+
+        let tooltip = `<b>${range.label}</b><br>`;
         tooltip += `Total: <b>${formatNumber(total)}</b> (${percent}%)<br><br>`;
-        
+
         params.filter(p => p.value > 0).forEach(param => {
           const stagePercent = total > 0 ? ((param.value / total) * 100).toFixed(0) : 0;
           tooltip += `<span style="color:${param.color}">●</span> ${param.seriesName}: ${formatNumber(param.value)} (${stagePercent}%)<br>`;
         });
-        
+
         return tooltip;
       }
     },
-    animationDuration: 800,
-    animationEasing: 'elasticOut'
-  };
-  
-  chart.setOption(option);
-  charts['distribuicao'] = chart;
+    animationDuration: 700
+  });
+  addResize(chart);
 }
 
 function renderRankingChart() {
-  const chartDom = document.getElementById('chart_ranking');
-  const chart = echarts.init(chartDom);
-  
+  const el = document.getElementById('chart_ranking');
+  if (!el) return;
+  const chart = makeChart(el);
+
   // Calcular volume total por stage (entradas + saídas)
   const stageActivity = {};
   filteredData.forEach(d => {
@@ -2237,180 +1550,90 @@ function renderRankingChart() {
     }
     const entered = parseInt(d.deals_entered) || 0;
     const exited = getExitValue(d);
-    
+
     stageActivity[d.stage_label].entered += entered;
     stageActivity[d.stage_label].exited += exited;
     stageActivity[d.stage_label].total += entered + exited;
   });
-  
+
   // Ordenar por volume total decrescente
   const sortedStages = Object.keys(stageActivity)
     .sort((a, b) => stageActivity[b].total - stageActivity[a].total);
-  
-  const maxTotal = sortedStages.length > 0 ? stageActivity[sortedStages[0]].total : 1;
-  
-  const option = {
-    backgroundColor: 'transparent',
-    grid: { left: '28%', right: '12%', top: '15%', bottom: '10%' },
+
+  chart.setOption({
+    grid: { left: 10, right: 14, top: 28, bottom: 6, containLabel: true },
     xAxis: {
       type: 'value',
-      axisLabel: { 
-        color: '#9ca3af', 
-        fontSize: 11,
-        formatter: (value) => formatNumber(value)
-      },
-      splitLine: { lineStyle: { color: '#232328' } }
+      axisLabel: { formatter: (value) => formatNumber(value) }
     },
     yAxis: {
       type: 'category',
       data: sortedStages,
-      axisLabel: { 
-        color: '#e5e7eb', 
-        fontSize: 11,
-        fontWeight: 500,
-        formatter: (value, idx) => {
-          const rank = sortedStages.indexOf(value) + 1;
-          const medal = rank === 1 ? '' : rank === 2 ? '' : rank === 3 ? '' : `#${rank}`;
-          return `${medal} ${value}`;
-        }
-      },
       inverse: true,
-      axisLine: { lineStyle: { color: '#374151' } }
+      axisLabel: { fontSize: 11 }
     },
+    legend: { top: 0 },
     series: [
       {
         name: 'Entradas',
         type: 'bar',
         stack: 'total',
-        data: sortedStages.map((stage, idx) => {
-          const data = stageActivity[stage];
-          return {
-            value: data.entered,
-            retention: data.exited > 0 ? ((data.entered - data.exited) / data.entered * 100).toFixed(1) : 100,
-            itemStyle: { 
-              color: {
-                type: 'linear',
-                x: 0, y: 0, x2: 1, y2: 0,
-                colorStops: [
-                  { offset: 0, color: '#22c55e' },
-                  { offset: 1, color: '#16a34a' }
-                ]
-              },
-              borderRadius: idx === 0 ? [4, 0, 0, 4] : [0, 0, 0, 0]
-            }
-          };
-        }),
-        label: {
-          show: true,
-          position: 'inside',
-          formatter: (params) => params.value > 0 ? formatNumber(params.value) : '',
-          color: '#0a0f1d',
-          fontSize: 10,
-          fontWeight: 600
-        },
         barWidth: '55%',
-        animationDuration: 800
+        itemStyle: { color: '#2563eb' },
+        data: sortedStages.map(stage => stageActivity[stage].entered),
+        animationDuration: 700
       },
       {
         name: 'Saídas',
         type: 'bar',
         stack: 'total',
-        data: sortedStages.map((stage, idx) => ({
-          value: stageActivity[stage].exited,
-          itemStyle: { 
-            color: {
-              type: 'linear',
-              x: 0, y: 0, x2: 1, y2: 0,
-              colorStops: [
-                { offset: 0, color: '#ef4444' },
-                { offset: 1, color: '#dc2626' }
-              ]
-            },
-            borderRadius: stageActivity[stage].exited > 0 ? [0, 4, 4, 0] : [0, 0, 0, 0]
-          }
-        })),
-        label: {
-          show: true,
-          position: 'inside',
-          formatter: (params) => params.value > 0 ? formatNumber(params.value) : '',
-          color: '#fff',
-          fontSize: 10,
-          fontWeight: 600
-        },
         barWidth: '55%',
-        animationDuration: 800
+        itemStyle: { color: '#d95926' },
+        data: sortedStages.map(stage => stageActivity[stage].exited),
+        animationDuration: 700
       }
     ],
-    legend: {
-      top: 0,
-      textStyle: { color: '#9ca3af', fontSize: 11 },
-      itemGap: 20
-    },
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(17, 24, 39, 0.95)',
-      borderColor: '#9929ea',
-      textStyle: { color: '#e5e7eb' },
       formatter: (params) => {
         const stage = params[0].name;
         const data = stageActivity[stage];
         const rank = sortedStages.indexOf(stage) + 1;
-        const percentOfMax = ((data.total / maxTotal) * 100).toFixed(1);
-        const retention = data.entered > 0 && data.exited > 0 
-          ? ((data.entered - data.exited) / data.entered * 100).toFixed(1) 
-          : '100.0';
-        
-        let medalBadge = rank === 1 ? '' : rank === 2 ? '' : rank === 3 ? '' : '';
-        let tooltip = `<b>${medalBadge} #${rank} ${stage}</b><br>`;
-        tooltip += `<span style="color:#22c55e">▪ Entradas:</span> ${formatNumber(data.entered)}<br>`;
-        tooltip += `<span style="color:#ef4444">▪ Saídas:</span> ${formatNumber(data.exited)}<br>`;
-        tooltip += `<b>Total:</b> ${formatNumber(data.total)} (${percentOfMax}% do máx.)<br>`;
-        tooltip += `<span style="color:${parseFloat(retention) >= 50 ? '#22c55e' : '#f59e0b'}">Taxa Retenção: ${retention}%</span>`;
+        let tooltip = `<b>#${rank} ${stage}</b><br>`;
+        tooltip += `<span style="color:#2563eb">●</span> Entradas: ${formatNumber(data.entered)}<br>`;
+        tooltip += `<span style="color:#d95926">●</span> Saídas: ${formatNumber(data.exited)}<br>`;
+        tooltip += `Total: <b>${formatNumber(data.total)}</b>`;
         return tooltip;
       }
     }
-  };
-  
-  chart.setOption(option);
-  charts['ranking'] = chart;
+  });
+  addResize(chart);
 }
 
 function renderEntriesExitsTable() {
-  console.log('renderEntriesExitsTable called, filteredData length:', filteredData.length);
   const tbody = document.querySelector('#entries-exits-table tbody');
-  console.log('Table tbody element found:', !!tbody);
-  
+  if (!tbody) return;
+
   const stageData = {};
-  
-  // Debug: verificar quais campos de saída existem
-  if (filteredData.length > 0) {
-    const sampleRecord = filteredData[0];
-    console.log('Sample data fields:', Object.keys(sampleRecord));
-    console.log('Fields with exit:', Object.keys(sampleRecord).filter(k => k.toLowerCase().includes('exit')));
-    console.log('Fields with out:', Object.keys(sampleRecord).filter(k => k.toLowerCase().includes('out')));
-    console.log('Sample record values:', sampleRecord);
-  }
-  
+
   filteredData.forEach(d => {
     if (!stageData[d.stage_label]) {
       stageData[d.stage_label] = { entered: 0, exited: 0, saldo: 0 };
     }
-    
+
     stageData[d.stage_label].entered += parseInt(d.deals_entered) || 0;
     stageData[d.stage_label].exited += getExitValue(d);
-    
+
     // Use latest saldo_acumulado if available
     if (d.saldo_acumulado) {
       stageData[d.stage_label].saldo = parseInt(d.saldo_acumulado) || 0;
     }
   });
-  
-  console.log('Stage data processed:', stageData);
-  
-  const sortedStages = Object.keys(stageData).sort((a, b) => 
+
+  const sortedStages = Object.keys(stageData).sort((a, b) =>
     (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0));
-  
+
   if (sortedStages.length === 0) {
     tbody.innerHTML = `
       <tr>
@@ -2421,233 +1644,45 @@ function renderEntriesExitsTable() {
     `;
     return;
   }
-  
+
   tbody.innerHTML = sortedStages.map(stage => {
     const data = stageData[stage];
-    
-    // Melhor cálculo da taxa de retenção
+
     let retentionDisplay = 'N/A';
     let retentionClass = '';
-    
+
     if (data.entered > 0) {
       if (data.exited === 0) {
-        // Se não há saídas registradas, mostrar como "Em andamento"
-        retentionDisplay = '<span style="color: #94a3b8; font-style: italic;">Em andamento</span>';
+        retentionDisplay = '<span style="color: var(--ink-4); font-style: italic;">Em andamento</span>';
       } else {
         const retentionRate = (100 - ((data.exited / data.entered) * 100));
         retentionDisplay = `${retentionRate.toFixed(1)}%`;
         retentionClass = retentionRate >= 80 ? 'positive' : retentionRate >= 50 ? '' : 'negative';
       }
     }
-    
+
     const saldo = data.saldo || (data.entered - data.exited);
-    
-    // Formatação melhorada para saídas
-    const saidaDisplay = data.exited > 0 ? 
-      formatNumber(data.exited) : 
-      '<span style="color: #6b7280; font-weight: 300;">0</span>';
-    
+
+    const saidaDisplay = data.exited > 0 ?
+      formatNumber(data.exited) :
+      '<span style="color: var(--ink-4);">0</span>';
+
     const saidaClass = data.exited > 0 ? 'negative' : '';
-    
+
     return `
       <tr>
         <td>
-          <span style="display: inline-block; width: 8px; height: 8px; background: ${STAGES[stage]?.color || '#9929ea'}; border-radius: 50%; margin-right: 8px;"></span>
-          <strong>${stage}</strong>
+          <span style="display: inline-block; width: 8px; height: 8px; background: ${stageColor(stage)}; border-radius: 50%; margin-right: 8px;"></span>
+          <strong>${escHtml(stage)}</strong>
         </td>
         <td class="number positive">+${formatNumber(data.entered)}</td>
         <td class="number ${saidaClass}">-${saidaDisplay}</td>
-        <td class="number" style="color: ${saldo > 0 ? '#22c55e' : saldo < 0 ? '#ef4444' : '#94a3b8'}">${formatNumber(Math.abs(saldo))}</td>
+        <td class="number" style="color: ${saldo > 0 ? 'var(--ok)' : saldo < 0 ? 'var(--bad)' : 'var(--ink-4)'}">${formatNumber(Math.abs(saldo))}</td>
         <td class="number ${retentionClass}">${retentionDisplay}</td>
       </tr>
     `;
   }).join('');
 }
-
-function renderSaldoChart() {
-  const chartDom = document.getElementById('chart_saldo');
-  const chart = echarts.init(chartDom);
-  
-  // Group by date and stage
-  const dateData = {};
-  let totalsByDate = {};
-  filteredData.forEach(d => {
-    if (!d.day_sp) return;
-    if (!dateData[d.day_sp]) {
-      dateData[d.day_sp] = {};
-      totalsByDate[d.day_sp] = 0;
-    }
-    
-    // Use saldo_acumulado if available, otherwise calculate
-    const saldo = d.saldo_acumulado ? parseInt(d.saldo_acumulado) : 
-      (parseInt(d.deals_entered) || 0) - getExitValue(d);
-    
-    if (!dateData[d.day_sp][d.stage_label]) {
-      dateData[d.day_sp][d.stage_label] = saldo;
-    } else {
-      // Keep the latest/highest saldo for each day+stage
-      dateData[d.day_sp][d.stage_label] = Math.max(dateData[d.day_sp][d.stage_label], saldo);
-    }
-  });
-  
-  const dates = Object.keys(dateData).sort();
-  const stages = Object.keys(STAGES).sort((a, b) => STAGES[a].order - STAGES[b].order);
-  
-  // Calculate cumulative saldos
-  const cumulativeData = {};
-  stages.forEach(stage => {
-    cumulativeData[stage] = [];
-    let runningTotal = 0;
-    
-    dates.forEach(date => {
-      const dailyValue = dateData[date][stage] || 0;
-      if (dailyValue > 0) runningTotal = dailyValue;
-      cumulativeData[stage].push(runningTotal);
-      totalsByDate[date] = (totalsByDate[date] || 0) + runningTotal;
-    });
-  });
-  
-  // Find peak date
-  const peakDate = Object.keys(totalsByDate).reduce((a, b) => 
-    totalsByDate[a] > totalsByDate[b] ? a : b, dates[0]);
-  
-  const series = stages.map((stage, idx) => {
-    const data = cumulativeData[stage];
-    const maxValue = Math.max(...data);
-    const lastValue = data[data.length - 1] || 0;
-    
-    return {
-      name: STAGES[stage].label || stage,
-      type: 'line',
-      data: data.map((val, i) => ({
-        value: val,
-        date: dates[i]
-      })),
-      smooth: true,
-      itemStyle: { color: STAGES[stage].color },
-      lineStyle: { 
-        width: lastValue > 0 ? 3 : 1.5,
-        color: STAGES[stage].color,
-        opacity: lastValue > 0 ? 1 : 0.5
-      },
-      areaStyle: lastValue > 0 ? {
-        color: {
-          type: 'linear',
-          x: 0, y: 0, x2: 0, y2: 1,
-          colorStops: [
-            { offset: 0, color: STAGES[stage].color + '40' },
-            { offset: 1, color: STAGES[stage].color + '05' }
-          ]
-        }
-      } : null,
-      symbol: 'circle',
-      symbolSize: (value, params) => {
-        return params.dataIndex === data.length - 1 ? 8 : 4;
-      },
-      emphasis: { focus: 'series' },
-      animationDuration: 1000 + idx * 200
-    };
-  });
-  
-  const option = {
-    backgroundColor: 'transparent',
-    grid: { left: '10%', right: '8%', top: '15%', bottom: '22%' },
-    xAxis: {
-      type: 'category',
-      data: dates,
-      axisLabel: { 
-        color: '#9ca3af', 
-        fontSize: 10, 
-        rotate: 45,
-        interval: 'auto',
-        margin: 12,
-        formatter: (value) => {
-          const [y, m, d] = value.split('-');
-          return `${d}/${m}`;
-        }
-      },
-      axisLine: { lineStyle: { color: '#374151' } }
-    },
-    yAxis: {
-      type: 'value',
-      axisLabel: { 
-        color: '#9ca3af', 
-        fontSize: 11,
-        formatter: (value) => formatNumber(value)
-      },
-      splitLine: { lineStyle: { color: '#232328' } }
-    },
-    legend: {
-      top: 0,
-      textStyle: { color: '#9ca3af', fontSize: 10 },
-      itemGap: 12,
-      itemWidth: 12
-    },
-    series: series,
-    tooltip: {
-      trigger: 'axis',
-      backgroundColor: 'rgba(17, 24, 39, 0.95)',
-      borderColor: '#9929ea',
-      textStyle: { color: '#e5e7eb', fontSize: 12 },
-      formatter: (params) => {
-        const date = params[0].axisValue;
-        const [y, m, d] = date.split('-');
-        const total = params.reduce((sum, p) => sum + (p.value.value || p.value || 0), 0);
-        const isPeak = date === peakDate;
-        
-        let tooltip = `<b>${d}/${m}/${y}</b> ${isPeak ? '<span style="color:#22c55e">PICO</span>' : ''}<br>`;
-        tooltip += `Saldo Total: <b>${formatNumber(total)}</b><br><br>`;
-        
-        params.filter(p => (p.value.value || p.value) > 0).forEach(param => {
-          const val = param.value.value || param.value;
-          const percent = total > 0 ? ((val / total) * 100).toFixed(0) : 0;
-          tooltip += `<span style="color:${param.color}">●</span> ${param.seriesName}: ${formatNumber(val)} (${percent}%)<br>`;
-        });
-        
-        return tooltip;
-      }
-    },
-    dataZoom: [
-      {
-        type: 'inside',
-        start: dates.length > 30 ? 70 : 0,
-        end: 100
-      },
-      {
-        type: 'slider',
-        xAxisIndex: 0,
-        height: 20,
-        bottom: 0,
-        backgroundColor: 'rgba(17, 24, 39, 0.8)',
-        dataBackground: {
-          areaStyle: { color: 'rgba(153, 41, 234, 0.3)' }
-        },
-        selectedDataBackground: {
-          areaStyle: { color: 'rgba(153, 41, 234, 0.6)' }
-        },
-        handleStyle: { color: '#9929ea' },
-        textStyle: { color: '#9ca3af', fontSize: 10 },
-        start: dates.length > 30 ? 70 : 0,
-        end: 100
-      }
-    ]
-  };
-  
-  chart.setOption(option);
-  charts['saldo'] = chart;
-}
-
-// Resize charts on window resize
-window.addEventListener('resize', function() {
-  Object.values(charts).forEach(chart => {
-    chart.resize();
-  });
-});
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('Dashboard de Monitoramento de Stages carregado');
-});
 </script>
 
 
