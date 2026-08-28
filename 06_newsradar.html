@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
-  NewsRadar - Dashboard Editorial (demo)
-  Analise de artigos, fontes e palavras-chave a partir de CSV.
+  NewsRadar - Editorial dashboard (demo)
+  Article, source and keyword analysis from CSV.
 -->
-<html lang="pt-br">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
@@ -64,6 +64,11 @@
   h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .desc{color:var(--ink-4);font-size:11px;font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  .lang-sw{display:flex;align-items:center;height:33px;padding:0 8px;background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r-sm);font-family:var(--mono)}
+  .lang-sw button{background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink-4);padding:0 5px}
+  .lang-sw button:hover{color:var(--ink)}
+  .lang-sw button.on{color:var(--accent-soft);font-weight:700}
+  .lang-sw .sep{color:var(--ink-4);font-size:11px;opacity:.5}
   @media (max-width:760px){ .desc{display:none} h1{font-size:14px} }
 
   /* ===== filter bar ===== */
@@ -329,36 +334,39 @@
 <style>.uploader,.upload-section{display:none!important}</style>
 </head>
 <body>
-<a href="#main-content" class="skip-link">Pular para conteúdo principal</a>
+<a href="#main-content" class="skip-link" data-i18n="skip">Skip to main content</a>
 <header>
   <div class="wrap hdr-in">
     <div class="brand">
       <div class="logo">&gt;_</div>
       <div>
         <h1>NewsRadar Editorial <span class="version-badge">demo</span></h1>
-        <div class="desc">radar de noticiário · artigos · fontes · keywords</div>
+        <div class="desc" data-i18n="desc">news radar · articles · sources · keywords</div>
       </div>
     </div>
     <div class="hdr-actions">
-      <input id="file" type="file" accept=".csv" hidden aria-label="Carregar arquivo CSV"/>
-      <button class="btn-metodologia" onclick="openMetodologiaModal()">Metodologia</button>
+      <input id="file" type="file" accept=".csv" hidden aria-label="Upload CSV file" data-pt-aria="Carregar arquivo CSV"/>
+      <div class="lang-sw" role="group" aria-label="Language" data-pt-aria="Idioma">
+        <button type="button" data-lang-btn="en" aria-pressed="true">EN</button><span class="sep">/</span><button type="button" data-lang-btn="pt" aria-pressed="false">PT</button>
+      </div>
+      <button class="btn-metodologia" onclick="openMetodologiaModal()" data-i18n="btnMeth">Methodology</button>
     </div>
   </div>
   <div class="filterbar">
     <div class="wrap fb-in">
-      <span class="fb-label">janela</span>
-      <select id="sel-date" class="select" aria-label="Filtrar por janela de tempo">
-        <option value="all" selected>Todo o período</option>
-        <option value="30">Últimos 30 dias</option>
-        <option value="60">Últimos 60 dias</option>
-        <option value="90">Últimos 90 dias</option>
+      <span class="fb-label" data-i18n="fbWin">window</span>
+      <select id="sel-date" class="select" aria-label="Filter by time window" data-pt-aria="Filtrar por janela de tempo">
+        <option value="all" selected data-i18n="optAll">Entire period</option>
+        <option value="30" data-i18n="opt30">Last 30 days</option>
+        <option value="60" data-i18n="opt60">Last 60 days</option>
+        <option value="90" data-i18n="opt90">Last 90 days</option>
       </select>
-      <span class="fb-label">fonte</span>
-      <select id="sel-fonte" class="select" aria-label="Filtrar artigos por fonte">
-        <option value="all" selected>Todas as fontes</option>
+      <span class="fb-label" data-i18n="fbSrc">source</span>
+      <select id="sel-fonte" class="select" aria-label="Filter articles by source" data-pt-aria="Filtrar artigos por fonte">
+        <option value="all" selected data-i18n="optAllSrc">All sources</option>
       </select>
-      <input id="inp-keyword" class="input" placeholder="Buscar keyword..." aria-label="Buscar palavra-chave nos rankings">
-      <button id="btn-clear" class="btn secondary sm" aria-label="Limpar todos os filtros ativos">Limpar</button>
+      <input id="inp-keyword" class="input" placeholder="Search keyword..." data-pt-placeholder="Buscar keyword..." aria-label="Search keyword across rankings" data-pt-aria="Buscar palavra-chave nos rankings">
+      <button id="btn-clear" class="btn secondary sm" aria-label="Clear all active filters" data-pt-aria="Limpar todos os filtros ativos" data-i18n="btnClear">Clear</button>
       <span class="fb-sep"></span>
       <div id="active-filters" class="fb-chips" aria-live="polite"></div>
     </div>
@@ -369,15 +377,15 @@
   <div id="alerts" class="flex" role="status" aria-live="polite"></div>
 
   <div id="empty-state" class="card" style="text-align:center;padding:48px 20px;margin-top:16px;">
-    <h2 style="font-size:18px;color:var(--ink);margin:0 0 8px">Bem-vindo ao NewsRadar</h2>
-    <p style="color:var(--ink-4);margin:0">Envie um CSV de artigos pela barra de dados no topo, ou use "Preencher automaticamente" para ver o dashboard com uma base de exemplo.</p>
+    <h2 style="font-size:18px;color:var(--ink);margin:0 0 8px" data-i18n="esH">Welcome to NewsRadar</h2>
+    <p style="color:var(--ink-4);margin:0" data-i18n="esP">Upload an articles CSV via the data bar at the top, or use "Auto-fill with sample data" to see the dashboard with a sample dataset.</p>
   </div>
 
   <main id="dashboard-content" style="display:none;">
     <div id="main-content"></div>
     <section class="exec-band" id="exec-band" style="margin-top:16px">
-      <div class="exec-kicker"><b>//</b> resumo executivo</div>
-      <div class="exec-q">O que o radar capta no noticiário do período: volume de artigos, cobertura de fontes e concentração por palavra-chave.</div>
+      <div class="exec-kicker" data-i18n="exK"><b>//</b> executive summary</div>
+      <div class="exec-q" data-i18n="exQ">What the radar captures in the period's news cycle: article volume, source coverage and keyword concentration.</div>
       <div class="kpis" id="kpis" style="margin-bottom:14px"></div>
       <div class="exec-insight" id="exec-insight"></div>
     </section>
@@ -386,15 +394,15 @@
       <section id="top-keywords" class="card">
         <div class="card-header">
           <h2 data-number="01">Top keywords
-            <span class="info-icon">ⓘ<span class="tooltip">As 15 palavras-chave com mais menções na seleção atual. Clique numa barra para filtrar todo o dashboard por essa keyword.</span></span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt1">The 15 keywords with the most mentions in the current selection. Click a bar to filter the whole dashboard by that keyword.</span></span>
           </h2>
-          <div class="panel-sub">Ranking por menções. Clique numa barra para aplicar o filtro.</div>
+          <div class="panel-sub" data-i18n="sub1">Ranking by mentions. Click a bar to apply the filter.</div>
           <div class="actions">
             <div style="position:relative">
-              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações" aria-label="Ações do gráfico">⋮</button>
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Actions" data-pt-title="Ações" aria-label="Chart actions" data-pt-aria="Ações do gráfico">⋮</button>
               <div class="chart-menu">
                 <button onclick="downloadChartPNG('chart_top_keywords','top_keywords')">Download PNG</button>
-                <button onclick="exportChartDataCSV('chart_top_keywords','top_keywords')">Exportar CSV</button>
+                <button onclick="exportChartDataCSV('chart_top_keywords','top_keywords')" data-i18n="mExpCsv">Export CSV</button>
               </div>
             </div>
           </div>
@@ -404,16 +412,16 @@
 
       <section id="theme-evolution" class="card">
         <div class="card-header">
-          <h2 data-number="02">Evolução de temas
-            <span class="info-icon">ⓘ<span class="tooltip">Menções semanais das 5 palavras-chave mais recorrentes da seleção. Clique numa linha para filtrar pela keyword.</span></span>
+          <h2 data-number="02"><span data-i18n="c2t">Theme evolution</span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt2">Weekly mentions of the 5 most recurring keywords in the selection. Click a line to filter by that keyword.</span></span>
           </h2>
-          <div class="panel-sub">Menções por semana das 5 keywords mais fortes do período.</div>
+          <div class="panel-sub" data-i18n="sub2">Weekly mentions of the period's 5 strongest keywords.</div>
           <div class="actions">
             <div style="position:relative">
-              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações" aria-label="Ações do gráfico">⋮</button>
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Actions" data-pt-title="Ações" aria-label="Chart actions" data-pt-aria="Ações do gráfico">⋮</button>
               <div class="chart-menu">
                 <button onclick="downloadChartPNG('chart_theme_evolution','evolucao_temas')">Download PNG</button>
-                <button onclick="exportChartDataCSV('chart_theme_evolution','evolucao_temas')">Exportar CSV</button>
+                <button onclick="exportChartDataCSV('chart_theme_evolution','evolucao_temas')" data-i18n="mExpCsv">Export CSV</button>
               </div>
             </div>
           </div>
@@ -426,15 +434,15 @@
       <section id="keyword-explorer" class="card">
         <div class="card-header">
           <h2 data-number="03">Keyword Explorer
-            <span class="info-icon">ⓘ<span class="tooltip">Exploração das palavras-chave em três visões: nuvem, rede de co-ocorrência e heatmap semanal.</span></span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt3">Keyword exploration in three views: cloud, co-occurrence network and weekly heatmap.</span></span>
           </h2>
-          <div class="panel-sub">Visões complementares do vocabulário do período. A rede mostra até 30 termos (rótulo nos 10 mais fortes; o resto aparece no hover) e o heatmap até 30 linhas.</div>
+          <div class="panel-sub" data-i18n="sub3">Complementary views of the period's vocabulary. The network shows up to 30 terms (labels on the 10 strongest; the rest on hover) and the heatmap up to 30 rows.</div>
           <div class="actions">
             <div style="position:relative">
-              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações" aria-label="Ações do gráfico">⋮</button>
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Actions" data-pt-title="Ações" aria-label="Chart actions" data-pt-aria="Ações do gráfico">⋮</button>
               <div class="chart-menu">
                 <button onclick="downloadActiveKeywordChart()">Download PNG</button>
-                <button onclick="exportActiveKeywordData()">Exportar CSV</button>
+                <button onclick="exportActiveKeywordData()" data-i18n="mExpCsv">Export CSV</button>
               </div>
             </div>
           </div>
@@ -442,10 +450,10 @@
         <div class="flex" style="margin-bottom:12px;">
           <div class="chips">
             <div class="chip active" data-view="cloud" role="button" tabindex="0">Word Cloud</div>
-            <div class="chip" data-view="graph" role="button" tabindex="0">Rede</div>
-            <div class="chip" data-view="heatmap" role="button" tabindex="0">Heatmap Semanal</div>
+            <div class="chip" data-view="graph" role="button" tabindex="0" data-i18n="chipNet">Network</div>
+            <div class="chip" data-view="heatmap" role="button" tabindex="0" data-i18n="chipHeat">Weekly heatmap</div>
           </div>
-          <select id="sel-topN" class="select" aria-label="Quantidade de keywords na nuvem">
+          <select id="sel-topN" class="select" aria-label="Number of keywords in the cloud" data-pt-aria="Quantidade de keywords na nuvem">
             <option value="50">Top 50</option>
             <option value="100" selected>Top 100</option>
             <option value="150">Top 150</option>
@@ -461,16 +469,16 @@
     <div class="grid grid-two">
       <section id="sources" class="card">
         <div class="card-header">
-          <h2 data-number="04">Fontes por Score Médio
-            <span class="info-icon">ⓘ<span class="tooltip">Score médio real dos artigos de cada veículo. Entram as 15 fontes de maior volume com pelo menos 3 artigos pontuados. Clique numa barra para filtrar pela fonte.</span></span>
+          <h2 data-number="04"><span data-i18n="c4t">Sources by average score</span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt4">Actual average score of each outlet's articles. Includes the 15 highest-volume sources with at least 3 scored articles. Click a bar to filter by that source.</span></span>
           </h2>
-          <div class="panel-sub">Top 15 fontes por volume, mínimo de 3 artigos pontuados. Ordenado pelo score médio.</div>
+          <div class="panel-sub" data-i18n="sub4">Top 15 sources by volume, minimum of 3 scored articles. Sorted by average score.</div>
           <div class="actions">
             <div style="position:relative">
-              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações" aria-label="Ações do gráfico">⋮</button>
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Actions" data-pt-title="Ações" aria-label="Chart actions" data-pt-aria="Ações do gráfico">⋮</button>
               <div class="chart-menu">
                 <button onclick="downloadChartPNG('chart_sources','fontes_score_medio')">Download PNG</button>
-                <button onclick="exportChartDataCSV('chart_sources','fontes_score_medio')">Exportar CSV</button>
+                <button onclick="exportChartDataCSV('chart_sources','fontes_score_medio')" data-i18n="mExpCsv">Export CSV</button>
               </div>
             </div>
           </div>
@@ -480,16 +488,16 @@
 
       <section class="card">
         <div class="card-header">
-          <h2 data-number="05">Fluxo de temas por fonte <small>(Sankey)</small>
-            <span class="info-icon">ⓘ<span class="tooltip">As 5 maiores fontes cruzadas com as 5 keywords mais recorrentes. Clique num nó para filtrar por fonte ou keyword.</span></span>
+          <h2 data-number="05"><span data-i18n="c5t">Theme flow by source</span> <small>(Sankey)</small>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt5">The 5 largest sources crossed with the 5 most recurring keywords. Click a node to filter by source or keyword.</span></span>
           </h2>
-          <div class="panel-sub">Top 5 fontes por volume cruzadas com as top 5 keywords da seleção.</div>
+          <div class="panel-sub" data-i18n="sub5">Top 5 sources by volume crossed with the selection's top 5 keywords.</div>
           <div class="actions">
             <div style="position:relative">
-              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações" aria-label="Ações do gráfico">⋮</button>
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Actions" data-pt-title="Ações" aria-label="Chart actions" data-pt-aria="Ações do gráfico">⋮</button>
               <div class="chart-menu">
                 <button onclick="downloadChartPNG('chart_sankey','sankey_temas')">Download PNG</button>
-                <button onclick="exportChartDataCSV('chart_sankey','sankey_temas')">Exportar CSV</button>
+                <button onclick="exportChartDataCSV('chart_sankey','sankey_temas')" data-i18n="mExpCsv">Export CSV</button>
               </div>
             </div>
           </div>
@@ -501,27 +509,27 @@
     <div class="grid">
       <section id="top-articles" class="card">
         <div class="card-header">
-          <h2 data-number="06">Top Artigos por Score
-            <span class="info-icon">ⓘ<span class="tooltip">Lista dos artigos da seleção, ordenável por data, título, fonte e score.</span></span>
+          <h2 data-number="06"><span data-i18n="c6t">Top articles by score</span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt6">List of the selection's articles, sortable by date, title, source and score.</span></span>
           </h2>
-          <div class="panel-sub">Artigos da seleção atual. Clique nos cabeçalhos para ordenar.</div>
+          <div class="panel-sub" data-i18n="sub6">Articles in the current selection. Click the headers to sort.</div>
           <div class="actions">
-            <button id="btn-download-clean" class="btn secondary sm" disabled>Exportar dados (.csv)</button>
+            <button id="btn-download-clean" class="btn secondary sm" disabled data-i18n="btnExport">Export data (.csv)</button>
           </div>
         </div>
-        <div id="table-filter-toggle" class="table-filter-toggle">Filtros da Tabela ▼</div>
+        <div id="table-filter-toggle" class="table-filter-toggle">Table filters ▼</div>
         <div id="table-filters" class="table-filters flex">
-          <input id="table-title-filter" class="input" placeholder="Filtrar por título...">
-          <input id="table-tags-filter" class="input" placeholder="Filtrar por tags..." style="min-width:160px">
-          <input id="table-score-filter" type="number" class="input" placeholder="Pontuação mínima..." style="min-width:160px">
+          <input id="table-title-filter" class="input" placeholder="Filter by title..." data-pt-placeholder="Filtrar por título...">
+          <input id="table-tags-filter" class="input" placeholder="Filter by tags..." data-pt-placeholder="Filtrar por tags..." style="min-width:160px">
+          <input id="table-score-filter" type="number" class="input" placeholder="Minimum score..." data-pt-placeholder="Pontuação mínima..." style="min-width:160px">
         </div>
         <div class="table-container" id="raw-data">
           <table class="table" id="table_latest">
             <thead>
               <tr>
-                <th class="sortable" data-sort="data">Data<span></span></th>
-                <th class="sortable" data-sort="titulo">Título<span></span></th>
-                <th class="sortable" data-sort="fonte">Fonte<span></span></th>
+                <th class="sortable" data-sort="data" data-i18n="thDate">Date<span></span></th>
+                <th class="sortable" data-sort="titulo" data-i18n="thTitle">Title<span></span></th>
+                <th class="sortable" data-sort="fonte" data-i18n="thSource">Source<span></span></th>
                 <th class="sortable" data-sort="score">Score<span></span></th>
                 <th>Tags/Keywords</th>
               </tr>
@@ -529,16 +537,16 @@
             <tbody></tbody>
           </table>
         </div>
-        <div class="footer" style="margin:10px 0 0">* Clique no título para abrir o link (quando disponível). Títulos longos são cortados.</div>
+        <div class="footer" style="margin:10px 0 0" data-i18n="tblNote">* Click the title to open the link (when available). Long titles are truncated.</div>
         <div id="table-footer-note"></div>
       </section>
     </div>
 
-    <div class="footer">NewsRadar Editorial · dashboard de demonstração</div>
+    <div class="footer" data-i18n="foot">NewsRadar Editorial · demo dashboard</div>
   </main>
 </div>
 
-<button id="scrollToTop" onclick="scrollToTop()" title="Voltar ao topo" aria-label="Voltar ao topo">↑</button>
+<button id="scrollToTop" onclick="scrollToTop()" title="Back to top" data-pt-title="Voltar ao topo" aria-label="Back to top" data-pt-aria="Voltar ao topo">↑</button>
 
 <script>
 /* ---------- Tema de visualização ----------
@@ -560,7 +568,8 @@ const ACCENT = (getComputedStyle(document.documentElement).getPropertyValue('--a
 const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 // ---------- Utils ----------
-const fmt = new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo'});
+// Data na locale ativa (EN default; PT via seletor). LOC() vem do bloco I18N no fim do arquivo.
+const fmtDate = d => new Intl.DateTimeFormat((typeof LOC === 'function' ? LOC() : 'en-US'), {timeZone:'America/Sao_Paulo'}).format(d);
 const el = id => document.getElementById(id);
 const alerts = el('alerts');
 
@@ -573,7 +582,8 @@ function addAlert(msg, type='warn'){
 }
 
 // Estados de loading
-function showLoadingState(message = 'Carregando...'){
+function showLoadingState(message){
+  if(!message) message = t('loading');
   const loader = document.getElementById('loading-overlay') || createLoadingOverlay();
   const loadingText = loader.querySelector('.loading-text');
   if(loadingText) loadingText.textContent = message;
@@ -604,7 +614,7 @@ function createLoadingOverlay(){
   overlay.innerHTML = `
     <div class="loading-spinner">
       <div class="spinner"></div>
-      <div class="loading-text">Carregando...</div>
+      <div class="loading-text">${t('loading')}</div>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -805,8 +815,9 @@ function buildAggregates(){
 function make(instId){ return echarts.init(el(instId), 'demo'); }
 let topKeywordsBar, cloud, graph, heatmap, themeEvolution, sourcesBar, sankey;
 
-function showEmptyChartMessage(chartInstance, message = 'Não há dados suficientes para exibir este gráfico.') {
+function showEmptyChartMessage(chartInstance, message) {
     if(!chartInstance) return;
+    if(!message) message = t('emptyDefault');
     chartInstance.clear();
     chartInstance.setOption({
         graphic: {
@@ -829,11 +840,11 @@ function renderKPIs(){
   sourcesCounts.forEach((v,k)=>{ if(v>topSrcN){ topSrcN=v; topSrc=k; } });
   const conc = total ? Math.round(topSrcN/total*100) : 0;
   const kpis = [
-    {label:'Artigos', value: total.toLocaleString('pt-BR'), sub:'na seleção atual'},
-    {label:'Fontes', value: sourcesAll.size, sub:'veículos cobertos'},
-    {label:'Palavras-chave', value: keywordsAll.size.toLocaleString('pt-BR'), sub:'termos rastreados'},
-    {label:'Última publicação', value: lastDate ? fmt.format(lastDate) : '-', sub:'artigo mais recente'},
-    {label:'Top fonte', value: conc+'%', sub: escHtml(topSrc)}
+    {label:t('kArticles'), value: total.toLocaleString(LOC()), sub:t('kSubSel')},
+    {label:t('kSources'), value: sourcesAll.size, sub:t('kSubOutlets')},
+    {label:t('kKeywords'), value: keywordsAll.size.toLocaleString(LOC()), sub:t('kSubTerms')},
+    {label:t('kLastPub'), value: lastDate ? fmtDate(lastDate) : '-', sub:t('kSubRecent')},
+    {label:t('kTopSource'), value: conc+'%', sub: escHtml(topSrc)}
   ];
   wrap.innerHTML = kpis.map(k=>`<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="subv">${k.sub}</div></div>`).join('');
 }
@@ -850,9 +861,9 @@ function renderExecInsight(){
       if(a===kw && w>bestW){ bestW=w; bestNeigh=b; }
       else if(b===kw && w>bestW){ bestW=w; bestNeigh=a; }
     });
-    box.innerHTML = '<span class="ei-tag">keyword</span><b>'+escHtml(kw)+'</b> soma <b>'+total+'</b> menções na seleção'
-      + (topSrc ? '; fonte líder: <b>'+escHtml(topSrc[0])+'</b> ('+topSrc[1]+')' : '')
-      + (bestNeigh ? '; co-ocorrência mais forte com <b>'+escHtml(bestNeigh)+'</b> ('+bestW+')' : '') + '.';
+    box.innerHTML = '<span class="ei-tag">keyword</span>' + tf('eiKwSum', {kw: escHtml(kw), n: total})
+      + (topSrc ? tf('eiKwSrc', {s: escHtml(topSrc[0]), n: topSrc[1]}) : '')
+      + (bestNeigh ? tf('eiKwCo', {k: escHtml(bestNeigh), w: bestW}) : '') + '.';
     return;
   }
   let topSrc='-', topSrcN=0;
@@ -860,7 +871,7 @@ function renderExecInsight(){
   let topKw='-', topKwN=0;
   keywordCounts.forEach((v,k)=>{ if(v>topKwN){ topKwN=v; topKw=k; } });
   const conc = filteredCount ? Math.round(topSrcN/filteredCount*100) : 0;
-  box.innerHTML = '<span class="ei-tag">insight</span><b>'+escHtml(topSrc)+'</b> concentra <b>'+conc+'%</b> da cobertura da seleção; <b>'+escHtml(topKw)+'</b> é o tema mais recorrente ('+topKwN+' menções).';
+  box.innerHTML = '<span class="ei-tag">insight</span>' + tf('eiGeneral', {src: escHtml(topSrc), p: conc, kw: escHtml(topKw), n: topKwN});
 }
 
 function renderTopKeywords(){
@@ -872,7 +883,7 @@ function renderTopKeywords(){
   chartDataStore.top_keywords = arr;
 
   if (arr.length === 0) {
-      showEmptyChartMessage(topKeywordsBar, 'Nenhuma keyword encontrada para a busca atual.');
+      showEmptyChartMessage(topKeywordsBar, t('emptyKwSearch'));
       return;
   }
 
@@ -881,7 +892,7 @@ function renderTopKeywords(){
     grid:{left:130, right:24, top:8, bottom:26},
     tooltip:{trigger:'axis', axisPointer:{type:'shadow'}, formatter: p=>{
       const it = p[0];
-      return '<b>'+escHtml(it.name)+'</b><br>Menções: '+it.value;
+      return '<b>'+escHtml(it.name)+'</b><br>'+t('ttMentions')+': '+it.value;
     }},
     xAxis:{type:'value', minInterval:1},
     yAxis:{type:'category', inverse:true, data:arr.map(x=>x[0]), axisLabel:{formatter: v=>truncLabel(v,18)}},
@@ -946,7 +957,7 @@ function renderKeywordCloud(){
       const kw = p.name;
       const total = keywordCounts.get(kw)||0;
       const topSrc = topFontesForKeyword(kw).slice(0,3).map(x=>escHtml(x[0])+' ('+x[1]+')').join(', ');
-      return `<b>${escHtml(kw)}</b><br>Total: ${total}<br>Top fontes: ${topSrc}`;
+      return `<b>${escHtml(kw)}</b><br>${t('ttTotal')}: ${total}<br>${t('ttTopSources')}: ${topSrc}`;
     }},
     series:[{
       type:'wordCloud',
@@ -985,7 +996,7 @@ function renderKeywordGraph(){
   chartDataStore.keyword_graph = {nodes, edges};
 
   if (nodes.length === 0) {
-      showEmptyChartMessage(graph, 'Não há keywords para exibir na rede.');
+      showEmptyChartMessage(graph, t('emptyNet'));
       return;
   }
 
@@ -995,9 +1006,9 @@ function renderKeywordGraph(){
       show: true,
       formatter: (params) => {
         if (params.dataType === 'node') {
-          return `<b>${escHtml(params.data.name)}</b><br>Ocorrências: ${params.data.value}`;
+          return `<b>${escHtml(params.data.name)}</b><br>${t('ttOcc')}: ${params.data.value}`;
         }
-        return `${escHtml(params.data.source)} + ${escHtml(params.data.target)}<br>Co-ocorrências: ${params.data.value}`;
+        return `${escHtml(params.data.source)} + ${escHtml(params.data.target)}<br>${t('ttCoocc')}: ${params.data.value}`;
       }
     },
     series:[{
@@ -1030,7 +1041,7 @@ function renderKeywordGraph(){
   };
   graph.setOption(option, true);
   if(edges.length === 0) {
-      showEmptyChartMessage(graph, 'Keywords encontradas, mas sem co-ocorrências para criar uma rede.');
+      showEmptyChartMessage(graph, t('emptyNetEdges'));
   }
   graph.off('click');
   graph.on('click', p=>{ if(p.dataType==='node'){ filter.keyword=p.data.name; syncFilters(); } });
@@ -1054,7 +1065,7 @@ function renderKeywordHeatmap(){
   chartDataStore.keyword_heatmap = {weeks, keywords: topKw, data};
 
   if (data.length === 0) {
-      showEmptyChartMessage(heatmap, 'Não há dados semanais para as keywords selecionadas.');
+      showEmptyChartMessage(heatmap, t('emptyHeat'));
       return;
   }
 
@@ -1109,7 +1120,7 @@ function renderSources(){
   chartDataStore.top_sources = arr.map(x=>[x.fonte, Math.round(x.avg*10)/10, x.n]);
 
   if (arr.length === 0) {
-      showEmptyChartMessage(sourcesBar, 'Sem fontes com 3 ou mais artigos pontuados na seleção.');
+      showEmptyChartMessage(sourcesBar, t('emptySources'));
       return;
   }
 
@@ -1118,7 +1129,7 @@ function renderSources(){
     grid:{left:130, right:30, top:10, bottom:26},
     tooltip:{formatter: p=>{
       const d = arr[p.dataIndex];
-      return `<b>${escHtml(d.fonte)}</b><br>Score médio: ${d.avg.toFixed(1)}<br>Artigos pontuados: ${d.n}`;
+      return `<b>${escHtml(d.fonte)}</b><br>${t('ttAvgScore')}: ${d.avg.toFixed(1)}<br>${t('ttScored')}: ${d.n}`;
     }},
     xAxis:{type:'value'},
     yAxis:{type:'category', inverse:true, data:arr.map(x=>x.fonte),
@@ -1131,8 +1142,8 @@ function renderSources(){
 
 function populateFonteSelect(){
   const sel = el('sel-fonte');
-  const fontes = Array.from(new Set(rows.map(r=>r.fonte || 'sem fonte'))).sort((a,b)=>a.localeCompare(b,'pt-BR'));
-  sel.innerHTML = '<option value="all">Todas as fontes</option>' + fontes.map(s=>'<option value="'+escHtml(s)+'">'+escHtml(s)+'</option>').join('');
+  const fontes = Array.from(new Set(rows.map(r=>r.fonte || 'sem fonte'))).sort((a,b)=>a.localeCompare(b,LOC()));
+  sel.innerHTML = '<option value="all">'+t('optAllSources')+'</option>' + fontes.map(s=>'<option value="'+escHtml(s)+'">'+escHtml(s)+'</option>').join('');
   sel.value = filter.fonte;
 }
 
@@ -1234,7 +1245,7 @@ function renderTable(){
 
   filteredRows.slice(0, displayLimit).forEach(r=>{
     const tr = document.createElement('tr');
-    const td0 = document.createElement('td'); td0.textContent = r.data? fmt.format(r.data): '-'; tr.appendChild(td0);
+    const td0 = document.createElement('td'); td0.textContent = r.data? fmtDate(r.data): '-'; tr.appendChild(td0);
     const td1 = document.createElement('td');
     td1.title = r.titulo;
     if(r.url){ const a = document.createElement('a'); a.href=r.url; a.textContent=r.titulo||'-'; a.target='_blank'; a.rel='noopener'; td1.appendChild(a); }
@@ -1242,14 +1253,14 @@ function renderTable(){
     tr.appendChild(td1);
     const td2 = document.createElement('td'); td2.textContent = r.fonte || '-'; tr.appendChild(td2);
     const td3 = document.createElement('td');
-    td3.textContent = r.score !== null ? r.score : 'Sem Pontuação';
+    td3.textContent = r.score !== null ? r.score : t('noScore');
     tr.appendChild(td3);
     const td4 = document.createElement('td'); td4.textContent = (r.keywords||[]).slice(0,6).join(', '); tr.appendChild(td4);
     tb.appendChild(tr);
   });
 
   if (filteredRows.length > displayLimit) {
-    footerNote.textContent = `Mostrando os primeiros ${displayLimit} de ${filteredRows.length} resultados. Use os filtros da tabela para refinar a busca.`;
+    footerNote.textContent = tf('tblMore', {a: displayLimit, b: filteredRows.length});
   }
 }
 
@@ -1261,28 +1272,28 @@ function renderActiveFilters(){
 
   if(filter.keyword){
     activeFilters.push({
-      label: 'Keyword',
+      label: t('fltKeyword'),
       value: filter.keyword,
       remove: ()=> { filter.keyword=null; syncFilters(); }
     });
   }
   if(filter.fonte !== 'all'){
     activeFilters.push({
-      label: 'Fonte',
+      label: t('fltSource'),
       value: filter.fonte,
       remove: ()=> { filter.fonte='all'; el('sel-fonte').value='all'; syncFilters(); }
     });
   }
 
   if(activeFilters.length === 0){
-    box.innerHTML = '<div class="filter-empty">nenhum filtro · clique nos gráficos para filtrar</div>';
+    box.innerHTML = '<div class="filter-empty">'+t('fltNone')+'</div>';
     return;
   }
 
   activeFilters.forEach(({label, value, remove})=>{
     const pill = document.createElement('div');
     pill.className = 'filter-pill';
-    pill.innerHTML = `<span class="key">${escHtml(label)}</span> <span class="value">${escHtml(value)}</span> <button class="close-btn" aria-label="Remover filtro ${escHtml(label)}">×</button>`;
+    pill.innerHTML = `<span class="key">${escHtml(label)}</span> <span class="value">${escHtml(value)}</span> <button class="close-btn" aria-label="${tf('fltRemove', {l: escHtml(label)})}">×</button>`;
     pill.querySelector('.close-btn').addEventListener('click', remove);
     box.appendChild(pill);
   });
@@ -1309,7 +1320,7 @@ el('file').addEventListener('change', (ev)=>{
   resetState();
 
   // Mostrar loading spinner
-  showLoadingState('Carregando arquivo CSV...');
+  showLoadingState(t('loadingCsv'));
 
   Papa.parse(f,{
     header:true,
@@ -1317,27 +1328,27 @@ el('file').addEventListener('change', (ev)=>{
     chunk: (results, parser) => {
       // Processar em chunks para melhor performance
       raw.push(...results.data);
-      updateLoadingProgress(`Processando: ${raw.length} linhas lidas...`);
+      updateLoadingProgress(tf('procRead', {n: raw.length}));
     },
     complete: (res)=>{
       if(!raw.length){
         hideLoadingState();
-        addAlert('CSV vazio ou inválido.','warn');
+        addAlert(t('csvEmpty'),'warn');
         return;
       }
 
-      updateLoadingProgress(`${raw.length} linhas carregadas. Processando dados...`);
+      updateLoadingProgress(tf('rowsLoaded', {n: raw.length}));
 
       // Processar com pequeno delay para UI atualizar
       setTimeout(() => {
         processLoadedData();
         hideLoadingState();
-        addAlert(`${raw.length} linhas processadas com sucesso!`, 'badge');
+        addAlert(tf('rowsOk', {n: raw.length}), 'badge');
       }, 100);
     },
     error: (err, file) => {
       hideLoadingState();
-      addAlert(`Erro ao processar o CSV: ${err.message}. Verifique o formato do arquivo.`, 'warn');
+      addAlert(tf('csvErr', {msg: err.message}), 'warn');
     }
   });
 });
@@ -1348,7 +1359,7 @@ function processLoadedData(){
   const misses = ['titulo','data','fonte'].filter(k=>!colmap[k]);
 
   if(misses.length){
-    addAlert('Mapeamento incompleto para: '+misses.join(', ')+'. Use cabeçalhos padrão.', 'warn');
+    addAlert(tf('mapMiss', {cols: misses.join(', ')}), 'warn');
   }
 
   let ignoredNoDate = 0, fixedUrls = 0, duplicates = 0;
@@ -1386,14 +1397,14 @@ function processLoadedData(){
 
   // Feedback final
   let messages = [];
-  if(ignoredNoDate) messages.push(`${ignoredNoDate} linha(s) sem data ignoradas`);
-  if(duplicates) messages.push(`${duplicates} duplicata(s) removida(s) (mantida 1ª ocorrência)`);
-  if(fixedUrls) messages.push(`${fixedUrls} URL(s) corrigida(s)`);
+  if(ignoredNoDate) messages.push(tf('msgNoDate', {n: ignoredNoDate}));
+  if(duplicates) messages.push(tf('msgDup', {n: duplicates}));
+  if(fixedUrls) messages.push(tf('msgUrl', {n: fixedUrls}));
 
   if(messages.length){
     addAlert('ℹ ' + messages.join(' · '), 'badge');
   } else {
-    addAlert(`${rows.length} artigos únicos processados com sucesso!`, 'badge');
+    addAlert(tf('articlesOk', {n: rows.length}), 'badge');
   }
 
   el('btn-download-clean').disabled = false;
@@ -1459,7 +1470,7 @@ el('table-filter-toggle').addEventListener('click', (ev)=>{
   const filters = el('table-filters');
   const isVisible = filters.style.display === 'flex';
   filters.style.display = isVisible ? 'none' : 'flex';
-  ev.target.textContent = isVisible ? 'Filtros da Tabela ▼' : 'Filtros da Tabela ▲';
+  ev.target.textContent = t('tblFilters') + (isVisible ? ' ▼' : ' ▲');
 });
 
 ['table-title-filter', 'table-tags-filter', 'table-score-filter'].forEach(id => {
@@ -1504,7 +1515,7 @@ el('btn-download-clean').addEventListener('click', ()=>{
 function downloadChartPNG(domId, fileBase){
   const chart = echarts.getInstanceByDom(document.getElementById(domId));
   if(!chart) {
-    alert('Gráfico não encontrado');
+    alert(t('alertNoChart'));
     return;
   }
   const url = chart.getDataURL({
@@ -1525,7 +1536,7 @@ function exportChartDataCSV(domId, fileBase){
   let data = chartDataStore[kind];
 
   if(!data || (Array.isArray(data) && data.length === 0)){
-    alert('Nenhum dado disponível para exportar');
+    alert(t('alertNoData'));
     return;
   }
 
@@ -1533,27 +1544,27 @@ function exportChartDataCSV(domId, fileBase){
 
   // Formatar baseado no tipo de dado
   if(kind === 'top_sources'){
-    lines.push('Fonte,Score médio,Artigos pontuados');
+    lines.push(t('csvHSources'));
     data.forEach(([fonte, avg, n]) => {
       lines.push(`"${fonte}",${avg},${n}`);
     });
   } else if(kind === 'top_keywords'){
-    lines.push('Keyword,Menções');
+    lines.push(t('csvHKw'));
     data.forEach(([kw, qtd]) => {
       lines.push(`"${kw}",${qtd}`);
     });
   } else if(kind === 'sankey'){
-    lines.push('Origem,Destino,Valor');
+    lines.push(t('csvHSankey'));
     data.links.forEach(link => {
       lines.push(`"${link.source}","${link.target}",${link.value}`);
     });
   } else if(kind === 'word_cloud'){
-    lines.push('Palavra-chave,Frequência');
+    lines.push(t('csvHCloud'));
     data.forEach(item => {
       lines.push(`"${item.name}",${item.value}`);
     });
   } else if(kind === 'theme_evolution'){
-    lines.push('Semana,Tema,Menções');
+    lines.push(t('csvHTheme'));
     data.keywords.forEach((kw, ki) => {
       data.weeks.forEach((w, wi) => {
         const v = data.matrix[ki][wi];
@@ -1561,7 +1572,7 @@ function exportChartDataCSV(domId, fileBase){
       });
     });
   } else if(kind === 'keyword_heatmap'){
-    lines.push('Semana,Keyword,Menções');
+    lines.push(t('csvHHeat'));
     data.data.forEach(([wi, ki, v]) => {
       lines.push(`"${data.weeks[wi]}","${data.keywords[ki]}",${v}`);
     });
@@ -1627,79 +1638,79 @@ window.addEventListener('resize', ()=>{
 <div class="modal-overlay" id="modalMetodologia">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Metodologia · NewsRadar Editorial</h2>
-      <button class="modal-close" onclick="closeMetodologiaModal()" aria-label="Fechar">&times;</button>
+      <h2 data-i18n="mTitle">Methodology · NewsRadar Editorial</h2>
+      <button class="modal-close" onclick="closeMetodologiaModal()" aria-label="Close" data-pt-aria="Fechar">&times;</button>
     </div>
     <div class="modal-body">
-      <h3>Como usar este dashboard:</h3>
-      <p style="background: var(--accent-glow); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
-        <strong>Arquivo necessário:</strong> <code>newsradar_artigos.csv</code><br>
-        <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Export do monitoramento editorial, uma linha por artigo capturado.</span>
+      <h3 data-i18n="mH1">How to use this dashboard:</h3>
+      <p style="background: var(--accent-glow); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;" data-i18n="mP1">
+        <strong>Required file:</strong> <code>newsradar_artigos.csv</code><br>
+        <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Editorial monitoring export, one row per captured article.</span>
       </p>
-      <ul style="margin-bottom: 16px;">
-        <li><strong>Faça upload de um arquivo CSV</strong> contendo artigos com as seguintes colunas:
+      <ul style="margin-bottom: 16px;" data-i18n="mU1">
+        <li><strong>Upload a CSV file</strong> containing articles with the following columns:
           <ul style="margin-top: 4px;">
-            <li><strong>Obrigatórias:</strong>
+            <li><strong>Required:</strong>
               <ul style="margin-left: 20px; font-size: 11px;">
-                <li><code>título</code> ou <code>title</code> ou <code>headline</code>: título do artigo</li>
-                <li><code>data</code> ou <code>date</code>: data de publicação</li>
-                <li><code>fonte</code> ou <code>source</code>: fonte/veículo</li>
+                <li><code>título</code> or <code>title</code> or <code>headline</code>: article title</li>
+                <li><code>data</code> or <code>date</code>: publication date</li>
+                <li><code>fonte</code> or <code>source</code>: source/outlet</li>
               </ul>
             </li>
-            <li><strong>Opcionais:</strong>
+            <li><strong>Optional:</strong>
               <ul style="margin-left: 20px; font-size: 11px;">
-                <li><code>score</code>: score de relevância (0-100)</li>
-                <li><code>url</code> ou <code>link</code>: link do artigo</li>
-                <li><code>tags</code>: palavras-chave separadas por vírgula</li>
-                <li><code>categoria</code>: categoria editorial</li>
+                <li><code>score</code>: relevance score (0-100)</li>
+                <li><code>url</code> or <code>link</code>: article link</li>
+                <li><code>tags</code>: comma-separated keywords</li>
+                <li><code>categoria</code>: editorial category</li>
               </ul>
             </li>
           </ul>
         </li>
       </ul>
 
-      <h3>Processamento automático:</h3>
-      <ul>
-        <li><strong>Tokenização inteligente:</strong> remove stopwords em português e normaliza termos</li>
-        <li><strong>Detecção de keywords:</strong> extração de título + tags</li>
-        <li><strong>Análise de co-ocorrência:</strong> relacionamento entre palavras-chave</li>
-        <li><strong>Agregação temporal:</strong> agrupamento por semana</li>
-        <li><strong>Parseamento de datas:</strong> suporta DD/MM/YYYY, YYYY-MM-DD e ISO</li>
-        <li><strong>Deduplicação:</strong> pela URL (ou título + data), mantendo a primeira ocorrência</li>
+      <h3 data-i18n="mH2">Automatic processing:</h3>
+      <ul data-i18n="mU2">
+        <li><strong>Smart tokenization:</strong> removes Portuguese stopwords and normalizes terms</li>
+        <li><strong>Keyword detection:</strong> extraction from title + tags</li>
+        <li><strong>Co-occurrence analysis:</strong> relationships between keywords</li>
+        <li><strong>Time aggregation:</strong> grouped by week</li>
+        <li><strong>Date parsing:</strong> supports DD/MM/YYYY, YYYY-MM-DD and ISO</li>
+        <li><strong>Deduplication:</strong> by URL (or title + date), keeping the first occurrence</li>
       </ul>
 
-      <h3>Visualizações disponíveis:</h3>
-      <ul>
-        <li><strong>Top keywords:</strong> as 15 palavras-chave com mais menções na seleção</li>
-        <li><strong>Evolução de temas:</strong> menções semanais das 5 keywords mais fortes</li>
-        <li><strong>Keyword Explorer:</strong> nuvem de palavras, rede de co-ocorrência (até 30 nós) e heatmap semanal (até 30 linhas)</li>
-        <li><strong>Fontes por Score Médio:</strong> score médio real por veículo (top 15 por volume, mínimo 3 artigos pontuados)</li>
-        <li><strong>Fluxo de temas por fonte:</strong> Sankey com as top 5 fontes e top 5 keywords</li>
-        <li><strong>Top Artigos:</strong> listagem completa com filtros e ordenação</li>
+      <h3 data-i18n="mH3">Available visualizations:</h3>
+      <ul data-i18n="mU3">
+        <li><strong>Top keywords:</strong> the 15 keywords with the most mentions in the selection</li>
+        <li><strong>Theme evolution:</strong> weekly mentions of the 5 strongest keywords</li>
+        <li><strong>Keyword Explorer:</strong> word cloud, co-occurrence network (up to 30 nodes) and weekly heatmap (up to 30 rows)</li>
+        <li><strong>Sources by average score:</strong> actual average score per outlet (top 15 by volume, minimum of 3 scored articles)</li>
+        <li><strong>Theme flow by source:</strong> Sankey with the top 5 sources and top 5 keywords</li>
+        <li><strong>Top articles:</strong> full listing with filters and sorting</li>
       </ul>
 
-      <h3>Filtros disponíveis:</h3>
-      <ul>
-        <li><strong>Janela de tempo:</strong> últimos 30, 60, 90 dias ou todo o período</li>
-        <li><strong>Fonte:</strong> filtrar por veículo específico</li>
-        <li><strong>Keyword:</strong> clique em qualquer gráfico de keywords para aplicar o filtro cruzado</li>
-        <li><strong>Busca de keyword:</strong> campo de texto que refina os rankings</li>
-        <li><strong>Filtros da tabela:</strong> busca em título, tags e score mínimo</li>
+      <h3 data-i18n="mH4">Available filters:</h3>
+      <ul data-i18n="mU4">
+        <li><strong>Time window:</strong> last 30, 60, 90 days or the entire period</li>
+        <li><strong>Source:</strong> filter by a specific outlet</li>
+        <li><strong>Keyword:</strong> click any keyword chart to apply the cross-filter</li>
+        <li><strong>Keyword search:</strong> text field that refines the rankings</li>
+        <li><strong>Table filters:</strong> search by title, tags and minimum score</li>
       </ul>
 
-      <h3>Dicas de uso:</h3>
-      <ul>
-        <li>Use os <strong>chips azuis</strong> da barra de filtros para ver e remover recortes ativos</li>
-        <li>Clique em <strong>barras, nós e linhas</strong> para aplicar o filtro cruzado de keyword ou fonte</li>
-        <li>Exporte a base tratada via <strong>"Exportar dados (.csv)"</strong></li>
-        <li>Cada card tem menu de ações com <strong>Download PNG</strong> e <strong>Exportar CSV</strong></li>
+      <h3 data-i18n="mH5">Usage tips:</h3>
+      <ul data-i18n="mU5">
+        <li>Use the <strong>blue chips</strong> in the filter bar to see and remove active slices</li>
+        <li>Click <strong>bars, nodes and lines</strong> to apply the keyword or source cross-filter</li>
+        <li>Export the cleaned dataset via <strong>"Export data (.csv)"</strong></li>
+        <li>Each card has an actions menu with <strong>Download PNG</strong> and <strong>Export CSV</strong></li>
       </ul>
 
-      <h3>Notas técnicas:</h3>
-      <ul>
-        <li><strong>100% local:</strong> o parse do CSV acontece no navegador; nenhum dado sai da sua máquina</li>
-        <li><strong>Performance:</strong> otimizado para até 10.000 artigos</li>
-        <li><strong>Limpeza automática:</strong> remove registros sem título ou data</li>
+      <h3 data-i18n="mH6">Technical notes:</h3>
+      <ul data-i18n="mU6">
+        <li><strong>100% local:</strong> CSV parsing happens in the browser; no data ever leaves your machine</li>
+        <li><strong>Performance:</strong> optimized for up to 10,000 articles</li>
+        <li><strong>Automatic cleanup:</strong> removes records without a title or date</li>
         <li><strong>Timezone:</strong> America/Sao_Paulo (UTC-3)</li>
       </ul>
     </div>
@@ -1779,6 +1790,48 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
   var CFG = null;
   var els = {};
   var mode = 'empty'; // 'empty' | 'demo' | 'user'
+  var lastUserFile = null;
+
+  /* ---------- idioma (ingles default; 'pt' via localStorage 'lang') ---------- */
+  function dkLang() { var l = 'en'; try { l = localStorage.getItem('lang') || 'en'; } catch (e) {} return l === 'pt' ? 'pt' : 'en'; }
+  var DK_STR = {
+    en: {
+      kicker: '[ <b>data</b> ]',
+      fill: 'Auto-fill with sample data',
+      upload: 'Upload CSV', uploads: 'Upload CSVs',
+      help: 'How to build the CSV',
+      panelTitle: 'How to use your data',
+      panelIntro: 'This dashboard is fed by a CSV exported from your CRM or source spreadsheet. Parsing happens 100% in the browser: no file ever leaves your machine. Download the template below, replace the sample rows with your data and upload it back. Columns marked with <span class="dk-req">*</span> are required; the rest can be empty.',
+      thCol: 'column', thType: 'type', thWhat: 'what it is', thEx: 'example',
+      tplBtn: 'Download CSV template', upThis: 'Upload this file',
+      panelFoot: 'Just browsing? The <b style="color:#f8f7f3">Auto-fill</b> button generates a synthetic dataset that follows this exact contract and renders every chart instantly.',
+      stDemo: '<b>sample data</b>', stUser: '<b>your data</b>',
+      stNone: 'no data loaded', stFail: 'failed to generate sample data',
+      badge: '<b>sample data</b> &middot; upload your CSV to use yours'
+    },
+    pt: {
+      kicker: '[ <b>dados</b> ]',
+      fill: 'Preencher automaticamente',
+      upload: 'Enviar CSV', uploads: 'Enviar CSVs',
+      help: 'Como montar o CSV',
+      panelTitle: 'Como usar seus dados',
+      panelIntro: 'Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.',
+      thCol: 'coluna', thType: 'tipo', thWhat: 'o que e', thEx: 'exemplo',
+      tplBtn: 'Baixar template CSV', upThis: 'Enviar este arquivo',
+      panelFoot: 'Prefere so olhar? O botao <b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que respeita exatamente esse contrato e renderiza todos os graficos na hora.',
+      stDemo: '<b>dados de exemplo</b>', stUser: '<b>seus dados</b>',
+      stNone: 'sem dados carregados', stFail: 'falha ao gerar dados de exemplo',
+      badge: '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus'
+    }
+  };
+  function S(k) { var d = DK_STR[dkLang()]; return (d && d[k]) || DK_STR.en[k] || k; }
+  function pickCfg(base, enVal) { return dkLang() === 'pt' ? base : (enVal || base); }
+  function summaryText() {
+    try {
+      if (dkLang() === 'en' && CFG && CFG.summary_en) return CFG.summary_en();
+      return CFG && CFG.summary ? CFG.summary() : '';
+    } catch (e) { return ''; }
+  }
 
   /* ---------- utilitarios ---------- */
 
@@ -1910,35 +1963,30 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
 
   function panelHTML() {
     var out = '<div class="dk-pin">';
-    out += '<h2 class="dk-h">Como usar seus dados</h2>';
-    out += '<p class="dk-p">Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. '
-        + 'O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. '
-        + 'Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. '
-        + 'Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.</p>';
+    out += '<h2 class="dk-h">' + S('panelTitle') + '</h2>';
+    out += '<p class="dk-p">' + S('panelIntro') + '</p>';
 
     CFG.files.forEach(function (f, i) {
       var s = sampleOf(f)[0] || {};
       out += '<div class="dk-file">';
       out += '<div class="dk-fh"><span class="dk-fn">' + esc(f.name) + '</span><span class="dk-fa">';
-      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">Baixar template CSV</button>';
-      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">Enviar este arquivo</button>';
+      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">' + S('tplBtn') + '</button>';
+      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">' + S('upThis') + '</button>';
       out += '</span></div>';
-      out += '<p class="dk-fd">' + esc(f.desc) + '</p>';
+      out += '<p class="dk-fd">' + esc(pickCfg(f.desc, f.desc_en)) + '</p>';
       out += '<div class="dk-scroll"><table class="dk-t"><thead><tr>'
-          + '<th>coluna</th><th>tipo</th><th>o que e</th><th>exemplo</th>'
+          + '<th>' + S('thCol') + '</th><th>' + S('thType') + '</th><th>' + S('thWhat') + '</th><th>' + S('thEx') + '</th>'
           + '</tr></thead><tbody>';
       f.cols.forEach(function (c) {
         out += '<tr><td class="c">' + esc(c.n) + (c.req ? '<span class="dk-req">*</span>' : '') + '</td>'
-            + '<td class="t">' + esc(c.t) + '</td>'
-            + '<td>' + esc(c.d) + '</td>'
+            + '<td class="t">' + esc(pickCfg(c.t, c.t_en)) + '</td>'
+            + '<td>' + esc(pickCfg(c.d, c.d_en)) + '</td>'
             + '<td class="x">' + esc(s[c.n]) + '</td></tr>';
       });
       out += '</tbody></table></div></div>';
     });
 
-    out += '<p class="dk-p" style="margin:2px 0 0">Prefere so olhar? O botao '
-        + '<b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que '
-        + 'respeita exatamente esse contrato e renderiza todos os graficos na hora.</p>';
+    out += '<p class="dk-p" style="margin:2px 0 0">' + S('panelFoot') + '</p>';
     out += '</div>';
     return out;
   }
@@ -1950,14 +1998,14 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     bar.setAttribute('aria-label', 'Dados do dashboard');
 
     var many = CFG.files.filter(function (f) { return !!f.input; }).length > 1;
-    var upLabel = many ? 'Enviar CSVs' : 'Enviar CSV';
+    var upLabel = many ? S('uploads') : S('upload');
     var hasInput = CFG.files.some(function (f) { return !!f.input; });
 
     var inner = '<div class="dk-in">'
-      + '<span class="dk-k">[ <b>dados</b> ]</span>'
-      + '<button type="button" class="dk-btn p" data-dk="fill">Preencher automaticamente</button>'
+      + '<span class="dk-k">' + S('kicker') + '</span>'
+      + '<button type="button" class="dk-btn p" data-dk="fill">' + S('fill') + '</button>'
       + (hasInput ? '<button type="button" class="dk-btn" data-dk="upload">' + upLabel + '</button>' : '')
-      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">Como montar o CSV &#9656;</button>'
+      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">' + S('help') + ' &#9656;</button>'
       + '<span class="dk-sep"></span>'
       + '<span class="dk-st" data-dk="status"></span>'
       + '</div>'
@@ -1988,7 +2036,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
 
     var badge = document.createElement('div');
     badge.className = 'dk-badge';
-    badge.innerHTML = '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus';
+    badge.innerHTML = S('badge');
     els.badge = badge;
 
     document.body.insertBefore(bar, document.body.firstChild);
@@ -2047,7 +2095,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     var open = (force === undefined) ? !els.panel.classList.contains('open') : !!force;
     els.panel.classList.toggle('open', open);
     els.help.setAttribute('aria-expanded', String(open));
-    els.help.innerHTML = 'Como montar o CSV ' + (open ? '&#9662;' : '&#9656;');
+    els.help.innerHTML = S('help') + ' ' + (open ? '&#9662;' : '&#9656;');
     reflow();
     if (typeof CFG.onResize === 'function') CFG.onResize();
   }
@@ -2089,7 +2137,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
           // espera o dashboard terminar de montar antes do primeiro preenchimento
           waitReady(0);
         } else {
-          setStatus('sem dados carregados');
+          setStatus(S('stNone'));
         }
       };
       if (document.readyState === 'loading') {
@@ -2102,18 +2150,32 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
         CFG.fill();
         mode = 'demo';
         if (els.badge) els.badge.style.display = '';
-        setStatus('<b>dados de exemplo</b> &middot; ' + (CFG.summary ? CFG.summary() : 'base sintetica'));
+        setStatus(S('stDemo') + ' &middot; ' + summaryText());
       } catch (e) {
         console.error('[DK] falha ao preencher:', e);
-        setStatus('falha ao gerar dados de exemplo');
+        setStatus(S('stFail'));
       }
     },
 
     markUserData: function (name) {
       mode = 'user';
+      lastUserFile = name || null;
       if (els.badge) els.badge.style.display = 'none';
-      setStatus('<b>seus dados</b> &middot; ' + esc(name || 'CSV enviado'));
+      setStatus(S('stUser') + ' &middot; ' + esc(name || 'CSV'));
       toggleHelp(false);
+    },
+
+    relabel: function () {
+      if (!els.bar) return;
+      var open = els.panel && els.panel.classList.contains('open');
+      if (els.bar.parentNode) els.bar.parentNode.removeChild(els.bar);
+      if (els.badge && els.badge.parentNode) els.badge.parentNode.removeChild(els.badge);
+      lastH = -1;
+      build();
+      if (open) toggleHelp(true);
+      if (mode === 'demo') { if (els.badge) els.badge.style.display = ''; setStatus(S('stDemo') + ' &middot; ' + summaryText()); }
+      else if (mode === 'user') { if (els.badge) els.badge.style.display = 'none'; setStatus(S('stUser') + ' &middot; ' + esc(lastUserFile || 'CSV')); }
+      else setStatus(S('stNone'));
     },
 
     mode: function () { return mode; }
@@ -2182,7 +2244,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  var LAST = 0;
+  var LAST = 0, LASTSRC = 0;
 
   function GEN() {
     var rows = [], INICIO = inicio(180);
@@ -2208,14 +2270,16 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
       input: '#file',
       desc: 'Export do monitoramento editorial. Uma linha por artigo capturado. '
           + 'A deduplicacao usa a url (ou titulo + data quando nao ha url), mantendo a primeira ocorrencia.',
+      desc_en: 'Editorial monitoring export. One row per captured article. '
+          + 'Deduplication uses the url (or title + date when there is no url), keeping the first occurrence.',
       cols: [
-        { n: 'titulo', t: 'texto', d: 'Titulo do artigo. Alimenta a nuvem de palavras e a rede de keywords.', req: 1 },
-        { n: 'data', t: 'data DD/MM/AAAA', d: 'Data de publicacao. Artigos sem data sao descartados.', req: 1 },
-        { n: 'fonte', t: 'texto', d: 'Veiculo de origem.', req: 1 },
-        { n: 'score', t: 'inteiro 0-100', d: 'Pontuacao editorial do artigo.' },
-        { n: 'url', t: 'texto', d: 'Link do artigo. Usado como chave de deduplicacao.' },
-        { n: 'tags', t: 'lista separada por virgula', d: 'Tags do artigo.' },
-        { n: 'categoria', t: 'texto', d: 'Categoria editorial. Alimenta a evolucao de temas.' }
+        { n: 'titulo', t: 'texto', t_en: 'text', d: 'Titulo do artigo. Alimenta a nuvem de palavras e a rede de keywords.', d_en: 'Article title. Feeds the word cloud and the keyword network.', req: 1 },
+        { n: 'data', t: 'data DD/MM/AAAA', t_en: 'date DD/MM/YYYY', d: 'Data de publicacao. Artigos sem data sao descartados.', d_en: 'Publication date. Articles without a date are discarded.', req: 1 },
+        { n: 'fonte', t: 'texto', t_en: 'text', d: 'Veiculo de origem.', d_en: 'Source outlet.', req: 1 },
+        { n: 'score', t: 'inteiro 0-100', t_en: 'integer 0-100', d: 'Pontuacao editorial do artigo.', d_en: 'Editorial score of the article.' },
+        { n: 'url', t: 'texto', t_en: 'text', d: 'Link do artigo. Usado como chave de deduplicacao.', d_en: 'Article link. Used as the deduplication key.' },
+        { n: 'tags', t: 'lista separada por virgula', t_en: 'comma-separated list', d: 'Tags do artigo.', d_en: 'Article tags.' },
+        { n: 'categoria', t: 'texto', t_en: 'text', d: 'Categoria editorial. Alimenta a evolucao de temas.', d_en: 'Editorial category. Feeds the theme evolution chart.' }
       ],
       sample: function () { return GEN(); }
     }],
@@ -2229,8 +2293,10 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
       Array.prototype.push.apply(raw, rows);
       processLoadedData();
       LAST = raw.length;
+      LASTSRC = (typeof sourcesAll !== 'undefined' && sourcesAll) ? sourcesAll.size : 0;
     },
-    summary: function () { return LAST.toLocaleString('pt-BR') + ' artigos'; }
+    summary: function () { return LAST.toLocaleString('pt-BR') + ' artigos' + (LASTSRC ? ' · ' + LASTSRC + ' fontes' : ''); },
+    summary_en: function () { return LAST.toLocaleString('en-US') + ' articles' + (LASTSRC ? ' · ' + LASTSRC + ' sources' : ''); }
   });
 })();
 </script>
@@ -2258,6 +2324,28 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
 </style>
 <script id="onb-cta">
 (function(){
+  function oLang(){ var l='en'; try{ l=localStorage.getItem('lang')||'en'; }catch(e){} return l==='pt'?'pt':'en'; }
+  var OT={
+    en:{ h:'How to read this panel',
+      s1:'<li><b>Executive summary</b>: the essentials of the period are right at the top.</li>',
+      s2:'<li><b>Filters</b>: slice by period and segment to investigate.</li>',
+      s3:'<li><b>Panels</b>: each one has a subtitle saying what it shows; hover the info icons for details.</li>',
+      k:'// sales analytics',
+      ch:'Sample dashboards from a RevOps analytics system built by Felippe Yann.',
+      cs:'Want this kind of visibility over your sales operation?',
+      b1:'See all dashboards', b2:'View portfolio', b3:'Chat on LinkedIn',
+      mail:'Prefer email? ' },
+    pt:{ h:'Como ler este painel',
+      s1:'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>',
+      s2:'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>',
+      s3:'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>',
+      k:'// analytics comercial',
+      ch:'Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.',
+      cs:'Quer visibilidade assim no seu comercial?',
+      b1:'Ver todos os dashboards', b2:'Ver portf\u00f3lio', b3:'Falar no LinkedIn',
+      mail:'Prefere conversar por e-mail? ' }
+  };
+  function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
     try{
@@ -2265,11 +2353,9 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
         var onb=document.createElement('div');
         onb.className='onb-card';
         onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">Como ler este painel</div>'
+          +'<div class="onb-h">'+OS('h')+'</div>'
           +'<ol class="onb-steps">'
-          +'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>'
-          +'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>'
-          +'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>'
+          +OS('s1')+OS('s2')+OS('s3')
           +'</ol>';
         band.parentNode.insertBefore(onb, band.nextSibling);
         onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
@@ -2278,19 +2364,258 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
-      cta.innerHTML='<div class="cta-txt"><div class="cta-k">// analytics comercial</div>'
-        +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
-        +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
+      cta.innerHTML='<div class="cta-txt"><div class="cta-k">'+OS('k')+'</div>'
+        +'<div class="cta-h">'+OS('ch')+'</div>'
+        +'<div class="cta-s">'+OS('cs')+'</div></div>'
         +'<div class="cta-actions">'
-        +'<a class="cta-btn primary" href="index.html">Ver todos os dashboards</a>'
-        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
-        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
+        +'<a class="cta-btn primary" href="index.html">'+OS('b1')+'</a>'
+        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">'+OS('b2')+'</a>'
+        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">'+OS('b3')+'</a>'
         +'</div>';
       (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
-      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML='Prefere conversar por e-mail? <a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
+      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML=OS('mail')+'<a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
     }
   }
+  window.__onbCtaRebuild=function(){
+    ['.onb-card','.cta-band','.cta-mail'].forEach(function(sel){ var e=document.querySelector(sel); if(e&&e.parentNode) e.parentNode.removeChild(e); });
+    build();
+  };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
+})();
+</script>
+
+<script>
+/* ==== I18N: EN default (HTML estático) + PT via dicionário; localStorage 'lang' ==== */
+(function () {
+  // Textos estáticos em PT (o EN é capturado do próprio HTML)
+  const PT = {
+    skip: 'Pular para conteúdo principal',
+    desc: 'radar de noticiário · artigos · fontes · keywords',
+    btnMeth: 'Metodologia',
+    fbWin: 'janela', fbSrc: 'fonte',
+    optAll: 'Todo o período', opt30: 'Últimos 30 dias', opt60: 'Últimos 60 dias', opt90: 'Últimos 90 dias',
+    optAllSrc: 'Todas as fontes',
+    btnClear: 'Limpar',
+    esH: 'Bem-vindo ao NewsRadar',
+    esP: 'Envie um CSV de artigos pela barra de dados no topo, ou use "Preencher automaticamente" para ver o dashboard com uma base de exemplo.',
+    exK: '<b>//</b> resumo executivo',
+    exQ: 'O que o radar capta no noticiário do período: volume de artigos, cobertura de fontes e concentração por palavra-chave.',
+    c2t: 'Evolução de temas',
+    c4t: 'Fontes por Score Médio',
+    c5t: 'Fluxo de temas por fonte',
+    c6t: 'Top Artigos por Score',
+    tt1: 'As 15 palavras-chave com mais menções na seleção atual. Clique numa barra para filtrar todo o dashboard por essa keyword.',
+    tt2: 'Menções semanais das 5 palavras-chave mais recorrentes da seleção. Clique numa linha para filtrar pela keyword.',
+    tt3: 'Exploração das palavras-chave em três visões: nuvem, rede de co-ocorrência e heatmap semanal.',
+    tt4: 'Score médio real dos artigos de cada veículo. Entram as 15 fontes de maior volume com pelo menos 3 artigos pontuados. Clique numa barra para filtrar pela fonte.',
+    tt5: 'As 5 maiores fontes cruzadas com as 5 keywords mais recorrentes. Clique num nó para filtrar por fonte ou keyword.',
+    tt6: 'Lista dos artigos da seleção, ordenável por data, título, fonte e score.',
+    sub1: 'Ranking por menções. Clique numa barra para aplicar o filtro.',
+    sub2: 'Menções por semana das 5 keywords mais fortes do período.',
+    sub3: 'Visões complementares do vocabulário do período. A rede mostra até 30 termos (rótulo nos 10 mais fortes; o resto aparece no hover) e o heatmap até 30 linhas.',
+    sub4: 'Top 15 fontes por volume, mínimo de 3 artigos pontuados. Ordenado pelo score médio.',
+    sub5: 'Top 5 fontes por volume cruzadas com as top 5 keywords da seleção.',
+    sub6: 'Artigos da seleção atual. Clique nos cabeçalhos para ordenar.',
+    chipNet: 'Rede', chipHeat: 'Heatmap Semanal',
+    mExpCsv: 'Exportar CSV',
+    btnExport: 'Exportar dados (.csv)',
+    thDate: 'Data<span></span>', thTitle: 'Título<span></span>', thSource: 'Fonte<span></span>',
+    tblNote: '* Clique no título para abrir o link (quando disponível). Títulos longos são cortados.',
+    foot: 'NewsRadar Editorial · dashboard de demonstração',
+    mTitle: 'Metodologia · NewsRadar Editorial',
+    mH1: 'Como usar este dashboard:',
+    mP1: '<strong>Arquivo necessário:</strong> <code>newsradar_artigos.csv</code><br><span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Export do monitoramento editorial, uma linha por artigo capturado.</span>',
+    mU1: '<li><strong>Faça upload de um arquivo CSV</strong> contendo artigos com as seguintes colunas:<ul style="margin-top: 4px;"><li><strong>Obrigatórias:</strong><ul style="margin-left: 20px; font-size: 11px;"><li><code>título</code> ou <code>title</code> ou <code>headline</code>: título do artigo</li><li><code>data</code> ou <code>date</code>: data de publicação</li><li><code>fonte</code> ou <code>source</code>: fonte/veículo</li></ul></li><li><strong>Opcionais:</strong><ul style="margin-left: 20px; font-size: 11px;"><li><code>score</code>: score de relevância (0-100)</li><li><code>url</code> ou <code>link</code>: link do artigo</li><li><code>tags</code>: palavras-chave separadas por vírgula</li><li><code>categoria</code>: categoria editorial</li></ul></li></ul></li>',
+    mH2: 'Processamento automático:',
+    mU2: '<li><strong>Tokenização inteligente:</strong> remove stopwords em português e normaliza termos</li><li><strong>Detecção de keywords:</strong> extração de título + tags</li><li><strong>Análise de co-ocorrência:</strong> relacionamento entre palavras-chave</li><li><strong>Agregação temporal:</strong> agrupamento por semana</li><li><strong>Parseamento de datas:</strong> suporta DD/MM/YYYY, YYYY-MM-DD e ISO</li><li><strong>Deduplicação:</strong> pela URL (ou título + data), mantendo a primeira ocorrência</li>',
+    mH3: 'Visualizações disponíveis:',
+    mU3: '<li><strong>Top keywords:</strong> as 15 palavras-chave com mais menções na seleção</li><li><strong>Evolução de temas:</strong> menções semanais das 5 keywords mais fortes</li><li><strong>Keyword Explorer:</strong> nuvem de palavras, rede de co-ocorrência (até 30 nós) e heatmap semanal (até 30 linhas)</li><li><strong>Fontes por Score Médio:</strong> score médio real por veículo (top 15 por volume, mínimo 3 artigos pontuados)</li><li><strong>Fluxo de temas por fonte:</strong> Sankey com as top 5 fontes e top 5 keywords</li><li><strong>Top Artigos:</strong> listagem completa com filtros e ordenação</li>',
+    mH4: 'Filtros disponíveis:',
+    mU4: '<li><strong>Janela de tempo:</strong> últimos 30, 60, 90 dias ou todo o período</li><li><strong>Fonte:</strong> filtrar por veículo específico</li><li><strong>Keyword:</strong> clique em qualquer gráfico de keywords para aplicar o filtro cruzado</li><li><strong>Busca de keyword:</strong> campo de texto que refina os rankings</li><li><strong>Filtros da tabela:</strong> busca em título, tags e score mínimo</li>',
+    mH5: 'Dicas de uso:',
+    mU5: '<li>Use os <strong>chips azuis</strong> da barra de filtros para ver e remover recortes ativos</li><li>Clique em <strong>barras, nós e linhas</strong> para aplicar o filtro cruzado de keyword ou fonte</li><li>Exporte a base tratada via <strong>"Exportar dados (.csv)"</strong></li><li>Cada card tem menu de ações com <strong>Download PNG</strong> e <strong>Exportar CSV</strong></li>',
+    mH6: 'Notas técnicas:',
+    mU6: '<li><strong>100% local:</strong> o parse do CSV acontece no navegador; nenhum dado sai da sua máquina</li><li><strong>Performance:</strong> otimizado para até 10.000 artigos</li><li><strong>Limpeza automática:</strong> remove registros sem título ou data</li><li><strong>Timezone:</strong> America/Sao_Paulo (UTC-3)</li>'
+  };
+
+  const META = {
+    en: { title: 'NewsRadar Editorial | Felippe Yann' },
+    pt: { title: 'NewsRadar Editorial | Felippe Yann' }
+  };
+
+  // Captura do EN estático (textos e atributos)
+  const EN = {};
+  const ATTRS = ['alt', 'title', 'aria', 'placeholder'];
+  document.querySelectorAll('[data-i18n]').forEach(node => {
+    const k = node.getAttribute('data-i18n');
+    if (!(k in EN)) EN[k] = node.innerHTML;
+  });
+  ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(node => {
+    const real = a === 'aria' ? 'aria-label' : a;
+    node.setAttribute('data-en-' + a, node.getAttribute(real) || '');
+  }));
+
+  // Strings usadas pelo JS do dashboard (renderizadores, alertas, exports)
+  const JS = {
+    en: {
+      loading: 'Loading...',
+      loadingCsv: 'Loading CSV file...',
+      procRead: 'Processing: {n} rows read...',
+      rowsLoaded: '{n} rows loaded. Processing data...',
+      rowsOk: '{n} rows processed successfully!',
+      csvEmpty: 'Empty or invalid CSV.',
+      csvErr: 'Error parsing the CSV: {msg}. Check the file format.',
+      mapMiss: 'Missing column mapping for: {cols}. Use standard headers.',
+      msgNoDate: '{n} row(s) without a date ignored',
+      msgDup: '{n} duplicate(s) removed (first occurrence kept)',
+      msgUrl: '{n} URL(s) fixed',
+      articlesOk: '{n} unique articles processed successfully!',
+      emptyDefault: 'Not enough data to display this chart.',
+      emptyKwSearch: 'No keyword found for the current search.',
+      emptyNet: 'No keywords to display in the network.',
+      emptyNetEdges: 'Keywords found, but no co-occurrences to build a network.',
+      emptyHeat: 'No weekly data for the selected keywords.',
+      emptySources: 'No sources with 3 or more scored articles in the selection.',
+      kArticles: 'Articles', kSources: 'Sources', kKeywords: 'Keywords',
+      kLastPub: 'Last published', kTopSource: 'Top source',
+      kSubSel: 'in current selection', kSubOutlets: 'outlets covered',
+      kSubTerms: 'terms tracked', kSubRecent: 'most recent article',
+      eiKwSum: '<b>{kw}</b> totals <b>{n}</b> mentions in the selection',
+      eiKwSrc: '; leading source: <b>{s}</b> ({n})',
+      eiKwCo: '; strongest co-occurrence with <b>{k}</b> ({w})',
+      eiGeneral: '<b>{src}</b> accounts for <b>{p}%</b> of the selection coverage; <b>{kw}</b> is the most recurring theme ({n} mentions).',
+      ttMentions: 'Mentions', ttTotal: 'Total', ttTopSources: 'Top sources',
+      ttOcc: 'Occurrences', ttCoocc: 'Co-occurrences',
+      ttAvgScore: 'Average score', ttScored: 'Scored articles',
+      optAllSources: 'All sources',
+      noScore: 'No score',
+      tblMore: 'Showing the first {a} of {b} results. Use the table filters to refine the search.',
+      tblFilters: 'Table filters',
+      fltKeyword: 'Keyword', fltSource: 'Source',
+      fltNone: 'no filters · click charts to filter',
+      fltRemove: 'Remove {l} filter',
+      alertNoChart: 'Chart not found',
+      alertNoData: 'No data available to export',
+      csvHSources: 'Source,Average score,Scored articles',
+      csvHKw: 'Keyword,Mentions',
+      csvHSankey: 'Source,Target,Value',
+      csvHCloud: 'Keyword,Frequency',
+      csvHTheme: 'Week,Theme,Mentions',
+      csvHHeat: 'Week,Keyword,Mentions'
+    },
+    pt: {
+      loading: 'Carregando...',
+      loadingCsv: 'Carregando arquivo CSV...',
+      procRead: 'Processando: {n} linhas lidas...',
+      rowsLoaded: '{n} linhas carregadas. Processando dados...',
+      rowsOk: '{n} linhas processadas com sucesso!',
+      csvEmpty: 'CSV vazio ou inválido.',
+      csvErr: 'Erro ao processar o CSV: {msg}. Verifique o formato do arquivo.',
+      mapMiss: 'Mapeamento incompleto para: {cols}. Use cabeçalhos padrão.',
+      msgNoDate: '{n} linha(s) sem data ignoradas',
+      msgDup: '{n} duplicata(s) removida(s) (mantida 1ª ocorrência)',
+      msgUrl: '{n} URL(s) corrigida(s)',
+      articlesOk: '{n} artigos únicos processados com sucesso!',
+      emptyDefault: 'Não há dados suficientes para exibir este gráfico.',
+      emptyKwSearch: 'Nenhuma keyword encontrada para a busca atual.',
+      emptyNet: 'Não há keywords para exibir na rede.',
+      emptyNetEdges: 'Keywords encontradas, mas sem co-ocorrências para criar uma rede.',
+      emptyHeat: 'Não há dados semanais para as keywords selecionadas.',
+      emptySources: 'Sem fontes com 3 ou mais artigos pontuados na seleção.',
+      kArticles: 'Artigos', kSources: 'Fontes', kKeywords: 'Palavras-chave',
+      kLastPub: 'Última publicação', kTopSource: 'Top fonte',
+      kSubSel: 'na seleção atual', kSubOutlets: 'veículos cobertos',
+      kSubTerms: 'termos rastreados', kSubRecent: 'artigo mais recente',
+      eiKwSum: '<b>{kw}</b> soma <b>{n}</b> menções na seleção',
+      eiKwSrc: '; fonte líder: <b>{s}</b> ({n})',
+      eiKwCo: '; co-ocorrência mais forte com <b>{k}</b> ({w})',
+      eiGeneral: '<b>{src}</b> concentra <b>{p}%</b> da cobertura da seleção; <b>{kw}</b> é o tema mais recorrente ({n} menções).',
+      ttMentions: 'Menções', ttTotal: 'Total', ttTopSources: 'Top fontes',
+      ttOcc: 'Ocorrências', ttCoocc: 'Co-ocorrências',
+      ttAvgScore: 'Score médio', ttScored: 'Artigos pontuados',
+      optAllSources: 'Todas as fontes',
+      noScore: 'Sem Pontuação',
+      tblMore: 'Mostrando os primeiros {a} de {b} resultados. Use os filtros da tabela para refinar a busca.',
+      tblFilters: 'Filtros da Tabela',
+      fltKeyword: 'Keyword', fltSource: 'Fonte',
+      fltNone: 'nenhum filtro · clique nos gráficos para filtrar',
+      fltRemove: 'Remover filtro {l}',
+      alertNoChart: 'Gráfico não encontrado',
+      alertNoData: 'Nenhum dado disponível para exportar',
+      csvHSources: 'Fonte,Score médio,Artigos pontuados',
+      csvHKw: 'Keyword,Menções',
+      csvHSankey: 'Origem,Destino,Valor',
+      csvHCloud: 'Palavra-chave,Frequência',
+      csvHTheme: 'Semana,Tema,Menções',
+      csvHHeat: 'Semana,Keyword,Menções'
+    }
+  };
+
+  window.LANG = function () {
+    let l = 'en';
+    try { l = localStorage.getItem('lang') || 'en'; } catch (e) {}
+    return l === 'pt' ? 'pt' : 'en';
+  };
+  window.LOC = function () { return LANG() === 'pt' ? 'pt-BR' : 'en-US'; };
+  window.t = function (k) {
+    const d = JS[LANG()];
+    if (d && d[k] != null) return d[k];
+    return JS.en[k] != null ? JS.en[k] : k;
+  };
+  window.tf = function (k, vars) {
+    let s = t(k);
+    if (vars) Object.keys(vars).forEach(x => { s = s.split('{' + x + '}').join(vars[x]); });
+    return s;
+  };
+
+  function applyLang(lang, opts) {
+    lang = lang === 'pt' ? 'pt' : 'en';
+    try { localStorage.setItem('lang', lang); } catch (e) {}
+
+    document.querySelectorAll('[data-i18n]').forEach(node => {
+      const v = (lang === 'pt' ? PT : EN)[node.getAttribute('data-i18n')];
+      if (v != null) node.innerHTML = v;
+    });
+    ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(node => {
+      const real = a === 'aria' ? 'aria-label' : a;
+      const v = node.getAttribute('data-' + (lang === 'pt' ? 'pt' : 'en') + '-' + a);
+      if (v != null) node.setAttribute(real, v);
+    }));
+
+    document.documentElement.setAttribute('lang', lang === 'pt' ? 'pt-BR' : 'en');
+    document.title = META[lang].title;
+    document.querySelectorAll('[data-lang-btn]').forEach(b => {
+      const on = b.getAttribute('data-lang-btn') === lang;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+
+    // toggle de filtros da tabela: texto gerido por JS (preserva estado aberto/fechado)
+    const tft = document.getElementById('table-filter-toggle');
+    if (tft) {
+      const filtersBox = document.getElementById('table-filters');
+      const open = filtersBox && filtersBox.style.display === 'flex';
+      tft.textContent = t('tblFilters') + (open ? ' ▲' : ' ▼');
+    }
+
+    if (!(opts && opts.initial)) {
+      // blocos bilíngues autocontidos: só pedimos o re-render deles
+      if (window.DK && typeof DK.relabel === 'function') { try { DK.relabel(); } catch (e) {} }
+      if (typeof window.__onbCtaRebuild === 'function') { try { window.__onbCtaRebuild(); } catch (e) {} }
+      // re-render de tudo que é dinâmico (KPIs, gráficos, tabela, filtros)
+      if (typeof syncFilters === 'function' && typeof rows !== 'undefined' && rows.length) {
+        try { syncFilters(); } catch (e) {}
+      }
+    }
+  }
+  window.applyLang = applyLang;
+
+  document.querySelectorAll('[data-lang-btn]').forEach(b =>
+    b.addEventListener('click', () => applyLang(b.getAttribute('data-lang-btn'))));
+
+  let saved = 'en';
+  try { saved = localStorage.getItem('lang') || 'en'; } catch (e) {}
+  applyLang(saved === 'pt' ? 'pt' : 'en', { initial: true });
 })();
 </script>
 
