@@ -266,6 +266,7 @@
   .chart{width:100%;height:280px; cursor:pointer;}
   .chart.tall{height:320px}
   .chart.extra-tall{height:380px}
+  .chart.sankey{height:420px}
   
   /* Info Icon Tooltip */
   .info-icon {
@@ -671,39 +672,92 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <section class="card">
     <div class="topic-head">
-      <h2 data-i18n="ovH">Overview</h2>
-      <div class="topic-actions">
+      <h2><span data-i18n="fwH">Flow · Source → Squad → Band → Closer</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="fwTip">Every booking as a flow: origin channel, squad that worked it, score band it landed in and closer who received it. Link width = volume. Click a node to filter by that dimension.</span></span>
+      </h2>
+      <div class="topic-actions nowrap">
         <button class="btn secondary sm" onclick="sendGemini('kpi', this)" data-i18n="aiBtn">Analyze with AI</button>
+        <div class="chart-actions" data-chart="chartFlow" data-kind="flow" data-csv="fluxo_fonte_squad_faixa_closer"></div>
       </div>
     </div>
-    <div class="sub" data-i18n="ovSub">Booking status and the score quality within each status.</div>
-    <div class="grid" style="margin-top: 6px;">
-      <div class="col-6">
-        <div class="chart-title" data-i18n="ovT1">Overall status</div>
-        <div id="chartStatusDonut" class="chart"></div>
-      </div>
-      <div class="col-6">
-        <div class="chart-title" data-i18n="ovT2">Score mix by status</div>
-        <div id="chartQualityByStatus" class="chart"></div>
-      </div>
-    </div>
+    <div class="sub" data-i18n="fwSub">Top 6 sources and top 8 closers; the rest becomes "Others". Channels and squads use the categorical palette; score bands use the ordinal blue ramp.</div>
+    <div id="chartFlow" class="chart sankey"></div>
   </section>
 
   <div class="grid panel">
     <section class="col-6 card">
       <div class="topic-head">
-        <h2><span data-i18n="sqH">Squads · volume and score mix</span>
-          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="sqTip">Volume and score distribution (A to D) compared across squads.</span></span>
+        <h2><span data-i18n="sbH">Status → score mix</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="sbTip">Inner ring: deal status (open, won, lost). Outer ring: the score band mix inside each status. Click the inner ring to filter by status, the outer ring to filter by score.</span></span>
         </h2>
         <div class="topic-actions nowrap">
-          <button id="toggleSquadTableBtn" hidden></button>
-          <div class="chart-actions" data-chart="chartSquadScore" data-kind="squad" data-csv="squads_volume_score" data-insights="toggleSquadTableBtn"></div>
+          <div class="chart-actions" data-chart="chartStatusScore" data-kind="status_score" data-csv="status_score"></div>
         </div>
       </div>
-      <div class="sub" data-i18n="sqSub">Who brings volume and who brings quality. Score is ordinal: the darker, the better the band.</div>
-      <div id="chartSquadScore" class="chart"></div>
-  <div id="squadInsights" class="squad-insights" style="display:none"></div>
-  <div id="squadTableWrap" class="squad-table-wrap"></div>
+      <div class="sub" data-i18n="sbSub">Where each status concentrates quality: band A is the darkest blue, band D the lightest.</div>
+      <div id="chartStatusScore" class="chart tall"></div>
+    </section>
+
+    <section class="col-6 card">
+      <div class="topic-head">
+        <h2><span data-i18n="qsH">Quality × speed</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="qsTip">Each cell counts bookings in that score band × TA band combination. Click a cell to apply both filters at once.</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <div class="chart-actions" data-chart="chartScoreTA" data-kind="score_ta" data-csv="score_x_ta"></div>
+        </div>
+      </div>
+      <div class="sub" data-i18n="qsSub">Do the best leads get booked faster? Darker cells concentrate more bookings.</div>
+      <div id="chartScoreTA" class="chart tall"></div>
+    </section>
+
+    <section class="col-6 card">
+      <div class="topic-head">
+        <h2><span data-i18n="sdrH">SDRs · weekly race</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="sdrTip">Animated race of cumulative bookings per SDR, week by week. Top 10 by volume in the current selection; it replays on loop and restarts after every filter change.</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <div class="chart-actions" data-chart="chartSDR" data-kind="sdr" data-csv="sdr_corrida_semanal"></div>
+        </div>
+      </div>
+      <div class="sub" data-i18n="sdrSub">Cumulative volume per week. Filter by TA band to see who books fast.</div>
+  <div id="taQuickFilters" class="ta-quick-filters"></div>
+      <div id="chartSDR" class="chart extra-tall"></div>
+    </section>
+
+    <section class="col-6 card">
+      <div class="topic-head">
+        <h2><span data-i18n="cmpH">Campaigns · top 10</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cmpTip">Treemap of the 10 campaigns (utm_campaign) with the most bookings: area = volume. Click a campaign to filter.</span></span>
+        </h2>
+        <div class="topic-actions nowrap">
+          <label class="toggle-label" style="margin-right: 8px;">
+            <input type="checkbox" id="hideSemValorCampaign" onchange="applyAndRender()">
+            <span style="font-size: 11px;" data-i18n="cmpHide">Hide "no value"</span>
+          </label>
+          <div class="chart-actions" data-chart="chartCampaign" data-kind="campaign" data-csv="campanhas_top10"></div>
+        </div>
+      </div>
+      <div class="sub" data-i18n="cmpSub">Area = booking volume in the period.</div>
+      <div id="chartCampaign" class="chart extra-tall"></div>
+    </section>
+
+    <section class="col-6 card">
+      <div class="topic-head">
+        <div>
+          <h2><span data-i18n="tgH">Tags · selection composition</span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tgTip">Two-level treemap: the chosen dimension (status or score) as groups, the 10 most frequent tags inside each. Click a tag to filter by it.</span></span>
+          </h2>
+          <div class="sub" style="margin-bottom:0" data-i18n="tgSub">Top 10 tags in the selection, sized by frequency inside each group.</div>
+        </div>
+        <div class="topic-actions nowrap">
+          <span class="muted" style="font-size:12px;" data-i18n="tgGroup">Group by:</span>
+          <button id="groupTagsByStatusBtn" class="btn secondary sm active">Status</button>
+          <button id="groupTagsByScoreBtn" class="btn secondary sm">Score</button>
+          <div class="chart-actions" data-chart="chartNestedTags" data-kind="tags_composition" data-csv="tags_composicao"></div>
+        </div>
+      </div>
+      <div id="chartNestedTags" class="chart extra-tall"></div>
     </section>
 
     <section class="col-6 card">
@@ -722,108 +776,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="taSquadInsights" class="squad-insights" style="display:none"></div>
     </section>
 
-    <section class="col-4 card">
-      <div class="topic-head">
-        <h2><span data-i18n="sdrH">SDRs · top 10 by volume</span>
-          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="sdrTip">SDR ranking by booking volume in the current selection. Use the TA filters to see who books fast.</span></span>
-        </h2>
-        <div class="topic-actions nowrap">
-          <div class="chart-actions" data-chart="chartSDR" data-kind="sdr" data-csv="sdr_produtividade"></div>
-        </div>
-      </div>
-      <div class="sub" data-i18n="sdrSub">Filter by TA band to slice the ranking.</div>
-  <div id="taQuickFilters" class="ta-quick-filters"></div>
-      <div id="chartSDR" class="chart"></div>
-    </section>
-
-    <section class="col-4 card">
-      <div class="topic-head">
-        <h2><span data-i18n="clH">Closers · received score mix</span>
-          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="clTip">Score distribution (A to D) per closer: the quality of the bookings each one receives.</span></span>
-        </h2>
-        <div class="topic-actions nowrap">
-          <div class="chart-actions" data-chart="chartCloserScore" data-kind="closer" data-csv="closers_score"></div>
-        </div>
-      </div>
-      <div class="sub" data-i18n="clSub">Who received the most leads from each band in the period.</div>
-      <div id="chartCloserScore" class="chart"></div>
-    </section>
-
-    <section class="col-4 card">
-      <div class="topic-head">
-        <h2><span data-i18n="srcH">Sources · volume by channel</span>
-          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="srcTip">Booking volume by origin channel (normalized utm_source). The top 8; the rest becomes "Others".</span></span>
-        </h2>
-        <div class="topic-actions nowrap">
-          <div class="chart-actions" data-chart="chartSource" data-kind="source" data-csv="fontes_volume"></div>
-        </div>
-      </div>
-      <div class="sub" data-i18n="srcSub">Top 8 channels; the rest aggregated into "Others".</div>
-      <div id="chartSource" class="chart"></div>
-      </section>
-
-    <section class="col-4 card">
-      <div class="topic-head">
-        <h2><span data-i18n="cmpH">Campaigns · top 10</span>
-          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cmpTip">The 10 campaigns (utm_campaign) with the most bookings in the current selection.</span></span>
-        </h2>
-        <div class="topic-actions nowrap">
-          <label class="toggle-label" style="margin-right: 8px;">
-            <input type="checkbox" id="hideSemValorCampaign" onchange="applyAndRender()">
-            <span style="font-size: 11px;" data-i18n="cmpHide">Hide "no value"</span>
-          </label>
-          <div class="chart-actions" data-chart="chartCampaign" data-kind="campaign" data-csv="campanhas_top10"></div>
-        </div>
-      </div>
-      <div class="sub" data-i18n="cmpSub">The campaigns with the most bookings in the period.</div>
-      <div id="chartCampaign" class="chart"></div>
-    </section>
-
-    <section class="col-4 card">
-      <div class="topic-head">
-        <h2><span data-i18n="scH">Score · overall distribution</span>
-          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="scTip">Distribution of score bands (A ≥ 80, B ≥ 60, C ≥ 40, D below 40) across all bookings in the selection.</span></span>
-        </h2>
-        <div class="topic-actions nowrap">
-          <div class="chart-actions" data-chart="chartScore" data-kind="score" data-csv="score_distribuicao"></div>
-        </div>
-      </div>
-      <div class="sub" data-i18n="scSub">Bands A to D in the current selection.</div>
-      <div id="chartScore" class="chart"></div>
-    </section>
-
-    <section class="col-4 card">
-      <div class="topic-head tight">
-        <h2><span data-i18n="tadH">Time to booking (TA)</span>
-          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tadTip">How many bookings fall into each time band between deal creation and booking.</span></span>
-        </h2>
-        <div class="topic-actions nowrap">
-          <div class="chart-actions" data-chart="chartTADist" data-kind="ta_dist" data-csv="ta_distribuicao"></div>
-        </div>
-      </div>
-      <div class="sub" data-i18n="tadSub">Bands ordered from fastest to slowest.</div>
-      <div id="chartTADist" class="chart"></div>
-    </section>
-
-    <section class="col-6 card">
-      <div class="topic-head">
-        <div>
-          <h2><span data-i18n="tgH">Tags · selection composition</span>
-            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tgTip">The 10 most frequent tags, broken down by status or score band. Click a bar to filter by tag.</span></span>
-          </h2>
-          <div class="sub" style="margin-bottom:0" data-i18n="tgSub">Top 10 tags in the selection, stacked by the chosen dimension.</div>
-        </div>
-        <div class="topic-actions nowrap">
-          <span class="muted" style="font-size:12px;" data-i18n="tgGroup">Group by:</span>
-          <button id="groupTagsByStatusBtn" class="btn secondary sm active">Status</button>
-          <button id="groupTagsByScoreBtn" class="btn secondary sm">Score</button>
-          <div class="chart-actions" data-chart="chartNestedTags" data-kind="tags_composition" data-csv="tags_composicao"></div>
-        </div>
-      </div>
-      <div id="chartNestedTags" class="chart extra-tall"></div>
-    </section>
-
-    <section class="col-6 card">
+    <section class="col-12 card">
       <div class="topic-head">
         <h2><span data-i18n="scdH">Squad scorecard</span>
           <span class="info-icon">ⓘ<span class="tooltip" data-i18n="scdTip">Each squad's 5 metrics on honest scales: absolute volume and real percentages, no normalization.</span></span>
@@ -868,7 +821,6 @@ const CAT_PALETTE = ['#2563eb','#d95926','#199e70','#c98500','#d55181','#008300'
 const SCORE_COLORS = { A:'#1d4ed8', B:'#3b82f6', C:'#7db4f7', D:'#c5ddfb' };
 const STATUS_COLORS = { WON:'#4ade80', LOST:'#f87171', OPEN:'#8a8a94' };
 const SEQ_BLUE = ['#16233f','#1d3a6b','#1f55a3','#2f74d0','#60a5fa'];
-const TA_RAMP = ['#dbeafe','#a8cdf8','#7db4f7','#5b9cf0','#3b82f6','#2563eb','#1d4ed8'];
 echarts.registerTheme('demo', {
   color: CAT_PALETTE,
   backgroundColor: 'transparent',
@@ -883,7 +835,7 @@ const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/<
 
 /* ---------- Utilidades ---------- */
 const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-function paraDataISO(dataString){if(!dataString||typeof dataString!=='string')return'';const parteData=dataString.split(' ')[0];if(parteData.includes('/')){const partes=parteData.split('/');if(partes.length===3){const[dia,mes,ano]=partes;return`${ano}-${mes.padStart(2,'0')}-${dia.padStart(2,'0')}`;}} return parteData;}
+function paraDataISO(dataString){if(!dataString||typeof dataString!=='string')return'';const parteData=dataString.split(' ')[0].split('T')[0];if(parteData.includes('/')){const partes=parteData.split('/');if(partes.length===3){const[dia,mes,ano]=partes;return`${ano}-${mes.padStart(2,'0')}-${dia.padStart(2,'0')}`;}} return parteData;}
 function getScoreBand(score){const num=parseInt(score,10);if(isNaN(num))return'D';if(num>=80)return'A';if(num>=60)return'B';if(num>=40)return'C';return'D';}
 function calcularDiasTA(dataTaskStr,dataDealStr){if(!dataTaskStr||!dataDealStr)return null;try{const dataTask=new Date(dataTaskStr.split(' ')[0]);const dataDeal=new Date(dataDealStr.split(' ')[0]);const diffTime=Math.abs(dataTask-dataDeal);const diffDays=Math.ceil(diffTime/(1000*60*60*24));return diffDays;}catch(e){return null;}}
 function buckTA(days){if(days===null||isNaN(days))return'desconhecido';if(days<=1.5)return'Até 1,5 dia';if(days<=3)return'Até 3 dias';if(days<=5)return'Até 5 dias';if(days<=10)return'Até 10 dias';if(days<=20)return'Até 20 dias';if(days<=30)return'Até 30 dias';return'Acima de 30 dias';}
@@ -989,7 +941,6 @@ const globalFilters = new Map();
 let usedColumns = new Set();
 let chartDataStore = {};
 let keyInsights = {};
-let nestedTagsChart = null;
 // Filtro global de data
 let globalDateStart = null;
 let globalDateEnd = null;
@@ -1254,53 +1205,203 @@ function applyAndRender() {
 function baseOpts(){return{grid:{left:10,right:14,top:34,bottom:30,containLabel:true},tooltip:{trigger:'axis',axisPointer:{type:'shadow'}}};}
 function addResize(chart){window.addEventListener('resize',()=>chart.resize());}
 
-function renderBarStack(domId,categories,seriesMap,filterKey){
-  const el=document.getElementById(domId);if(!el)return;const chart=makeChart(el);
-  const series=Object.keys(seriesMap).map((name)=>({
-    name,type:'bar',stack:'sum',emphasis:{focus:'series'},
-    itemStyle:{color:SCORE_COLORS[name]||undefined,borderColor:'#131316',borderWidth:1,borderRadius:[3,3,0,0]},
-    data:seriesMap[name],animationDuration:700
-  }));
-  const isSquad = domId === 'chartSquadScore';
-  const isCloser = domId === 'chartCloserScore';
-  const wrapLabel = (rawLabel)=>{
-    const label = dispVal(rawLabel);
-    if(!(isSquad||isCloser)) return label;
-    if(isCloser){
-      const maxLen = 16;
-      if(label.length<=maxLen) return label;
-      return label.slice(0,maxLen-1)+'…';
-    }
-    const limit = 14;
-    const parts = String(label).split(/\s+/);
-    const lines=[]; let current='';
-    for(const p of parts){
-      if((current+' '+p).trim().length>limit){ if(current) lines.push(current.trim()); current=p; }
-      else { current += ' '+p; }
-    }
-    if(current) lines.push(current.trim());
-    return lines.slice(0,3).join('\n');
-  };
-  let xFont=11; let rotate=0; let margin=8;
-  if(isCloser){
-    const n=categories.length; if(n>12) xFont=10; if(n>18) xFont=9; rotate=45; margin=14;
-  }
+/* ---------- Texto legível sobre cada cor de status/score (contraste) ---------- */
+const NODE_TEXT_COLOR = { WON:'#0a0a0b', LOST:'#0a0a0b', OPEN:'#0a0a0b', A:'#f8f7f3', B:'#f8f7f3', C:'#0a0a0b', D:'#0a0a0b' };
+
+/* ---------- SUNBURST status -> score (Visão Geral) ---------- */
+function renderSunburstStatusScore(data){
+  const el=document.getElementById('chartStatusScore'); if(!el) return; const chart=makeChart(el);
+  const total=data.length||1;
+  const tree=STATUS_ORDER.map(st=>{
+    const rows=data.filter(d=>d.deal_status===st);
+    return {
+      name:st, dim:'status', value:rows.length,
+      itemStyle:{color:STATUS_COLORS[st]||'#8a8a94'},
+      label:{color:NODE_TEXT_COLOR[st]||'#0a0a0b'},
+      children:SCORE_ORDER.map(sc=>({
+        name:sc, dim:'score', value:rows.filter(r=>r.score===sc).length,
+        itemStyle:{color:SCORE_COLORS[sc]},
+        label:{color:NODE_TEXT_COLOR[sc]||'#f8f7f3'}
+      })).filter(c=>c.value>0)
+    };
+  }).filter(n=>n.value>0);
   chart.setOption({
-    ...baseOpts(),
-    grid:{left:10,right:10,top:36,bottom:isSquad?54:(isCloser?70:30),containLabel:true},
-    legend:{top:0},
-    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:(params)=>{
-      const list=Array.isArray(params)?params:[params];
-      let s=escHtml(dispVal(list[0].name));
-      list.forEach(p=>{ s+=`<br/>${p.marker}${escHtml(p.seriesName)}: <b>${p.value}</b>`; });
-      return s;
+    tooltip:{trigger:'item',formatter:(p)=>{
+      const path=(p.treePathInfo||[]).slice(1).map(x=>escHtml(dispVal(x.name))).join(' › ');
+      const pct=(p.value/total*100).toFixed(1);
+      return `${path}: <b>${p.value}</b> (${pct}%)`;
     }},
-    xAxis:{type:'category',data:categories,axisLabel:{interval:0,formatter:wrapLabel,fontSize:xFont,rotate,margin},axisTick:{alignWithLabel:true}},
-    yAxis:{type:'value'},
-    series
+    series:[{
+      type:'sunburst', nodeClick:false, sort:null,
+      radius:['16%','90%'], center:['50%','50%'],
+      data:tree,
+      itemStyle:{borderColor:'#131316',borderWidth:2},
+      label:{rotate:'radial',fontSize:11,minAngle:6},
+      levels:[
+        {},
+        {r0:'16%',r:'52%',label:{fontWeight:700,fontSize:12}},
+        {r0:'52%',r:'90%'}
+      ],
+      emphasis:{focus:'ancestor'},
+      animationDuration:700
+    }]
   });
   addResize(chart);
-  if(filterKey){chart.on('click',p=>{if(p.componentType==='series'&&p.name)addGlobalFilter({type:filterKey,value:p.name,label:p.name});});}
+  chart.on('click',p=>{
+    if(!p.data||!p.data.dim) return;
+    addGlobalFilter({type:p.data.dim,value:p.data.name,label:p.data.name});
+  });
+}
+
+/* ---------- SANKEY 4 níveis: Fonte -> Squad -> Faixa -> Closer (showpiece) ----------
+   Nomes internos prefixados (S| Q| B| C|) para evitar colisão entre níveis;
+   os formatters exibem o nome limpo. Clique em nó filtra a dimensão certa,
+   pulando os agregados "Outros"/"Others". */
+function renderSankeyFlow(data){
+  const el=document.getElementById('chartFlow'); if(!el) return; const chart=makeChart(el);
+  if(!data.length){ chart.clear(); return; }
+  const OTHERS=t('others');
+  const strip=(n)=>String(n).slice(2);
+  const disp=(n)=>dispVal(strip(n));
+
+  const srcPairs=Object.entries(countBy(data,'d_utm_source')).sort((a,b)=>b[1]-a[1]);
+  const topSrc=srcPairs.slice(0,6).map(p=>p[0]);
+  const srcOf=(v)=>topSrc.includes(v)?v:OTHERS;
+  chartDataStore.source=srcPairs.slice(0,6).concat(srcPairs.length>6?[[OTHERS,srcPairs.slice(6).reduce((a,b)=>a+b[1],0)]]:[]);
+
+  const cloPairs=Object.entries(countBy(data,'closer_norm')).sort((a,b)=>b[1]-a[1]);
+  const topClo=cloPairs.slice(0,8).map(p=>p[0]);
+  const cloOf=(v)=>topClo.includes(v)?v:OTHERS;
+
+  const squads=Object.entries(countBy(data,'origin_group_name')).sort((a,b)=>b[1]-a[1]).map(p=>p[0]);
+
+  const l1={},l2={},l3={};
+  const bump=(m,k)=>{m[k]=(m[k]||0)+1;};
+  for(const r of data){
+    const s='S|'+srcOf(r.d_utm_source), q='Q|'+r.origin_group_name, b='B|'+r.score, c='C|'+cloOf(r.closer_norm);
+    bump(l1,s+'\u0001'+q); bump(l2,q+'\u0001'+b); bump(l3,b+'\u0001'+c);
+  }
+  const links=[];
+  [l1,l2,l3].forEach(m=>{ for(const k in m){ const [source,target]=k.split('\u0001'); links.push({source,target,value:m[k]}); } });
+
+  const nodes=[];
+  const srcNames=topSrc.slice(); if(srcPairs.length>6) srcNames.push(OTHERS);
+  srcNames.forEach((n,i)=>nodes.push({name:'S|'+n, itemStyle:{color:isAggLabel(n)?'#8a8a94':CAT_PALETTE[i]||'#8a8a94'}}));
+  squads.forEach((n,i)=>nodes.push({name:'Q|'+n, itemStyle:{color:CAT_PALETTE[i]||'#a1a1aa'}}));
+  SCORE_ORDER.forEach(sc=>nodes.push({name:'B|'+sc, itemStyle:{color:SCORE_COLORS[sc]}}));
+  const cloNames=topClo.slice(); if(cloPairs.length>8) cloNames.push(OTHERS);
+  cloNames.forEach(n=>nodes.push({name:'C|'+n, itemStyle:{color:isAggLabel(n)?'#8a8a94':'#a1a1aa'}}));
+
+  chartDataStore.flow=links.map(lk=>({from:strip(lk.source), to:strip(lk.target), value:lk.value}));
+
+  chart.setOption({
+    tooltip:{trigger:'item',formatter:(p)=>{
+      if(p.dataType==='edge') return `${escHtml(disp(p.data.source))} → ${escHtml(disp(p.data.target))}: <b>${p.data.value}</b>`;
+      return `${escHtml(disp(p.name))}: <b>${p.value}</b>`;
+    }},
+    series:[{
+      type:'sankey',
+      left:12,right:110,top:12,bottom:16,
+      nodeWidth:14,nodeGap:10,layoutIterations:48,
+      emphasis:{focus:'adjacency'},
+      lineStyle:{color:'source',opacity:0.35,curveness:0.5},
+      itemStyle:{borderColor:'#131316',borderWidth:1},
+      label:{color:'#d4d4d8',fontSize:11,formatter:(p)=>disp(p.name)},
+      levels:[{depth:3,label:{position:'left'}}],
+      data:nodes,links,
+      animationDuration:700
+    }]
+  });
+  addResize(chart);
+  chart.on('click',p=>{
+    if(p.dataType!=='node') return;
+    const name=strip(p.name); if(isAggLabel(name)) return;
+    const type={S:'source',Q:'squad',B:'score',C:'closer'}[p.name.slice(0,1)];
+    if(type) addGlobalFilter({type,value:name,label:name});
+  });
+}
+
+/* ---------- BAR RACE semanal de SDRs ---------- */
+function renderSDRRace(data){
+  const el=document.getElementById('chartSDR'); if(!el) return; const chart=makeChart(el);
+  const WEEK=7*24*3600*1000;
+  const weekOf=(r)=>{
+    const iso=paraDataISO(String(r.ta_created_at||'').trim()); if(!iso) return null;
+    const parts=iso.split('-').map(Number); if(parts.length<3||parts.some(isNaN)) return null;
+    const d=new Date(parts[0],parts[1]-1,parts[2]); if(isNaN(d)) return null;
+    d.setDate(d.getDate()-((d.getDay()+6)%7)); d.setHours(0,0,0,0);
+    return d.getTime();
+  };
+  const perWeek={};
+  for(const r of data){ const w=weekOf(r); if(w==null) continue; (perWeek[w]=perWeek[w]||{}); perWeek[w][r.sdr]=(perWeek[w][r.sdr]||0)+1; }
+  const ts=Object.keys(perWeek).map(Number).sort((a,b)=>a-b);
+  if(!ts.length){ chart.clear(); chartDataStore.sdr=[]; return; }
+  const weeks=[]; for(let w=ts[0]; w<=ts[ts.length-1]; w+=WEEK) weeks.push(w);
+  const totals={};
+  ts.forEach(w=>{ for(const s in perWeek[w]) totals[s]=(totals[s]||0)+perWeek[w][s]; });
+  const sdrs=Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
+  const cum={}; sdrs.forEach(s=>cum[s]=0);
+  const frames=weeks.map(w=>{
+    sdrs.forEach(s=>{ cum[s]+=(perWeek[w]&&perWeek[w][s])||0; });
+    return {label:dfmt(new Date(w)), values:sdrs.map(s=>cum[s])};
+  });
+  chartDataStore.sdr={rows:sdrs, cols:frames.map(f=>f.label), data:sdrs.map((_,i)=>frames.map(f=>f.values[i]))};
+  const wkText=(lb)=>({elements:[{type:'text',id:'wk',right:24,bottom:64,style:{text:t('wkOf')+lb,font:'700 15px "Space Mono",monospace',fill:'rgba(248,247,243,.28)'},silent:true}]});
+  chart.setOption({
+    baseOption:{
+      timeline:{
+        axisType:'category', autoPlay:true, playInterval:900, loop:true,
+        bottom:0, left:10, right:10, height:40,
+        data:frames.map(f=>f.label),
+        label:{show:false}, symbolSize:6,
+        lineStyle:{color:'rgba(248,247,243,.18)'}, itemStyle:{color:'#8a8a94'},
+        checkpointStyle:{color:accent,symbolSize:10},
+        controlStyle:{color:'#a1a1aa',borderColor:'#a1a1aa'},
+        progress:{lineStyle:{color:accent},itemStyle:{color:accent}}
+      },
+      grid:{left:10,right:48,top:10,bottom:52,containLabel:true},
+      xAxis:{type:'value',max:'dataMax',axisLabel:{fontSize:10}},
+      yAxis:{type:'category',data:sdrs,inverse:true,max:Math.min(9,sdrs.length-1),
+        animationDuration:300,animationDurationUpdate:300,axisLabel:{fontSize:11}},
+      tooltip:{trigger:'item',formatter:(p)=>`${escHtml(dispVal(p.name))}: <b>${p.value}</b>`},
+      graphic:wkText(frames[0].label),
+      series:[{
+        type:'bar', realtimeSort:true, barMaxWidth:18,
+        itemStyle:{color:accent,borderRadius:[0,3,3,0]},
+        label:{show:true,position:'right',valueAnimation:true,color:'#d4d4d8',fontFamily:'"Space Mono",monospace',fontSize:11},
+        data:frames[0].values.slice()
+      }],
+      animationDuration:0, animationDurationUpdate:800,
+      animationEasing:'linear', animationEasingUpdate:'linear'
+    },
+    options:frames.map(f=>({graphic:wkText(f.label), series:[{data:f.values.slice()}]}))
+  });
+  addResize(chart);
+  chart.on('click',p=>{ if(p.componentType==='series'&&p.name) addGlobalFilter({type:'sdr',value:p.name,label:p.name}); });
+}
+
+/* ---------- TREEMAP de campanhas (top 10) ---------- */
+function renderCampaignTreemap(data){
+  const el=document.getElementById('chartCampaign'); if(!el) return; const chart=makeChart(el);
+  let campTop=Object.entries(countBy(data,'d_utm_campaign')).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const hideSemValor=document.getElementById('hideSemValorCampaign')?.checked;
+  if(hideSemValor) campTop=campTop.filter(c=>c[0]?.toLowerCase()!=='sem valor');
+  chartDataStore.campaign=campTop;
+  const total=campTop.reduce((a,b)=>a+b[1],0)||1;
+  chart.setOption({
+    tooltip:{formatter:(p)=>`${escHtml(dispVal(p.name))}: <b>${p.value}</b> (${(p.value/total*100).toFixed(1)}%)`},
+    series:[{
+      type:'treemap', roam:false, nodeClick:false, breadcrumb:{show:false},
+      left:0,right:0,top:0,bottom:0,
+      color:[accent], colorSaturation:[0.35,0.62],
+      label:{show:true,fontSize:11,color:'#f8f7f3',formatter:(p)=>`${dispVal(p.name)}\n${p.value}`},
+      itemStyle:{borderColor:'#131316',borderWidth:2,gapWidth:2},
+      data:campTop.map(([n,v])=>({name:n,value:v})),
+      animationDuration:700
+    }]
+  });
+  addResize(chart);
+  chart.on('click',p=>{ if(p.data&&p.name) addGlobalFilter({type:'campaign',value:p.name,label:p.name}); });
 }
 
 /* ---------- Squads Insights & Table ---------- */
@@ -1370,130 +1471,64 @@ document.addEventListener('click',(e)=>{
   }
 });
 
-function updateSquadInsights(data){
-  const wrap=document.getElementById('squadInsights'); if(!wrap) return;
-  const {raw,list}=computeSquadMetrics(data);
-  if(!list.length){wrap.innerHTML=''; return;}
-  const maxBy=(k)=>list.reduce((m,c)=>c[k]>m[k]?c:m,list[0]);
-  const totalVol=list.reduce((a,b)=>a+b.volume,0)||1;
-  const topVol=maxBy('volume');
-  const topQuali=maxBy('abPct');
-  const topSpeed=maxBy('fastPct');
-  const worstQuali=maxBy('cdPct');
-  const topWon=maxBy('wonPct');
-  const cards=[
-    {title:t('siTopVol'),badge:'TOP',value:topVol.volume,extra:`${(topVol.volume/totalVol*100).toFixed(1)}% share`,squad:topVol.squad},
-    {title:t('siQuali'),badge:t('bQuality'),value:`${topQuali.abPct.toFixed(1)}%`,extra:`A ${(raw[topQuali.squad].A/topQuali.volume*100||0).toFixed(1)}%`,squad:topQuali.squad},
-    {title:t('siSpeed'),badge:'SPEED',value:`${topSpeed.fastPct.toFixed(1)}%`,extra:`WON ${topSpeed.wonPct.toFixed(1)}%`,squad:topSpeed.squad},
-    {title:t('siAlertQ'),badge:t('bWarn'),value:`${worstQuali.cdPct.toFixed(1)}%`,extra:`A+B ${worstQuali.abPct.toFixed(1)}%`,squad:worstQuali.squad,warn:true},
-  ];
-  if(topWon.wonPct>0){cards.push({title:t('siConv'),badge:'WON',value:`${topWon.wonPct.toFixed(1)}%`,extra:`Vol ${topWon.volume}`,squad:topWon.squad});}
-  wrap.innerHTML=cards.map(c=>`<div class="si-card"><span class="si-badge ${c.warn?'warn':'ok'}">${c.badge}</span><b>${c.title}</b><div class="val">${c.value}</div><div style="margin-top:4px;color:var(--ink-3);">${escHtml(c.squad)}</div><div style="margin-top:2px;font-size:10px;color:var(--ink-4)">${c.extra||''}</div></div>`).join('');
-}
+/* ---------- TREEMAP de tags em 2 níveis (dimensão do toggle -> tags) ---------- */
+function renderTagsTreemap(data, groupBy = 'deal_status'){
+  const el=document.getElementById('chartNestedTags'); if(!el) return; const chart=makeChart(el);
+  const categories=(groupBy==='deal_status')?STATUS_ORDER:SCORE_ORDER;
+  const colors=(groupBy==='deal_status')?STATUS_COLORS:SCORE_COLORS;
+  const dim=(groupBy==='deal_status')?'status':'score';
 
-function updateSquadTable(data){
-  const wrap=document.getElementById('squadTableWrap'); if(!wrap) return;
-  const {list}=computeSquadMetrics(data); if(!list.length){wrap.style.display='none';return;}
-  list.sort((a,b)=>b.volume-a.volume);
-  const rows=list.map(m=>`<tr><td>${escHtml(m.squad)}</td><td>${m.volume}</td><td>${m.abPct.toFixed(1)}%</td><td>${m.cdPct.toFixed(1)}%</td><td>${m.fastPct.toFixed(1)}%</td><td>${m.wonPct.toFixed(1)}%</td></tr>`).join('');
-  wrap.innerHTML=`<table class="squad-table"><thead><tr><th>${t('thSquad')}</th><th>${t('thVol')}</th><th>A+B%</th><th>C+D%</th><th>TA≤3d%</th><th>WON%</th></tr></thead><tbody>${rows}</tbody></table>`;
-}
-
-document.addEventListener('click',(e)=>{
-  if(e.target && e.target.id==='toggleSquadTableBtn'){
-    const btn=e.target;
-    const mode=btn.dataset.mode||'table';
-    const tableWrap=document.getElementById('squadTableWrap');
-    const insights=document.getElementById('squadInsights');
-    if(mode==='table'){
-      // Gerar insights sob demanda
-      updateSquadInsights(window.currentData||[]);
-      if(insights){insights.style.display='grid';}
-      if(tableWrap){tableWrap.style.display='none';}
-      btn.dataset.mode='insights';
-      btn.textContent=t('viewTable');
-    } else {
-      if(insights){insights.style.display='none';}
-      if(tableWrap){tableWrap.style.display='block';}
-      btn.dataset.mode='table';
-      btn.textContent=t('viewInsights');
+  const tagTotals=countTags(data);
+  const topTags=Object.entries(tagTotals).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
+  const mat=topTags.map(()=>categories.map(()=>0));
+  for(const row of data){
+    const ci=categories.indexOf(row[groupBy]);
+    if(ci<0) continue;
+    for(const tag of row.tagsAll){
+      const ti=topTags.indexOf(tag);
+      if(ti>=0) mat[ti][ci]++;
     }
   }
-});
-function renderBar(domId,categories,values,horizontal=false,title='',filterKey){
-  const el=document.getElementById(domId);if(!el)return;const chart=makeChart(el);
+  chartDataStore.tags_composition={ groupBy, tags: topTags.map((tg,i)=>{ const o={tag:tg}; categories.forEach((c,j)=>{o[c]=mat[i][j];}); return o; }) };
 
-  const isSDR = domId === 'chartSDR';
-  const isScore = domId === 'chartScore';
-  const isTADist = domId === 'chartTADist';
-  let rotate = 0; let fontSize = 11; let formatter = (raw)=>dispVal(raw); let margin = 8;
-  if(!horizontal){
-    if(isSDR){
-      rotate = 45;
-      if(categories.length>18) fontSize=9; else if(categories.length>14) fontSize=10;
-      const maxLen = 16;
-      formatter = (raw)=>{ const val=dispVal(raw); if(val.length<=maxLen) return val; return val.slice(0,maxLen-1)+'…'; };
-      margin = 12;
-    } else if(isScore || isTADist){
-      if(categories.length>6) rotate = 30;
-      const maxLen = 12;
-      formatter = (raw)=>{ const val=dispVal(raw); return val.length<=maxLen? val : val.slice(0,maxLen-1)+'…'; };
-    } else {
-      if(categories.length>8) rotate=30;
-    }
-  }
-
-  let yFormatter = (raw)=>dispVal(raw); let yFont=11; let yMargin=8;
-  if(horizontal){
-    const maxLen=20;
-    yFormatter = (raw)=>{ const val=dispVal(raw); return val.length<=maxLen? val : val.slice(0,maxLen-1)+'…'; };
-    if(categories.length>12) yFont=10;
-    yMargin=10;
-  }
-
-  // Cor: dimensão ordinal ganha rampa de um matiz; o resto usa o azul da marca.
-  let data = values;
-  if(isScore){ data = values.map((v,i)=>({value:v,itemStyle:{color:SCORE_COLORS[categories[i]]||accent}})); }
-  else if(isTADist){ data = values.map((v,i)=>({value:v,itemStyle:{color:TA_RAMP[i]||accent}})); }
+  const tree=categories.map((c,j)=>{
+    const children=topTags
+      .map((tag,i)=>({name:tag, tag, value:mat[i][j], itemStyle:{color:colors[c]}, label:{color:NODE_TEXT_COLOR[c]||'#f8f7f3'}}))
+      .filter(n=>n.value>0);
+    return {
+      name:c, dim, value:children.reduce((a,b)=>a+b.value,0),
+      itemStyle:{color:colors[c]},
+      upperLabel:{color:NODE_TEXT_COLOR[c]||'#f8f7f3'},
+      children
+    };
+  }).filter(n=>n.children.length);
 
   chart.setOption({
-    ...baseOpts(),
-    tooltip: { trigger: 'item', formatter: (p)=>`${escHtml(dispVal(p.name))}: <b>${p.value}</b>` },
-    xAxis: horizontal ? {type:'value'} : {
-      type:'category',
-      data:categories,
-      axisLabel:{interval:0,rotate,formatter,fontSize,margin},
-      axisTick:{alignWithLabel:true}
-    },
-    yAxis: horizontal ? {type:'category',data:categories,inverse:true,axisLabel:{formatter:yFormatter,fontSize:yFont,margin:yMargin}} : {type:'value'},
-    series:[{type:'bar',data,barMaxWidth:26,itemStyle:{borderRadius:horizontal?[0,3,3,0]:[3,3,0,0],color:(isScore||isTADist)?undefined:accent},animationDuration:700}]
-  });
-  addResize(chart);
-  if(filterKey){chart.on('click',p=>{if(p.componentType==='series'&&p.name&&!isAggLabel(p.name))addGlobalFilter({type:filterKey,value:p.name,label:p.name});});}
-}
-function renderPie(domId,dataPairs,title='',totalValue=null,filterKey){
-  const el=document.getElementById(domId);if(!el)return;const chart=makeChart(el);
-  const total = dataPairs.reduce((a,b)=>a+b[1],0) || 1;
-  const data = dataPairs.map(([name,value])=>({name,value,itemStyle:{color:STATUS_COLORS[name]||undefined}}));
-  const legendFormatter = function(name){const item=data.find(d=>d.name===name);if(!item) return name;const pct=((item.value/total)*100).toFixed(0);return `${name}  ${item.value} (${pct}%)`;};
-  chart.setOption({
-    title:{text:title,subtext:totalValue!=null?String(totalValue):'',left:'center',top:'middle',itemGap:6,textStyle:{color:'#a1a1aa',fontSize:12,fontWeight:'normal'},subtextStyle:{fontSize:24,fontWeight:'bold',color:'#f8f7f3',fontFamily:'"Space Mono",monospace'}},
-    legend:{orient:'vertical',left:0,top:'middle',formatter:legendFormatter},
-    tooltip:{trigger:'item',formatter:'{b}: {c} ({d}%)'},
+    tooltip:{formatter:(p)=>{
+      const path=(p.treePathInfo||[]).slice(1).map(x=>escHtml(dispVal(x.name))).join(' › ');
+      return `${path}: <b>${p.value}</b>`;
+    }},
     series:[{
-      type:'pie',
-      avoidLabelOverlap:true,
-      center:['58%','50%'],
-      radius:['55%','78%'],
-      label:{show:false},
-      labelLine:{show:false},
-      itemStyle:{borderRadius:4,borderColor:'#131316',borderWidth:3},
-      data:data,
+      type:'treemap', roam:false, nodeClick:false, breadcrumb:{show:false},
+      left:0,right:0,top:4,bottom:0,
+      upperLabel:{show:true,height:22,fontSize:11,fontWeight:700,formatter:(p)=>dispVal(p.name)},
+      label:{show:true,fontSize:11,formatter:(p)=>`${p.name}\n${p.value}`},
+      itemStyle:{borderColor:'#131316',borderWidth:2,gapWidth:2},
+      levels:[
+        {itemStyle:{borderColor:'#131316',borderWidth:2,gapWidth:3}},
+        {itemStyle:{borderColor:'#131316',borderWidth:2,gapWidth:3}},
+        {colorAlpha:[0.78,1], itemStyle:{borderColor:'#131316',borderWidth:1,gapWidth:1}}
+      ],
+      data:tree,
       animationDuration:700
     }]
   });
   addResize(chart);
-  if(filterKey){chart.on('click',p=>{if(p.componentType==='series'&&p.name)addGlobalFilter({type:filterKey,value:p.name,label:p.name});});}
+  chart.on('click',p=>{
+    if(!p.data) return;
+    if(p.data.tag) addGlobalFilter({type:'tag',value:p.data.tag,label:p.data.tag});
+    else if(p.data.dim) addGlobalFilter({type:p.data.dim,value:p.data.name,label:p.data.name});
+  });
 }
 function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
   const el=document.getElementById(domId); if(!el) return; const chart=makeChart(el);
@@ -1543,53 +1578,6 @@ const SUGGESTION_TPL={
 function extractKeyInsights(data){if(!data||!data.length)return{};const getTop=(map)=>Object.entries(map).sort((a,b)=>b[1]-a[1])[0]?.[0]||'N/A';keyInsights.bestSDR=getTop(countBy(data,'sdr'));const fastData=data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias');keyInsights.fastestSquad=getTop(countBy(fastData,'origin_group_name'));keyInsights.topSource=getTop(countBy(data,'d_utm_source'));keyInsights.topCampaign=getTop(countBy(data,'d_utm_campaign'));const aLeads=data.filter(d=>d.score==='A');keyInsights.goldenTag=getTop(countTags(aLeads))||t('fbHighValue');keyInsights.painPointTag=getTop(countTags(data))||t('fbMarket');const squadScore=ctab(data,'origin_group_name','score',null,SCORE_ORDER);const squadPerformance=squadScore.rows.map((squad,i)=>{const row=squadScore.mat[i];const total=row.reduce((a,b)=>a+b,0);if(total===0)return{squad,ratio:0};const bad=(row[2]||0)+(row[3]||0);return{squad,ratio:bad/total}}).sort((a,b)=>b.ratio-a.ratio);keyInsights.worstPerformer=squadPerformance[0]?.squad||t('fbOverall')}
 function generateSuggestions(){const output=document.getElementById('suggestionsOutput');if(!keyInsights.bestSDR){output.innerHTML=`<p class='muted'>${t('sugNoData')}</p>`;return}const shuffled=[...SUGGESTION_TPL[LANG()]].sort(()=>0.5-Math.random());const selectedTemplates=shuffled.slice(0,10);const html=selectedTemplates.map(template=>{const suggestion=template.replace(/\[BEST_SDR\]/g,keyInsights.bestSDR).replace(/\[FASTEST_SQUAD\]/g,keyInsights.fastestSquad).replace(/\[TOP_SOURCE\]/g,keyInsights.topSource).replace(/\[TOP_CAMPAIGN\]/g,keyInsights.topCampaign).replace(/\[PAIN_POINT_TAG\]/g,keyInsights.painPointTag).replace(/\[WORST_PERFORMER\]/g,keyInsights.worstPerformer).replace(/\[GOLDEN_TAG\]/g,keyInsights.goldenTag);const query=encodeURIComponent(suggestion);return`<a href="https://www.google.com/search?q=${query}" target="_blank" rel="noopener">${escHtml(suggestion)}</a>`}).join('');output.innerHTML=html}
 
-/* ---------- TAGS: barras horizontais empilhadas (top 10) ---------- */
-function renderNestedTags(data, groupBy = 'deal_status') {
-  const dataset = data || currentData;
-  const el = document.getElementById('chartNestedTags');
-  if (!el) return;
-  if (!nestedTagsChart) {
-    nestedTagsChart = echarts.init(el, 'demo');
-    addResize(nestedTagsChart);
-    nestedTagsChart.on('click', (p) => {
-        if (p.componentType === 'series' && p.name) {
-            addGlobalFilter({type: 'tag', value: p.name, label: p.name});
-        }
-    });
-  }
-
-  const categories = (groupBy === 'deal_status') ? STATUS_ORDER : SCORE_ORDER;
-  const colors = (groupBy === 'deal_status') ? STATUS_COLORS : SCORE_COLORS;
-
-  const tagTotals = countTags(dataset);
-  const topTags = Object.entries(tagTotals).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
-  const mat = topTags.map(()=>categories.map(()=>0));
-  for (const row of dataset) {
-    const ci = categories.indexOf(row[groupBy]);
-    if (ci < 0) continue;
-    for (const tag of row.tagsAll) {
-      const ti = topTags.indexOf(tag);
-      if (ti >= 0) mat[ti][ci]++;
-    }
-  }
-  chartDataStore.tags_composition = { groupBy, tags: topTags.map((t,i)=>{ const o={tag:t}; categories.forEach((c,j)=>{o[c]=mat[i][j];}); return o; }) };
-
-  const series = categories.map((c,j)=>({
-    name:c, type:'bar', stack:'tags',
-    data: topTags.map((_,i)=>mat[i][j]),
-    itemStyle:{ color:colors[c], borderColor:'#131316', borderWidth:1, borderRadius:[0,3,3,0] },
-    emphasis:{ focus:'series' }
-  }));
-  nestedTagsChart.setOption({
-    grid:{left:10,right:16,top:32,bottom:8,containLabel:true},
-    tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
-    legend:{top:0},
-    xAxis:{type:'value'},
-    yAxis:{type:'category',data:topTags,inverse:true,axisLabel:{fontSize:11}},
-    series
-  }, true);
-}
-
 /* ---------- SCORECARD DE SQUADS ---------- */
 function renderSquadRadar(data) {
     // Scorecard: escalas honestas (volume absoluto + percentuais reais), sem normalização.
@@ -1621,32 +1609,31 @@ function buildAll(data){
   chartDataStore = {};
   window.chartDataStore = chartDataStore; // expõe global para sendGemini
   window.currentData = data;
+  currentData = data;
+
+  // Normalização de closers antes de qualquer gráfico (o Sankey e os filtros usam closer_norm)
+  applyCloserNormalization(data);
 
   const total = data.length;
   const status = countBy(data,'deal_status');
-  const statusPairs = STATUS_ORDER.map(s => [s, status[s] || 0]);
   chartDataStore.kpi = {total, status: status, ...countBy(data,'provider_class'), '% TA <= 3 dias': (data.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias').length/Math.max(1,total)*100).toFixed(1)};
   renderExec(data);
   renderKPIs(data);
-  renderPie('chartStatusDonut', statusPairs, t('total'), total, 'status');
-  
-  const qualityByStatus = ctab(data, 'deal_status', 'score', STATUS_ORDER, SCORE_ORDER);
-  const seriesMapQuality = {};
-  SCORE_ORDER.forEach((sc, i) => { seriesMapQuality[sc] = qualityByStatus.rows.map((_, ri) => qualityByStatus.mat[ri][i] || 0); });
-  renderBarStack('chartQualityByStatus', qualityByStatus.rows, seriesMapQuality, 'status');
 
-  const squadScore = ctab(data,'origin_group_name','score', null, SCORE_ORDER);
-  const seriesMapSquad = {};
-  SCORE_ORDER.forEach((sc, i)=>{ seriesMapSquad[sc] = squadScore.rows.map((_,ri)=> squadScore.mat[ri][i]||0); });
-  chartDataStore.squad = squadScore.rows.map((row, ri) => ({squad: row, A: seriesMapSquad.A[ri], B: seriesMapSquad.B[ri], C: seriesMapSquad.C[ri], D: seriesMapSquad.D[ri]}));
-  renderBarStack('chartSquadScore', squadScore.rows, seriesMapSquad, 'squad');
-  // Insights agora são lazy: tabela aberta, cards só quando usuário pedir
-  const insightsEl = document.getElementById('squadInsights');
-  if(insightsEl){insightsEl.innerHTML='';insightsEl.style.display='none';}
-  const toggleBtn = document.getElementById('toggleSquadTableBtn');
-  if(toggleBtn){toggleBtn.textContent=t('viewInsights');toggleBtn.dataset.mode='table';}
-  updateSquadTable(data);
+  // Showpiece: Sankey Fonte -> Squad -> Faixa -> Closer (também preenche chartDataStore.source e .flow)
+  renderSankeyFlow(data);
 
+  // Sunburst status -> score
+  const statusScore = ctab(data, 'deal_status', 'score', STATUS_ORDER, SCORE_ORDER);
+  chartDataStore.status_score = {rows: statusScore.rows, cols: statusScore.cols, data: statusScore.mat};
+  renderSunburstStatusScore(data);
+
+  // Heatmap qualidade x velocidade (faixa de score x faixa de TA)
+  const scoreTA = ctab(data, 'score', 'ta', SCORE_ORDER, TA_ORDER);
+  chartDataStore.score_ta = {rows: scoreTA.rows, cols: scoreTA.cols, data: scoreTA.mat};
+  renderHeat('chartScoreTA', scoreTA.rows, scoreTA.cols, scoreTA.mat, 'score', 'ta');
+
+  // Heatmap TA x squad (fica)
   const taSquad = ctab(data,'ta','origin_group_name', TA_ORDER, null);
   chartDataStore.ta_squad = {rows: taSquad.rows, cols: taSquad.cols, data: taSquad.mat};
   renderHeat('chartHeatTASquad', taSquad.rows, taSquad.cols, taSquad.mat, 'ta', 'squad');
@@ -1657,49 +1644,15 @@ function buildAll(data){
   if(taInsights){taInsights.innerHTML=''; taInsights.style.display='none';}
   updateTASquadTable(data);
 
-  const sdrCount = countBy(data,'sdr');
-  const sdrs = Object.entries(sdrCount).sort((a,b)=> b[1]-a[1]).slice(0,10);
-  chartDataStore.sdr = sdrs;
-  renderBar('chartSDR', sdrs.map(d=>d[0]), sdrs.map(d=>d[1]), false, '', 'sdr');
+  // Bar race semanal de SDRs (preenche chartDataStore.sdr)
+  renderSDRRace(data);
   renderTAQuickFilters();
 
-  // Normalização de closers antes de montar o gráfico
-  applyCloserNormalization(data);
-  const closerScore = ctab(data,'closer_norm','score', null, SCORE_ORDER);
-  const seriesMapCloser = {};
-  SCORE_ORDER.forEach((sc, i)=>{ seriesMapCloser[sc] = closerScore.rows.map((_,ri)=> closerScore.mat[ri][i]||0); });
-  chartDataStore.closer = closerScore.rows.map((row, ri) => ({closer: row, A: seriesMapCloser.A[ri], B: seriesMapCloser.B[ri], C: seriesMapCloser.C[ri], D: seriesMapCloser.D[ri]}));
-  renderBarStack('chartCloserScore', closerScore.rows, seriesMapCloser, 'closer');
+  // Treemap de campanhas (preenche chartDataStore.campaign)
+  renderCampaignTreemap(data);
 
-  const srcCount = countBy(data,'d_utm_source');
-  const srcPairs = Object.entries(srcCount).sort((a,b)=> b[1]-a[1]);
-  const srcTop = srcPairs.slice(0,8);
-  const srcRest = srcPairs.slice(8);
-  if(srcRest.length) srcTop.push([t('others'), srcRest.reduce((a,b)=>a+b[1],0)]);
-  chartDataStore.source = srcTop;
-  renderBar('chartSource', srcTop.map(d=>d[0]), srcTop.map(d=>d[1]), true, '', 'source');
-
-  const campCount = countBy(data,'d_utm_campaign');
-  let campTop = Object.entries(campCount).sort((a,b)=> b[1]-a[1]).slice(0,10);
-  
-  // Filtrar "sem valor" se checkbox ativo
-  const hideSemValor = document.getElementById('hideSemValorCampaign')?.checked;
-  if(hideSemValor) {
-    campTop = campTop.filter(c => c[0]?.toLowerCase() !== 'sem valor');
-  }
-  
-  chartDataStore.campaign = campTop;
-  renderBar('chartCampaign', campTop.map(c=>c[0]), campTop.map(c=>c[1]), true, '', 'campaign');
-
-  const scoreCount = SCORE_ORDER.map(sc => [sc, data.filter(d=> d.score===sc).length]);
-  chartDataStore.score = scoreCount;
-  renderBar('chartScore', scoreCount.map(d=>d[0]), scoreCount.map(d=>d[1]), false, '', 'score');
-
-  const taCount = TA_ORDER.map(b => [b, data.filter(d=> d.ta===b).length]);
-  chartDataStore.ta_dist = taCount;
-  renderBar('chartTADist', taCount.map(d=>d[0]), taCount.map(d=>d[1]), false, '', 'ta');
-
-  renderNestedTags(data, document.getElementById('groupTagsByStatusBtn').classList.contains('active') ? 'deal_status' : 'score');
+  // Treemap de tags em 2 níveis (preenche chartDataStore.tags_composition)
+  renderTagsTreemap(data, document.getElementById('groupTagsByStatusBtn').classList.contains('active') ? 'deal_status' : 'score');
 
   // Scorecard comparativo de squads (escalas honestas)
   renderSquadRadar(data);
@@ -1709,6 +1662,9 @@ function buildAll(data){
       ta3d_pct:+m.fastPct.toFixed(1), corp_pct:+(m.corpPct||0).toFixed(1)
     }));
   } catch(e){ console.warn('Falha ao gerar snapshot do scorecard', e); }
+  // Snapshot de squads p/ sugestões de IA (o gráfico de barras saiu; o dado continua útil)
+  const squadScore = ctab(data,'origin_group_name','score', null, SCORE_ORDER);
+  chartDataStore.squad = squadScore.rows.map((row, ri) => ({squad: row, A: squadScore.mat[ri][0]||0, B: squadScore.mat[ri][1]||0, C: squadScore.mat[ri][2]||0, D: squadScore.mat[ri][3]||0}));
 
   document.getElementById('usedCols').innerHTML = Array.from(usedColumns).sort().map(c=> `<span class="pill">${c}</span>`).join(' ');
   extractKeyInsights(data);
@@ -2004,65 +1960,6 @@ window.addEventListener('resize',()=>{applyMultiLineHeadingAlignment();});
 // --- FIM DAS FUNÇÕES NOVAS ---
 
 
-function makePrompt(kind,data){
-  const base=`Atue como um analista de Growth Sênior. Sua resposta deve ser estruturada em tópicos (bullet points), começando com um resumo objetivo (Diagnóstico) e terminando com ensinamentos e recomendações (Recomendações). Foco em agendamentos.`;
-  let dataPrompt="";
-  const formatData=(d)=>{
-    if(Array.isArray(d)){
-      return d.map(item=>`- ${Array.isArray(item)?item.join(': '):JSON.stringify(item)}`).join('\n');
-    } 
-    return JSON.stringify(d,null,2);
-  };
-  
-  switch(kind){
-    case'kpi':
-      dataPrompt=`Analise os seguintes KPIs do período. Qual o principal ponto de atenção e qual a principal fortaleza que esses números revelam?\n- Total de Agendamentos: ${data.total}\n- Status: ${JSON.stringify(data.status)}\n- E-mails Corporativos: ${data['email_corporate']||0}\n- E-mails Gratuitos: ${data['email_free']||0}\n- % Agendamentos Rápidos (até 3 dias): ${data['% TA <= 3 dias']}%`;
-      break;
-    case'squad':
-      dataPrompt=`Com base nos seguintes dados de volume e score por squad, identifique os squads com melhor e pior performance (tanto em volume quanto em qualidade de leads A/B). O que pode justificar essa diferença?\n${formatData(data)}`;
-      break;
-    case'ta_squad':
-      const heatMapData=data.rows.map((row,i)=>`  - ${row}: ${data.cols.map((col,j)=>`${col}(${data.data[i][j]})`).join(', ')}`).join('\n');
-      dataPrompt=`Analise o seguinte heatmap de Tempo de Agendamento (TA) por squad. Quais squads são mais eficientes (mais agendamentos em menos tempo)? Quais são os gargalos?\n${heatMapData}`;
-      break;
-    case'sdr':
-      dataPrompt=`Avalie a lista dos SDRs mais produtivos por volume. Com base nesses dados, que hipóteses podemos levantar sobre as estratégias que estão funcionando?\n${formatData(data)}`;
-      break;
-    case'closer':
-      dataPrompt=`Avalie quais closers estão recebendo mais leads de score A e B. A distribuição parece equilibrada? Existe alguma oportunidade de melhoria na passagem de bastão do SDR para o Closer?\n${formatData(data)}`;
-      break;
-    case'source':
-      dataPrompt=`Analise a performance das seguintes fontes de tráfego (UTM Source) por volume de agendamentos. Quais canais são mais relevantes?\n${formatData(data)}`;
-      break;
-    case'campaign':
-      dataPrompt=`Estas são as 10 principais campanhas por volume. Analise os nomes e a contagem. Que temas, ofertas ou padrões emergem como os mais eficazes?\n${formatData(data)}`;
-      break;
-    case'score':
-      dataPrompt=`Analise a distribuição de scores de agendamento abaixo. O que a proporção entre scores A/B e C/D nos diz sobre a qualidade dos leads gerados no período?\n${formatData(data)}`;
-      break;
-    case'ta_dist':
-      dataPrompt=`Analise a distribuição do Tempo até o Agendamento (TA). Onde se concentra a maior parte dos agendamentos? Estamos sendo rápidos o suficiente para aproveitar o interesse do lead?\n${formatData(data)}`;
-      break;
-    case'tags_composition':
-      let compData=`Dados de composição de tags agrupados por '${data.groupBy}':\n`;
-      for(const cat in data.data){
-        compData+=`- Categoria ${cat} (Total: ${data.data[cat].total}):\n`;
-        const topTags=Object.entries(data.data[cat].tags).sort((a,b)=>b[1]-a[1]).slice(0,5);
-        for(const[tag,count] of topTags){
-          compData+=`  - ${tag}: ${count}\n`;
-        }
-      } 
-      dataPrompt=`Analise a composição de tags abaixo. Quais são as tags mais relevantes dentro de cada categoria? Identifique padrões ou insights importantes. Por exemplo, as tags dos leads 'WON' são diferentes das de 'LOST'? As tags de score 'A' indicam algum perfil específico?\n${compData}`;
-      break;
-    default:
-      dataPrompt="Analise os dados gerais e forneça insights.";
-      break;
-  } 
-  return`${base}\n\nDados para Análise:\n${dataPrompt}`;
-}
-
-
-
 /* ---------- Carregamento Automático do CSV ---------- */
 const fileInput = document.getElementById('file');
 fileInput.addEventListener('change', async (e) => {
@@ -2146,8 +2043,8 @@ document.getElementById('clearGlobalDate').addEventListener('click', () => {
 
 const btnStatus = document.getElementById('groupTagsByStatusBtn');
 const btnScore = document.getElementById('groupTagsByScoreBtn');
-btnStatus.addEventListener('click',()=>{renderNestedTags(currentData, 'deal_status');btnStatus.classList.add('active');btnScore.classList.remove('active');});
-btnScore.addEventListener('click',()=>{renderNestedTags(currentData, 'score');btnScore.classList.add('active');btnStatus.classList.remove('active');});
+btnStatus.addEventListener('click',()=>{renderTagsTreemap(currentData, 'deal_status');btnStatus.classList.add('active');btnScore.classList.remove('active');});
+btnScore.addEventListener('click',()=>{renderTagsTreemap(currentData, 'score');btnScore.classList.add('active');btnStatus.classList.remove('active');});
 
 </script>
 
@@ -2233,7 +2130,7 @@ function enableSuggestions(){
 
       <h3 data-i18n="m4H">Interaction</h3>
       <ul data-i18n="m4L">
-        <li><strong>Cross-filter:</strong> click any bar, slice or cell to filter the whole panel by that dimension; active filters become chips in the top bar and combine with each other (logical AND).</li>
+        <li><strong>Cross-filter:</strong> click any node, slice, cell or block to filter the whole panel by that dimension; active filters become chips in the top bar and combine with each other (logical AND).</li>
         <li><strong>Period:</strong> the date filter uses the booking activity date (<code>ta_created_at</code>).</li>
         <li><strong>Per chart:</strong> analyze with AI (Gemini, with your own key), download a PNG, export the aggregated data as CSV.</li>
         <li><strong>Export PDF</strong> generates a report of the whole page.</li>
@@ -2296,7 +2193,7 @@ function isAggLabel(n){ return n==='Outros'||n==='Others'; }
 
 var I18N={
   en:{
-    total:'Total', others:'Others',
+    others:'Others',
     toastCopied:'Copied to clipboard.', pdfNotFound:'Dashboard not found!',
     insTag:'insight',
     insLead:function(s,r,d){return '<b>'+s+'</b> leads conversion with a <b>'+r+'%</b> win rate, '+d+' p.p. above the period average.';},
@@ -2310,8 +2207,8 @@ var I18N={
     thVolume:'Volume', thQualiAB:'Quality A+B', thConvWon:'WON conversion', thTa3:'TA ≤ 3d', thCorpMail:'Corp. email',
     noData:'No data',
     siFastest:'Highest % Fast (≤3d)', siSlowest:'Highest % Slow (>10d)', siBalanced:'Most Balanced', siLowVol:'Lowest Volume',
-    siTopVol:'Highest Volume', siQuali:'Best Quality (A+B)', siSpeed:'Fastest (TA≤3d)', siAlertQ:'Quality Alert (C+D)', siConv:'Highest Conversion (WON)',
-    bAlert:'ALERT', bWarn:'WARNING', bQuality:'QUALITY', siFast:'Fast',
+    bAlert:'ALERT', siFast:'Fast',
+    wkOf:'Week of ',
     fbHighValue:'high-value leads', fbMarket:'market', fbOverall:'overall',
     sugNoData:'Not enough data to generate suggestions. Process a valid CSV file first.',
     minimize:'Minimize', maximize:'Maximize',
@@ -2335,7 +2232,7 @@ var I18N={
     dateBoth:'Please fill in both dates (start and end).', dateOrder:'The start date cannot be later than the end date.', dateActive:'Active filter: '
   },
   pt:{
-    total:'Total', others:'Outros',
+    others:'Outros',
     toastCopied:'Copiado para a área de transferência.', pdfNotFound:'Dashboard não encontrado!',
     insTag:'insight',
     insLead:function(s,r,d){return '<b>'+s+'</b> lidera a conversão com <b>'+r+'%</b> de ganho, '+d+' p.p. acima da média do período.';},
@@ -2349,8 +2246,8 @@ var I18N={
     thVolume:'Volume', thQualiAB:'Qualidade A+B', thConvWon:'Conversão WON', thTa3:'TA ≤ 3d', thCorpMail:'E-mail corp.',
     noData:'Sem dados',
     siFastest:'Maior % Rápido (≤3d)', siSlowest:'Maior % Lento (>10d)', siBalanced:'Mais Balanceado', siLowVol:'Menor Volume',
-    siTopVol:'Maior Volume', siQuali:'Melhor Qualidade (A+B)', siSpeed:'Mais Rápido (TA≤3d)', siAlertQ:'Alerta Qualidade (C+D)', siConv:'Maior Conversão (WON)',
-    bAlert:'ALERTA', bWarn:'ATENÇÃO', bQuality:'QUALI', siFast:'Rápido',
+    bAlert:'ALERTA', siFast:'Rápido',
+    wkOf:'Semana de ',
     fbHighValue:'leads de alto valor', fbMarket:'mercado', fbOverall:'geral',
     sugNoData:'Dados insuficientes para gerar sugestões. Processe um arquivo CSV válido primeiro.',
     minimize:'Minimizar', maximize:'Maximizar',
@@ -2389,37 +2286,29 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     sugH:'Principais Ações e Pesquisas Sugeridas',
     sugSub:'Clique no botão para gerar uma lista de pesquisas e ações recomendadas pela IA, com base nos dados que você carregou.',
     sugBtn:'Gerar Sugestões de Pesquisa com IA',
-    ovH:'Visão Geral', aiBtn:'Analisar com IA',
-    ovSub:'Status dos agendamentos e a qualidade (score) dentro de cada status.',
-    ovT1:'Status geral', ovT2:'Mix de score por status',
-    sqH:'Squads · volume e mix de score',
-    sqTip:'Comparação de volume e distribuição de score (A a D) entre os squads.',
-    sqSub:'Quem traz volume e quem traz qualidade. Score é ordinal: quanto mais escuro, melhor a faixa.',
+    aiBtn:'Analisar com IA',
+    fwH:'Fluxo · Fonte → Squad → Faixa → Closer',
+    fwTip:'Cada agendamento como um fluxo: canal de origem, squad que trabalhou, faixa de score em que caiu e closer que recebeu. Largura do link = volume. Clique num nó para filtrar por aquela dimensão.',
+    fwSub:'Top 6 fontes e top 8 closers; o resto vira "Outros". Canais e squads usam a paleta categórica; faixas de score usam a rampa azul ordinal.',
+    sbH:'Status → mix de score',
+    sbTip:'Anel interno: status do negócio (aberto, ganho, perdido). Anel externo: o mix de faixas de score dentro de cada status. Clique no anel interno para filtrar por status, no externo para filtrar por score.',
+    sbSub:'Onde cada status concentra qualidade: a faixa A é o azul mais escuro, a D o mais claro.',
+    qsH:'Qualidade × velocidade',
+    qsTip:'Cada célula conta os agendamentos naquela combinação de faixa de score × faixa de TA. Clique numa célula para aplicar os dois filtros de uma vez.',
+    qsSub:'Os melhores leads são agendados mais rápido? Células mais escuras concentram mais agendamentos.',
     taH:'Velocidade · TA por squad',
     taTip:'Tempo entre a criação do negócio e o agendamento (TA), por squad. Células mais claras concentram mais agendamentos.',
     taSub:'Heatmap de rapidez (até 1,5 / 3 / 5 / 10 / 20 / 30 / mais de 30 dias) por squad.',
-    sdrH:'SDRs · top 10 por volume',
-    sdrTip:'Ranking de SDRs por volume de agendamentos na seleção atual. Use os filtros de TA para ver quem agenda rápido.',
-    sdrSub:'Filtre por faixa de TA para recortar o ranking.',
-    clH:'Closers · mix de score recebido',
-    clTip:'Distribuição de scores (A a D) por closer: a qualidade dos agendamentos que cada um recebe.',
-    clSub:'Quem recebeu mais leads de cada faixa no período.',
-    srcH:'Fontes · volume por canal',
-    srcTip:'Volume de agendamentos por canal de origem (utm_source normalizado). Os 8 maiores; o resto vira "Outros".',
-    srcSub:'Top 8 canais; o restante agregado em "Outros".',
+    sdrH:'SDRs · corrida semanal',
+    sdrTip:'Corrida animada do acumulado de agendamentos por SDR, semana a semana. Top 10 por volume na seleção atual; roda em loop e recomeça a cada mudança de filtro.',
+    sdrSub:'Volume acumulado por semana. Filtre por faixa de TA para ver quem agenda rápido.',
     cmpH:'Campanhas · top 10',
-    cmpTip:'As 10 campanhas (utm_campaign) com mais agendamentos na seleção atual.',
-    cmpSub:'As campanhas com mais agendamentos no período.',
+    cmpTip:'Treemap das 10 campanhas (utm_campaign) com mais agendamentos: área = volume. Clique numa campanha para filtrar.',
+    cmpSub:'Área = volume de agendamentos no período.',
     cmpHide:'Ocultar "sem valor"',
-    scH:'Score · distribuição geral',
-    scTip:'Distribuição das faixas de score (A ≥ 80, B ≥ 60, C ≥ 40, D abaixo de 40) em todos os agendamentos da seleção.',
-    scSub:'Faixas A a D na seleção atual.',
-    tadH:'Tempo até agendamento (TA)',
-    tadTip:'Quantos agendamentos caem em cada faixa de tempo entre a criação do negócio e o agendamento.',
-    tadSub:'Faixas ordenadas da mais rápida à mais lenta.',
     tgH:'Tags · composição da seleção',
-    tgTip:'As 10 tags mais frequentes, quebradas por status ou por faixa de score. Clique numa barra para filtrar pela tag.',
-    tgSub:'Top 10 tags da seleção, empilhadas pela dimensão escolhida.',
+    tgTip:'Treemap em 2 níveis: a dimensão escolhida (status ou score) como grupos, as 10 tags mais frequentes dentro de cada um. Clique numa tag para filtrar por ela.',
+    tgSub:'Top 10 tags da seleção, dimensionadas pela frequência dentro de cada grupo.',
     tgGroup:'Agrupar por:',
     scdH:'Scorecard de squads',
     scdTip:'As 5 métricas de cada squad em escalas honestas: volume absoluto e percentuais reais, sem normalização.',
@@ -2435,7 +2324,7 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     m3H:'Definições e derivações',
     m3L:'<li><strong>Score:</strong> <code>lead_score</code> vira faixa ordinal: A ≥ 80, B ≥ 60, C ≥ 40, D abaixo de 40. Nos gráficos, a faixa usa uma rampa de um só matiz (mais escuro = melhor).</li><li><strong>TA (tempo até agendamento):</strong> dias entre <code>deal_created_at</code> e <code>ta_created_at</code>, agrupados em 7 faixas (até 1,5 dia até acima de 30).</li><li><strong>E-mail corporativo vs gratuito:</strong> pelo domínio do e-mail do contato (lista de provedores gratuitos conhecidos).</li><li><strong>Normalizações:</strong> fontes UTM (fb/meta viram Facebook Ads etc.) e nomes de closers (aliases e variações de grafia).</li>',
     m4H:'Interação',
-    m4L:'<li><strong>Cross-filter:</strong> clique em qualquer barra, fatia ou célula para filtrar o painel inteiro por aquela dimensão; os filtros ativos viram chips na barra do topo e combinam entre si (E lógico).</li><li><strong>Período:</strong> o filtro de datas usa a data da atividade de agendamento (<code>ta_created_at</code>).</li><li><strong>Por gráfico:</strong> analisar com IA (Gemini, com a sua chave), baixar PNG, exportar o dado agregado em CSV.</li><li><strong>Exportar PDF</strong> gera o relatório da página inteira.</li>'
+    m4L:'<li><strong>Cross-filter:</strong> clique em qualquer nó, fatia, célula ou bloco para filtrar o painel inteiro por aquela dimensão; os filtros ativos viram chips na barra do topo e combinam entre si (E lógico).</li><li><strong>Período:</strong> o filtro de datas usa a data da atividade de agendamento (<code>ta_created_at</code>).</li><li><strong>Por gráfico:</strong> analisar com IA (Gemini, com a sua chave), baixar PNG, exportar o dado agregado em CSV.</li><li><strong>Exportar PDF</strong> gera o relatório da página inteira.</li>'
   };
   var META = {
     en:{ title:'Bookings Analysis | Felippe Yann' },
