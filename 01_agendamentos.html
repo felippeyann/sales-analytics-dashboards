@@ -705,6 +705,19 @@ document.addEventListener('DOMContentLoaded', function() {
   </section>
   </div>
 
+  <section class="card" id="trendCard">
+    <div class="topic-head">
+      <h2><span data-i18n="trH">Bookings over time · by status</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="trTip">Weekly booking volume split by outcome. Areas overlap (not stacked) so you can read where won, lost and open cross over time.</span></span>
+      </h2>
+      <div class="topic-actions nowrap">
+        <div class="chart-actions" data-chart="chartTrend" data-kind="trend" data-csv="evolucao_agendamentos_status"></div>
+      </div>
+    </div>
+    <div class="sub" data-i18n="trSub">Won, lost and open bookings per week. Overlapping areas reveal the crossover between outcomes.</div>
+    <div id="chartTrend" class="chart tall"></div>
+  </section>
+
   <section class="card">
     <div class="topic-head">
       <h2><span data-i18n="fwH">Flow · Source → Squad → Band → Closer</span>
@@ -1278,6 +1291,56 @@ function renderSunburstStatusScore(data){
   });
 }
 
+/* ---------- Evolução temporal por status (área com degradê, sobreposta) ---------- */
+function renderTrend(data){
+  const el=document.getElementById('chartTrend'); if(!el) return; const chart=makeChart(el);
+  if(!data.length){ chart.clear(); return; }
+  // granularidade adaptativa: semana se o período for curto, mês se for longo
+  const times=data.map(d=>{const iso=paraDataISO(String(d.ta_created_at||'').trim());return iso?new Date(iso.split('-').map((n,i)=>i===1?+n-1:+n)[0], (iso.split('-')[1]-1), +iso.split('-')[2]).getTime():null;}).filter(v=>v!=null);
+  if(!times.length){ chart.clear(); return; }
+  const span=(Math.max(...times)-Math.min(...times))/86400000;
+  const byMonth = span>140;
+  const keyOf=(ms)=>{ const d=new Date(ms); if(byMonth){ d.setDate(1); } else { d.setDate(d.getDate()-((d.getDay()+6)%7)); } d.setHours(0,0,0,0); return d.getTime(); };
+  const buckets={};
+  data.forEach(d=>{
+    const iso=paraDataISO(String(d.ta_created_at||'').trim()); if(!iso) return;
+    const parts=iso.split('-').map(Number); const ms=new Date(parts[0],parts[1]-1,parts[2]).getTime();
+    const k=keyOf(ms); (buckets[k]=buckets[k]||{WON:0,LOST:0,OPEN:0});
+    if(buckets[k][d.deal_status]!=null) buckets[k][d.deal_status]++;
+  });
+  const keys=Object.keys(buckets).map(Number).sort((a,b)=>a-b);
+  const labels=keys.map(k=>dfmt(new Date(k)));
+  const grad=(hex)=>({type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:hexA(hex,.42)},{offset:.55,color:hexA(hex,.14)},{offset:1,color:hexA(hex,0)}]});
+  const mkSeries=(st)=>({
+    name:st, type:'line', smooth:.4, showSymbol:false, symbolSize:7,
+    z: st==='WON'?3:(st==='LOST'?2:1),
+    lineStyle:{width:2.6,color:STATUS_COLORS[st]},
+    itemStyle:{color:STATUS_COLORS[st]},
+    areaStyle:{color:grad(STATUS_COLORS[st]),origin:'start'},
+    emphasis:{focus:'series'},
+    data:keys.map(k=>buckets[k][st])
+  });
+  chartDataStore.trend={rows:['WON','LOST','OPEN'],cols:labels,data:['WON','LOST','OPEN'].map(st=>keys.map(k=>buckets[k][st]))};
+  chart.setOption({
+    grid:{left:8,right:16,top:38,bottom:26,containLabel:true},
+    legend:{top:2,data:['WON','LOST','OPEN'],textStyle:{color:'#a1a1aa',fontSize:11},itemWidth:14,itemHeight:3,itemGap:18},
+    tooltip:{trigger:'axis',axisPointer:{type:'line',lineStyle:{color:'rgba(248,247,243,.25)'}},
+      backgroundColor:'#131316',borderColor:'rgba(248,247,243,.18)',
+      formatter:(ps)=>{ let tot=ps.reduce((a,p)=>a+(p.value||0),0);
+        let h='<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#8a8a94;margin-bottom:4px">'+escHtml(ps[0].axisValue)+'</div>';
+        ps.slice().sort((a,b)=>b.value-a.value).forEach(p=>{ h+='<div style="display:flex;justify-content:space-between;gap:16px"><span>'+p.marker+' '+p.seriesName+'</span><b>'+p.value+'</b></div>'; });
+        h+='<div style="display:flex;justify-content:space-between;gap:16px;margin-top:3px;border-top:1px solid rgba(248,247,243,.12);padding-top:3px;color:#8a8a94"><span>'+escHtml(t('trTotal'))+'</span><b>'+tot+'</b></div>';
+        return h; }},
+    xAxis:{type:'category',boundaryGap:false,data:labels,axisLabel:{fontSize:9,color:'#8a8a94',hideOverlap:true}},
+    yAxis:{type:'value',axisLabel:{fontSize:9,color:'#8a8a94'},splitLine:{lineStyle:{color:'rgba(248,247,243,.06)'}},minorSplitLine:{show:true,lineStyle:{color:'rgba(248,247,243,.03)'}}},
+    series:['WON','LOST','OPEN'].map(mkSeries),
+    animationDuration:800
+  });
+  addResize(chart);
+}
+// hex #rrggbb + alpha -> rgba()
+function hexA(hex,a){ const h=hex.replace('#',''); const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
+
 /* ---------- SANKEY 4 níveis: Fonte -> Squad -> Faixa -> Closer (showpiece) ----------
    Nomes internos prefixados (S| Q| B| C|) para evitar colisão entre níveis;
    os formatters exibem o nome limpo. Clique em nó filtra a dimensão certa,
@@ -1714,6 +1777,9 @@ function buildAll(data){
   renderExec(data);
   renderKPIs(data);
 
+  // Protagonista temporal: evolução por status (área com degradê, sobreposta)
+  renderTrend(data);
+
   // Showpiece: Sankey Fonte -> Squad -> Faixa -> Closer (também preenche chartDataStore.source e .flow)
   renderSankeyFlow(data);
 
@@ -1780,6 +1846,13 @@ function setHl(chartId, html){
 function renderInsightChips(data){
   try{
     const t1=Math.max(1,data.length);
+    // Trend: semana de pico de volume
+    try{
+      const wk={};
+      data.forEach(d=>{ const iso=paraDataISO(String(d.ta_created_at||'').trim()); if(!iso) return; const p=iso.split('-').map(Number); const dt=new Date(p[0],p[1]-1,p[2]); dt.setDate(dt.getDate()-((dt.getDay()+6)%7)); dt.setHours(0,0,0,0); const k=dt.getTime(); wk[k]=(wk[k]||0)+1; });
+      const top=Object.entries(wk).sort((a,b)=>b[1]-a[1])[0];
+      setHl('chartTrend', top?`${t('trPeak')}: <b>${dfmt(new Date(+top[0]))}</b> · ${top[1]}`:'');
+    }catch(e){ setHl('chartTrend',''); }
     // Sankey: maior fluxo fonte -> squad
     const pair={};
     data.forEach(d=>{ const k=d.d_utm_source+'||'+d.origin_group_name; pair[k]=(pair[k]||0)+1; });
@@ -2160,6 +2233,7 @@ var I18N={
     hlTopFlow:'top flow', hlLeader:'leader', hlFastest:'fastest', hlBestConv:'best conv.', hlTop:'top', hlPeak:'peak',
     skFrom:'incoming', skTo:'outgoing',
     scScatter:'Volume × conversion (bubble = A+B quality)', scAvg:'avg',
+    trTotal:'Total', trPeak:'peak week',
     fbHighValue:'high-value leads', fbMarket:'market', fbOverall:'overall',
     sugNoData:'Not enough data to generate suggestions. Process a valid CSV file first.',
     minimize:'Minimize', maximize:'Maximize',
@@ -2202,6 +2276,7 @@ var I18N={
     hlTopFlow:'maior fluxo', hlLeader:'líder', hlFastest:'mais rápida', hlBestConv:'melhor conv.', hlTop:'top', hlPeak:'pico',
     skFrom:'de onde vem', skTo:'para onde vai',
     scScatter:'Volume × conversão (bolha = qualidade A+B)', scAvg:'média',
+    trTotal:'Total', trPeak:'semana de pico',
     fbHighValue:'leads de alto valor', fbMarket:'mercado', fbOverall:'geral',
     sugNoData:'Dados insuficientes para gerar sugestões. Processe um arquivo CSV válido primeiro.',
     minimize:'Minimizar', maximize:'Maximizar',
@@ -2241,6 +2316,9 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     sugSub:'Clique no botão para gerar uma lista de pesquisas e ações recomendadas com base nos dados carregados.',
     sugBtn:'Gerar sugestões de pesquisa',
     aiBtn:'Analisar com IA',
+    trH:'Agendamentos no tempo · por status',
+    trTip:'Volume semanal de agendamentos por desfecho. As áreas se sobrepõem (não empilhadas), então dá pra ler onde ganhos, perdas e abertos se cruzam ao longo do tempo.',
+    trSub:'Agendamentos ganhos, perdidos e em aberto por semana. As áreas sobrepostas revelam o cruzamento entre os desfechos.',
     fwH:'Fluxo · Fonte → Squad → Faixa → Closer',
     fwTip:'Cada agendamento como um fluxo: canal de origem, squad que trabalhou, faixa de score em que caiu e closer que recebeu. Largura do link = volume. Clique num nó para filtrar por aquela dimensão.',
     fwSub:'Top 6 fontes e top 8 closers; o resto vira "Outros". Canais e squads usam a paleta categórica; faixas de score usam a rampa azul ordinal.',
@@ -2996,6 +3074,7 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     en:{ btn:'▶ Start guided tour', steps:[
       ['#exec-band','Executive summary','The headline of the period: bookings, win rate, speed and lead quality, plus one written insight that updates with your filters.'],
       ['header','Filters & period','Set a date window, then click any chart to add a cross-filter. Active filters become chips up here and combine with each other.'],
+      ['#chartTrend','Over time','Weekly bookings by outcome. The overlapping areas show where won, lost and open cross, so you spot momentum and turning points at a glance.'],
       ['#chartFlow','The flow','Every booking as a path: origin channel → squad → score band → closer. Link width is volume. Click a node to filter the whole board by it.'],
       ['#chartStatusScore','Status × score','Inner ring is the deal status, outer ring the score bands inside it. It answers where quality concentrates.'],
       ['#chartSDR','Weekly race','SDR ranking playing out week by week. Press play or scrub the timeline to watch positions change.'],
@@ -3004,6 +3083,7 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     pt:{ btn:'▶ Iniciar tour guiado', steps:[
       ['#exec-band','Resumo executivo','A manchete do período: agendamentos, taxa de ganho, velocidade e qualidade do lead, com um insight escrito que muda conforme os filtros.'],
       ['header','Filtros e período','Defina uma janela de datas e clique em qualquer gráfico para criar um filtro cruzado. Os filtros ativos viram chips aqui em cima e se combinam.'],
+      ['#chartTrend','Ao longo do tempo','Agendamentos por semana e desfecho. As áreas sobrepostas mostram onde ganhos, perdas e abertos se cruzam, revelando momento e pontos de virada de relance.'],
       ['#chartFlow','O fluxo','Cada agendamento como um caminho: canal de origem → squad → faixa de score → closer. A largura do vínculo é volume. Clique num nó para filtrar tudo por ele.'],
       ['#chartStatusScore','Status × score','O anel interno é o status do negócio, o externo as faixas de score dentro dele. Mostra onde a qualidade se concentra.'],
       ['#chartSDR','Corrida semanal','O ranking de SDRs acontecendo semana a semana. Dê play ou arraste a linha do tempo para ver as posições mudarem.'],
