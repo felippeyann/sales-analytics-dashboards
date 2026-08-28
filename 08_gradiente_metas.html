@@ -20,11 +20,11 @@
   <meta charset="UTF-8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gradiente de Metas — Demo</title>
+  <title>Gradiente de Metas | Felippe Yann</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
   <style>
 /* ============================================================================
@@ -32,218 +32,206 @@
    ============================================================================ */
 * { margin:0; padding:0; box-sizing:border-box; }
 
-:root {
-  --bg:#0a0a0b; --bg-card:#131316; --bg-card-hover:#1a1a1e;
-  --accent:#2563eb; --accent-light:#93c5fd; --accent-dark:#1d4ed8;
-  --accent-glow:rgba(37,99,235,0.5); --accent-glow-strong:rgba(37,99,235,0.8);
-  --good:#22c55e; --good-glow:rgba(34,197,94,0.4);
-  --warn:#f59e0b; --warn-glow:rgba(245,158,11,0.4);
-  --bad:#ef4444; --bad-glow:rgba(239,68,68,0.4);
-  --future:rgba(37,99,235,0.4); --future-border:rgba(37,99,235,0.6);
-  --text-primary:#ffffff; --text-secondary:#94a3b8; --text-muted:#64748b;
-  --gradient-progress:linear-gradient(90deg,#2563eb,#22c55e);
-  --gradient-card:linear-gradient(135deg,#131316 0%,#131316 100%);
-  --header-height:80px; --border-radius:16px; --border-radius-sm:8px;
+/* ===== tokens (fonte única de verdade do arquivo) ===== */
+:root{
+  --bg:#0a0a0b;
+  --panel:#131316;
+  --card:#1a1a1e;
+  --card-h:#232328;
+  --ink:#f8f7f3; --ink-2:#d4d4d8; --ink-3:#a1a1aa; --ink-4:#8a8a94;
+  --accent:#2563eb;
+  --accent-soft:#60a5fa;
+  --accent-glow:rgba(37,99,235,0.15);
+  --ok:#4ade80; --warn:#fbbf24; --bad:#f87171;
+  --line:rgba(248,247,243,.09); --line-strong:rgba(248,247,243,.18);
+  --sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:12px; --r-sm:8px;
+  /* aliases legados (consumidos por markup/JS deste arquivo) */
+  --bg-card:var(--panel); --bg-card-hover:var(--card);
+  --accent-light:var(--accent-soft); --accent-dark:#1d4ed8;
+  --good:var(--ok);
+  --text-primary:var(--ink); --text-secondary:var(--ink-2); --text-muted:var(--ink-3);
+  --header-height:80px; --border-radius:var(--r); --border-radius-sm:var(--r-sm);
 }
 
-html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:"Space Grotesk",sans-serif; color:var(--text-primary); }
+html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:var(--sans); color:var(--text-primary); }
 
 /* Loading */
 .loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; transition:opacity 0.3s ease; }
 .loading-overlay.hidden { opacity:0; pointer-events:none; }
-.loading-spinner { width:60px; height:60px; border:4px solid var(--bg-card); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite; }
+.loading-spinner { width:60px; height:60px; border:4px solid var(--panel); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 @keyframes slideIn { from { transform:translateX(400px); opacity:0; } to { transform:translateX(0); opacity:1; } }
-.loading-text { margin-top:20px; font-size:18px; color:var(--text-secondary); font-weight:500; }
+.loading-text { margin-top:20px; font-size:20px; color:var(--text-secondary); font-weight:500; }
 
-/* Container principal 1920×1080 */
-#app-container { position:absolute; top:0; left:0; width:1920px; height:1080px; transform-origin:top left; background:var(--bg); display:flex; flex-direction:column; padding:20px 40px; }
+/* Container principal 1920×1080 (escala uniforme + letterbox: ver scaleToFit) */
+#app-container { position:absolute; top:0; left:50%; margin-left:-960px; width:1920px; height:1080px; transform-origin:top center; background:var(--bg); display:flex; flex-direction:column; padding:20px 40px; }
+
+/* chrome de portfolio (CTA/onboarding) fica fora do canvas 1920x1080: suprimido no painel de TV */
+.cta-band,.cta-mail,.onb-card{display:none!important}
 
 /* Header */
-.header { height:var(--header-height); display:flex; justify-content:space-between; align-items:center; padding:0 20px; background:var(--gradient-card); border-radius:var(--border-radius); margin-bottom:20px; }
+.header { height:var(--header-height); display:flex; justify-content:space-between; align-items:center; padding:0 24px; background:var(--panel); border:1px solid var(--line); border-radius:var(--r); margin-bottom:20px; }
 .header-left { display:flex; align-items:center; }
-.logo { font-size:28px; font-weight:800; background:linear-gradient(90deg,var(--accent),var(--accent-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; letter-spacing:1px; }
+.logo { font-family:var(--mono); font-size:26px; font-weight:700; color:var(--ink); letter-spacing:1px; }
+.logo b { color:var(--accent); font-weight:700; }
 .header-center { text-align:center; }
 .mes-titulo { font-size:32px; font-weight:700; color:var(--text-primary); }
-.meta-valor { font-size:18px; color:var(--text-secondary); margin-top:4px; }
+.meta-valor { font-size:20px; color:var(--ink-3); margin-top:4px; font-family:var(--mono); }
 .header-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
 .header-controls { display:flex; gap:10px; align-items:center; }
 
-.strategy-select { background:var(--bg); border:1px solid var(--accent); color:var(--accent-light); padding:8px 14px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s ease; letter-spacing:0.3px; }
-.strategy-select:hover { border-color:var(--accent-light); background:rgba(37,99,235,0.1); }
+.strategy-select { background:var(--bg); border:1px solid var(--line-strong); color:var(--ink-2); padding:8px 14px; border-radius:var(--r-sm); font-family:var(--sans); font-size:16px; font-weight:500; cursor:pointer; transition:border-color 0.2s ease; letter-spacing:0.3px; }
+.strategy-select:hover { border-color:var(--accent); }
 .strategy-select:focus { outline:none; box-shadow:0 0 0 2px var(--accent-glow); }
 .strategy-select option { background:var(--bg); color:var(--text-primary); }
 
-.data-source-badge { display:flex; align-items:center; gap:6px; background:var(--bg); border:1px solid var(--accent); padding:6px 12px; border-radius:var(--border-radius-sm); font-size:12px; color:var(--text-secondary); transition:all 0.2s ease; }
-.data-source-badge.api { border-color:var(--good); background:rgba(34,197,94,0.1); }
-.data-source-badge.api .badge-text { color:var(--good); }
-.data-source-badge.demo-mode { border-color:#f59e0b; background:rgba(245,158,11,0.1); }
-.data-source-badge.demo-mode .badge-text { color:#f59e0b; }
-.badge-text { font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; }
-
-.refresh-select { background:var(--bg); border:1px solid var(--accent); color:var(--text-primary); padding:8px 12px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:14px; cursor:pointer; }
-.refresh-btn,.fullscreen-btn { background:var(--accent); border:none; color:white; width:36px; height:36px; border-radius:var(--border-radius-sm); font-size:18px; cursor:pointer; transition:all 0.2s ease; }
-.refresh-btn:hover,.fullscreen-btn:hover { background:var(--accent-light); transform:scale(1.05); }
-.last-update { font-size:12px; color:var(--text-muted); }
+.fullscreen-btn { background:var(--card); border:1px solid var(--line-strong); color:var(--ink-2); width:42px; height:42px; border-radius:var(--r-sm); font-size:20px; line-height:1; cursor:pointer; transition:border-color 0.2s ease,color 0.2s ease; }
+.fullscreen-btn:hover { border-color:var(--accent); color:var(--ink); }
 
 /* Main */
 .main-content { flex:1; display:flex; flex-direction:column; gap:20px; }
 
 /* Progress Section */
-.progress-section { background:var(--gradient-card); border-radius:var(--border-radius); padding:30px 40px; }
-.progress-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-.progress-title { font-size:20px; font-weight:700; color:var(--text-secondary); letter-spacing:2px; }
-.progress-stats { font-size:24px; display:flex; align-items:baseline; gap:8px; }
-.stat-value { font-weight:700; color:var(--accent); }
-.stat-separator { color:var(--text-muted); font-weight:400; }
-.stat-meta { color:var(--text-secondary); font-weight:600; }
+.progress-section { background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:26px 40px 40px; }
+.progress-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:34px; }
+.progress-title { font-size:20px; font-weight:700; color:var(--ink-3); letter-spacing:2px; font-family:var(--mono); }
+.progress-stats { display:flex; align-items:center; gap:44px; }
+.pstat { display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+.pstat-label { font-size:16px; color:var(--ink-3); font-family:var(--mono); text-transform:uppercase; letter-spacing:1px; }
+.pstat-value { font-size:30px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; }
+.pstat-value.ok { color:var(--ok); }
+.pstat-value.warn { color:var(--warn); }
 .progress-bar-container { display:flex; align-items:center; gap:40px; }
-.progress-bar-bg { flex:1; height:60px; background:rgba(255,255,255,0.05); border-radius:30px; position:relative; overflow:hidden; border:2px solid rgba(255,255,255,0.1); }
-.progress-marker { position:absolute; top:0; bottom:0; width:2px; background:rgba(255,255,255,0.2); z-index:2; }
-.progress-marker::after { content:attr(data-label); position:absolute; bottom:-25px; left:50%; transform:translateX(-50%); font-size:12px; color:var(--text-muted); font-weight:600; }
-.progress-bar-fill { height:100%; background:var(--gradient-progress); border-radius:30px; position:relative; transition:width 1.2s cubic-bezier(0.4,0,0.2,1),background 0.5s ease; min-width:0; box-shadow:0 0 30px var(--accent); }
-.progress-glow { position:absolute; right:0; top:50%; transform:translateY(-50%); width:20px; height:80%; background:rgba(255,255,255,0.6); border-radius:10px; filter:blur(8px); animation:pulse 2s ease-in-out infinite; }
-@keyframes pulse { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
-.progress-info { text-align:right; min-width:180px; }
+.progress-bar-bg { flex:1; height:60px; background:var(--card); border-radius:30px; position:relative; border:2px solid var(--line-strong); }
+.progress-marker { position:absolute; top:0; bottom:0; width:2px; background:var(--line-strong); z-index:2; }
+.progress-marker::after { content:attr(data-label); position:absolute; bottom:-28px; left:50%; transform:translateX(-50%); font-size:16px; color:var(--ink-3); font-weight:600; font-family:var(--mono); }
+.progress-bar-fill { height:100%; background:var(--accent); border-radius:30px; position:relative; transition:width 1.2s cubic-bezier(0.4,0,0.2,1),background 0.5s ease; min-width:0; }
+.progress-bar-fill.ahead::after { content:""; position:absolute; right:0; top:0; bottom:0; width:10px; background:var(--ok); border-radius:0 30px 30px 0; }
+.progress-bar-fill.done { background:var(--ok); }
+.pace-marker { position:absolute; top:-8px; bottom:-8px; width:3px; background:var(--ink); z-index:3; }
+.pace-label { position:absolute; top:-30px; left:50%; transform:translateX(-50%); font-size:16px; font-weight:700; color:var(--ink); font-family:var(--mono); white-space:nowrap; background:var(--panel); padding:0 6px; border-radius:4px; }
+.progress-info { text-align:right; min-width:220px; }
 .progress-percent { display:flex; align-items:baseline; justify-content:flex-end; }
-.percent-value { font-size:64px; font-weight:800; background:var(--gradient-progress); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1; }
-.percent-symbol { font-size:32px; font-weight:700; color:var(--accent); margin-left:4px; }
-.faltante-info { font-size:16px; color:var(--text-secondary); margin-top:4px; }
+.percent-value { font-size:64px; font-weight:700; color:var(--ink); line-height:1; font-variant-numeric:tabular-nums; }
+.percent-value.done { color:var(--ok); }
+.percent-symbol { font-size:32px; font-weight:700; color:var(--ink-3); margin-left:4px; }
+.pace-status { font-size:20px; margin-top:6px; font-weight:600; color:var(--ink-2); }
+.pace-status.ok { color:var(--ok); }
+.pace-status.warn { color:var(--warn); }
 
 /* Weeks Grid */
 .weeks-section { flex:1; min-height:0; display:flex; flex-direction:column; }
 .weeks-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:20px; flex:1; }
 
-.week-card { background:var(--gradient-card); border-radius:var(--border-radius); padding:24px; display:flex; flex-direction:column; border:2px solid rgba(37,99,235,0.3); box-shadow:none; transition:all 0.3s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden; opacity:1; }
-@keyframes fadeInCard { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-.week-card:nth-child(1) { animation-delay:0.1s; } .week-card:nth-child(2) { animation-delay:0.2s; } .week-card:nth-child(3) { animation-delay:0.3s; } .week-card:nth-child(4) { animation-delay:0.4s; } .week-card:nth-child(5) { animation-delay:0.5s; }
+.week-card { background:var(--panel); border-radius:var(--r); padding:24px; display:flex; flex-direction:column; border:2px solid var(--line); position:relative; overflow:hidden; }
 
-.week-card.batida { border-color:rgba(34,197,94,0.5)!important; box-shadow:none!important; background:linear-gradient(135deg,rgba(34,197,94,0.08) 0%,#131316 100%); }
-.week-card.passada { border-color:rgba(37,99,235,0.25)!important; box-shadow:none!important; background:linear-gradient(135deg,rgba(37,99,235,0.06) 0%,#131316 100%); opacity:0.85; }
-.week-card.em_andamento { border-color:var(--accent-light)!important; box-shadow:0 0 40px var(--accent-glow-strong)!important; animation:cardPulseStrong 2s ease-in-out infinite; transform:scale(1.02); z-index:10; }
-.week-card.futura { border-color:rgba(37,99,235,0.2)!important; box-shadow:none!important; background:linear-gradient(135deg,rgba(37,99,235,0.1) 0%,#131316 100%); opacity:0.7; }
-@keyframes cardPulseStrong { 0%,100% { box-shadow:0 0 40px var(--accent-glow-strong); transform:scale(1.02); } 50% { box-shadow:0 0 60px var(--accent-glow-strong),0 0 90px var(--accent-glow); transform:scale(1.03); } }
+.week-card.batida { border-color:rgba(74,222,128,0.45); }
+.week-card.passada { border-color:var(--line); opacity:0.85; }
+.week-card.em_andamento { border-color:var(--accent); background:var(--card); box-shadow:0 0 24px var(--accent-glow); }
+.week-card.futura { border-color:var(--line); opacity:0.7; }
 
-.week-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
-.week-title { font-size:20px; font-weight:700; }
-.week-periodo { font-size:14px; color:var(--text-muted); margin-top:4px; }
-.week-status-icon { font-size:32px; color:var(--accent); }
-.week-status-icon.batida { color:var(--good); }
-.week-status-icon.passada { color:var(--text-muted); opacity:0.8; }
-.week-status-icon.em_andamento { color:var(--accent-light); animation:iconPulse 2s ease-in-out infinite; }
-.week-status-icon.futura { opacity:0.5; }
-@keyframes iconPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.1); } }
+.week-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.week-title { font-size:22px; font-weight:700; }
+.week-periodo { font-size:16px; color:var(--ink-3); margin-top:4px; font-family:var(--mono); }
+.week-status { display:flex; flex-direction:column; align-items:flex-end; gap:2px; color:var(--accent-soft); }
+.week-status-icon { font-size:30px; line-height:1; }
+.week-status-label { font-size:16px; font-weight:600; }
+.week-status.batida { color:var(--ok); }
+.week-status.passada { color:var(--ink-3); }
+.week-status.em_andamento { color:var(--accent-soft); }
+.week-status.futura { color:var(--ink-4); }
 
-.week-progress-bar-container { margin:16px 0; display:flex; align-items:center; gap:12px; }
-.week-progress-bar-bg { flex:1; height:16px; background:rgba(255,255,255,0.05); border-radius:8px; overflow:hidden; position:relative; }
-.week-progress-bar-fill { height:100%; border-radius:8px; transition:width 0.5s ease; position:relative; overflow:hidden; }
-.week-progress-bar-fill.good { background:linear-gradient(90deg,var(--good),#16a34a); }
-.week-progress-bar-fill.progress { background:linear-gradient(90deg,#3b82f6,#2563eb); }
-.week-progress-bar-fill.future { background:var(--accent); opacity:0.3; }
-.week-progress-glow { position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent); animation:shimmer 2s infinite; }
-.week-progress-percent { font-size:18px; font-weight:700; color:#fff; min-width:50px; text-align:right; }
-@keyframes shimmer { 0% { transform:translateX(-100%); } 100% { transform:translateX(100%); } }
+.week-progress-bar-container { margin:14px 0; display:flex; align-items:center; gap:12px; }
+.week-progress-bar-bg { flex:1; height:16px; background:var(--card); border-radius:8px; overflow:hidden; position:relative; }
+.week-progress-bar-fill { height:100%; border-radius:8px; transition:width 0.5s ease; position:relative; }
+.week-progress-bar-fill.good { background:var(--ok); }
+.week-progress-bar-fill.progress { background:var(--accent); }
+.week-progress-bar-fill.missed { background:var(--ink-3); }
+.week-progress-bar-fill.future { background:var(--ink-4); opacity:0.3; }
+.week-progress-percent { font-size:22px; font-weight:700; color:var(--ink); min-width:64px; text-align:right; font-variant-numeric:tabular-nums; }
 
-.week-values { flex:1; display:flex; flex-direction:column; gap:12px; }
+.week-values { flex:1; display:flex; flex-direction:column; gap:8px; }
 .week-row { display:flex; justify-content:space-between; align-items:center; }
-.week-label { font-size:14px; color:var(--text-muted); font-weight:500; }
-.week-value { font-size:18px; font-weight:600; }
-.week-value.meta { color:var(--text-secondary); } .week-value.realizado { color:var(--text-primary); } .week-value.positivo { color:var(--good); } .week-value.negativo { color:var(--bad); }
+.week-label { font-size:16px; color:var(--ink-3); font-weight:500; }
+.week-value { font-size:22px; font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums; }
+.week-value.meta { color:var(--ink-2); }
+.week-value.realizado { color:var(--ink); }
+.week-value.ok { color:var(--ok); }
+.week-value.warn { color:var(--warn); }
+.week-value.sub { color:var(--ink-3); font-size:18px; }
 
-.week-sales { margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1); }
-.week-sales-title { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
-.week-sale-item { display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:13px; }
-.week-sale-closer { color:var(--text-secondary); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
-.week-sale-value { color:var(--accent); font-weight:700; margin-left:12px; }
-.week-sales-empty { font-size:12px; color:var(--text-muted); font-style:italic; text-align:center; padding:8px 0; }
+.week-sales { margin-top:12px; padding-top:10px; border-top:1px solid var(--line); }
+.week-sales-title { font-size:16px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; font-family:var(--mono); }
+.week-sales-list { max-height:96px; overflow:hidden; }
+.week-sale-item { display:flex; justify-content:space-between; align-items:center; padding:3px 0; font-size:16px; }
+.week-sale-closer { color:var(--ink-2); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+.week-sale-value { color:var(--accent-soft); font-weight:700; margin-left:12px; font-variant-numeric:tabular-nums; }
+.week-sales-more { font-size:16px; color:var(--ink-3); padding:2px 0 0; font-family:var(--mono); }
+.week-sales-empty { font-size:16px; color:var(--ink-3); font-style:italic; text-align:center; padding:8px 0; }
 
-/* Timeline */
-.timeline-section { background:var(--gradient-card); border-radius:var(--border-radius); padding:20px 30px; height:180px; display:flex; flex-direction:column; position:relative; z-index:100; overflow:visible; }
-.timeline-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-.timeline-title { font-size:14px; font-weight:700; color:var(--text-secondary); letter-spacing:1.5px; }
-.timeline-count { font-size:13px; color:var(--text-muted); font-weight:600; }
-.timeline-container { flex:1; position:relative; overflow-x:auto; overflow-y:visible; }
-.timeline-axis { position:relative; height:100%; display:flex; flex-direction:column; justify-content:center; }
-.timeline-line { width:100%; height:2px; background:linear-gradient(90deg,var(--accent),rgba(37,99,235,0.3)); position:relative; }
-.timeline-markers { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; }
-.timeline-marker { position:absolute; transform:translateX(-50%); z-index:50; transition:all 0.2s ease; }
-.timeline-marker:hover { transform:translateX(-50%) scale(1.15); }
-.timeline-point { width:2px; height:20px; background:rgba(37,99,235,0.7); cursor:pointer; transition:background 0.2s ease; position:absolute; bottom:-10px; }
-.timeline-marker:hover .timeline-point { background:rgba(37,99,235,1); }
-.timeline-value-label { position:absolute; top:-32px; left:50%; transform:translateX(-50%); font-size:10px; font-weight:500; color:rgba(255,255,255,0.75); white-space:nowrap; pointer-events:none; text-align:center; line-height:1.3; }
-.timeline-marker:hover .timeline-value-label { color:rgba(255,255,255,0.95); font-weight:600; }
-.timeline-day-labels { display:flex; justify-content:space-between; margin-top:8px; padding:0 10px; }
-.timeline-day-label { font-size:11px; color:var(--text-muted); font-weight:600; }
-.no-data { display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-muted); }
-.no-data-text { font-size:16px; }
+/* Timeline (barras verticais por dia, altura = valor do dia) */
+.timeline-section { background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:18px 30px; height:200px; display:flex; flex-direction:column; overflow:hidden; }
+.timeline-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.timeline-title { font-size:20px; font-weight:700; color:var(--ink-3); letter-spacing:1.5px; font-family:var(--mono); }
+.timeline-count { font-size:18px; color:var(--ink-3); font-weight:600; font-variant-numeric:tabular-nums; }
+.timeline-container { flex:1; position:relative; overflow:hidden; }
+.timeline-axis { position:relative; height:100%; display:flex; flex-direction:column; }
+.timeline-plot { flex:1; position:relative; border-bottom:2px solid var(--line-strong); }
+.timeline-bar { position:absolute; bottom:0; width:12px; transform:translateX(-50%); background:var(--accent); border-radius:3px 3px 0 0; cursor:default; }
+.timeline-bar:hover { background:var(--accent-soft); }
+.timeline-bar-label { position:absolute; bottom:100%; left:50%; transform:translateX(-50%); margin-bottom:2px; font-size:16px; font-weight:600; color:var(--ink-2); white-space:nowrap; pointer-events:none; text-align:center; line-height:1.25; font-family:var(--mono); }
+.timeline-day-labels { position:relative; height:24px; margin-top:6px; }
+.timeline-day-label { position:absolute; transform:translateX(-50%); font-size:16px; color:var(--ink-3); font-weight:600; font-family:var(--mono); }
+.no-data { display:flex; align-items:center; justify-content:center; height:100%; color:var(--ink-3); }
+.no-data-text { font-size:20px; }
 
-/* Config Modal */
-.config-btn { background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer; margin-left:12px; opacity:0.3; transition:opacity 0.3s,color 0.3s; padding:4px; }
-.config-btn:hover { opacity:1; color:var(--accent-light); }
-.config-modal { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; display:flex; align-items:center; justify-content:center; }
+/* Config Modal (absoluto dentro do #app-container: escala junto com o painel) */
+.config-btn { background:transparent; border:none; color:var(--ink-3); font-size:22px; cursor:pointer; margin-left:12px; opacity:0.4; transition:opacity 0.3s,color 0.3s; padding:4px; }
+.config-btn:hover { opacity:1; color:var(--accent-soft); }
+.config-modal { position:absolute; top:0; left:0; width:100%; height:100%; z-index:9999; display:flex; align-items:center; justify-content:center; }
 .config-modal.hidden { display:none; }
 .config-backdrop { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); }
-.config-panel { position:relative; background:var(--bg-card); border:1px solid rgba(37,99,235,0.3); border-radius:var(--border-radius); width:700px; max-height:80vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
-.config-header { display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.06); }
-.config-title { font-size:18px; font-weight:700; color:var(--text-primary); }
-.config-close { background:transparent; border:none; color:var(--text-muted); font-size:24px; cursor:pointer; padding:4px 8px; border-radius:4px; transition:all 0.2s; }
-.config-close:hover { color:var(--bad); background:rgba(239,68,68,0.1); }
+.config-panel { position:relative; background:var(--panel); border:1px solid var(--line-strong); border-radius:var(--r); width:760px; max-height:860px; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+.config-header { display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid var(--line); }
+.config-title { font-size:22px; font-weight:700; color:var(--ink); }
+.config-close { background:transparent; border:none; color:var(--ink-3); font-size:26px; cursor:pointer; padding:4px 8px; border-radius:4px; transition:all 0.2s; }
+.config-close:hover { color:var(--bad); background:rgba(248,113,113,0.1); }
 .config-body { flex:1; overflow-y:auto; padding:16px 24px; }
-.config-month-card { background:var(--bg); border:1px solid rgba(255,255,255,0.06); border-radius:var(--border-radius-sm); padding:16px; margin-bottom:12px; }
+.config-month-card { background:var(--bg); border:1px solid var(--line); border-radius:var(--r-sm); padding:16px; margin-bottom:12px; }
 .config-month-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-.config-month-label { font-size:14px; font-weight:600; color:var(--accent-light); }
-.config-month-delete { background:transparent; border:1px solid rgba(239,68,68,0.3); color:var(--bad); font-size:11px; cursor:pointer; padding:3px 8px; border-radius:4px; transition:all 0.2s; }
-.config-month-delete:hover { background:rgba(239,68,68,0.15); border-color:var(--bad); }
+.config-month-label { font-size:18px; font-weight:600; color:var(--accent-soft); }
+.config-month-delete { background:transparent; border:1px solid rgba(248,113,113,0.35); color:var(--bad); font-size:16px; cursor:pointer; padding:3px 10px; border-radius:4px; transition:all 0.2s; }
+.config-month-delete:hover { background:rgba(248,113,113,0.15); border-color:var(--bad); }
 .config-row { display:flex; gap:10px; margin-bottom:8px; align-items:center; }
 .config-field { display:flex; flex-direction:column; gap:3px; flex:1; }
-.config-field label { font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
-.config-field input,.config-field select { background:var(--bg-card); border:1px solid rgba(255,255,255,0.1); color:var(--text-primary); padding:8px 10px; border-radius:4px; font-family:inherit; font-size:13px; transition:border-color 0.2s; }
+.config-field label { font-size:16px; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:0.5px; }
+.config-field input,.config-field select { background:var(--card); border:1px solid var(--line-strong); color:var(--ink); padding:8px 10px; border-radius:4px; font-family:var(--sans); font-size:16px; transition:border-color 0.2s; }
 .config-field input:focus,.config-field select:focus { outline:none; border-color:var(--accent); }
 .config-pct-row { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
-.config-pct-total { font-size:11px; color:var(--text-muted); text-align:right; margin-top:4px; }
-.config-pct-total.pct-ok { color:var(--good); } .config-pct-total.pct-warn { color:var(--warn); } .config-pct-total.pct-bad { color:var(--bad); }
-.config-footer { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid rgba(255,255,255,0.06); }
+.config-pct-total { font-size:16px; color:var(--ink-3); text-align:right; margin-top:4px; }
+.config-pct-total.pct-ok { color:var(--ok); } .config-pct-total.pct-warn { color:var(--warn); } .config-pct-total.pct-bad { color:var(--bad); }
+.config-footer { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid var(--line); }
 .config-actions { display:flex; gap:10px; }
-.config-btn-add { background:transparent; border:1px dashed var(--accent); color:var(--accent-light); padding:8px 16px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s; }
-.config-btn-add:hover { background:rgba(37,99,235,0.1); }
-.config-btn-cancel { background:transparent; border:1px solid rgba(255,255,255,0.15); color:var(--text-secondary); padding:8px 20px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; }
-.config-btn-cancel:hover { border-color:rgba(255,255,255,0.3); color:var(--text-primary); }
-.config-btn-save { background:var(--accent); border:none; color:white; padding:8px 24px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
-.config-btn-save:hover { background:var(--accent-light); box-shadow:0 4px 12px var(--accent-glow); }
+.config-btn-add { background:transparent; border:1px dashed var(--accent); color:var(--accent-soft); padding:8px 16px; border-radius:var(--r-sm); font-family:var(--sans); font-size:16px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.config-btn-add:hover { background:var(--accent-glow); }
+.config-btn-cancel { background:transparent; border:1px solid var(--line-strong); color:var(--ink-2); padding:8px 20px; border-radius:var(--r-sm); font-family:var(--sans); font-size:16px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.config-btn-cancel:hover { border-color:var(--ink-4); color:var(--ink); }
+.config-btn-save { background:var(--accent); border:none; color:#fff; padding:8px 24px; border-radius:var(--r-sm); font-family:var(--sans); font-size:16px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.config-btn-save:hover { background:var(--accent-dark); }
 .config-btn-save:disabled { opacity:0.5; cursor:not-allowed; }
-.config-toast { position:fixed; bottom:30px; right:30px; background:var(--good); color:white; padding:12px 24px; border-radius:var(--border-radius-sm); font-family:inherit; font-size:13px; font-weight:600; z-index:99999; opacity:0; transform:translateY(10px); transition:all 0.3s; }
+.config-toast { position:absolute; bottom:30px; right:30px; background:var(--ok); color:var(--bg); padding:12px 24px; border-radius:var(--r-sm); font-family:var(--sans); font-size:16px; font-weight:700; z-index:99999; opacity:0; transform:translateY(10px); transition:all 0.3s; }
 .config-toast.show { opacity:1; transform:translateY(0); }
 .config-toast.error { background:var(--bad); }
 
-/* Demo banner */
-.demo-banner {
-  position:fixed; bottom:18px; right:18px;
-  background:linear-gradient(135deg,#f59e0b,#d97706);
-  color:#fff; padding:8px 18px; border-radius:20px;
-  font-size:12px; font-weight:700; z-index:9999;
-  box-shadow:0 4px 16px rgba(37,99,235,0.5);
-  pointer-events:none; font-family:"Space Grotesk",sans-serif;
-  letter-spacing:0.3px;
-}
+/* Barra DATAKIT em painel de TV: auto-hide apos 10s sem interacao (JS local no fim do arquivo) */
+.dk-bar { transition:transform 0.35s ease; }
+.dk-bar.dk-hidden { transform:translateY(-100%); }
+#dk-hotzone { position:fixed; top:0; left:0; right:0; height:8px; z-index:8500; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
-<style id="exec-band-css">
-.exec-band{background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:5px 5px 0 0 rgba(0,0,0,0.5);padding:22px 24px;margin:0 0 18px 0;font-family:'Space Grotesk',system-ui,sans-serif}
-.exec-band .exec-kicker{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a94;margin-bottom:8px}
-.exec-band .exec-kicker b{color:#2563eb}
-.exec-band .exec-q{font-size:15px;line-height:1.5;color:#f8f7f3;max-width:80ch;margin-bottom:18px}
-.exec-band .exec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
-.exec-band .exec-kpi{background:#1a1a1e;border:1px solid rgba(248,247,243,0.08);padding:14px 16px}
-.exec-band .exec-kpi .ev{font-size:30px;font-weight:700;line-height:1;color:#f8f7f3;font-variant-numeric:tabular-nums}
-.exec-band .exec-kpi .ev.good{color:#4ade80}
-.exec-band .exec-kpi .el{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a94;margin-top:8px}
-.exec-band .exec-kpi .eh{font-size:12px;color:#6b6b73;margin-top:3px}
-.exec-band .exec-insight{border-left:3px solid #2563eb;padding:10px 0 10px 14px;font-size:14px;line-height:1.55;color:#c9c9d0}
-.exec-band .exec-insight b{color:#f8f7f3;font-weight:600}
-.exec-band .exec-insight .ei-tag{display:inline-block;font-family:'Space Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;border:1px solid rgba(37,99,235,0.4);padding:1px 7px;margin-right:8px;vertical-align:middle}
-@media(max-width:720px){.exec-band .exec-kpis{grid-template-columns:repeat(2,1fr)}}
-</style>
 <body>
 
   <!-- Loading Overlay -->
@@ -257,12 +245,12 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 
     <header class="header">
       <div class="header-left">
-        <div class="logo">GRADIENTE DE METAS</div>
-        <button id="config-btn" class="config-btn" title="Configurar metas">&#9881;</button>
+        <div class="logo"><b>&gt;_</b> GRADIENTE DE METAS</div>
+        <button id="config-btn" class="config-btn" title="Configurar metas" aria-label="Configurar metas">&#9881;</button>
       </div>
       <div class="header-center">
-        <div id="mes-atual" class="mes-titulo">Março 2026</div>
-        <div id="meta-mensal" class="meta-valor">Meta: R$ 1.500.000</div>
+        <div id="mes-atual" class="mes-titulo"></div>
+        <div id="meta-mensal" class="meta-valor"></div>
       </div>
       <div class="header-right">
         <div class="header-controls">
@@ -270,40 +258,36 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
             <option value="diluir">Ideia Diluir</option>
             <option value="seguinte">Ideia Seguinte</option>
           </select>
-          <div id="data-source-indicator" class="data-source-badge demo-mode" title="Modo demo – dados fictícios">
-            <span id="data-source-text" class="badge-text">Demo</span>
-          </div>
-          <button id="fullscreen-btn" class="fullscreen-btn" title="Tela cheia"></button>
+          <button id="fullscreen-btn" class="fullscreen-btn" title="Tela cheia" aria-label="Tela cheia">&#x26F6;</button>
         </div>
       </div>
     </header>
 
     <main class="main-content">
-      <section class="exec-band" id="exec-band">
-        <div class="exec-kicker"><b>//</b> resumo executivo</div>
-        <div class="exec-q">Onde o mês está frente à meta comercial: atingimento, valor realizado e o quanto falta para fechar o número.</div>
-        <div class="exec-kpis" id="exec-kpis"></div>
-        <div class="exec-insight" id="exec-insight"></div>
-      </section>
-
       <!-- Progresso mensal -->
       <section class="progress-section">
         <div class="progress-header">
           <div class="progress-title">PROGRESSO DO MÊS</div>
           <div class="progress-stats">
-            <span id="realizado-valor" class="stat-value">R$ 0</span>
-            <span class="stat-separator">de</span>
-            <span id="meta-valor-display" class="stat-meta">R$ 1.500.000</span>
+            <div class="pstat">
+              <span class="pstat-label">Meta</span>
+              <span id="meta-valor-display" class="pstat-value">R$ 0</span>
+            </div>
+            <div class="pstat">
+              <span class="pstat-label">Realizado</span>
+              <span id="realizado-valor" class="pstat-value">R$ 0</span>
+            </div>
+            <div class="pstat">
+              <span id="faltante-label" class="pstat-label">Faltante</span>
+              <span id="faltante-info" class="pstat-value">R$ 0</span>
+            </div>
           </div>
         </div>
         <div class="progress-bar-container">
-          <div class="progress-bar-bg">
-            <div class="progress-marker" style="left:18%;" data-label="S1"></div>
-            <div class="progress-marker" style="left:38%;" data-label="S2"></div>
-            <div class="progress-marker" style="left:60%;" data-label="S3"></div>
-            <div class="progress-marker" style="left:85%;" data-label="S4"></div>
-            <div id="progress-bar-fill" class="progress-bar-fill" style="width:0%;">
-              <div class="progress-glow"></div>
+          <div class="progress-bar-bg" id="progress-bar-bg">
+            <div id="progress-bar-fill" class="progress-bar-fill" style="width:0%;"></div>
+            <div id="pace-marker" class="pace-marker" style="left:0%;">
+              <span id="pace-label" class="pace-label"></span>
             </div>
           </div>
           <div class="progress-info">
@@ -311,7 +295,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
               <span id="percentual-total" class="percent-value">0</span>
               <span class="percent-symbol">%</span>
             </div>
-            <div id="faltante-info" class="faltante-info">Faltam: R$ 1.500.000</div>
+            <div id="pace-status" class="pace-status"></div>
           </div>
         </div>
       </section>
@@ -378,20 +362,23 @@ const formatCurrencyShort = (num) => {
   return 'R$ ' + Math.round(num).toLocaleString('pt-BR');
 };
 
-const formatPercent = (num) => {
-  if (num === null || num === undefined) return '—';
-  return num.toFixed(1).replace('.', ',') + '%';
-};
-
 // ============================================================================
 // SCALING PARA TV
 // ============================================================================
 
+// Fator UNICO de escala (sem distorcao anamorfica): s = min(w/1920, h/1080),
+// descontando a altura da barra de dados quando visivel. Letterbox horizontal
+// via left:50% + margin-left:-960px + transform-origin:top center (ver CSS).
+// O bloco DATAKIT no fim do arquivo substitui window.scaleToFit por uma versao
+// equivalente que acompanha a altura real da barra.
 function scaleToFit() {
   const container = document.getElementById('app-container');
-  const scaleX = window.innerWidth / 1920;
-  const scaleY = window.innerHeight / 1080;
-  container.style.transform = `scale(${scaleX}, ${scaleY})`;
+  if (!container) return;
+  const bar = document.querySelector('.dk-bar');
+  const barH = (bar && !bar.classList.contains('dk-hidden')) ? (bar.offsetHeight || 0) : 0;
+  const s = Math.min(window.innerWidth / 1920, Math.max(50, window.innerHeight - barH) / 1080);
+  container.style.top = barH + 'px';
+  container.style.transform = 'scale(' + s + ')';
 }
 window.addEventListener('resize', scaleToFit);
 window.addEventListener('load', scaleToFit);
@@ -431,219 +418,26 @@ function toggleFullscreen() {
 }
 
 // ============================================================================
-// GERADOR DE DADOS FICTÍCIOS — DEMO MODE
-// ============================================================================
-// Estrutura dos dados fake espelha exatamente o retorno de
-// Code.gs → getGradienteData(strategy) para facilitar a adaptação ao CRM.
-
-function gerarDadosFake(strategy) {
-  const CLOSERS = ['Fernanda Costa', 'Gabriel Nunes', 'Helena Dias', 'Igor Aguiar', 'Juliana Melo'];
-  const META_MENSAL = 1500000;
-
-  // Percentuais por semana (configuráveis na versão real)
-  const PCT = { S1: 0.18, S2: 0.20, S3: 0.22, S4: 0.25, SF: 0.15 };
-
-  // Vendas brutas realizadas (S1 completa, S2 completa, S3 parcial)
-  const VENDAS_BRUTAS = {
-    S1: [
-      { dia: 3,  valor: 45000, closer: 'Fernanda Costa' },
-      { dia: 4,  valor: 62000, closer: 'Gabriel Nunes'  },
-      { dia: 5,  valor: 38000, closer: 'Helena Dias'    },
-      { dia: 5,  valor: 51000, closer: 'Fernanda Costa' },
-      { dia: 6,  valor: 29000, closer: 'Igor Aguiar'     },
-      { dia: 7,  valor: 45000, closer: 'Gabriel Nunes'  },
-      { dia: 7,  valor: 42000, closer: 'Helena Dias'    },
-    ], // total: 312.000
-    S2: [
-      { dia: 10, valor: 38000, closer: 'Igor Aguiar'     },
-      { dia: 10, valor: 55000, closer: 'Gabriel Nunes'  },
-      { dia: 11, valor: 42000, closer: 'Helena Dias'    },
-      { dia: 12, valor: 28000, closer: 'Juliana Melo'   },
-      { dia: 13, valor: 45000, closer: 'Fernanda Costa' },
-      { dia: 14, valor: 52000, closer: 'Gabriel Nunes'  },
-      { dia: 14, valor: 28000, closer: 'Helena Dias'    },
-    ], // total: 288.000
-    S3: [
-      { dia: 17, valor: 52000, closer: 'Fernanda Costa' },
-      { dia: 17, valor: 47000, closer: 'Gabriel Nunes'  },
-      { dia: 18, valor: 38000, closer: 'Helena Dias'    },
-      { dia: 18, valor: 61000, closer: 'Igor Aguiar'     },
-    ], // total: 198.000 (em andamento, dias 19-21 restantes)
-  };
-
-  const r = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-  // Calcular realizados
-  const realS1 = VENDAS_BRUTAS.S1.reduce((s, v) => s + v.valor, 0); // 312.000
-  const realS2 = VENDAS_BRUTAS.S2.reduce((s, v) => s + v.valor, 0); // 288.000
-  const realS3 = VENDAS_BRUTAS.S3.reduce((s, v) => s + v.valor, 0); // 198.000
-
-  const metaS1 = META_MENSAL * PCT.S1; // 270.000
-  const metaS2 = META_MENSAL * PCT.S2; // 300.000
-  const metaS3 = META_MENSAL * PCT.S3; // 330.000
-  const metaS4 = META_MENSAL * PCT.S4; // 375.000
-  const metaSF = META_MENSAL * PCT.SF; // 225.000
-
-  // Déficit de S2 (S1 bateu, então apenas S2 tem déficit)
-  const deficitS2 = Math.max(0, metaS2 - realS2); // 12.000
-
-  // Ajuste de metas por estratégia
-  let metaS3Adj, metaS4Adj, metaSFAdj;
-  if (strategy === 'diluir') {
-    // Distribui o déficit igualmente entre S3, S4 e SF
-    const parcela = deficitS2 / 3;
-    metaS3Adj = metaS3 + parcela; // 334.000
-    metaS4Adj = metaS4 + parcela; // 379.000
-    metaSFAdj = metaSF + parcela; // 229.000
-  } else {
-    // Cascata: todo o déficit vai para S3
-    metaS3Adj = metaS3 + deficitS2; // 342.000
-    metaS4Adj = metaS4;
-    metaSFAdj = metaSF;
-  }
-
-  const totalRealizado = realS1 + realS2 + realS3;
-  const percentualTotal = (totalRealizado / META_MENSAL) * 100;
-  const faltanteTotal = META_MENSAL - totalRealizado;
-
-  // Semanas
-  const faltanteS3 = metaS3Adj - realS3;
-  const diasRestantesS3 = 3; // dias 19, 20, 21
-  const mediaDiariaS3 = faltanteS3 / diasRestantesS3;
-
-  const semanas = [
-    {
-      id: 'S1', nome: 'Semana 1', periodo: '03/03 a 07/03',
-      pct: '18', meta: metaS1, metaOriginal: metaS1, metaAjustada: false,
-      realizado: realS1, percentual: (realS1 / metaS1) * 100,
-      status: 'batida', faltante: metaS1 - realS1,
-      diasRestantes: 0, mediaDiaria: 0,
-      vendas: VENDAS_BRUTAS.S1
-    },
-    {
-      id: 'S2', nome: 'Semana 2', periodo: '10/03 a 14/03',
-      pct: '20', meta: metaS2, metaOriginal: metaS2, metaAjustada: false,
-      realizado: realS2, percentual: (realS2 / metaS2) * 100,
-      status: 'passada', faltante: metaS2 - realS2,
-      diasRestantes: 0, mediaDiaria: 0,
-      vendas: VENDAS_BRUTAS.S2
-    },
-    {
-      id: 'S3', nome: 'Semana 3', periodo: '17/03 a 21/03',
-      pct: '22', meta: metaS3Adj, metaOriginal: metaS3,
-      metaAjustada: metaS3Adj !== metaS3,
-      realizado: realS3, percentual: (realS3 / metaS3Adj) * 100,
-      status: 'em_andamento', faltante: faltanteS3,
-      diasRestantes: diasRestantesS3, mediaDiaria: mediaDiariaS3,
-      vendas: VENDAS_BRUTAS.S3
-    },
-    {
-      id: 'S4', nome: 'Semana 4', periodo: '24/03 a 28/03',
-      pct: '25', meta: metaS4Adj, metaOriginal: metaS4,
-      metaAjustada: metaS4Adj !== metaS4,
-      realizado: 0, percentual: 0,
-      status: 'futura', faltante: metaS4Adj,
-      diasRestantes: 5, mediaDiaria: 0, vendas: []
-    },
-    {
-      id: 'SF', nome: 'Sprint Final', periodo: '31/03',
-      pct: '15', meta: metaSFAdj, metaOriginal: metaSF,
-      metaAjustada: metaSFAdj !== metaSF,
-      realizado: 0, percentual: 0,
-      status: 'futura', faltante: metaSFAdj,
-      diasRestantes: 1, mediaDiaria: 0, vendas: []
-    }
-  ];
-
-  // Timeline: todas as vendas do mês
-  const todasVendas = [
-    ...VENDAS_BRUTAS.S1,
-    ...VENDAS_BRUTAS.S2,
-    ...VENDAS_BRUTAS.S3
-  ];
-
-  return {
-    mesAtual: {
-      nome: 'Março 2026',
-      metaMensal: META_MENSAL,
-      totalRealizado: totalRealizado,
-      percentual: percentualTotal,
-      faltante: faltanteTotal,
-      semanas: semanas,
-      todasVendas: todasVendas
-    },
-    dataSource: 'demo',
-    ultimaAtualizacao: '18/03/2026 às 10:30'
-  };
-}
-
-// ============================================================================
 // CARREGAMENTO DE DADOS
 // ============================================================================
+// O pipeline real de dados vive no bloco DATAKIT no fim do arquivo: ele
+// substitui window.loadData por um recalculo local (CSV ou base sintetica)
+// antes de qualquer chamada acontecer. Esta declaracao existe apenas como
+// fallback inerte para o caso de o bloco DATAKIT nao carregar.
 
 function loadData() {
-  const loading = document.getElementById('loading');
-  loading.classList.remove('hidden');
-
-  const strategy = localStorage.getItem('gradienteStrategy') || 'diluir';
-
-  // ── DEMO MODE ──────────────────────────────────────────────────────────────
-  // Simula latência da API e chama o gerador de dados fictícios
-  setTimeout(function() {
-    onDataLoaded(gerarDadosFake(strategy));
-  }, 600);
-  // ──────────────────────────────────────────────────────────────────────────
-
-  // ── ADAPTAR ───────────────────────────────────────────────────────────────
-  // Substituir o bloco acima pela chamada ao Apps Script do CRM:
-  //
-  // google.script.run
-  //   .withSuccessHandler(onDataLoaded)
-  //   .withFailureHandler(onDataError)
-  //   .getGradienteData(strategy);
-  //
-  // Estrutura esperada de retorno: ver função gerarDadosFake() acima.
-  // O backend deve retornar o mesmo shape de objeto.
-  //
-  // CONFIGURAÇÕES ORIGINAIS (CRM):
-  //   • API: /api/v1/deals?status=WON
-  //   • Auth: Bearer <API_KEY>  +  api-token: <API_KEY>
-  //   • owner_id: eb03aefc-67db-476c-a4c4-3d8eb3692490
-  //   • 97 origin_ids → origin_ids_comerciais.json
-  //   • Grupos comerciais: ver DASHBOARDS/GRADIENTE_METAS/Code.gs linha 10
-  // ──────────────────────────────────────────────────────────────────────────
+  var loading = document.getElementById('loading');
+  if (loading) loading.classList.add('hidden');
 }
 
 function onDataLoaded(data) {
   document.getElementById('loading').classList.add('hidden');
-  console.log('==== DADOS RECEBIDOS ====', data);
   if (data.error) { showError(data.error); return; }
   gradienteData = data;
-  updateDataSourceIndicator(data.dataSource || 'spreadsheet');
   updateHeader(data);
   updateProgressBar(data.mesAtual);
   updateWeekCards(data.mesAtual.semanas);
-  updateTimeline(data.mesAtual.todasVendas);
-  renderExec(data.mesAtual);
-  function renderExec(m){
-    m = m || {};
-    var meta=m.metaMensal||0, real=m.totalRealizado||0, pct=(typeof m.percentual==='number')?m.percentual:0, falt=m.faltante||0;
-    var fcs=(typeof formatCurrencyShort==='function')?formatCurrencyShort:function(n){return 'R$ '+(n||0);};
-    var fcf=(typeof formatCurrency==='function')?formatCurrency:fcs;
-    var kpis=[
-      {v:fcs(meta), l:'Meta do mês', h:(m.nome||'')},
-      {v:fcs(real), l:'Realizado', h:'no mês'},
-      {v:Math.round(pct)+'%', l:'Atingimento', h:'da meta', good:pct>=100},
-      (falt>0 ? {v:fcs(falt), l:'Faltante', h:'para bater a meta'} : {v:fcs(Math.abs(falt)), l:'Excedente', h:'acima da meta', good:true})
-    ];
-    var insight = (pct>=100)
-      ? 'Meta de <b>'+(m.nome||'mês')+'</b> superada: <b>'+fcf(real)+'</b> realizados contra meta de <b>'+fcf(meta)+'</b> ('+Math.round(pct)+'%).'
-      : '<b>'+(m.nome||'mês')+'</b> em <b>'+Math.round(pct)+'%</b> da meta: <b>'+fcf(real)+'</b> de <b>'+fcf(meta)+'</b>, faltam <b>'+fcf(falt)+'</b> para fechar o mês.';
-    var kw=document.getElementById('exec-kpis');
-    if(kw) kw.innerHTML=kpis.map(function(k){ return '<div class="exec-kpi"><div class="ev'+(k.good?' good':'')+'">'+k.v+'</div><div class="el">'+k.l+'</div><div class="eh">'+k.h+'</div></div>'; }).join('');
-    var iw=document.getElementById('exec-insight');
-    if(iw) iw.innerHTML='<span class="ei-tag">insight</span>'+insight;
-  }
+  updateTimeline(data.mesAtual);
 }
 
 function onDataError(error) {
@@ -670,47 +464,94 @@ function showError(message) {
 // ATUALIZAÇÃO DA INTERFACE
 // ============================================================================
 
-function updateDataSourceIndicator(dataSource) {
-  const badge = document.getElementById('data-source-indicator');
-  const text = document.getElementById('data-source-text');
-  badge.className = 'data-source-badge';
-  if (dataSource === 'api') {
-    badge.classList.add('api');
-    badge.title = 'Dados em tempo real via API';
-    text.textContent = 'API Live';
-  } else if (dataSource === 'demo') {
-    badge.classList.add('demo-mode');
-    badge.title = 'Modo demo – dados fictícios para portfólio';
-    text.textContent = 'Demo';
-  } else {
-    badge.title = 'Dados da planilha';
-    text.textContent = 'Planilha';
-  }
-}
-
 function updateHeader(data) {
   document.getElementById('mes-atual').textContent = data.mesAtual.nome;
-  document.getElementById('meta-mensal').textContent = 'Meta: ' + formatCurrency(data.mesAtual.metaMensal);
+  const metaEl = document.getElementById('meta-mensal');
+  metaEl.textContent = 'Meta: ' + formatCurrencyShort(data.mesAtual.metaMensal);
+  metaEl.title = 'Meta: ' + formatCurrency(data.mesAtual.metaMensal);
 }
 
 function updateProgressBar(mesAtual) {
-  document.getElementById('realizado-valor').textContent = formatCurrency(mesAtual.totalRealizado);
-  document.getElementById('meta-valor-display').textContent = formatCurrency(mesAtual.metaMensal);
-  document.getElementById('percentual-total').textContent = mesAtual.percentual.toFixed(1).replace('.', ',');
+  const realEl = document.getElementById('realizado-valor');
+  realEl.textContent = formatCurrencyShort(mesAtual.totalRealizado);
+  realEl.title = formatCurrency(mesAtual.totalRealizado);
+  const metaEl = document.getElementById('meta-valor-display');
+  metaEl.textContent = formatCurrencyShort(mesAtual.metaMensal);
+  metaEl.title = formatCurrency(mesAtual.metaMensal);
+
+  // percentual real, sem clamp no texto (104% aparece como 104%)
+  const pct = mesAtual.percentual;
+  const pctEl = document.getElementById('percentual-total');
+  pctEl.textContent = pct.toFixed(1).replace('.', ',');
+  pctEl.classList.toggle('done', pct >= 100);
+
+  // faltante / excedente com semaforo (icone + rotulo, nunca so cor;
+  // deficit nunca em verde)
   const faltante = mesAtual.faltante;
-  document.getElementById('faltante-info').textContent = faltante > 0
-    ? 'Faltam: ' + formatCurrency(faltante)
-    : 'Meta superada em ' + formatCurrency(Math.abs(faltante));
-  const progressBar = document.getElementById('progress-bar-fill');
-  progressBar.style.width = Math.min(mesAtual.percentual, 100) + '%';
-  if (mesAtual.percentual >= 100) {
-    progressBar.style.background = 'linear-gradient(90deg, #2563eb, #22c55e, #22c55e)';
-  } else if (mesAtual.percentual >= 75) {
-    progressBar.style.background = 'linear-gradient(90deg, #2563eb, #22c55e)';
-  } else if (mesAtual.percentual >= 50) {
-    progressBar.style.background = 'linear-gradient(90deg, #2563eb, #f59e0b)';
+  const faltEl = document.getElementById('faltante-info');
+  const faltLabel = document.getElementById('faltante-label');
+  faltEl.classList.remove('ok', 'warn');
+  if (faltante > 0) {
+    faltLabel.textContent = 'Faltante';
+    faltEl.textContent = formatCurrencyShort(faltante);
+    faltEl.title = formatCurrency(faltante);
   } else {
-    progressBar.style.background = 'linear-gradient(90deg, #2563eb, #ef4444)';
+    faltLabel.textContent = 'Excedente';
+    faltEl.textContent = '✓ ' + formatCurrencyShort(Math.abs(faltante));
+    faltEl.title = formatCurrency(Math.abs(faltante));
+    faltEl.classList.add('ok');
+  }
+
+  // barra solida accent; detalhe --ok quando realizado >= pace; --ok ao bater
+  const progressBar = document.getElementById('progress-bar-fill');
+  progressBar.style.width = Math.min(pct, 100) + '%';
+  const pace = (typeof mesAtual.pace === 'number') ? mesAtual.pace : null;
+  const noPace = (pace === null);
+  const onPace = noPace ? true : mesAtual.totalRealizado >= pace;
+  progressBar.classList.toggle('done', pct >= 100);
+  progressBar.classList.toggle('ahead', pct < 100 && onPace && !noPace);
+
+  // marcador de pace ("onde a barra deveria estar hoje")
+  const paceMarker = document.getElementById('pace-marker');
+  const paceLabel = document.getElementById('pace-label');
+  if (!noPace && mesAtual.metaMensal > 0) {
+    const pacePos = Math.min(100, (pace / mesAtual.metaMensal) * 100);
+    paceMarker.style.display = '';
+    paceMarker.style.left = pacePos + '%';
+    paceLabel.textContent = 'pace: ' + formatCurrencyShort(pace);
+    paceMarker.title = 'Meta acumulada esperada ate hoje: ' + formatCurrency(pace);
+  } else {
+    paceMarker.style.display = 'none';
+  }
+
+  // status do ritmo (icone + rotulo)
+  const paceStatus = document.getElementById('pace-status');
+  paceStatus.classList.remove('ok', 'warn');
+  if (pct >= 100) {
+    paceStatus.textContent = '✓ meta batida';
+    paceStatus.classList.add('ok');
+  } else if (noPace) {
+    paceStatus.textContent = '';
+  } else if (onPace) {
+    paceStatus.textContent = '→ no ritmo';
+  } else {
+    paceStatus.textContent = '! abaixo do ritmo';
+    paceStatus.classList.add('warn');
+  }
+
+  // marcadores S1..S4 nas posicoes acumuladas dos pesos REAIS da configuracao
+  const barBg = document.getElementById('progress-bar-bg');
+  barBg.querySelectorAll('.progress-marker').forEach(function (m) { m.remove(); });
+  const semanas = mesAtual.semanas || [];
+  let acum = 0;
+  for (let i = 0; i < semanas.length - 1; i++) {
+    acum += parseFloat(semanas[i].pct) || 0;
+    if (acum <= 0 || acum >= 100) continue;
+    const marker = document.createElement('div');
+    marker.className = 'progress-marker';
+    marker.style.left = acum + '%';
+    marker.setAttribute('data-label', semanas[i].id);
+    barBg.insertBefore(marker, progressBar);
   }
 }
 
@@ -725,65 +566,83 @@ function createWeekCard(semana) {
   try {
     const card = document.createElement('div');
     card.className = 'week-card ' + semana.status;
-    const statusIcons = { batida: '', passada: '○', em_andamento: '→', futura: '·' };
-    let progressClass = semana.status === 'futura' ? 'future' : semana.percentual >= 100 ? 'good' : 'progress';
-    let faltanteText = '—', mediaDiariaText = '';
+    // status sempre com icone + rotulo textual (nunca so cor)
+    const statusIcons = { batida: '✓', em_andamento: '→', passada: '○', futura: '·' };
+    const statusLabels = { batida: 'Meta batida', em_andamento: 'Em andamento', passada: 'Encerrada', futura: 'A iniciar' };
+    // mini-barra: batida --ok, em andamento accent, encerrada sem meta ink-3, futura ink-4
+    const progressClass = semana.status === 'futura' ? 'future'
+      : semana.status === 'batida' ? 'good'
+      : semana.status === 'passada' ? 'missed'
+      : semana.percentual >= 100 ? 'good' : 'progress';
+    // deficit e media necessaria NUNCA em verde: ink por padrao, warn no deficit encerrado
+    let faltanteText = '—', faltanteClass = '', mediaDiariaText = '';
     if (semana.status === 'em_andamento' && semana.diasRestantes > 0) {
-      faltanteText = semana.faltante > 0 ? formatCurrencyShort(semana.faltante) : 'Meta batida!';
-      if (semana.faltante > 0) mediaDiariaText = `${formatCurrencyShort(semana.mediaDiaria)}/dia`;
+      if (semana.faltante > 0) {
+        faltanteText = formatCurrencyShort(semana.faltante);
+        mediaDiariaText = `${formatCurrencyShort(semana.mediaDiaria)}/dia`;
+      } else {
+        faltanteText = '✓ Meta batida'; faltanteClass = ' ok';
+      }
     } else if (semana.status === 'batida') {
-      faltanteText = 'Concluída!';
+      faltanteText = '✓ Concluída'; faltanteClass = ' ok';
     } else if (semana.status === 'passada') {
-      faltanteText = formatCurrencyShort(semana.faltante);
+      faltanteText = formatCurrencyShort(semana.faltante); faltanteClass = ' warn';
     }
+    const MAX_VENDAS = 3;
+    const vendasVisiveis = (semana.vendas || []).slice(-MAX_VENDAS).reverse();
+    const vendasCortadas = Math.max(0, (semana.vendas || []).length - MAX_VENDAS);
     card.innerHTML = `
       <div class="week-header">
         <div>
           <div class="week-title">${semana.nome}</div>
           <div class="week-periodo">${semana.periodo}</div>
         </div>
-        <div class="week-status-icon ${semana.status}">${statusIcons[semana.status] || '·'}</div>
+        <div class="week-status ${semana.status}">
+          <span class="week-status-icon">${statusIcons[semana.status] || '·'}</span>
+          <span class="week-status-label">${statusLabels[semana.status] || ''}</span>
+        </div>
       </div>
       <div class="week-progress-bar-container">
         <div class="week-progress-bar-bg">
-          <div class="week-progress-bar-fill ${progressClass}" style="width:${Math.min(semana.percentual, 100)}%;">
-            <div class="week-progress-glow"></div>
-          </div>
+          <div class="week-progress-bar-fill ${progressClass}" style="width:${Math.min(semana.percentual, 100)}%;"></div>
         </div>
         <div class="week-progress-percent">${semana.status === 'futura' ? '—' : Math.round(semana.percentual) + '%'}</div>
       </div>
       <div class="week-values">
         <div class="week-row">
           <span class="week-label">Meta (${semana.pct}%)${semana.metaAjustada ? ' *' : ''}</span>
-          <span class="week-value meta">${formatCurrencyShort(semana.meta)}</span>
+          <span class="week-value meta" title="${formatCurrency(semana.meta)}">${formatCurrencyShort(semana.meta)}</span>
         </div>
         ${semana.metaAjustada ? `
         <div class="week-row">
           <span class="week-label">Meta original</span>
-          <span class="week-value" style="color:var(--text-muted);font-size:13px;">${formatCurrencyShort(semana.metaOriginal)}</span>
+          <span class="week-value sub" title="${formatCurrency(semana.metaOriginal)}">${formatCurrencyShort(semana.metaOriginal)}</span>
         </div>` : ''}
         <div class="week-row">
           <span class="week-label">Realizado</span>
-          <span class="week-value realizado">${semana.status === 'futura' ? '—' : formatCurrencyShort(semana.realizado)}</span>
+          <span class="week-value realizado" title="${semana.status === 'futura' ? '' : formatCurrency(semana.realizado)}">${semana.status === 'futura' ? '—' : formatCurrencyShort(semana.realizado)}</span>
         </div>
         <div class="week-row">
           <span class="week-label">${semana.status === 'em_andamento' && semana.diasRestantes > 0 ? 'Falta' : 'Status'}</span>
-          <span class="week-value positivo">${faltanteText}</span>
+          <span class="week-value${faltanteClass}">${faltanteText}</span>
         </div>
         ${mediaDiariaText ? `
         <div class="week-row">
           <span class="week-label">Média necessária (${semana.diasRestantes}d)</span>
-          <span class="week-value positivo">${mediaDiariaText}</span>
+          <span class="week-value">${mediaDiariaText}</span>
         </div>` : ''}
       </div>
-      ${semana.vendas && semana.vendas.length > 0 ? `
+      ${vendasVisiveis.length > 0 ? `
       <div class="week-sales">
         <div class="week-sales-title">Vendas Recentes</div>
-        ${semana.vendas.map(v => `
+        <div class="week-sales-list">
+        ${vendasVisiveis.map(v => `
           <div class="week-sale-item">
             <span class="week-sale-closer">${v.closer}</span>
-            <span class="week-sale-value">${formatCurrencyShort(v.valor)}</span>
+            <span class="week-sale-value" title="${formatCurrency(v.valor)}">${formatCurrencyShort(v.valor)}</span>
           </div>`).join('')}
+        </div>
+        ${vendasCortadas > 0 ? `<div class="week-sales-more">+${vendasCortadas} venda${vendasCortadas > 1 ? 's' : ''}</div>` : ''}
       </div>` : (semana.status !== 'futura' ? `
       <div class="week-sales">
         <div class="week-sales-empty">Nenhuma venda registrada</div>
@@ -798,46 +657,66 @@ function createWeekCard(semana) {
   }
 }
 
-function updateTimeline(todasVendas) {
+function updateTimeline(mesAtual) {
   const container = document.getElementById('timeline-container');
   const countEl = document.getElementById('timeline-count');
-  if (!todasVendas || !todasVendas.length) {
+  const todasVendas = (mesAtual && mesAtual.todasVendas) || [];
+  if (!todasVendas.length) {
     container.innerHTML = '<div class="no-data"><div class="no-data-text">Nenhuma venda registrada ainda</div></div>';
     countEl.textContent = '0 vendas';
     return;
   }
   countEl.textContent = `${todasVendas.length} venda${todasVendas.length > 1 ? 's' : ''}`;
+
+  // mes de REFERENCIA vem dos dados (mes da venda mais recente do CSV,
+  // determinado pelo build() do pipeline), nunca de new Date()
+  const ultimoDia = mesAtual.ultimoDia || 31;
+  const mesNum = mesAtual.mesNum || Math.max(1, MESES_NOMES.indexOf(String(mesAtual.nome || '').split(' ')[0]));
+  const pad2 = (n) => String(n).padStart(2, '0');
+
   const vendasPorDia = {};
   todasVendas.forEach(v => {
     if (!vendasPorDia[v.dia]) vendasPorDia[v.dia] = { dia: v.dia, total: 0, count: 0 };
     vendasPorDia[v.dia].total += v.valor;
     vendasPorDia[v.dia].count++;
   });
-  const hoje = new Date();
-  const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+  const dias = Object.values(vendasPorDia).sort((a, b) => a.dia - b.dia);
+  const maxTotal = dias.reduce((m, d) => Math.max(m, d.total), 0) || 1;
+
+  // rotulo DD/MM + valor apenas nas top 5 barras do mes (anti-colisao)
+  const top5 = new Set(dias.slice().sort((a, b) => b.total - a.total).slice(0, 5).map(d => d.dia));
+
+  // eixo: dia 1, 15 e ultimo do mes de referencia
+  const axisDays = [1, 15, ultimoDia];
   container.innerHTML = `
     <div class="timeline-axis">
-      <div class="timeline-line">
-        <div class="timeline-markers" id="timeline-markers"></div>
-      </div>
+      <div class="timeline-plot" id="timeline-plot"></div>
       <div class="timeline-day-labels">
-        <span class="timeline-day-label">Dia 1</span>
-        <span class="timeline-day-label">Dia ${Math.floor(ultimoDia / 2)}</span>
-        <span class="timeline-day-label">Dia ${ultimoDia}</span>
+        ${axisDays.map(d => `<span class="timeline-day-label" style="left:${(d / ultimoDia) * 100}%;">${pad2(d)}/${pad2(mesNum)}</span>`).join('')}
       </div>
     </div>`;
-  const markersContainer = document.getElementById('timeline-markers');
-  Object.values(vendasPorDia).forEach(dia => {
-    const posicao = (dia.dia / ultimoDia) * 100;
-    const diaF = String(dia.dia).padStart(2, '0');
-    const mesF = String(hoje.getMonth() + 1).padStart(2, '0');
-    const marker = document.createElement('div');
-    marker.className = 'timeline-marker';
-    marker.style.left = posicao + '%';
-    marker.innerHTML = `
-      <div class="timeline-point"></div>
-      <div class="timeline-value-label">${diaF}/${mesF}<br>${formatCurrencyShort(dia.total)}</div>`;
-    markersContainer.appendChild(marker);
+  const plot = document.getElementById('timeline-plot');
+  let lastLabeledDia = -10, lastRow = 1;
+  dias.forEach(d => {
+    const posicao = (d.dia / ultimoDia) * 100;
+    // altura proporcional ao valor do dia (min 4px); teto de 62% do plot
+    // deixa espaco para os rotulos das barras mais altas
+    const hPct = Math.max(0, (d.total / maxTotal) * 62);
+    const bar = document.createElement('div');
+    bar.className = 'timeline-bar';
+    bar.style.left = posicao + '%';
+    bar.style.height = 'max(4px, ' + hPct.toFixed(1) + '%)';
+    bar.title = pad2(d.dia) + '/' + pad2(mesNum) + ' · ' + formatCurrency(d.total) + ' · ' + d.count + ' venda' + (d.count > 1 ? 's' : '');
+    if (top5.has(d.dia)) {
+      const row = (d.dia - lastLabeledDia < 3) ? (1 - lastRow) : 0;
+      lastLabeledDia = d.dia; lastRow = row;
+      const label = document.createElement('div');
+      label.className = 'timeline-bar-label';
+      label.style.marginBottom = (2 + row * 40) + 'px';
+      label.innerHTML = pad2(d.dia) + '/' + pad2(mesNum) + '<br>' + formatCurrencyShort(d.total);
+      bar.appendChild(label);
+    }
+    plot.appendChild(bar);
   });
 }
 
@@ -869,35 +748,37 @@ const MESES_NOMES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                      'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 let configMetas = [];
 
+// A configuracao (meta mensal + 5 pesos por mes) persiste em localStorage e
+// alimenta o calculo de verdade: o build() do pipeline de dados (bloco DATAKIT
+// no fim do arquivo) le a chave CONFIG_KEY a cada reprocessamento.
+const CONFIG_KEY = 'gradiente_config_v2';
+
+function loadStoredConfig() {
+  try {
+    const raw = localStorage.getItem(CONFIG_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) && parsed.length ? parsed : null;
+  } catch (e) { return null; }
+}
+
 function openConfigModal() {
   document.getElementById('config-modal').classList.remove('hidden');
-
-  // ── DEMO MODE ──────────────────────────────────────────────────────────────
-  // Carrega configuração padrão local (no modo demo, sem backend)
-  const hoje = new Date();
-  configMetas = [createDefaultMonth(hoje.getMonth() + 1, hoje.getFullYear())];
+  const stored = loadStoredConfig();
+  if (stored) {
+    configMetas = stored;
+  } else {
+    // sem configuracao salva: parte do mes de referencia dos dados carregados
+    let mes, ano;
+    if (gradienteData && gradienteData.mesAtual && gradienteData.mesAtual.mesNum) {
+      mes = gradienteData.mesAtual.mesNum;
+      ano = gradienteData.mesAtual.ano || new Date().getFullYear();
+    } else {
+      const hoje = new Date();
+      mes = hoje.getMonth() + 1; ano = hoje.getFullYear();
+    }
+    configMetas = [createDefaultMonth(mes, ano)];
+  }
   renderConfigMonths();
-  // ──────────────────────────────────────────────────────────────────────────
-
-  // ── ADAPTAR ───────────────────────────────────────────────────────────────
-  // Substituir o bloco acima pela chamada ao Apps Script:
-  //
-  // google.script.run
-  //   .withSuccessHandler(function(json) {
-  //     try { configMetas = json ? JSON.parse(json) : []; } catch(e) { configMetas = []; }
-  //     if (configMetas.length === 0) {
-  //       const hoje = new Date();
-  //       configMetas = [createDefaultMonth(hoje.getMonth() + 1, hoje.getFullYear())];
-  //     }
-  //     renderConfigMonths();
-  //   })
-  //   .withFailureHandler(function(err) {
-  //     console.error('Erro ao carregar metas:', err);
-  //     configMetas = [createDefaultMonth(new Date().getMonth() + 1, new Date().getFullYear())];
-  //     renderConfigMonths();
-  //   })
-  //   .getMetasConfigJSON();
-  // ──────────────────────────────────────────────────────────────────────────
 }
 
 function closeConfigModal() {
@@ -1000,30 +881,17 @@ function saveMetasConfig() {
     if (!meta.META_MENSAL || parseInt(meta.META_MENSAL) <= 0) { showToast('Erro: ' + meta.MES + ' tem meta inválida', true); return; }
   }
 
-  // ── DEMO MODE ──────────────────────────────────────────────────────────────
-  // No modo demo, apenas simula o salvamento localmente
-  showToast('Metas salvas (demo — sem persistência)');
+  // Persiste em localStorage e dispara o reprocessamento: loadData() (versao
+  // do pipeline DATAKIT) reconstroi o gradiente lendo esta configuracao.
+  try {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(configMetas));
+  } catch (e) {
+    showToast('Erro ao salvar a configuração no navegador', true);
+    return;
+  }
+  showToast('Metas salvas');
   closeConfigModal();
   loadData();
-  // ──────────────────────────────────────────────────────────────────────────
-
-  // ── ADAPTAR ───────────────────────────────────────────────────────────────
-  // Substituir o bloco acima pela chamada ao Apps Script:
-  //
-  // const saveBtn = document.querySelector('.config-btn-save');
-  // saveBtn.disabled = true; saveBtn.textContent = 'Salvando...';
-  // google.script.run
-  //   .withSuccessHandler(function() {
-  //     saveBtn.disabled = false; saveBtn.textContent = 'Salvar';
-  //     showToast('Metas salvas com sucesso!');
-  //     closeConfigModal(); loadData();
-  //   })
-  //   .withFailureHandler(function(err) {
-  //     saveBtn.disabled = false; saveBtn.textContent = 'Salvar';
-  //     showToast('Erro ao salvar: ' + err.message, true);
-  //   })
-  //   .saveMetasConfig(JSON.stringify(configMetas));
-  // ──────────────────────────────────────────────────────────────────────────
 }
 
 function showToast(msg, isError) {
@@ -1032,7 +900,8 @@ function showToast(msg, isError) {
     toast = document.createElement('div');
     toast.id = 'config-toast';
     toast.className = 'config-toast';
-    document.body.appendChild(toast);
+    // dentro do container 1920x1080 para escalar junto com o painel
+    (document.getElementById('app-container') || document.body).appendChild(toast);
   }
   toast.textContent = msg;
   toast.className = 'config-toast' + (isError ? ' error' : '');
@@ -1459,6 +1328,33 @@ function showToast(msg, isError) {
   var MESES = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
+  // Configuracao salva pelo modal de metas (meta mensal + pesos S1..SF).
+  // Prioridade: entrada do mes de referencia; com um unico mes salvo, ele vale
+  // para a base atual. Sem nada salvo, seguem os defaults acima.
+  function configSalva(mesNum, ano) {
+    var lista;
+    try {
+      var raw = localStorage.getItem('gradiente_config_v2');
+      lista = raw ? JSON.parse(raw) : null;
+    } catch (e) { lista = null; }
+    if (!Array.isArray(lista) || !lista.length) return null;
+    var entry = null;
+    for (var i = 0; i < lista.length; i++) {
+      if (parseInt(lista[i].MES_NUM, 10) === mesNum && parseInt(lista[i].ANO, 10) === ano) { entry = lista[i]; break; }
+    }
+    if (!entry && lista.length === 1) entry = lista[0];
+    if (!entry) return null;
+    var pesos = {}, ok = true;
+    ['S1', 'S2', 'S3', 'S4', 'SF'].forEach(function (s) {
+      var p = parseFloat(entry['PCT_' + s]);
+      if (isNaN(p) || p < 0) ok = false; else pesos[s] = p;
+    });
+    return {
+      meta: parseInt(String(entry.META_MENSAL || '').replace(/\D/g, ''), 10) || 0,
+      pesos: ok ? pesos : null
+    };
+  }
+
   function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
   function rand(a) { return a[Math.floor(Math.random() * a.length)]; }
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -1534,8 +1430,18 @@ function showToast(msg, isError) {
       ? Math.min(hoje.getDate(), ultimoDia)
       : maxD.getDate();
 
+    // configuracao do modal de metas alimenta o calculo real: meta mensal e
+    // pesos salvos tem precedencia sobre a coluna do CSV e sobre os defaults
+    var cfg = configSalva(mes + 1, ano);
+    if (cfg && cfg.meta > 0) metaMensal = cfg.meta;
+    var pesos = cfg ? cfg.pesos : null;
+
     var faixas = PCT.map(function (f) {
-      return { id: f.id, nome: f.nome, ini: f.ini, fim: Math.min(f.fim === 31 ? ultimoDia : f.fim, ultimoDia), pct: f.pct };
+      return {
+        id: f.id, nome: f.nome, ini: f.ini,
+        fim: Math.min(f.fim === 31 ? ultimoDia : f.fim, ultimoDia),
+        pct: (pesos && pesos[f.id] != null) ? pesos[f.id] : f.pct
+      };
     }).filter(function (f) { return f.ini <= ultimoDia; });
 
     faixas.forEach(function (f) {
@@ -1588,6 +1494,16 @@ function showToast(msg, isError) {
     });
 
     var totalRealizado = vendas.reduce(function (s, v) { return s + v.valor; }, 0);
+
+    // pace: meta acumulada esperada ate o dia corrente (pesos inteiros das
+    // semanas ja completas + fracao proporcional dos dias da semana corrente)
+    var pacePct = 0;
+    faixas.forEach(function (f) {
+      if (f.fim < diaCorrente) pacePct += f.pct;
+      else if (f.ini <= diaCorrente) pacePct += f.pct * ((diaCorrente - f.ini + 1) / (f.fim - f.ini + 1));
+    });
+    var pace = metaMensal * pacePct / 100;
+
     var agora = new Date();
     return {
       mesAtual: {
@@ -1596,6 +1512,12 @@ function showToast(msg, isError) {
         totalRealizado: totalRealizado,
         percentual: (totalRealizado / metaMensal) * 100,
         faltante: metaMensal - totalRealizado,
+        pace: pace,
+        pacePct: pacePct,
+        diaCorrente: diaCorrente,
+        ultimoDia: ultimoDia,
+        mesNum: mes + 1,
+        ano: ano,
         semanas: semanas,
         todasVendas: vendas
           .map(function (v) { return { dia: v.d.getDate(), valor: v.valor, closer: v.closer }; })
@@ -1678,12 +1600,17 @@ function showToast(msg, isError) {
       var app = document.getElementById('app-container');
       var ultimaAltura = 0;
       function fit() {
+        // fator UNICO (sem distorcao anamorfica): s = min(w/1920, h/1080),
+        // descontando a barra so quando visivel; letterbox horizontal via
+        // left:50% + margin-left:-960px + transform-origin:top center (CSS)
         var h = bar.offsetHeight || 0;
         if (h < 8) h = ultimaAltura;   // barra ainda sem layout: mantem a ultima medida
         ultimaAltura = h;
+        var efetiva = bar.classList.contains('dk-hidden') ? 0 : h;
+        var s = Math.min(window.innerWidth / 1920, Math.max(50, window.innerHeight - efetiva) / 1080);
         if (app) {
-          app.style.top = h + 'px';
-          app.style.transform = 'scale(' + (window.innerWidth / 1920) + ',' + ((window.innerHeight - h) / 1080) + ')';
+          app.style.top = efetiva + 'px';
+          app.style.transform = 'scale(' + s + ')';
         }
       }
       window.scaleToFit = fit;   // o dashboard chama scaleToFit() no resize
@@ -1700,6 +1627,73 @@ function showToast(msg, isError) {
 })();
 </script>
 <!-- ==== /DATAKIT ==== -->
+<script>
+/* Barra DATAKIT em modo TV (local do 08, sem tocar na lib):
+   apos 10s sem interacao com a barra ela desliza para fora da tela;
+   reaparece quando o mouse encosta no topo (hotzone de 8px) ou na tecla D.
+   O badge "dados de exemplo" (canto inferior) persiste sempre.
+   A escala do painel e recalculada a cada esconde/mostra. */
+(function () {
+  var HIDE_MS = 10000;
+  var timer = null;
+
+  function getBar() { return document.querySelector('.dk-bar'); }
+
+  function reescala() {
+    if (typeof window.scaleToFit === 'function') {
+      try { window.scaleToFit(); } catch (e) {}
+    }
+  }
+
+  function setHidden(hidden) {
+    var bar = getBar();
+    if (!bar || bar.classList.contains('dk-hidden') === hidden) return;
+    bar.classList.toggle('dk-hidden', hidden);
+    reescala();
+  }
+
+  function arm() {
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      var bar = getBar();
+      // painel de contrato aberto = usuario lendo: nao esconder por baixo dele
+      if (bar && bar.querySelector('.dk-panel.open')) { arm(); return; }
+      setHidden(true);
+    }, HIDE_MS);
+  }
+
+  function wake() { setHidden(false); arm(); }
+
+  function start() {
+    var bar = getBar();
+    if (!bar) { setTimeout(start, 300); return; }
+
+    // hotzone de 8px no topo: reexibe a barra quando o mouse encosta
+    var hz = document.createElement('div');
+    hz.id = 'dk-hotzone';
+    hz.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(hz);
+    hz.addEventListener('pointerenter', wake);
+
+    // interacao com a barra reinicia a contagem
+    ['pointermove', 'pointerdown', 'keydown', 'focusin'].forEach(function (ev) {
+      bar.addEventListener(ev, function () { setHidden(false); arm(); });
+    });
+
+    // tecla D reexibe (fora de campos de formulario)
+    document.addEventListener('keydown', function (e) {
+      if ((e.key === 'd' || e.key === 'D') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'TEXTAREA') {
+        wake();
+      }
+    });
+
+    arm();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
 <style id="onb-cta-style">
 .onb-card{position:relative;background:#0f0f12;border:1px solid rgba(37,99,235,0.28);border-left:3px solid #2563eb;padding:16px 44px 16px 20px;margin:0 0 18px;font-family:'Space Grotesk',system-ui,sans-serif}
 .onb-card .onb-h{font-weight:600;color:#f8f7f3;font-size:14px;margin-bottom:8px}
