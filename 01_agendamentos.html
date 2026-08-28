@@ -5,7 +5,7 @@
   ║  Version: v1.0                                           ║
   ║  Last update: 31/10/2025                                 ║
   ║  Description: interactive dashboard for bookings         ║
-  ║               analysis with filters and AI insights      ║
+  ║               analysis with cross filters                ║
   ╚═══════════════════════════════════════════════════════════╝
 -->
 <html lang="en">
@@ -44,35 +44,6 @@
     --text:var(--ink);
     --accent-2:var(--accent-soft);
   }
-
-/* ===== painel Gemini ===== */
-#geminiPanel{
-  position:fixed;top:90px;right:14px;width:300px;max-width:340px;height:60vh;min-height:320px;
-  display:flex;flex-direction:column;gap:8px;z-index:120;pointer-events:auto;
-  background:var(--panel);
-  border:1px solid var(--line-strong);border-radius:var(--r);
-  box-shadow:0 12px 32px -8px rgba(0,0,0,0.6);
-  padding:10px 12px 12px;
-  transform:translateX(340px);transition:transform .25s ease;
-}
-#geminiPanel.show{transform:translateX(0)}
-#geminiPanel.minimized{
-  height:auto;min-height:auto;
-}
-#geminiPanel.minimized #geminiOutput,
-#geminiPanel.minimized #geminiActions{
-  display:none;
-}
-#geminiPanel.hidden{display:none}
-#geminiPanel .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:8px;}
-#geminiPanel .panel-head h3{margin:0;font-size:14px;font-weight:600;color:var(--ink);letter-spacing:.3px;display:flex;align-items:center;gap:8px}
-#geminiPanel .panel-head h3 .dot{width:8px;height:8px;background:var(--accent);border-radius:50%;box-shadow:0 0 0 4px var(--accent-glow)}
-#geminiPanel .panel-head-actions{display:flex;gap:4px;}
-#geminiPanel .panelBtn{background:transparent;border:1px solid var(--line-strong);color:var(--ink-2);font-size:12px;padding:4px 8px;border-radius:var(--r-sm);cursor:pointer;display:flex;align-items:center;gap:4px;font-weight:500;min-width:28px;justify-content:center;}
-#geminiPanel .panelBtn:hover{background:var(--card-h)}
-#geminiOutput{white-space:pre-wrap;font-size:12.5px;line-height:1.5;color:var(--ink-2);overflow-y:auto;flex:1;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:8px}
-#geminiActions{display:flex;flex-direction:column;gap:8px}
-#geminiActions button{width:100%;}
 
 /* --- Suggestions Box Minimize --- */
 #suggestionsBox.minimized #suggestionsContent{
@@ -299,16 +270,6 @@
   .ca-btn[data-tip]{position:relative}
   .ca-btn[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--card-h);color:var(--ink);padding:4px 8px;font-size:10px;font-family:var(--mono);border-radius:6px;white-space:nowrap;box-shadow:0 4px 10px -2px rgba(0,0,0,.5);pointer-events:none;z-index:50}
 
-  /* --- Handle de Resize do Painel Gemini --- */
-  #geminiPanel{position:fixed;}
-  #geminiPanel .resize-handle{
-    position:absolute;left:-6px;top:0;width:8px;height:100%;cursor:ew-resize;
-    background:linear-gradient(90deg,transparent 0%,var(--accent-glow) 60%);
-    opacity:0;transition:opacity .25s ease;
-    border-top-left-radius:8px;border-bottom-left-radius:8px;
-  }
-  #geminiPanel:hover .resize-handle{opacity:1}
-  #geminiPanel.resizing .resize-handle{opacity:1;background:linear-gradient(90deg,var(--accent-glow) 0%,var(--accent) 100%)}
   input,select{
     background:var(--card);border:1px solid var(--line-strong);
     color:var(--ink-2);padding:7px 10px;border-radius:var(--r-sm);font-size:12px;font-family:var(--sans)
@@ -416,17 +377,21 @@
   .muted{color:var(--ink-4)}
 
   .suggestions-list {
-    margin-top: 18px;
+    margin-top: 10px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
+    max-height: 176px;
+    overflow-y: auto;
+    padding-right: 4px;
   }
   .suggestions-list a {
     background: var(--card);
-    padding: 10px 12px;
+    padding: 8px 10px;
     border-radius: var(--r-sm);
     border: 1px solid var(--line);
-    font-size: 13px;
+    font-size: 11.5px;
+    line-height: 1.45;
     transition: border-color .2s ease;
     display: block;
     color: var(--ink-2);
@@ -654,10 +619,6 @@
     </div>
     <div class="hdr-actions">
       <input id="file" type="file" accept=".csv" hidden/>
-      <select id="modelSelect" class="select" title="Gemini model used for the AI analyses" data-pt-title="Modelo do Gemini usado nas análises de IA">
-          <option value="models/gemini-2.5-flash">Gemini 2.5 Flash</option>
-          <option value="models/gemini-2.5-pro" selected>Gemini 2.5 Pro</option>
-      </select>
       <button id="exportPdfBtn" class="btn secondary sm" title="Export dashboard as PDF" data-pt-title="Exportar dashboard em PDF">PDF</button>
       <button class="btn-metodologia" onclick="openMetodologiaModal()" data-i18n="btnMeth">Methodology</button>
       <div class="lang-sw" role="group" aria-label="Language" data-pt-aria="Idioma">
@@ -707,13 +668,13 @@ document.addEventListener('DOMContentLoaded', function() {
     <div style="display:flex;justify-content:space-between;align-items:start;">
       <div style="flex:1;">
         <h2 data-i18n="sugH">Top Suggested Actions and Searches</h2>
-        <div class="sub" data-i18n="sugSub">Click the button to generate a list of AI-recommended searches and actions based on the data you loaded.</div>
+        <div class="sub" data-i18n="sugSub">Click the button to generate a list of recommended searches and actions based on the data you loaded.</div>
       </div>
       <button class="panelBtn" id="minimizeSuggestionsBox" title="Minimize" data-pt-title="Minimizar" style="margin-left:8px;">−</button>
     </div>
     <div id="suggestionsContent">
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <button id="generateSuggestionsBtn" class="btn sm" disabled data-i18n="sugBtn">Generate AI Search Suggestions</button>
+        <button id="generateSuggestionsBtn" class="btn sm" disabled data-i18n="sugBtn">Generate search suggestions</button>
       </div>
       <div id="suggestionsOutput" class="suggestions-list"></div>
     </div>
@@ -726,7 +687,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <span class="info-icon">ⓘ<span class="tooltip" data-i18n="fwTip">Every booking as a flow: origin channel, squad that worked it, score band it landed in and closer who received it. Link width = volume. Click a node to filter by that dimension.</span></span>
       </h2>
       <div class="topic-actions nowrap">
-        <button class="btn secondary sm" onclick="sendGemini('kpi', this)" data-i18n="aiBtn">Analyze with AI</button>
         <div class="chart-actions" data-chart="chartFlow" data-kind="flow" data-csv="fluxo_fonte_squad_faixa_closer"></div>
       </div>
     </div>
@@ -844,18 +804,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <div id="toast" class="toast" data-i18n="toast0">Copied to clipboard.</div>
 
-<div id="geminiPanel" class="hidden" aria-label="Gemini panel" data-pt-aria="Painel Gemini" aria-hidden="true">
-  <div class="resize-handle" title="Drag to resize" data-pt-title="Arraste para redimensionar"></div>
-  <div class="panel-head">
-    <h3><span class="dot"></span><span data-i18n="gpH">Gemini Response</span></h3>
-    <div class="panel-head-actions">
-      <button class="panelBtn" id="minimizePanel" title="Minimize" data-pt-title="Minimizar">−</button>
-      <button class="panelBtn" id="closePanel" title="Close" data-pt-title="Fechar">×</button>
-    </div>
-  </div>
-  <div id="geminiOutput" role="log" aria-live="polite">...</div>
-  <div id="geminiActions"></div>
-</div>
 
 <script>
 /* ---------- Tema de visualização ----------
@@ -1656,7 +1604,7 @@ function renderSquadRadar(data) {
 /* ---------- Renderização dos tópicos ---------- */
 function buildAll(data){
   chartDataStore = {};
-  window.chartDataStore = chartDataStore; // expõe global para sendGemini
+  window.chartDataStore = chartDataStore; // snapshots por gráfico (export CSV)
   window.currentData = data;
   currentData = data;
 
@@ -1711,14 +1659,14 @@ function buildAll(data){
       ta3d_pct:+m.fastPct.toFixed(1), corp_pct:+(m.corpPct||0).toFixed(1)
     }));
   } catch(e){ console.warn('Falha ao gerar snapshot do scorecard', e); }
-  // Snapshot de squads p/ sugestões de IA (o gráfico de barras saiu; o dado continua útil)
+  // Snapshot de squads p/ sugestões e export (o gráfico de barras saiu; o dado continua útil)
   const squadScore = ctab(data,'origin_group_name','score', null, SCORE_ORDER);
   chartDataStore.squad = squadScore.rows.map((row, ri) => ({squad: row, A: squadScore.mat[ri][0]||0, B: squadScore.mat[ri][1]||0, C: squadScore.mat[ri][2]||0, D: squadScore.mat[ri][3]||0}));
 
   renderInsightChips(data);
 
   extractKeyInsights(data);
-  // Passa a habilitar via função que conecta ao Gemini
+  // Habilita o gerador local de sugestões
   enableSuggestions();
 }
 
@@ -1770,90 +1718,6 @@ function renderInsightChips(data){
   }catch(e){ console.warn('insight chips', e); }
 }
 
-/* ---------- Gemini API ---------- */
-// IMPORTANTE: Cole sua chave aqui. Lembre-se de não compartilhar este arquivo publicamente com a chave.
-const GEMINI_API_KEY = "SUA_CHAVE_AQUI";
-
-// Chave da API: usa a do código-fonte se configurada; senão, deixa o visitante
-// colar a dele (fica só no navegador, vai direto pro Google, nunca passa por nós).
-function getGeminiKey() {
-    if (GEMINI_API_KEY && !GEMINI_API_KEY.includes("SUA_CHAVE")) return GEMINI_API_KEY;
-    let k = null;
-    try { k = localStorage.getItem('demo_gemini_key'); } catch (e) {}
-    if (k) return k;
-    k = window.prompt(t('gKeyPrompt'));
-    if (k && k.trim()) { k = k.trim(); try { localStorage.setItem('demo_gemini_key', k); } catch (e) {} return k; }
-    return null;
-}
-
-async function callGemini(prompt) {
-    const apiKey = getGeminiKey();
-    if (!apiKey) {
-      return t('gCanceled');
-    }
-
-    // Pega o modelo escolhido no menu (ex: "models/gemini-1.5-pro-latest")
-    const selectedModel = document.getElementById('modelSelect').value;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${apiKey}`;
-    
-    const body = {
-        contents: [{ parts: [{ text: prompt }] }]
-    };
-
-    try {
-        const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-        });
-        if (!res.ok) {
-            const errorData = await res.json();
-            console.error("Gemini API error:", errorData);
-            return `${t('gApiErr')}${errorData.error.message}`;
-        }
-        const data = await res.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || t('gNoResp');
-    } catch (error) {
-        console.error("Failed to call the Gemini API:", error);
-        return t('gNetFail');
-    }
-}
-
-// --- toggleGemini + sendGemini (snapshot genérico) ---
-function toggleGemini(show = true){
-  const panel = document.getElementById("geminiPanel");
-  const fab = document.getElementById("geminiFab");
-  if(!panel) return;
-  const willShow = !!show;
-  panel.classList.toggle("show", willShow);
-  if(willShow){
-    panel.classList.remove('hidden');
-    panel.setAttribute('aria-hidden','false');
-    fab && fab.classList.add('on');
-    // Foca output para leitura por screen readers
-    const out = document.getElementById('geminiOutput');
-    if(out){ out.focus && out.focus(); }
-  } else {
-    panel.setAttribute('aria-hidden','true');
-    fab && fab.classList.remove('on');
-    // Mantém no DOM para preservar conteúdo
-  }
-}
-
-// Toggle minimize/maximize Gemini Panel
-function toggleGeminiMinimize(){
-  const panel = document.getElementById('geminiPanel');
-  if(!panel) return;
-  const isMinimized = panel.classList.toggle('minimized');
-  const minimizeBtn = document.getElementById('minimizePanel');
-  if(minimizeBtn) {
-    minimizeBtn.textContent = isMinimized ? '+' : '−';
-    minimizeBtn.title = isMinimized ? t('maximize') : t('minimize');
-  }
-}
-
-
 // Toggle minimize/maximize Suggestions Box
 function toggleSuggestionsMinimize(){
   const box = document.getElementById('suggestionsBox');
@@ -1866,90 +1730,8 @@ function toggleSuggestionsMinimize(){
   }
 }
 
-// Resize Gemini Panel
-(function initGeminiResize(){
-  const panel = document.getElementById('geminiPanel');
-  const handle = panel?.querySelector('.resize-handle');
-  if(!panel || !handle) return;
-  const LS_KEY='geminiPanelWidth';
-  const minW=260, maxW=480; // reduzido para adequar ao novo layout mais compacto
-  // aplica largura salva
-  try{
-    const saved = parseInt(localStorage.getItem(LS_KEY)||'',10);
-    if(saved){
-      let applyW = saved;
-      if(saved < minW) applyW = minW; else if(saved > maxW) applyW = Math.min(maxW, 340); // clamp e não exagerar
-      panel.style.width = applyW+'px';
-      panel.style.maxWidth = applyW+'px';
-    }
-  }catch(e){}
-  let startX=0,startW=0,dragging=false;
-  function onMove(e){
-    if(!dragging) return; e.preventDefault();
-    const dx = startX - (e.clientX|| (e.touches?.[0]?.clientX||0)); // arrasta desde a direita
-    let newW = Math.min(maxW, Math.max(minW, startW + dx));
-    panel.style.width=newW+'px';
-    panel.style.maxWidth=newW+'px';
-  }
-  function onUp(){
-    if(!dragging) return; dragging=false;panel.classList.remove('resizing');
-    try{localStorage.setItem(LS_KEY, parseInt(panel.offsetWidth,10));}catch(e){}
-    window.removeEventListener('mousemove',onMove);window.removeEventListener('mouseup',onUp);
-    window.removeEventListener('touchmove',onMove);window.removeEventListener('touchend',onUp);
-  }
-  handle.addEventListener('mousedown',e=>{dragging=true;panel.classList.add('resizing');startX=e.clientX;startW=panel.offsetWidth;window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);});
-  handle.addEventListener('touchstart',e=>{const t=e.touches[0];dragging=true;panel.classList.add('resizing');startX=t.clientX;startW=panel.offsetWidth;window.addEventListener('touchmove',onMove,{passive:false});window.addEventListener('touchend',onUp);});
-})();
-
 // Garante store global
 window.chartDataStore = window.chartDataStore || {};
-
-async function sendGemini(kind, buttonElement){
-  // 1) Verificações
-  if(!window.chartDataStore || !Object.prototype.hasOwnProperty.call(window.chartDataStore, kind)){
-    alert(t('gNotReady'));
-    return;
-  }
-
-  // 2) UX: desabilita botão e abre painel
-  const originalText = buttonElement ? buttonElement.textContent : "";
-  if (buttonElement) { buttonElement.disabled = true; buttonElement.textContent = t('analyzing'); }
-  toggleGemini(true);
-
-  // 3) Define elementos do painel
-  const out = document.getElementById("geminiOutput");
-  const actions = document.getElementById("geminiActions");
-  if (out) out.textContent = t('gWorking');
-  if (actions) actions.innerHTML = "";
-
-  try {
-    // 4) Monta prompt a partir do snapshot do gráfico, na língua ativa
-    const snapshot = window.chartDataStore[kind];
-    const model = document.getElementById('modelSelect')?.value || "models/gemini-1.5-pro";
-
-    const prompt = t('gPromptHead').concat([
-      `${t('gPromptViz')}${kind}`,
-      `${t('gPromptModel')}${model}`,
-      t('gPromptData'),
-      JSON.stringify(snapshot, null, 2)
-    ]).join("\n");
-
-    const text = await callGemini(prompt);
-    if (out) out.textContent = text || t('gNoContent');
-
-    // 6) Envio pro Discord removido nesta demonstração pública (ação de operador,
-    //    webhook não configurado). A análise com IA acima segue funcionando.
-    if (actions) { actions.innerHTML = ""; }
-  } catch (err) {
-    console.error(err);
-    if (out) out.textContent = t('gErr');
-  } finally {
-    if (buttonElement) {
-      buttonElement.disabled = false;
-      buttonElement.textContent = originalText;
-    }
-  }
-}
 
 // =============================
 // Download de gráfico como PNG
@@ -2019,7 +1801,7 @@ function exportChartDataCSV(kind, fileBase){
   function init(){
     document.querySelectorAll('.chart-actions[data-chart]').forEach(w=>{
       const chart=w.dataset.chart, kind=w.dataset.kind, base=w.dataset.csv||chart;
-      const btns=[{ic:I.ia,tip:t('tipAI'),fn:(btn)=>sendGemini(kind,btn)}];
+      const btns=[];
       if(!w.dataset.noPng) btns.push({ic:I.png,tip:t('tipPNG'),fn:()=>downloadChartPNG(chart,base)});
       btns.push({ic:I.csv,tip:t('tipCSV'),fn:()=>exportChartDataCSV(kind,base)});
       if(w.dataset.insights) btns.push({ic:I.tbl,tip:t('tipTbl'),fn:()=>document.getElementById(w.dataset.insights)?.click()});
@@ -2147,44 +1929,15 @@ btnScore.addEventListener('click',()=>{renderTagsTreemap(currentData, 'score');b
 </script>
 
 <script>
-// --- Função para habilitar botão de Sugestões com IA (Gemini) ---
+// Habilita o botão de sugestões quando há dados (gerador local, sem LLM)
 function enableSuggestions(){
   const btn = document.getElementById("generateSuggestionsBtn");
-  if(!btn) return;
-  btn.disabled = false;
-  btn.onclick = async () => {
-    toggleGemini(true);
-    const out = document.getElementById("geminiOutput");
-    const actions = document.getElementById("geminiActions");
-    if(out) out.textContent = t('gSugWorking');
-    if(actions) actions.innerHTML = "";
-
-    const snap = {
-      kpi: window.chartDataStore?.kpi || {},
-      source: window.chartDataStore?.source || {},
-      campaign: window.chartDataStore?.campaign || {},
-      squad: window.chartDataStore?.squad || {}
-    };
-
-    const prompt = t('gSugPrompt').concat([
-      JSON.stringify(snap, null, 2)
-    ]).join('\n');
-
-    const text = await callGemini(prompt);
-    if(out) out.textContent = text || t('gNoContent');
-  };
+  if(btn) btn.disabled = false;
 }
 </script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // Event listeners para botões do painel Gemini
-    const closeBtn = document.getElementById('closePanel');
-    const minimizeBtn = document.getElementById('minimizePanel');
-    
-    if(closeBtn) closeBtn.addEventListener('click', () => toggleGemini(false));
-    if(minimizeBtn) minimizeBtn.addEventListener('click', toggleGeminiMinimize);
-    
     // Event listeners do painel de filtros (padrão 04)
     const filterToggleBtn = document.getElementById('filter-toggle');
     const filterClearBtn  = document.getElementById('filter-clear');
@@ -2230,7 +1983,7 @@ function enableSuggestions(){
       <ul data-i18n="m4L">
         <li><strong>Cross-filter:</strong> click any node, slice, cell or block to filter the whole panel by that dimension; active filters become chips in the top bar and combine with each other (logical AND).</li>
         <li><strong>Period:</strong> the date filter uses the booking activity date (<code>ta_created_at</code>).</li>
-        <li><strong>Per chart:</strong> analyze with AI (Gemini, with your own key), download a PNG, export the aggregated data as CSV.</li>
+        <li><strong>Per chart:</strong> download a PNG or export the aggregated data as CSV.</li>
         <li><strong>Export PDF</strong> generates a report of the whole page.</li>
       </ul>
     </div>
@@ -2384,8 +2137,8 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     execK:'<b>//</b> resumo executivo',
     execQ:'Onde o topo do funil ganha e perde, da origem ao agendamento: por squad, canal, closer e velocidade de atribuição.',
     sugH:'Principais Ações e Pesquisas Sugeridas',
-    sugSub:'Clique no botão para gerar uma lista de pesquisas e ações recomendadas pela IA, com base nos dados que você carregou.',
-    sugBtn:'Gerar Sugestões de Pesquisa com IA',
+    sugSub:'Clique no botão para gerar uma lista de pesquisas e ações recomendadas com base nos dados carregados.',
+    sugBtn:'Gerar sugestões de pesquisa',
     aiBtn:'Analisar com IA',
     fwH:'Fluxo · Fonte → Squad → Faixa → Closer',
     fwTip:'Cada agendamento como um fluxo: canal de origem, squad que trabalhou, faixa de score em que caiu e closer que recebeu. Largura do link = volume. Clique num nó para filtrar por aquela dimensão.',
@@ -2424,7 +2177,7 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     m3H:'Definições e derivações',
     m3L:'<li><strong>Score:</strong> <code>lead_score</code> vira faixa ordinal: A ≥ 80, B ≥ 60, C ≥ 40, D abaixo de 40. Nos gráficos, a faixa usa uma rampa de um só matiz (mais escuro = melhor).</li><li><strong>TA (tempo até agendamento):</strong> dias entre <code>deal_created_at</code> e <code>ta_created_at</code>, agrupados em 7 faixas (até 1,5 dia até acima de 30).</li><li><strong>E-mail corporativo vs gratuito:</strong> pelo domínio do e-mail do contato (lista de provedores gratuitos conhecidos).</li><li><strong>Normalizações:</strong> fontes UTM (fb/meta viram Facebook Ads etc.) e nomes de closers (aliases e variações de grafia).</li>',
     m4H:'Interação',
-    m4L:'<li><strong>Cross-filter:</strong> clique em qualquer nó, fatia, célula ou bloco para filtrar o painel inteiro por aquela dimensão; os filtros ativos viram chips na barra do topo e combinam entre si (E lógico).</li><li><strong>Período:</strong> o filtro de datas usa a data da atividade de agendamento (<code>ta_created_at</code>).</li><li><strong>Por gráfico:</strong> analisar com IA (Gemini, com a sua chave), baixar PNG, exportar o dado agregado em CSV.</li><li><strong>Exportar PDF</strong> gera o relatório da página inteira.</li>'
+    m4L:'<li><strong>Cross-filter:</strong> clique em qualquer nó, fatia, célula ou bloco para filtrar o painel inteiro por aquela dimensão; os filtros ativos viram chips na barra do topo e combinam entre si (E lógico).</li><li><strong>Período:</strong> o filtro de datas usa a data da atividade de agendamento (<code>ta_created_at</code>).</li><li><strong>Por gráfico:</strong> baixar PNG ou exportar o dado agregado em CSV.</li><li><strong>Exportar PDF</strong> gera o relatório da página inteira.</li>'
   };
   var META = {
     en:{ title:'Bookings Analysis | Felippe Yann' },
