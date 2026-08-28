@@ -288,17 +288,17 @@
 
     <div class="section-title" data-i18n="st2">Distribution and spread</div>
     <div class="card two">
-      <h2><span data-i18n="cHistT">Comparative histogram (0 to 30 days)</span>
-        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cHistTip">Frequency distribution of days to booking, by group.</span></span>
+      <h2><span data-i18n="cDensT">Overlaid density curves (0 to 30 days)</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cDensTip">Smoothed distribution (KDE) of days to booking by group; dashed lines mark the median of each group.</span></span>
       </h2>
-      <div class="panel-sub" data-i18n="cHistSub">Frequency distribution of time to booking: AI vs humans.</div>
-      <div id="hist" class="chart"></div>
+      <div class="panel-sub" data-i18n="cDensSub">Smoothed shape of time to booking: AI vs humans, with the median of each group.</div>
+      <div id="density" class="chart"></div>
     </div>
     <div class="card two">
       <h2><span data-i18n="cBoxT">Comparative boxplot</span>
-        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cBoxTip">Quartiles, median and extremes of the distribution by group.</span></span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cBoxTip">Quartiles, median and extremes by group; each translucent dot is one deal.</span></span>
       </h2>
-      <div class="panel-sub" data-i18n="cBoxSub">Quartiles, median and extremes of time to booking by group.</div>
+      <div class="panel-sub" data-i18n="cBoxSub">Quartiles, median and extremes of time to booking, with every deal overlaid as a jittered dot.</div>
       <div id="box" class="chart"></div>
     </div>
 
@@ -313,12 +313,20 @@
 
     <div class="section-title" data-i18n="st4">Advanced time analyses</div>
     <div class="card two">
+      <h2><span data-i18n="cBandT">Time bands: AI vs Humans gap</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cBandTip">Share of each group in every time band; the line connects the two dots and shows the gap.</span></span>
+      </h2>
+      <div class="panel-sub" data-i18n="cBandSub">Share of bookings per time band, fast (up to 3 days), normal (3 to 7) and slow (7 or more): one dot per group, joined by the gap line.</div>
+      <div id="funnel" class="chart tall"></div>
+    </div>
+    <div class="card two">
       <h2><span data-i18n="cCdfT">Cumulative distribution (CDF)</span>
         <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cCdfTip">Cumulative percentage of bookings across days.</span></span>
       </h2>
       <div class="panel-sub" data-i18n="cCdfSub">Cumulative percentage of bookings within each number of days.</div>
       <div id="cdf" class="chart tall"></div>
     </div>
+
     <div class="card two">
       <h2><span id="heatmapTitle" data-i18n="hmTitle">Weekly calendar</span>
         <span class="info-icon">ⓘ<span class="tooltip" id="heatmapTip" data-i18n="hmTip">Bookings volume by week and weekday.</span></span>
@@ -326,20 +334,12 @@
       <div class="panel-sub" data-i18n="cHeatSub">Bookings volume by period over time.</div>
       <div id="heatmap" class="chart tall"></div>
     </div>
-
     <div class="card two">
       <h2><span data-i18n="cVelT">Booking speed</span>
         <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cVelTip">Percentage of bookings made within 3 days, per group.</span></span>
       </h2>
       <div class="panel-sub" data-i18n="cVelSub">Percentage of bookings made within 3 days and the gap between groups.</div>
       <div id="velocity" class="kpis cols-2"></div>
-    </div>
-    <div class="card two">
-      <h2><span data-i18n="cBandT">Time-to-booking bands</span>
-        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="cBandTip">Percentage share of each time band within each group.</span></span>
-      </h2>
-      <div class="panel-sub" data-i18n="cBandSub">Bookings split by time band: fast (up to 3 days), normal (3 to 7) and slow (7 or more).</div>
-      <div id="funnel" class="chart tall"></div>
     </div>
 
   </div>
@@ -444,6 +444,9 @@ const I18N = {
     emptyChart: 'Upload a CSV to see the data',
     axisDays: 'days', axisDeals: 'Deals', axisMedianDays: 'Median (days)',
     axisDaysToBooking: 'Days to booking', axisCumPct: '% cumulative', axisPctGroup: '% of group',
+    axisDensity: 'Density (% of group per day)',
+    tipDensityUnit: '% of the group per day',
+    tipDeal: 'deal',
     tipDay: 'Day', tipDeals: 'deals', tipDaysWord: 'days', tipMedian: 'Median',
     tipOfBookings: 'of bookings', tipBookings: 'bookings',
     noRecordsSlice: 'no records in this slice',
@@ -496,6 +499,9 @@ const I18N = {
     emptyChart: 'Carregue um CSV para visualizar',
     axisDays: 'dias', axisDeals: 'Negócios', axisMedianDays: 'Mediana (dias)',
     axisDaysToBooking: 'Dias até agendamento', axisCumPct: '% acumulado', axisPctGroup: '% do grupo',
+    axisDensity: 'Densidade (% do grupo por dia)',
+    tipDensityUnit: '% do grupo por dia',
+    tipDeal: 'negócio',
     tipDay: 'Dia', tipDeals: 'negócios', tipDaysWord: 'dias', tipMedian: 'Mediana',
     tipOfBookings: 'dos agendamentos', tipBookings: 'agendamentos',
     noRecordsSlice: 'sem registros no recorte',
@@ -625,8 +631,8 @@ let IA_DATA = [];
 let HUM_DATA = [];
 let boxIA = [];
 let boxHumano = [];
-let histIA = [];
-let histHumano = [];
+let densIA = [];
+let densHumano = [];
 let weeklyIA = [];
 let weeklyHumano = [];
 let monthlyIA = [];
@@ -893,9 +899,9 @@ function calculateStatistics(iaData, humanoData) {
   boxIA = calculateBoxplotStats(iaData.map(d => d.days_to_schedule));
   boxHumano = calculateBoxplotStats(humanoData.map(d => d.days_to_schedule));
   
-  // Histograma (0-30 dias)
-  histIA = calculateHistogram(iaData.map(d => d.days_to_schedule), 0, 30, 30);
-  histHumano = calculateHistogram(humanoData.map(d => d.days_to_schedule), 0, 30, 30);
+  // Curvas de densidade (KDE gaussiano, 0-30 dias)
+  densIA = calculateKDE(iaData.map(d => d.days_to_schedule), 0, 30, 0.25);
+  densHumano = calculateKDE(humanoData.map(d => d.days_to_schedule), 0, 30, 0.25);
   
   // Agregações temporais
   weeklyIA = calculateWeeklyMedian(iaData);
@@ -929,18 +935,36 @@ function calculateBoxplotStats(values) {
   return [min, q1, median, q3, max];
 }
 
-function calculateHistogram(values, min, max, bins) {
-  const hist = new Array(bins).fill(0);
-  const binSize = (max - min) / bins;
-  
-  values.forEach(v => {
-    if (v >= min && v <= max) {
-      const binIndex = Math.min(Math.floor((v - min) / binSize), bins - 1);
-      hist[binIndex]++;
+// Estimativa de densidade por kernel gaussiano (KDE), avaliada em grade fixa.
+// Deterministico: sem aleatoriedade; bandwidth pela regra de Silverman com limites de sanidade.
+// Retorna pares [dia, densidade em % do grupo por dia].
+function calculateKDE(values, min, max, step) {
+  const v = (values || []).filter(x => typeof x === 'number' && isFinite(x) && x >= min && x <= max);
+  const n = v.length;
+  if (!n) return [];
+
+  const mean = v.reduce((a, b) => a + b, 0) / n;
+  const sd = Math.sqrt(v.reduce((a, b) => a + (b - mean) * (b - mean), 0) / n);
+  const sorted = v.slice().sort((a, b) => a - b);
+  const q = p => sorted[Math.min(n - 1, Math.floor(n * p))];
+  const iqr = q(0.75) - q(0.25);
+
+  let spread = Math.min(sd > 0 ? sd : Infinity, iqr > 0 ? iqr / 1.34 : Infinity);
+  if (!isFinite(spread) || spread <= 0) spread = 1;
+  let h = 0.9 * spread * Math.pow(n, -0.2); // Silverman
+  h = Math.max(0.35, Math.min(3, h));       // bandwidth dentro de faixa razoavel
+
+  const out = [];
+  const inv = 1 / (n * h * Math.sqrt(2 * Math.PI));
+  for (let x = min; x <= max + 1e-9; x += step) {
+    let s = 0;
+    for (let i = 0; i < n; i++) {
+      const u = (x - v[i]) / h;
+      s += Math.exp(-0.5 * u * u);
     }
-  });
-  
-  return hist;
+    out.push([Math.round(x * 100) / 100, s * inv * 100]);
+  }
+  return out;
 }
 
 function calculateWeeklyMedian(data) {
@@ -1356,7 +1380,7 @@ function showDataStats(iaData, humanoData) {
 }
 
 function renderAllCharts() {
-  initHist();
+  initDensity();
   initBox();
   initWeekly();
 
@@ -1375,45 +1399,73 @@ function rerenderAll() {
   updateGlobalDateInfo();
 }
 
-function initHist() {
-  const chart = makeChart(document.getElementById('hist'));
+// Densidade sobreposta (violin-like): curvas KDE suavizadas IA vs Humanos,
+// com a mediana de cada grupo como markLine vertical tracejada na cor do grupo
+function initDensity() {
+  const chart = makeChart(document.getElementById('density'));
   addResize(chart);
 
-  if (!histIA.length && !histHumano.length) {
+  if (!densIA.length && !densHumano.length) {
     chart.setOption(emptyOption());
     return;
   }
 
-  const categories = Array.from({length: 30}, (_, i) => i.toString());
-  const totalIA = histIA.reduce((a, b) => a + b, 0) || 1;
-  const totalHumano = histHumano.reduce((a, b) => a + b, 0) || 1;
+  const densSeries = (groupKey, data, medianVal) => {
+    const color = groupKey === 'ia' ? C_IA : C_HUM;
+    const fill = groupKey === 'ia' ? 'rgba(37,99,235,0.18)' : 'rgba(217,89,38,0.18)';
+    const s = {
+      name: GRP(groupKey),
+      type: 'line',
+      data: data,
+      smooth: true,
+      symbol: 'none',
+      lineStyle: { width: 2.5, color: color },
+      itemStyle: { color: color },
+      areaStyle: { color: fill },
+      emphasis: { focus: 'series' }
+    };
+    if (medianVal != null && isFinite(medianVal)) {
+      s.markLine = {
+        silent: true,
+        symbol: 'none',
+        data: [{ xAxis: Math.round(medianVal * 100) / 100 }],
+        lineStyle: { color: color, type: 'dashed', width: 1.5 },
+        label: {
+          formatter: t('tipMedian') + ' ' + GRP(groupKey) + ': ' + fmtBR(medianVal) + 'd',
+          color: color, fontSize: 10, position: 'insideEndTop'
+        }
+      };
+    }
+    return s;
+  };
 
   chart.setOption({
     tooltip: {
       trigger: 'axis',
-      axisPointer: { type: 'shadow' },
       formatter: function(params) {
-        let result = `<strong>${t('tipDay')} ${params[0].axisValue}</strong><br/>`;
+        if (!params || !params.length) return '';
+        let result = `<strong>${t('tipDay')} ${Number(params[0].value[0]).toFixed(1)}</strong><br/>`;
         params.forEach(p => {
-          const total = p.seriesName === GRP('ia') ? totalIA : totalHumano;
-          const percent = ((p.value / total) * 100).toFixed(1);
-          result += `${p.marker} ${p.seriesName}: ${p.value} ${t('tipDeals')} (${percent}%)<br/>`;
+          result += `${p.marker} ${p.seriesName}: ${Number(p.value[1]).toFixed(2)} ${t('tipDensityUnit')}<br/>`;
         });
         return result;
       }
     },
     legend: { data: [GRP('ia'), GRP('hum')], top: 0 },
-    grid: { left: 10, right: 14, top: 36, bottom: 30, containLabel: true },
+    grid: { left: 10, right: 18, top: 36, bottom: 34, containLabel: true },
     xAxis: {
-      type: 'category',
+      type: 'value',
       name: t('axisDays'),
-      data: categories,
+      nameLocation: 'middle',
+      nameGap: 26,
+      min: 0,
+      max: 30,
       axisLabel: { fontSize: 10 }
     },
-    yAxis: { type: 'value', name: t('axisDeals') },
+    yAxis: { type: 'value', name: t('axisDensity'), axisLabel: { fontSize: 10 } },
     series: [
-      { type: 'bar', name: GRP('ia'), data: histIA, itemStyle: { color: C_IA }, barGap: '10%', barCategoryGap: '30%' },
-      { type: 'bar', name: GRP('hum'), data: histHumano, itemStyle: { color: C_HUM } }
+      densSeries('ia', densIA, densIA.length ? boxIA[2] : null),
+      densSeries('hum', densHumano, densHumano.length ? boxHumano[2] : null)
     ]
   });
 }
@@ -1439,15 +1491,30 @@ function initBox() {
             Max: ${data[4].toFixed(2)} ${dw}`;
   };
 
+  // Jitter deterministico: deslocamento horizontal derivado do indice do ponto
+  // (hash senoidal), estavel entre renders; nada de aleatoriedade
+  const jitterOf = i => {
+    const x = Math.sin((i + 1) * 12.9898) * 43758.5453;
+    return (x - Math.floor(x) - 0.5) * 0.42;
+  };
+  const jitterData = (data, center) => (data || []).map((d, i) => [center + jitterOf(i), d.days_to_schedule]);
+  const jitterTooltip = function(p) {
+    return `<strong>${p.seriesName}</strong> · ${t('tipDeal')} · ${Number(p.value[1]).toFixed(1)} ${t('tipDaysWord')}`;
+  };
+
   chart.setOption({
     tooltip: { trigger: 'item', formatter: boxTooltip },
     legend: { data: [GRP('ia'), GRP('hum')], top: 0 },
     grid: { left: 10, right: 14, top: 36, bottom: 30, containLabel: true },
-    xAxis: {
-      type: 'category',
-      data: [GRP('ia'), GRP('hum')],
-      axisLabel: { fontSize: 12 }
-    },
+    xAxis: [
+      {
+        type: 'category',
+        data: [GRP('ia'), GRP('hum')],
+        axisLabel: { fontSize: 12 }
+      },
+      // eixo de valor oculto, alinhado ao categorico (centros em 0 e 1), so para o jitter
+      { type: 'value', min: -0.5, max: 1.5, show: false }
+    ],
     yAxis: { type: 'value', name: t('axisDays') },
     series: [
       {
@@ -1463,6 +1530,26 @@ function initBox() {
         data: ['-', boxHumano],
         itemStyle: { color: C_HUM_FILL, borderColor: C_HUM, borderWidth: 2 },
         boxWidth: ['25%', '45%']
+      },
+      {
+        name: GRP('ia'),
+        type: 'scatter',
+        xAxisIndex: 1,
+        data: jitterData(IA_DATA, 0),
+        symbolSize: 3,
+        itemStyle: { color: C_IA, opacity: 0.3 },
+        z: 3,
+        tooltip: { formatter: jitterTooltip }
+      },
+      {
+        name: GRP('hum'),
+        type: 'scatter',
+        xAxisIndex: 1,
+        data: jitterData(HUM_DATA, 1),
+        symbolSize: 3,
+        itemStyle: { color: C_HUM, opacity: 0.3 },
+        z: 3,
+        tooltip: { formatter: jitterTooltip }
       }
     ]
   });
@@ -1616,7 +1703,8 @@ function initVelocity() {
     '</div>';
 }
 
-// Faixas de tempo: barras horizontais agrupadas, % dentro de cada grupo
+// Faixas de tempo como dumbbell: um ponto por grupo em cada faixa,
+// ligados por uma linha cinza que materializa a diferenca entre os grupos
 function initFunnel() {
   const chart = makeChart(document.getElementById('funnel'));
   addResize(chart);
@@ -1627,9 +1715,24 @@ function initFunnel() {
   }
 
   const stages = funnelData.map(d => t('band_' + d.key));
-  const iaPercents = funnelData.map(d => Number(d.iaPercent.toFixed(1)));
-  const humanoPercents = funnelData.map(d => Number(d.humanoPercent.toFixed(1)));
-  const pctLabel = { show: true, position: 'right', formatter: function(p){ return p.value.toFixed(1) + '%'; }, color: '#d4d4d8', fontSize: 10 };
+  const iaPts = [];
+  const humPts = [];
+  const links = [];
+  funnelData.forEach((d, i) => {
+    const iaV = Number(d.iaPercent.toFixed(1));
+    const humV = Number(d.humanoPercent.toFixed(1));
+    // label do ponto maior vai para a direita, do menor para a esquerda
+    iaPts.push({ value: [iaV, i], label: { position: iaV >= humV ? 'right' : 'left' } });
+    humPts.push({ value: [humV, i], label: { position: humV > iaV ? 'right' : 'left' } });
+    links.push([iaV, humV, i]);
+  });
+  const pctLabel = {
+    show: true,
+    formatter: function(p){ return Number(p.value[0]).toFixed(1) + '%'; },
+    color: '#d4d4d8',
+    fontSize: 10,
+    distance: 8
+  };
 
   chart.setOption({
     tooltip: {
@@ -1638,17 +1741,22 @@ function initFunnel() {
       formatter: function(params) {
         if (!params || !params.length) return '';
         const stage = funnelData[params[0].dataIndex];
+        if (!stage) return '';
+        const gap = stage.iaPercent - stage.humanoPercent;
         let result = `<strong>${t('band_' + stage.key)}</strong><br/>`;
         result += `${GRP('ia')}: ${stage.ia} ${t('tipDeals')} (${stage.iaPercent.toFixed(1)}%)<br/>`;
-        result += `${GRP('hum')}: ${stage.humano} ${t('tipDeals')} (${stage.humanoPercent.toFixed(1)}%)`;
+        result += `${GRP('hum')}: ${stage.humano} ${t('tipDeals')} (${stage.humanoPercent.toFixed(1)}%)<br/>`;
+        result += (gap >= 0 ? '+' : '-') + Math.abs(gap).toFixed(1) + ' ' + t('velVs');
         return result;
       }
     },
     legend: { data: [GRP('ia'), GRP('hum')], top: 0 },
-    grid: { left: 10, right: 46, top: 36, bottom: 20, containLabel: true },
+    grid: { left: 10, right: 52, top: 36, bottom: 20, containLabel: true },
     xAxis: {
       type: 'value',
       name: t('axisPctGroup'),
+      min: 0,
+      max: 100,
       axisLabel: { formatter: '{value}%' }
     },
     yAxis: {
@@ -1658,8 +1766,41 @@ function initFunnel() {
       axisLabel: { fontSize: 11 }
     },
     series: [
-      { name: GRP('ia'), type: 'bar', data: iaPercents, itemStyle: { color: C_IA }, barMaxWidth: 22, label: pctLabel },
-      { name: GRP('hum'), type: 'bar', data: humanoPercents, itemStyle: { color: C_HUM }, barMaxWidth: 22, label: pctLabel }
+      {
+        // conector cinza entre os dois pontos de cada faixa (custom series)
+        type: 'custom',
+        silent: true,
+        z: 1,
+        renderItem: function(params, api) {
+          const p1 = api.coord([api.value(0), api.value(2)]);
+          const p2 = api.coord([api.value(1), api.value(2)]);
+          return {
+            type: 'line',
+            shape: { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1] },
+            style: { stroke: 'rgba(248,247,243,0.28)', lineWidth: 2 }
+          };
+        },
+        data: links,
+        tooltip: { show: false }
+      },
+      {
+        name: GRP('ia'),
+        type: 'scatter',
+        z: 3,
+        data: iaPts,
+        symbolSize: 16,
+        itemStyle: { color: C_IA },
+        label: pctLabel
+      },
+      {
+        name: GRP('hum'),
+        type: 'scatter',
+        z: 3,
+        data: humPts,
+        symbolSize: 16,
+        itemStyle: { color: C_HUM },
+        label: pctLabel
+      }
     ]
   });
 }
@@ -1863,12 +2004,12 @@ function updateGlobalDateInfo() {
     kWait2: 'aguardando dados',
     kP75d1: '75% dos agendamentos até este valor',
     kP75d2: '75% dos agendamentos até este valor',
-    cHistT: 'Histograma comparativo (0 a 30 dias)',
-    cHistTip: 'Distribuição de frequência dos dias até o agendamento, por grupo.',
-    cHistSub: 'Distribuição de frequência do tempo até agendamento: IA vs humanos.',
+    cDensT: 'Curvas de densidade sobrepostas (0 a 30 dias)',
+    cDensTip: 'Distribuição suavizada (KDE) dos dias até o agendamento por grupo; as linhas tracejadas marcam a mediana de cada grupo.',
+    cDensSub: 'Forma suavizada do tempo até agendamento: IA vs humanos, com a mediana de cada grupo.',
     cBoxT: 'Boxplot comparativo',
-    cBoxTip: 'Quartis, mediana e extremos da distribuição por grupo.',
-    cBoxSub: 'Quartis, mediana e extremos do tempo até agendamento por grupo.',
+    cBoxTip: 'Quartis, mediana e extremos por grupo; cada ponto translúcido é um negócio.',
+    cBoxSub: 'Quartis, mediana e extremos do tempo até agendamento, com cada negócio sobreposto como ponto com jitter.',
     cTrendT: 'Mediana de dias até agendamento',
     cTrendTip: 'Evolução da mediana de dias até agendamento, na visão semanal ou mensal.',
     cTrendSub: 'Evolução da mediana de dias até o agendamento; alterne entre semanal e mensal na barra de filtros.',
@@ -1881,9 +2022,9 @@ function updateGlobalDateInfo() {
     cVelT: 'Velocidade de agendamento',
     cVelTip: 'Percentual de agendamentos realizados em até 3 dias, por grupo.',
     cVelSub: 'Percentual de agendamentos realizados em até 3 dias e a diferença entre os grupos.',
-    cBandT: 'Faixas de tempo até o agendamento',
-    cBandTip: 'Participação percentual de cada faixa de tempo dentro de cada grupo.',
-    cBandSub: 'Distribuição dos agendamentos por faixa de tempo: rápido (até 3 dias), normal (3 a 7) e lento (7 ou mais).',
+    cBandT: 'Faixas de tempo: diferença IA vs Humanos',
+    cBandTip: 'Participação de cada grupo em cada faixa de tempo; a linha liga os dois pontos e mostra a diferença.',
+    cBandSub: 'Participação dos agendamentos por faixa de tempo, rápido (até 3 dias), normal (3 a 7) e lento (7 ou mais): um ponto por grupo, ligado pela linha de diferença.',
     mTitle: 'Metodologia aplicada',
     mHowTitle: 'Como usar este dashboard:',
     mFile: '<strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br><span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar atividades de primeiro agendamento do CRM (contém datas de criação e agendamento).</span>',
