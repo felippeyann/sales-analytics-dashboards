@@ -223,26 +223,42 @@
   .chart-title{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin:0 0 8px}
 
   /* ===== KPIs (linha única) ===== */
-  .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
-  @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
   @media (max-width:600px){.kpis{grid-template-columns:repeat(2,1fr)}}
   .kpi{
     background:var(--card);
-    border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;min-width:0
+    border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 11px;min-width:0
   }
-  .kpi .label{color:var(--ink-4);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .kpi .value{font-size:24px;font-weight:700;margin-top:6px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+  .kpi .label{color:var(--ink-4);font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .value{font-size:17px;font-weight:700;margin-top:3px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
   .kpi .value.good{color:var(--ok)}
   .kpi .value.bad{color:var(--bad)}
-  .kpi .subv{color:var(--ink-4);font-size:11.5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .subv{color:var(--ink-4);font-size:10px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ===== linha do topo: executivo + como ler + IA ===== */
+  .top-row{display:flex;gap:14px;align-items:stretch;margin-bottom:16px}
+  .top-row .exec-band{flex:1.9;min-width:0;margin-bottom:0}
+  .top-row .onb-card{flex:1;min-width:230px;margin:0}
+  .top-row #suggestionsBox{flex:1;min-width:230px;margin-bottom:0!important;padding:12px 14px}
+  .top-row .onb-card .onb-h{font-size:12px;margin-bottom:5px}
+  .top-row .onb-card .onb-steps{font-size:11px;line-height:1.55;padding-left:16px}
+  #suggestionsBox h2{font-size:12.5px;margin:0 0 3px}
+  #suggestionsBox .sub{font-size:11px;margin-bottom:4px;line-height:1.45}
+  #suggestionsBox .panelBtn{min-width:24px;height:24px;font-size:12px;padding:2px 6px}
+  @media (max-width:1150px){
+    .top-row{flex-wrap:wrap}
+    .top-row .exec-band{flex-basis:100%}
+    .kpis{grid-template-columns:repeat(6,minmax(0,1fr))}
+  }
+  @media (max-width:760px){ .kpis{grid-template-columns:repeat(2,1fr)} }
 
   /* ===== faixa executiva ===== */
-  .exec-band{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);padding:18px 20px;margin-bottom:16px}
-  .exec-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-bottom:8px}
+  .exec-band{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);padding:13px 15px;margin-bottom:16px}
+  .exec-kicker{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-bottom:5px}
   .exec-kicker b{color:var(--accent);font-weight:700}
-  .exec-q{color:var(--ink);font-size:15px;font-weight:500;margin:0 0 14px;max-width:82ch;line-height:1.45}
-  .exec-insight{border-left:3px solid var(--accent);padding:6px 0 6px 14px;color:var(--ink-2);font-size:14px;line-height:1.55}
-  .exec-insight .ei-tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-soft);border:1px solid rgba(37,99,235,.4);padding:1px 7px;margin-right:8px}
+  .exec-q{color:var(--ink);font-size:12px;font-weight:500;margin:0 0 10px;max-width:82ch;line-height:1.4}
+  .exec-insight{border-left:3px solid var(--accent);padding:3px 0 3px 11px;color:var(--ink-2);font-size:11.5px;line-height:1.5}
+  .exec-insight .ei-tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-soft);border:1px solid rgba(37,99,235,.4);padding:1px 6px;margin-right:7px}
   .exec-insight b{color:var(--ink);font-weight:700}
   .panel-sub{font-size:13px;line-height:1.45;color:var(--ink-4);margin:-4px 0 16px;max-width:82ch}
 
@@ -679,10 +695,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <main class="wrap panel">
 
+  <div class="top-row">
   <section class="exec-band" id="exec-band">
     <div class="exec-kicker" data-i18n="execK"><b>//</b> executive summary</div>
     <div class="exec-q" data-i18n="execQ">Where the top of the funnel wins and loses, from origin to booking: by squad, channel, closer and assignment speed.</div>
-    <div class="kpis" id="kpis" style="margin-bottom:14px"></div>
+    <div class="kpis" id="kpis"></div>
     <div class="exec-insight" id="exec-insight"></div>
   </section>
 
@@ -695,12 +712,13 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="panelBtn" id="minimizeSuggestionsBox" title="Minimize" data-pt-title="Minimizar" style="margin-left:8px;">−</button>
     </div>
     <div id="suggestionsContent">
-      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <button id="generateSuggestionsBtn" class="btn" disabled data-i18n="sugBtn">Generate AI Search Suggestions</button>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button id="generateSuggestionsBtn" class="btn sm" disabled data-i18n="sugBtn">Generate AI Search Suggestions</button>
       </div>
       <div id="suggestionsOutput" class="suggestions-list"></div>
     </div>
   </section>
+  </div>
 
   <section class="card">
     <div class="topic-head">
@@ -3100,6 +3118,21 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     build();
   };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
+})();
+</script>
+<script>
+// A lib onb-cta injeta o CTA dentro do .top-row (parent da exec-band); realoca pro fim da página.
+(function(){
+  function relocateCta(){
+    var main=document.querySelector('main'); if(!main||!main.parentNode) return;
+    var band=document.querySelector('.cta-band'), mail=document.querySelector('.cta-mail');
+    if(band) main.parentNode.insertBefore(band, main.nextSibling);
+    if(mail&&band) band.parentNode.insertBefore(mail, band.nextSibling);
+  }
+  var orig=window.__onbCtaRebuild;
+  if(typeof orig==='function') window.__onbCtaRebuild=function(){ orig(); relocateCta(); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ setTimeout(relocateCta,0); });
+  else setTimeout(relocateCta,0);
 })();
 </script>
 
