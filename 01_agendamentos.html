@@ -2942,14 +2942,26 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
       var r=el.getBoundingClientRect(), pad=10;
       hole.style.top=(r.top-pad)+'px'; hole.style.left=(r.left-pad)+'px';
       hole.style.width=(r.width+pad*2)+'px'; hole.style.height=(r.height+pad*2)+'px';
-      var d=TXT[L()], tw=300, th=150;
-      var left=Math.min(Math.max(8,r.left), innerWidth-tw-8);
-      var top=r.bottom+12; if(top+th>innerHeight) top=Math.max(8,r.top-th-12);
-      tip.style.left=left+'px'; tip.style.top=top+'px';
+      var d=TXT[L()], tw=300, gap=18;
+      // preenche primeiro para medir a altura real
       tip.innerHTML='<div class="tt">'+steps[idx][1]+'</div><div class="tb">'+steps[idx][2]+'</div>'
         +'<div class="tf"><span class="tstep">'+(idx+1)+' '+d.of+' '+steps.length+'</span>'
         +(idx>0?'<button class="btn secondary sm" data-t="prev">'+d.prev+'</button>':'')
         +'<button class="btn sm" data-t="next">'+(idx===steps.length-1?d.done:d.next)+'</button></div>';
+      var th=tip.offsetHeight||150;
+      // lado: o card fica de um lado da tela, a tooltip vai pro lado do CENTRO (nunca sobre o card)
+      var cardCenterX=r.left+r.width/2, onLeftHalf=cardCenterX<innerWidth/2;
+      var left = onLeftHalf ? (r.right+gap) : (r.left-gap-tw);
+      // se não couber ao lado (card largo/full-width), cai pra baixo ou pra cima, mas alinhado à borda do lado do centro
+      if(left<8 || left+tw>innerWidth-8){
+        left = onLeftHalf ? Math.max(8, r.right-tw) : Math.min(innerWidth-tw-8, r.left);
+        var below=r.bottom+gap;
+        var top = (below+th<=innerHeight-8) ? below : Math.max(8, r.top-gap-th);
+        tip.style.left=left+'px'; tip.style.top=top+'px'; return;
+      }
+      // ao lado: centraliza verticalmente com o card, preso à viewport
+      var top=Math.max(8, Math.min(r.top+r.height/2-th/2, innerHeight-th-8));
+      tip.style.left=left+'px'; tip.style.top=top+'px';
     },260);
   }
   function next(){ if(idx>=steps.length-1){ end(); return; } idx++; place(); }
