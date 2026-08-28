@@ -1549,12 +1549,13 @@ function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
   data.forEach((d,idx)=>{ if(d[2]>maxVal){maxVal=d[2];maxIdx=idx;} });
   if(maxIdx>=0&&maxVal>0) data[maxIdx]={value:data[maxIdx],itemStyle:{borderColor:'#60a5fa',borderWidth:2}};
   const isTASquad = domId === 'chartHeatTASquad';
-  // Dynamic font size: fewer columns -> bigger font
-  let xFont = 11; if(isTASquad){ if(cols.length>10) xFont=10; if(cols.length>14) xFont=9; if(cols.length>18) xFont=8; }
+  // colunas com rótulo longo (faixas de TA) precisam quebrar em 2 linhas
+  const longCols = cols.some(c=>String(dispVal(c)).length>9);
+  let xFont = 11; if(isTASquad){ if(cols.length>10) xFont=10; if(cols.length>14) xFont=9; if(cols.length>18) xFont=8; } else if(longCols){ xFont=10; }
   const wrapLabel = (rawLabel)=>{
     const label = dispVal(rawLabel);
-    if(!isTASquad) return label;
-    const maxPerLine = (cols.length>14)?8:12;
+    if(!isTASquad && !longCols) return label;
+    const maxPerLine = isTASquad ? ((cols.length>14)?8:12) : 9;
     const parts = String(label).split(/\s+/);
     const lines=[]; let current='';
     for(const p of parts){
@@ -1562,20 +1563,23 @@ function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
       else { current += ' '+p; }
     }
     if(current) lines.push(current.trim());
-    return lines.slice(0,3).join('\n');
+    return lines.slice(0,2).join('\n');
   };
   chart.setOption({
     ...baseOpts(),
     tooltip:{position:'top',formatter:(p)=>`${escHtml(dispVal(rows[p.data[1]]))} × ${escHtml(dispVal(cols[p.data[0]]))}: <b>${p.data[2]}</b>`},
-    grid:(()=>{ if(!isTASquad) return {left:60,right:10,top:26,bottom:40,containLabel:true};
-      const maxChars = Math.max(...rows.map(r=>r.length));
-      const leftPad = Math.min(70, Math.max(45, Math.round(maxChars*4.6))); // clamp 45-70
-      return {left:leftPad,right:70,top:26,bottom:40,containLabel:true}; })(),
-    xAxis:{type:'category',data:cols,axisLabel:{interval:0,formatter:wrapLabel,fontSize:xFont}},
+    grid:(()=>{ if(isTASquad){
+        const maxChars = Math.max(...rows.map(r=>r.length));
+        const leftPad = Math.min(70, Math.max(45, Math.round(maxChars*4.6)));
+        return {left:leftPad,right:70,top:26,bottom:40,containLabel:true};
+      }
+      // score×TA e afins: visualMap no topo, eixo X com fôlego embaixo
+      return {left:44,right:14,top:44,bottom:longCols?44:30,containLabel:true}; })(),
+    xAxis:{type:'category',data:cols,axisLabel:{interval:0,formatter:wrapLabel,fontSize:xFont,margin:10,lineHeight:13,color:'#8a8a94'}},
   yAxis:{type:'category',data:rows,axisLabel:{interval:0,fontSize:11,align:'right',formatter:(raw)=>dispVal(raw)}},
-    visualMap:(()=>{ const base={min:0,max:Math.max(1,maxVal),calculable:true,inRange:{color:SEQ_BLUE},textStyle:{color:'#8a8a94'}};
-      if(!isTASquad) return {...base,orient:'horizontal',left:'center',bottom:0,itemWidth:16};
-      return {...base,orient:'vertical',right:10,top:20,itemWidth:14,itemHeight:120}; })(),
+    visualMap:(()=>{ const base={min:0,max:Math.max(1,maxVal),calculable:true,inRange:{color:SEQ_BLUE},textStyle:{color:'#8a8a94',fontSize:10}};
+      if(isTASquad) return {...base,orient:'vertical',right:10,top:20,itemWidth:14,itemHeight:120};
+      return {...base,orient:'horizontal',right:14,top:8,itemWidth:14,itemHeight:12}; })(),
     series:[{type:'heatmap',data,label:{show:false},itemStyle:{borderColor:'#131316',borderWidth:1}}]
   });
   addResize(chart);
@@ -2931,9 +2935,11 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
   function place(){
     var sel=steps[idx][0]; var el=document.querySelector(sel);
     if(!el){ next(); return; }
+    // foca o card inteiro, não só o gráfico interno
+    if(sel!=='header'){ var card=el.closest('.card')||el.closest('.exec-band'); if(card) el=card; }
     el.scrollIntoView({block:'center',behavior:'smooth'});
     setTimeout(function(){
-      var r=el.getBoundingClientRect(), pad=6;
+      var r=el.getBoundingClientRect(), pad=10;
       hole.style.top=(r.top-pad)+'px'; hole.style.left=(r.left-pad)+'px';
       hole.style.width=(r.width+pad*2)+'px'; hole.style.height=(r.height+pad*2)+'px';
       var d=TXT[L()], tw=300, th=150;
