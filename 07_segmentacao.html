@@ -1,285 +1,337 @@
 <!DOCTYPE html>
 <!--
   ╔═══════════════════════════════════════════════════════════╗
-  ║  Analytics Dashboard - Segmentação e Normalização        ║
-  ║  Versão: v1.0                                            ║
-  ║  Última atualização: 27/12/2025                          ║
+  ║  Analytics Dashboard - Segmentação de Mercado            ║
+  ║  Versão: v2.0                                            ║
+  ║  Última atualização: 28/08/2026                          ║
   ║  Descrição: Pipeline de normalização de segmentação      ║
   ║             com dicionário e detecção de conflitos       ║
   ╚═══════════════════════════════════════════════════════════╝
 -->
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
+<meta charset="utf-8"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Segmentação - Pipeline de Normalização</title>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg:#0a0a0b; --panel:#131316; --card:#1a1a1e; --muted:#9ca3af; --text:#e5e7eb;
-      --accent:#2563eb; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --line:#232328;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0}
-    body{
-      background:linear-gradient(180deg,#0a0f1d 0%,#0a0a0b 60%,#0a0f1d 100%);
-      color:var(--text);
-      font:400 14px/1.5 'Montserrat',system-ui,-apple-system,sans-serif;
-    }
-    .container{max-width:1400px;margin:0 auto;padding:20px}
-    
-    header{
-      background:linear-gradient(135deg,rgba(37,99,235,0.1),rgba(14,165,233,0.05));
-      border:1px solid rgba(37,99,235,0.2);
-      border-radius:12px;
-      padding:20px;
-      margin-bottom:24px;
-    }
-    h1{margin:0 0 8px 0;font-size:24px;color:#fff}
-    .subtitle{color:var(--muted);font-size:14px}
-    
-    .upload-section{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:20px;
-      margin-bottom:24px;
-    }
-    .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-    @media(max-width:768px){.upload-grid{grid-template-columns:1fr}}
-    
-    .upload-box{
-      background:var(--card);
-      border:2px dashed #334155;
-      border-radius:8px;
-      padding:20px;
-      text-align:center;
-      transition:all 0.2s;
-    }
-    .upload-box:hover{border-color:var(--accent);background:rgba(37,99,235,0.05)}
-    .upload-box h3{margin:0 0 12px 0;font-size:16px}
-    .upload-box p{color:var(--muted);font-size:13px;margin:0 0 16px 0}
-    .upload-box input[type=file]{
-      background:var(--panel);
-      border:1px solid var(--line);
-      padding:10px;
-      border-radius:6px;
-      color:var(--text);
-      width:100%;
-      cursor:pointer;
-    }
-    .upload-box .status{
-      margin-top:12px;
-      font-size:13px;
-      padding:8px 12px;
-      border-radius:6px;
-      display:none;
-    }
-    .upload-box .status.loaded{
-      display:block;
-      background:rgba(34,197,94,0.1);
-      border:1px solid rgba(34,197,94,0.3);
-      color:var(--ok);
-    }
-    
-    .btn{
-      background:linear-gradient(135deg,var(--accent),#60a5fa);
-      color:#fff;
-      border:none;
-      padding:12px 24px;
-      border-radius:8px;
-      font-size:14px;
-      font-weight:600;
-      cursor:pointer;
-      transition:all 0.2s;
-      margin-top:16px;
-    }
-    .btn:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(37,99,235,0.3)}
-    .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
-    
-    .results{display:none}
-    .results.active{display:block}
-    
-    .stats-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:16px;
-      margin-bottom:24px;
-    }
-    .stat-card{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:16px;
-    }
-    .stat-label{color:var(--muted);font-size:12px;margin-bottom:4px}
-    .stat-value{font-size:28px;font-weight:700;color:#fff}
-    .stat-badge{
-      display:inline-block;
-      font-size:11px;
-      padding:4px 8px;
-      border-radius:12px;
-      margin-top:8px;
-    }
-    .stat-badge.ok{background:rgba(34,197,94,0.2);color:var(--ok)}
-    .stat-badge.warn{background:rgba(245,158,11,0.2);color:var(--warn)}
-    .stat-badge.danger{background:rgba(239,68,68,0.2);color:var(--danger)}
-    
-    .section{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:20px;
-      margin-bottom:24px;
-    }
-    .section h2{margin:0 0 16px 0;font-size:18px;color:#fff}
-    
-    table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:13px;
-    }
-    table th{
-      background:var(--card);
-      padding:12px;
-      text-align:left;
-      font-weight:600;
-      color:var(--muted);
-      border-bottom:2px solid var(--line);
-    }
-    table td{
-      padding:12px;
-      border-bottom:1px solid var(--line);
-    }
-    table tr:hover{background:rgba(37,99,235,0.05)}
-    
-    .quality-badge{
-      display:inline-block;
-      padding:4px 10px;
-      border-radius:12px;
-      font-size:11px;
-      font-weight:600;
-    }
-    .quality-high{background:rgba(34,197,94,0.2);color:var(--ok)}
-    .quality-medium{background:rgba(245,158,11,0.2);color:var(--warn)}
-    .quality-low{background:rgba(100,116,139,0.2);color:var(--muted)}
-    .quality-conflict{background:rgba(239,68,68,0.2);color:var(--danger)}
-    
-    .export-buttons{
-      display:flex;
-      gap:12px;
-      margin-top:16px;
-    }
-    .export-buttons button{
-      background:var(--card);
-      color:var(--text);
-      border:1px solid var(--line);
-      padding:10px 20px;
-      border-radius:8px;
-      font-size:13px;
-      cursor:pointer;
-      transition:all 0.2s;
-    }
-    .export-buttons button:hover{
-      border-color:var(--accent);
-      background:rgba(37,99,235,0.1);
-    }
-  </style>
-  <style>.uploader,.upload-section{display:none!important}</style>
-</head>
-<style id="exec-band-css">
-.exec-band{background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:5px 5px 0 0 rgba(0,0,0,0.5);padding:22px 24px;margin:0 0 18px 0;font-family:'Space Grotesk',system-ui,sans-serif}
-.exec-band .exec-kicker{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a94;margin-bottom:8px}
-.exec-band .exec-kicker b{color:#2563eb}
-.exec-band .exec-q{font-size:15px;line-height:1.5;color:#f8f7f3;max-width:80ch;margin-bottom:18px}
-.exec-band .exec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
-.exec-band .exec-kpi{background:#1a1a1e;border:1px solid rgba(248,247,243,0.08);padding:14px 16px}
-.exec-band .exec-kpi .ev{font-size:30px;font-weight:700;line-height:1;color:#f8f7f3;font-variant-numeric:tabular-nums}
-.exec-band .exec-kpi .ev.good{color:#4ade80}
-.exec-band .exec-kpi .el{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a94;margin-top:8px}
-.exec-band .exec-kpi .eh{font-size:12px;color:#6b6b73;margin-top:3px}
-.exec-band .exec-insight{border-left:3px solid #2563eb;padding:10px 0 10px 14px;font-size:14px;line-height:1.55;color:#c9c9d0}
-.exec-band .exec-insight b{color:#f8f7f3;font-weight:600}
-.exec-band .exec-insight .ei-tag{display:inline-block;font-family:'Space Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;border:1px solid rgba(37,99,235,0.4);padding:1px 7px;margin-right:8px;vertical-align:middle}
-@media(max-width:720px){.exec-band .exec-kpis{grid-template-columns:repeat(2,1fr)}}
-.panel-sub{font-family:'Space Grotesk',system-ui,sans-serif;font-size:13px;line-height:1.45;color:#8a8a94;margin:-4px 0 16px;max-width:82ch}
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Segmentação de Mercado | Felippe Yann</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+  /* ===== tokens (fonte única de verdade do arquivo) ===== */
+  :root{
+    --bg:#0a0a0b;
+    --panel:#131316;
+    --card:#1a1a1e;
+    --card-h:#232328;
+    --ink:#f8f7f3; --ink-2:#d4d4d8; --ink-3:#a1a1aa; --ink-4:#8a8a94;
+    --accent:#2563eb;
+    --accent-soft:#60a5fa;
+    --accent-glow:rgba(37,99,235,0.15);
+    --ok:#4ade80; --warn:#fbbf24; --bad:#f87171;
+    --line:rgba(248,247,243,.09); --line-strong:rgba(248,247,243,.18);
+    --sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --r:12px; --r-sm:8px;
+    /* aliases legados (consumidos por markup/JS antigos) */
+    --muted:var(--ink-4);
+    --text:var(--ink-2);
+    --danger:var(--bad);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink-2);font-family:var(--sans);font-size:14px}
+  a{color:var(--accent-soft);text-decoration:none}
+  button{font-family:var(--sans)}
+
+  /* ===== header (sticky, compacto) ===== */
+  header{
+    position:sticky;top:0;z-index:60;
+    background:rgba(10,10,11,.92);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .wrap{max-width:1400px;margin:0 auto;padding:0 20px}
+  .hdr-in{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;padding:8px 0}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .logo{
+    width:30px;height:30px;border-radius:var(--r-sm);flex:none;
+    background:var(--accent);color:#fff;
+    font-family:var(--mono);font-weight:700;font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .desc{color:var(--ink-4);font-size:11px;font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  .hdr-note{font-family:var(--mono);font-size:11px;color:var(--ink-4)}
+  .version-badge{display:inline-block;background:var(--accent-glow);border:1px solid rgba(37,99,235,.4);color:var(--accent-soft);font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:10px;margin-left:8px;letter-spacing:0.5px;vertical-align:middle}
+  @media (max-width:760px){ .desc,.hdr-note{display:none} h1{font-size:14px} }
+
+  /* ===== cards e grid ===== */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line-strong);
+    border-radius:var(--r);padding:16px 18px;
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+  }
+  .card.actionable{border-left:3px solid var(--warn)}
+  .card.quiet{border-color:var(--line)}
+  .card.quiet .topic-head h2{color:var(--ink-2)}
+  .grid{
+    display:grid; gap:14px;
+    grid-template-columns: repeat(12, 1fr);
+  }
+  .col-12{grid-column:span 12}
+  .col-6{grid-column:span 6}
+  @media (max-width: 980px){
+    .col-6{grid-column:span 12}
+  }
+  .panel{margin-top:16px}
+  .panel-sub{font-size:13px;line-height:1.45;color:var(--ink-4);margin:-4px 0 14px;max-width:82ch}
+  .topic-head{
+    display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;row-gap:4px;margin-bottom:6px;
+  }
+  .topic-head h2{margin:0;font-size:14px;font-weight:700;color:var(--ink);letter-spacing:.01em;display:flex;align-items:center;gap:8px}
+  .topic-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  @media (max-width:760px){
+    .topic-head{grid-template-columns:1fr}
+    .topic-head .topic-actions{justify-content:flex-start}
+  }
+  .chart{width:100%;height:280px}
+  .chart.tall{height:320px}
+  .chart.short{height:120px}
+  .quality-rule{font-size:12px;line-height:1.55;color:var(--ink-4);border-left:3px solid var(--line-strong);padding:6px 0 6px 12px;margin-top:10px}
+  .quality-rule b{color:var(--ink-2);font-weight:600}
+
+  /* ===== KPIs (linha única) ===== */
+  .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+  @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:600px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{
+    background:var(--card);
+    border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;min-width:0
+  }
+  .kpi .label{color:var(--ink-4);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .value{font-size:24px;font-weight:700;margin-top:6px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+  .kpi .value.good{color:var(--ok)}
+  .kpi .value.warn{color:var(--warn)}
+  .kpi .value.bad{color:var(--bad)}
+  .kpi .subv{color:var(--ink-4);font-size:11.5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ===== faixa executiva ===== */
+  .exec-band{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);padding:18px 20px;margin-bottom:16px}
+  .exec-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-bottom:8px}
+  .exec-kicker b{color:var(--accent);font-weight:700}
+  .exec-q{color:var(--ink);font-size:15px;font-weight:500;margin:0 0 14px;max-width:82ch;line-height:1.45}
+  .exec-insight{border-left:3px solid var(--accent);padding:6px 0 6px 14px;color:var(--ink-2);font-size:14px;line-height:1.55}
+  .exec-insight .ei-tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-soft);border:1px solid rgba(37,99,235,.4);padding:1px 7px;margin-right:8px}
+  .exec-insight b{color:var(--ink);font-weight:700}
+
+  /* ===== botões e inputs ===== */
+  .btn{
+    background:var(--accent);border:1px solid var(--accent);color:#fff;
+    padding:8px 14px;font-weight:700;border-radius:var(--r-sm);
+    cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease;
+    font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;line-height:1.2
+  }
+  .btn:hover{background:#1d4ed8;border-color:#1d4ed8}
+  .btn.secondary{background:transparent;border:1px solid var(--line-strong);color:var(--ink-2)}
+  .btn.secondary:hover{background:var(--card-h);border-color:var(--line-strong)}
+  .btn.sm{padding:6px 10px;font-size:10.5px}
+  .btn:disabled{background:var(--card);border-color:var(--line);color:var(--ink-4);cursor:not-allowed}
+  .search-input{
+    background:var(--card);border:1px solid var(--line-strong);
+    color:var(--ink-2);padding:7px 10px;border-radius:var(--r-sm);font-size:12px;font-family:var(--sans);min-width:180px
+  }
+  .search-input:focus{outline:none;border-color:var(--accent)}
+
+  /* ===== upload (escondido: o fluxo de dados vive na barra de dados) ===== */
+  .upload-section{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);padding:20px;margin-bottom:24px}
+  .upload-section h2{margin:0 0 16px 0;font-size:18px;color:var(--ink)}
+  .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:768px){.upload-grid{grid-template-columns:1fr}}
+  .upload-box{background:var(--card);border:2px dashed var(--line-strong);border-radius:var(--r-sm);padding:20px;text-align:center}
+  .upload-box h3{margin:0 0 12px 0;font-size:16px;color:var(--ink)}
+  .upload-box p{color:var(--ink-4);font-size:13px;margin:0 0 16px 0}
+  .upload-box input[type=file]{background:var(--panel);border:1px solid var(--line-strong);padding:10px;border-radius:var(--r-sm);color:var(--ink-2);width:100%;cursor:pointer}
+  .upload-box .status{margin-top:12px;font-size:13px;padding:8px 12px;border-radius:var(--r-sm);display:none}
+  .upload-box .status.loaded{display:block;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--ok)}
+
+  /* ===== resultados e tabelas ===== */
+  .results{display:none}
+  .results.active{display:block}
+  .table-meta{font-family:var(--mono);font-size:11px;color:var(--ink-4);margin:0 0 8px}
+  .table-foot{margin-top:10px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  table th{
+    background:var(--card);padding:10px 12px;text-align:left;
+    font-family:var(--mono);font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-3);border-bottom:1px solid var(--line-strong);white-space:nowrap
+  }
+  table td{padding:9px 12px;border-bottom:1px solid var(--line);color:var(--ink-2)}
+  table tr:hover td{background:rgba(37,99,235,0.05)}
+
+  .quality-badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10px;font-family:var(--mono);font-weight:700;letter-spacing:.04em}
+  .quality-high{background:rgba(74,222,128,.14);color:var(--ok)}
+  .quality-medium{background:rgba(248,247,243,.08);color:var(--ink-3)}
+  .quality-low{background:rgba(248,247,243,.05);color:var(--ink-4)}
+  .quality-conflict{background:rgba(251,191,36,.14);color:var(--warn)}
 </style>
+<style>.uploader,.upload-section{display:none!important}</style>
+</head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Segmentação - Pipeline de Normalização</h1>
-      <div class="subtitle">Normalize múltiplas fontes de segmento usando dicionário canônico e detecte conflitos automaticamente</div>
-    </header>
-    <section class="exec-band" id="exec-band" style="display:none;">
-      <div class="exec-kicker"><b>//</b> resumo executivo</div>
-      <div class="exec-q">Qual o estado de qualidade e a composição da base: quanto já está pronto para uso e quanto ainda exige revisão.</div>
-      <div class="exec-kpis" id="exec-kpis"></div>
-      <div class="exec-insight" id="exec-insight"></div>
-    </section>
-
-    <div class="upload-section">
-      <h2 style="margin:0 0 16px 0;font-size:18px">Upload de Arquivos</h2>
-      <div class="upload-grid">
-        <div class="upload-box">
-          <h3>Base de Dados (CSV)</h3>
-          <p>Upload do export do sistema CRM com campos de segmentação</p>
-          <input type="file" id="csvFile" accept=".csv" />
-          <div class="status" id="csvStatus"></div>
-        </div>
-        <div class="upload-box">
-          <h3>Dicionário (CSV)</h3>
-          <p>Mapeamento termo → canônico (raw_term,segmento_canonico)</p>
-          <input type="file" id="dictFile" accept=".csv" />
-          <div class="status" id="dictStatus"></div>
-        </div>
+<header>
+  <div class="wrap hdr-in">
+    <div class="brand">
+      <div class="logo">&gt;_</div>
+      <div>
+        <h1>Segmentação de Mercado <span class="version-badge">demo</span></h1>
+        <div class="desc">data quality · dicionário canônico · fila de conflitos</div>
       </div>
-      <button class="btn" id="processBtn" disabled>Processar Segmentação</button>
     </div>
-
-    <div class="results" id="results">
-      <div class="stats-grid" id="statsGrid"></div>
-      
-      <div class="section">
-        <h2>Base Enriquecida (preview)</h2>
-        <div class="panel-sub">Amostra da base após normalização e canonização dos segmentos.</div>
-        <div style="overflow-x:auto">
-          <table id="enrichedTable"></table>
-        </div>
-        <div class="export-buttons">
-          <button onclick="exportCSV('enriched')">↓ Baixar Base Enriquecida (CSV)</button>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>Fila de Conflitos</h2>
-        <div class="panel-sub">Registros em que as fontes discordam do segmento e exigem revisão.</div>
-        <div style="overflow-x:auto">
-          <table id="conflictsTable"></table>
-        </div>
-        <div class="export-buttons">
-          <button onclick="exportCSV('conflicts')">↓ Baixar Conflitos (CSV)</button>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>Termos Novos (não mapeados)</h2>
-        <div class="panel-sub">Termos ainda fora do dicionário canônico, aguardando mapeamento.</div>
-        <div style="overflow-x:auto">
-          <table id="newTermsTable"></table>
-        </div>
-        <div class="export-buttons">
-          <button onclick="exportCSV('newterms')">↓ Baixar Termos Novos (CSV)</button>
-        </div>
-      </div>
+    <div class="hdr-actions">
+      <span class="hdr-note">pipeline 100% no navegador</span>
     </div>
   </div>
+</header>
+
+<main class="wrap panel">
+
+  <section class="exec-band" id="exec-band" style="display:none;">
+    <div class="exec-kicker"><b>//</b> resumo executivo</div>
+    <div class="exec-q">Qual o estado de qualidade e a composição da base: quanto já está pronto para uso e quanto ainda exige revisão.</div>
+    <div class="kpis" id="kpis" style="margin-bottom:14px"></div>
+    <div class="exec-insight" id="exec-insight"></div>
+  </section>
+
+  <div class="upload-section">
+    <h2>Upload de Arquivos</h2>
+    <div class="upload-grid">
+      <div class="upload-box">
+        <h3>Base de Dados (CSV)</h3>
+        <p>Upload do export do sistema CRM com campos de segmentação</p>
+        <input type="file" id="csvFile" accept=".csv" />
+        <div class="status" id="csvStatus"></div>
+      </div>
+      <div class="upload-box">
+        <h3>Dicionário (CSV)</h3>
+        <p>Mapeamento termo → canônico (raw_term,segmento_canonico)</p>
+        <input type="file" id="dictFile" accept=".csv" />
+        <div class="status" id="dictStatus"></div>
+      </div>
+    </div>
+    <button class="btn" id="processBtn" disabled style="margin-top:16px">Processar Segmentação</button>
+  </div>
+
+  <div class="results" id="results">
+
+    <div class="grid">
+      <section class="col-6 card">
+        <div class="topic-head">
+          <h2>Composição da base por segmento</h2>
+        </div>
+        <div class="panel-sub">Top 10 segmentos canônicos por contagem de registros; o restante agrega em "Outros". Registros sem mapeamento não entram aqui (ver Qualidade da base).</div>
+        <div id="chartComposition" class="chart tall"></div>
+      </section>
+
+      <section class="col-6 card">
+        <div class="topic-head">
+          <h2>Qualidade da base</h2>
+        </div>
+        <div class="panel-sub">Distribuição da base pelas quatro faixas de qualidade da normalização.</div>
+        <div id="chartQuality" class="chart short"></div>
+        <div class="quality-rule"><b>Regra de qualidade:</b> Alta = fonte secundária ou perfil confirmam um único canônico; Média = só a fonte principal; Baixa = sem mapeamento; Conflito = fontes divergem.</div>
+      </section>
+
+      <section class="col-12 card">
+        <div class="topic-head">
+          <h2>Termos novos mais frequentes</h2>
+        </div>
+        <div class="panel-sub">Top 15 termos fora do dicionário canônico, por frequência na base: a ordem de prioridade para a curadoria do dicionário.</div>
+        <div id="chartNewTerms" class="chart"></div>
+      </section>
+    </div>
+
+    <section class="card actionable panel">
+      <div class="topic-head">
+        <h2>Fila de Conflitos</h2>
+        <div class="topic-actions">
+          <input type="search" id="conflictsSearch" class="search-input" placeholder="Buscar na fila..." aria-label="Buscar na fila de conflitos">
+          <button class="btn secondary sm" onclick="exportCSV('conflicts')">Baixar CSV</button>
+        </div>
+      </div>
+      <div class="panel-sub">Registros em que as fontes discordam do segmento e exigem revisão manual.</div>
+      <div class="table-meta" id="conflictsMeta"></div>
+      <div style="overflow-x:auto">
+        <table id="conflictsTable"></table>
+      </div>
+      <div class="table-foot"><button class="btn secondary sm" id="conflictsMore" style="display:none">Mostrar mais +50</button></div>
+    </section>
+
+    <section class="card panel">
+      <div class="topic-head">
+        <h2>Termos Novos (não mapeados)</h2>
+        <div class="topic-actions">
+          <button class="btn secondary sm" onclick="exportCSV('newterms')">Baixar CSV</button>
+        </div>
+      </div>
+      <div class="panel-sub">Termos ainda fora do dicionário canônico, aguardando mapeamento.</div>
+      <div class="table-meta" id="newtermsMeta"></div>
+      <div style="overflow-x:auto">
+        <table id="newTermsTable"></table>
+      </div>
+      <div class="table-foot"><button class="btn secondary sm" id="newtermsMore" style="display:none">Mostrar mais +30</button></div>
+    </section>
+
+    <section class="card quiet panel">
+      <div class="topic-head">
+        <h2>Base Enriquecida (preview)</h2>
+        <div class="topic-actions">
+          <input type="search" id="enrichedSearch" class="search-input" placeholder="Buscar na base..." aria-label="Buscar na base enriquecida">
+          <button class="btn secondary sm" onclick="exportCSV('enriched')">Baixar CSV</button>
+        </div>
+      </div>
+      <div class="panel-sub">Amostra da base após normalização e canonização dos segmentos.</div>
+      <div class="table-meta" id="enrichedMeta"></div>
+      <div style="overflow-x:auto">
+        <table id="enrichedTable"></table>
+      </div>
+      <div class="table-foot"><button class="btn secondary sm" id="enrichedMore" style="display:none">Mostrar mais +50</button></div>
+    </section>
+
+  </div>
+</main>
 
   <script>
+    /* ---------- Tema de visualização ----------
+       Paleta categórica validada; ordem fixa, nunca ciclar.
+       Alta/Média/Baixa é escala ORDINAL: rampa de UM matiz (azul).
+       Conflito é status: warn, sempre com rótulo junto. */
+    const CAT_PALETTE = ['#2563eb','#d95926','#199e70','#c98500','#d55181','#008300','#9085e9','#e66767'];
+    const SEQ_BLUE = ['#16233f','#1d3a6b','#1f55a3','#2f74d0','#60a5fa'];
+    const QUALITY_SERIES = [
+      { key: 'high',     label: 'Alta',     color: '#1d4ed8' },
+      { key: 'medium',   label: 'Média',    color: '#3b82f6' },
+      { key: 'low',      label: 'Baixa',    color: '#7db4f7' },
+      { key: 'conflict', label: 'Conflito', color: '#fbbf24' }
+    ];
+    echarts.registerTheme('demo', {
+      color: CAT_PALETTE,
+      backgroundColor: 'transparent',
+      textStyle: { fontFamily: '"Space Grotesk",system-ui,sans-serif', color: '#d4d4d8' },
+      legend: { textStyle: { color: '#a1a1aa', fontSize: 11 }, itemWidth: 12, itemHeight: 12, icon: 'rect' },
+      tooltip: { backgroundColor: '#131316', borderColor: 'rgba(248,247,243,.18)', borderWidth: 1, textStyle: { color: '#d4d4d8', fontSize: 12 } },
+      categoryAxis: { axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisTick: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisLabel: { color: '#8a8a94' }, splitLine: { show: false } },
+      valueAxis: { axisLine: { show: false }, axisLabel: { color: '#8a8a94' }, splitLine: { lineStyle: { color: 'rgba(248,247,243,.07)' } } }
+    });
+    function makeChart(el){ echarts.dispose(el); return echarts.init(el, 'demo'); }
+    function addResize(chart){ window.addEventListener('resize', () => chart.resize()); }
+    const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const nf = n => (n || 0).toLocaleString('pt-BR');
+
     let csvData = null;
     let dictData = null;
     let enrichedData = [];
@@ -290,7 +342,7 @@
     document.getElementById('csvFile').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      
+
       Papa.parse(file, {
         header: true,
         encoding: 'UTF-8',
@@ -306,7 +358,7 @@
     document.getElementById('dictFile').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      
+
       Papa.parse(file, {
         header: true,
         encoding: 'UTF-8',
@@ -326,8 +378,6 @@
     document.getElementById('processBtn').addEventListener('click', processPipeline);
 
     function processPipeline() {
-      console.log('Iniciando pipeline...');
-      
       // Build dictionary map
       const dictMap = new Map();
       dictData.forEach(row => {
@@ -340,37 +390,35 @@
       const newTermsSet = new Set();
       const stats = {total: csvData.length, high: 0, medium: 0, low: 0, conflict: 0};
 
-      csvData.forEach((row, idx) => {
+      csvData.forEach((row) => {
         const sources = {
           segmento: parseTerm(row['segmento']),
-          segmento2: parseTerm(row['segmento_1']),  // segmento_1 no CSV
-          segmentoIA: parseTerm(row['segment']),     // segment (não segmento ia)
+          segmento2: parseTerm(row['segmento_1']),
+          segmentoIA: parseTerm(row['segment']),
           perfilNegocio: parseTerm(row['perfil_do_negocio_da'])
         };
 
         // Map to canonical
         const mapped = {};
-        const foundTerms = [];
-        
+
         for (const [key, terms] of Object.entries(sources)) {
           if (!terms || terms.length === 0) continue;
-          
+
           const canonicals = terms.map(t => {
             const norm = normalizeTerm(t);
             const canonical = dictMap.get(norm);
             if (!canonical) newTermsSet.add(t);
             return canonical;
           }).filter(Boolean);
-          
+
           if (canonicals.length > 0) {
             mapped[key] = canonicals;
-            foundTerms.push(...canonicals);
           }
         }
 
         // Resolve conflicts and quality
         const result = resolveSegment(mapped, sources);
-        
+
         enrichedData.push({
           ...row,
           'segmento_canonico': result.canonical || 'Sem Segmento',
@@ -384,10 +432,10 @@
         if (result.quality === 'conflict') {
           conflictsData.push({
             'ID do negócio': row['ID do negócio'],
-            'segmento 2': row['segmento 2'] || '-',
-            'perfil negócio': row['perfil negócio'] || '-',
             'segmento': row['segmento'] || '-',
-            'segmento ia': row['segmento ia'] || '-',
+            'segmento_1': row['segmento_1'] || '-',
+            'perfil_do_negocio_da': row['perfil_do_negocio_da'] || '-',
+            'segment': row['segment'] || '-',
             'Ação': 'Validar manualmente'
           });
         }
@@ -395,8 +443,8 @@
 
       newTermsData = Array.from(newTermsSet).map(term => ({
         'Termo': term,
-        'Frequência': csvData.filter(r => 
-          [r['segmento'], r['segmento 2'], r['segmento ia'], r['perfil negócio']]
+        'Frequência': csvData.filter(r =>
+          [r['segmento'], r['segmento_1'], r['perfil_do_negocio_da'], r['segment']]
             .some(f => f && f.includes(term))
         ).length,
         'Canônico Sugerido': ''
@@ -430,10 +478,10 @@
       const ia = mapped.segmentoIA || [];
 
       const allSources = [];
-      if (seg2.length > 0) allSources.push('segmento_2');
-      if (perfil.length > 0) allSources.push('perfil_negocio');
+      if (seg2.length > 0) allSources.push('segmento_1');
+      if (perfil.length > 0) allSources.push('perfil_do_negocio_da');
       if (seg.length > 0) allSources.push('segmento');
-      if (ia.length > 0) allSources.push('segmento_ia');
+      if (ia.length > 0) allSources.push('segment');
 
       // Check convergence
       const allCanonicals = [...seg2, ...perfil, ...seg, ...ia];
@@ -458,7 +506,7 @@
           quality = 'conflict';
           canonical = seg2[0]; // Use precedence but mark conflict
         } else {
-          // Use precedence: seg2 > perfil > seg > ia
+          // Use precedence: segmento_1 > perfil > segmento > segment
           canonical = seg2[0] || perfil[0] || seg[0] || ia[0];
           quality = 'medium';
         }
@@ -477,92 +525,227 @@
     }
 
     function displayResults(stats) {
-      const statsHTML = `
-        <div class="stat-card">
-          <div class="stat-label">Total Processado</div>
-          <div class="stat-value">${stats.total}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Alta Qualidade</div>
-          <div class="stat-value">${stats.high}</div>
-          <div class="stat-badge ok">${((stats.high/stats.total)*100).toFixed(1)}%</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Média Qualidade</div>
-          <div class="stat-value">${stats.medium}</div>
-          <div class="stat-badge warn">${((stats.medium/stats.total)*100).toFixed(1)}%</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Conflitos</div>
-          <div class="stat-value">${stats.conflict}</div>
-          <div class="stat-badge danger">${((stats.conflict/stats.total)*100).toFixed(1)}%</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Termos Novos</div>
-          <div class="stat-value">${newTermsData.length}</div>
-        </div>
-      `;
-      document.getElementById('statsGrid').innerHTML = statsHTML;
-      renderExec(stats);
-      function renderExec(stats){
-        stats = stats || {};
-        var total = stats.total || 0;
-        var high = stats.high || 0, conflict = stats.conflict || 0;
-        var novos = (typeof newTermsData!=='undefined' && newTermsData) ? newTermsData.length : 0;
-        var t = total || 1;
-        var pctHigh = Math.round(high/t*100);
-        var nf=function(n){ return (n||0).toLocaleString('pt-BR'); };
-        var kpis=[
-          {v:nf(total), l:'Registros', h:'processados'},
-          {v:pctHigh+'%', l:'Alta qualidade', h:'prontos para uso', good:pctHigh>=60},
-          {v:nf(conflict), l:'Conflitos', h:'fontes divergentes'},
-          {v:nf(novos), l:'Termos novos', h:'fora do dicionário'}
-        ];
-        var insight='<b>'+pctHigh+'%</b> da base já está em alta qualidade e pronta para uso; <b>'+nf(conflict)+'</b> registros caem na fila de conflito e <b>'+nf(novos)+'</b> termos novos aguardam mapeamento no dicionário.';
-        var band=document.getElementById('exec-band'); if(band) band.style.display='block';
-        var kw=document.getElementById('exec-kpis');
-        if(kw) kw.innerHTML=kpis.map(function(k){ return '<div class="exec-kpi"><div class="ev'+(k.good?' good':'')+'">'+k.v+'</div><div class="el">'+k.l+'</div><div class="eh">'+k.h+'</div></div>'; }).join('');
-        var iw=document.getElementById('exec-insight');
-        if(iw) iw.innerHTML='<span class="ei-tag">insight</span>'+insight;
-      }
-
-      // Tables
-      renderTable('enrichedTable', enrichedData.slice(0, 50), ['ID do negócio', 'segmento_canonico', 'segmento_quality', 'segmento_sources', 'subsegmentos']);
-      renderTable('conflictsTable', conflictsData, ['ID do negócio', 'segmento 2', 'perfil negócio', 'segmento', 'Ação']);
-      renderTable('newTermsTable', newTermsData.slice(0, 30), ['Termo', 'Frequência', 'Canônico Sugerido']);
-
       document.getElementById('results').classList.add('active');
+      renderExec(stats);
+      renderCharts(stats);
+      resetTables();
     }
 
-    function renderTable(id, data, cols) {
-      if (data.length === 0) {
-        document.getElementById(id).innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">Nenhum registro</p>';
-        return;
+    /* ---------- Exec band + KPIs (linha única, sem duplicação) ---------- */
+    function renderExec(stats) {
+      stats = stats || {};
+      const total = stats.total || 0;
+      const t = Math.max(1, total);
+      const high = stats.high || 0, medium = stats.medium || 0, low = stats.low || 0, conflict = stats.conflict || 0;
+      const novos = newTermsData.length;
+      const pctHigh = Math.round(high / t * 100);
+      const pctMedium = Math.round(medium / t * 100);
+      const pctLow = Math.round(low / t * 100);
+      const pctConflict = Math.round(conflict / t * 100);
+
+      const kpis = [
+        {label: 'Registros', value: nf(total), sub: 'processados'},
+        {label: 'Alta qualidade', value: pctHigh + '%', sub: nf(high) + ' registros', cls: pctHigh >= 70 ? 'good' : ''},
+        {label: 'Média qualidade', value: pctMedium + '%', sub: nf(medium) + ' registros'},
+        {label: 'Baixa qualidade', value: pctLow + '%', sub: nf(low) + ' sem mapeamento'},
+        {label: 'Conflitos', value: nf(conflict), sub: pctConflict + '% da base', cls: pctConflict > 10 ? 'warn' : ''},
+        {label: 'Termos novos', value: nf(novos), sub: 'fora do dicionário'}
+      ];
+      const wrap = document.getElementById('kpis');
+      if (wrap) {
+        wrap.innerHTML = '';
+        for (const k of kpis) {
+          const el = document.createElement('div');
+          el.className = 'kpi';
+          el.innerHTML = `<div class="label">${escHtml(k.label)}</div><div class="value${k.cls ? ' ' + k.cls : ''}">${escHtml(k.value)}</div><div class="subv">${escHtml(k.sub)}</div>`;
+          wrap.appendChild(el);
+        }
       }
 
-      let html = '<thead><tr>';
-      cols.forEach(col => html += `<th>${col}</th>`);
-      html += '</tr></thead><tbody>';
-
-      data.forEach(row => {
-        html += '<tr>';
-        cols.forEach(col => {
-          let val = row[col] || '-';
-          if (col === 'segmento_quality') {
-            val = `<span class="quality-badge quality-${val}">${val.toUpperCase()}</span>`;
-          }
-          html += `<td>${val}</td>`;
-        });
-        html += '</tr>';
-      });
-
-      html += '</tbody>';
-      document.getElementById(id).innerHTML = html;
+      const band = document.getElementById('exec-band');
+      if (band) band.style.display = 'block';
+      const iw = document.getElementById('exec-insight');
+      if (iw) {
+        iw.innerHTML = '<span class="ei-tag">insight</span><b>' + pctHigh + '%</b> da base já está em alta qualidade e pronta para uso; <b>'
+          + nf(conflict) + '</b> registros caem na fila de conflito e <b>' + nf(novos) + '</b> termos novos aguardam mapeamento no dicionário.';
+      }
     }
+
+    /* ---------- Gráficos ---------- */
+    function emptyChartOption(msg) {
+      return { title: { text: msg, left: 'center', top: 'middle', textStyle: { color: '#8a8a94', fontSize: 12, fontWeight: 400 } } };
+    }
+
+    function renderCharts(stats) {
+      const t = Math.max(1, stats.total || 0);
+
+      // (a) Composição da base por segmento canônico: top 10 + Outros
+      const segCount = {};
+      enrichedData.forEach(r => {
+        const seg = r['segmento_canonico'];
+        if (!seg || seg === 'Sem Segmento') return;
+        segCount[seg] = (segCount[seg] || 0) + 1;
+      });
+      const sorted = Object.entries(segCount).sort((a, b) => b[1] - a[1]);
+      const top = sorted.slice(0, 10);
+      const restSum = sorted.slice(10).reduce((s, e) => s + e[1], 0);
+      if (restSum > 0) top.push(['Outros', restSum]);
+
+      const compChart = makeChart(document.getElementById('chartComposition'));
+      if (top.length === 0) {
+        compChart.setOption(emptyChartOption('Sem segmentos mapeados'));
+      } else {
+        compChart.setOption({
+          grid: {left: 8, right: 28, top: 10, bottom: 8, containLabel: true},
+          tooltip: {trigger: 'axis', axisPointer: {type: 'shadow'},
+            formatter: p => escHtml(p[0].name) + ': <b>' + nf(p[0].value) + '</b> (' + Math.round(p[0].value / t * 100) + '%)'},
+          xAxis: {type: 'value'},
+          yAxis: {type: 'category', inverse: true, data: top.map(e => e[0]), axisLabel: {width: 120, overflow: 'truncate'}},
+          series: [{type: 'bar', data: top.map(e => e[1]), itemStyle: {color: '#2563eb'}, barMaxWidth: 18}]
+        });
+      }
+      addResize(compChart);
+
+      // (b) Qualidade da base: UMA barra horizontal 100% empilhada
+      const qCounts = {};
+      QUALITY_SERIES.forEach(q => { qCounts[q.label] = stats[q.key] || 0; });
+      const qChart = makeChart(document.getElementById('chartQuality'));
+      qChart.setOption({
+        grid: {left: 8, right: 28, top: 34, bottom: 6, containLabel: true},
+        legend: {top: 0, left: 0, data: QUALITY_SERIES.map(q => q.label)},
+        tooltip: {trigger: 'axis', axisPointer: {type: 'shadow'},
+          formatter: params => params.map(p =>
+            p.marker + escHtml(p.seriesName) + ': <b>' + nf(qCounts[p.seriesName]) + '</b> (' + p.value + '%)'
+          ).join('<br>')},
+        xAxis: {type: 'value', max: 100, axisLabel: {formatter: '{value}%'}},
+        yAxis: {type: 'category', data: ['Base']},
+        series: QUALITY_SERIES.map(q => ({
+          name: q.label, type: 'bar', stack: 'qualidade',
+          data: [ +((stats[q.key] || 0) / t * 100).toFixed(1) ],
+          itemStyle: {color: q.color}, barMaxWidth: 26
+        }))
+      });
+      addResize(qChart);
+
+      // (c) Termos novos mais frequentes: top 15 para priorizar a curadoria
+      const terms = newTermsData.slice(0, 15);
+      const ntChart = makeChart(document.getElementById('chartNewTerms'));
+      if (terms.length === 0) {
+        ntChart.setOption(emptyChartOption('Sem termos novos: dicionário cobre toda a base'));
+      } else {
+        ntChart.setOption({
+          grid: {left: 8, right: 16, top: 16, bottom: 8, containLabel: true},
+          tooltip: {trigger: 'axis', axisPointer: {type: 'shadow'},
+            formatter: p => escHtml(p[0].name) + ': <b>' + nf(p[0].value) + '</b> ocorrências'},
+          xAxis: {type: 'category', data: terms.map(x => x['Termo']), axisLabel: {rotate: 30, width: 96, overflow: 'truncate'}},
+          yAxis: {type: 'value'},
+          series: [{type: 'bar', data: terms.map(x => x['Frequência']), itemStyle: {color: '#2563eb'}, barMaxWidth: 26}]
+        });
+      }
+      addResize(ntChart);
+    }
+
+    /* ---------- Tabelas gerenciadas (busca + "mostrando N de M" + mostrar mais) ---------- */
+    const QUALITY_LABELS = { high: 'ALTA', medium: 'MÉDIA', low: 'BAIXA', conflict: 'CONFLITO' };
+
+    const TABLE_DEFS = {
+      conflicts: {
+        tableId: 'conflictsTable', metaId: 'conflictsMeta', moreId: 'conflictsMore', searchId: 'conflictsSearch',
+        step: 50,
+        cols: ['ID do negócio', 'segmento', 'segmento_1', 'perfil_do_negocio_da', 'segment', 'Ação'],
+        data: () => conflictsData
+      },
+      newterms: {
+        tableId: 'newTermsTable', metaId: 'newtermsMeta', moreId: 'newtermsMore', searchId: null,
+        step: 30,
+        cols: ['Termo', 'Frequência', 'Canônico Sugerido'],
+        data: () => newTermsData
+      },
+      enriched: {
+        tableId: 'enrichedTable', metaId: 'enrichedMeta', moreId: 'enrichedMore', searchId: 'enrichedSearch',
+        step: 50,
+        cols: ['ID do negócio', 'segmento_canonico', 'segmento_quality', 'segmento_sources', 'subsegmentos'],
+        data: () => enrichedData
+      }
+    };
+    const tableState = {
+      conflicts: {limit: 50, query: ''},
+      newterms: {limit: 30, query: ''},
+      enriched: {limit: 50, query: ''}
+    };
+
+    function renderManagedTable(kind) {
+      const def = TABLE_DEFS[kind];
+      const st = tableState[kind];
+      const all = def.data() || [];
+      const q = st.query.trim().toLowerCase();
+      const filtered = q
+        ? all.filter(row => def.cols.some(c => String(row[c] == null ? '' : row[c]).toLowerCase().includes(q)))
+        : all;
+      const shown = filtered.slice(0, st.limit);
+
+      const table = document.getElementById(def.tableId);
+      if (shown.length === 0) {
+        table.innerHTML = '<tbody><tr><td style="color:var(--ink-4);text-align:center;padding:20px">'
+          + (q ? 'Nenhum registro para a busca' : 'Nenhum registro') + '</td></tr></tbody>';
+      } else {
+        let html = '<thead><tr>';
+        def.cols.forEach(col => html += `<th>${escHtml(col)}</th>`);
+        html += '</tr></thead><tbody>';
+        shown.forEach(row => {
+          html += '<tr>';
+          def.cols.forEach(col => {
+            const raw = (row[col] == null || row[col] === '') ? '-' : row[col];
+            let cell = escHtml(raw);
+            if (col === 'segmento_quality') {
+              cell = `<span class="quality-badge quality-${escHtml(raw)}">${escHtml(QUALITY_LABELS[raw] || raw)}</span>`;
+            }
+            html += `<td>${cell}</td>`;
+          });
+          html += '</tr>';
+        });
+        html += '</tbody>';
+        table.innerHTML = html;
+      }
+
+      const meta = document.getElementById(def.metaId);
+      if (meta) {
+        let txt = 'mostrando ' + nf(shown.length) + ' de ' + nf(filtered.length) + ' registros';
+        if (q && filtered.length !== all.length) txt += ' (busca em ' + nf(all.length) + ')';
+        meta.textContent = txt;
+      }
+      const more = document.getElementById(def.moreId);
+      if (more) more.style.display = filtered.length > st.limit ? '' : 'none';
+    }
+
+    function resetTables() {
+      Object.keys(TABLE_DEFS).forEach(kind => {
+        tableState[kind].limit = TABLE_DEFS[kind].step;
+        renderManagedTable(kind);
+      });
+    }
+
+    // liga busca e "mostrar mais" (uma vez; o markup vive acima deste script)
+    Object.keys(TABLE_DEFS).forEach(kind => {
+      const def = TABLE_DEFS[kind];
+      if (def.searchId) {
+        const inp = document.getElementById(def.searchId);
+        if (inp) inp.addEventListener('input', () => {
+          tableState[kind].query = inp.value;
+          tableState[kind].limit = def.step;
+          renderManagedTable(kind);
+        });
+      }
+      const more = document.getElementById(def.moreId);
+      if (more) more.addEventListener('click', () => {
+        tableState[kind].limit += def.step;
+        renderManagedTable(kind);
+      });
+    });
 
     function exportCSV(type) {
       let data, filename;
-      
+
       if (type === 'enriched') {
         data = enrichedData;
         filename = 'base_enriquecida_' + getDateStr() + '.csv';
@@ -584,40 +767,11 @@
 
     function getDateStr() {
       const d = new Date();
-      return d.getFullYear() + '-' + 
-        String(d.getMonth()+1).padStart(2,'0') + '-' + 
+      return d.getFullYear() + '-' +
+        String(d.getMonth()+1).padStart(2,'0') + '-' +
         String(d.getDate()).padStart(2,'0');
     }
   </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
 <script>
