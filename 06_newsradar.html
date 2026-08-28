@@ -1,987 +1,437 @@
 <!DOCTYPE html>
 <!--
-  ╔═══════════════════════════════════════════════════════════╗
-  ║  NewsRadar - Dashboard Editorial                          ║
-  ║  Versão: v1.0                                            ║
-  ║  Última atualização: 31/10/2025                          ║
-  ║  Descrição: Dashboard editorial para análise de          ║
-  ║             conteúdo e métricas de produção              ║
-  ╚═══════════════════════════════════════════════════════════╝
+  NewsRadar - Dashboard Editorial (demo)
+  Analise de artigos, fontes e palavras-chave a partir de CSV.
 -->
 <html lang="pt-br">
 <head>
 <meta charset="utf-8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NewsRadar • Dashboard Editorial v3.8</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<title>NewsRadar Editorial | Felippe Yann</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+
 <style>
-:root{
-  --bg:#0a0a0b;
-  --panel:#131316;
-  --card:#1a1a1e;
-  --text:#e5e7eb;
-  --muted:#9ca3af;
-  --accent:#2563eb;
-  --accent-glow:rgba(56, 189, 248, 0.3);
-  --accent-2:#60a5fa;
-  --good:#22c55e;
-  --warn:#f59e0b;
-  --bad:#ef4444;
-  --line:#232328;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{
-  scroll-behavior: smooth;
-}
-html,body{height:100%}
-body{
-  margin:0;
-  background:linear-gradient(180deg,#0a0f1d 0%,#0a0a0b 60%,#0a0f1d 100%);
-  color:var(--text);
-  font:500 clamp(14px,1.5vw,16px)/1.5 'Montserrat', system-ui, -apple-system, sans-serif;
-}
-header{
-  position: fixed; 
-  top: 0;
-  width: 100%; 
-  z-index: 1000;
-  background:linear-gradient(180deg, rgba(10,15,29,0.95) 0%, rgba(10,15,29,0.80) 100%);
-  backdrop-filter: blur(6px);
-  border-bottom:1px solid var(--line);
-  transition: transform 0.3s ease-in-out; 
-}
-.header-hidden {
-  transform: translateY(-100%); 
-}
-.wrap{width:100%;max-width:1360px;margin:0 auto;padding:8px clamp(12px,3vw,16px)}
-.title{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.title h1{margin:0;font-size:14px;font-weight:600}
-.badge{font-size:10px;padding:2px 6px;border:1px solid var(--line);border-radius:20px;color:var(--muted)}
+  /* ===== tokens (fonte única de verdade do arquivo) ===== */
+  :root{
+    --bg:#0a0a0b;
+    --panel:#131316;
+    --card:#1a1a1e;
+    --card-h:#232328;
+    --ink:#f8f7f3; --ink-2:#d4d4d8; --ink-3:#a1a1aa; --ink-4:#8a8a94;
+    --accent:#2563eb;
+    --accent-soft:#60a5fa;
+    --accent-glow:rgba(37,99,235,0.15);
+    --ok:#4ade80; --warn:#fbbf24; --bad:#f87171;
+    --line:rgba(248,247,243,.09); --line-strong:rgba(248,247,243,.18);
+    --sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --r:12px; --r-sm:8px;
+    /* aliases legados (consumidos por markup antigo) */
+    --muted:var(--ink-4);
+    --text:var(--ink);
+    --accent-2:var(--accent-soft);
+    --good:var(--ok);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink-2);font-family:var(--sans);font-size:14px;line-height:1.5}
+  a{color:var(--accent-soft);text-decoration:none}
+  button{font-family:var(--sans)}
 
-.uploader{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
-.uploader input[type=file]{background:var(--panel);border:1px dashed #334155;padding:8px;border-radius:8px;color:var(--muted);width:100%;max-width:320px;font-size:11px}
-.hint{color:var(--muted);font-size:10px}
+  /* ===== header (sticky, compacto) ===== */
+  header{
+    position:sticky;top:0;z-index:60;
+    background:rgba(10,10,11,.92);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .wrap{max-width:1400px;margin:0 auto;padding:0 20px}
+  .hdr-in{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;padding:8px 0}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .logo{
+    width:30px;height:30px;border-radius:var(--r-sm);flex:none;
+    background:var(--accent);color:#fff;
+    font-family:var(--mono);font-weight:700;font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .desc{color:var(--ink-4);font-size:11px;font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  @media (max-width:760px){ .desc{display:none} h1{font-size:14px} }
 
-/* Menu de navegação minimizável - REMOVIDO */
+  /* ===== filter bar ===== */
+  .filterbar{border-top:1px solid var(--line);background:rgba(19,19,22,.9)}
+  .fb-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 0}
+  .fb-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);white-space:nowrap}
+  .fb-sep{width:1px;height:22px;background:var(--line-strong);flex:none}
+  .fb-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
 
-.version-badge{
-  display:inline-block;
-  background:rgba(56, 189, 248, 0.15);
-  border:1px solid rgba(56, 189, 248, 0.4);
-  color:#93c5fd;
-  font-size:clamp(10px,1.2vw,11px);
-  font-weight:600;
-  padding:4px 12px;
-  border-radius:12px;
-  margin-left:10px;
-  letter-spacing:0.5px;
-}
-.controls{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-top:6px;
-  align-items:center;
-  padding:8px 10px;
-  background:rgba(15, 23, 42, 0.6);
-  border:1px solid #334155;
-  border-radius:8px;
-}
-.controls-label{
-  color:#cbd5e1;
-  font-weight:600;
-  font-size:10px;
-}
-.controls .btn, .controls label, .card-header button{
-  background:var(--panel);
-  border:1px solid #334155;
-  padding:6px 10px;
-  border-radius:6px;
-  font-size:11px;
-  font-weight:500;
-  cursor:pointer;
-  color:var(--text);
-  transition:all 0.2s ease;
-  min-height:32px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-.controls .btn:hover, .controls label:hover, .card-header button:hover{
-  background:var(--accent-glow);
-  border-color:var(--accent);
-}
-.controls .btn:disabled, .card-header button:disabled{
-  background:rgba(255,255,255,.02);
-  color:var(--muted);
-  cursor:not-allowed;
-  opacity:0.5;
-}
-.controls input[type="file"]{display:none}
-
-/* Container principal do dashboard */
-body > .wrap {
-  padding-top: 240px;
-}
-
-#alerts{
-  margin-top:14px;
-}
-#active-filters{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-top:12px;
-  min-height:28px;
-}
-.grid{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:clamp(16px,2vw,24px);
-  margin-top:clamp(16px,2vw,24px);
-}
-@media(min-width:640px){
-  .grid{grid-template-columns:repeat(6,1fr)}
-  .row-6{grid-column:span 6}
-  .row-4{grid-column:span 6}
-}
-@media(min-width:900px){
-  .grid{grid-template-columns:repeat(12,1fr)}
-  .row-6{grid-column:span 6}
-  .row-4{grid-column:span 4}
-}
-@media(min-width:1100px){
-  .grid-hero{grid-template-columns:1.2fr .8fr}
-  .grid-two{grid-template-columns:1fr 1fr}
-}
-@media(min-width:1280px){
-  .wrap{max-width:1360px}
-}
-.grid > div {margin-bottom:0}
-.card{
-  grid-column:1 / -1;
-  background:
-    radial-gradient(1200px 300px at 10% -10%,rgba(56, 189, 248, 0.06),transparent),
-    radial-gradient(900px 300px at 90% -20%,rgba(14, 165, 233, 0.06),transparent),
-    var(--panel);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:clamp(16px,2.5vw,20px);
-  box-shadow:0 4px 20px rgba(0,0,0,.3);
-  transition:all 0.3s ease;
-  scroll-margin-top: 120px;
-}
-.card:hover{
-  box-shadow:0 6px 24px rgba(56, 189, 248, 0.12);
-  border-color:rgba(56, 189, 248, 0.25);
-}
-.card-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:14px;
-  margin-bottom:clamp(14px,2vw,18px);
-  flex-wrap:wrap;
-}
-.card h2{
-  margin:0 0 8px 0;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:clamp(15px,2vw,17px);
-  color:var(--text);
-  font-weight:600;
-  letter-spacing:.3px;
-}
-.card h2 small{
-  color:var(--muted);
-  font-weight:500;
-  font-size:clamp(12px,1.5vw,13px);
-}
-/* Numeração dos visualizadores */
-.card h2::before {
-  content: attr(data-number);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-  color: #0a0a0b;
-  border-radius: 8px;
-  font-size: clamp(12px,1.5vw,14px);
-  font-weight: 700;
-  padding: 0 8px;
-  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35);
-  flex-shrink: 0;
-}
-.card-header .actions{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-.card-header .icon-btn{
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.1);
-  min-width:44px;
-  min-height:44px;
-  width:auto;
-  height:auto;
-  padding:10px;
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  font-size:clamp(16px,2vw,18px);
-  transition:all 0.2s ease;
-  position:relative;
-}
-.card-header .icon-btn:hover{
-  background:var(--accent-glow);
-  border-color:var(--accent);
-  transform:translateY(-2px);
-}
-.card-header .icon-btn.menu-btn{
-  font-weight:bold;
-}
-.chart-menu{
-  position:absolute;
-  top:calc(100% + 4px);
-  right:0;
-  background:var(--panel);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:12px;
-  padding:8px;
-  min-width:180px;
-  box-shadow:0 8px 24px rgba(0,0,0,.4);
-  z-index:50;
-  display:none;
-}
-.chart-menu.show{
-  display:block;
-  animation:menuSlide 0.2s ease;
-}
-@keyframes menuSlide{
-  from{opacity:0;transform:translateY(-8px)}
-  to{opacity:1;transform:translateY(0)}
-}
-.chart-menu button{
-  width:100%;
-  background:transparent;
-  border:none;
-  padding:12px 14px;
-  text-align:left;
-  color:var(--text);
-  font-size:clamp(13px,1.5vw,14px);
-  border-radius:8px;
-  cursor:pointer;
-  transition:all 0.2s ease;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  min-height:44px;
-}
-.chart-menu button:hover{
-  background:var(--accent-glow);
-  color:#bae6fd;
-}
-.chart{
-  width:100%;
-  height:clamp(280px,45vw,420px);
-  min-height:240px;
-}
-
-/* Info Icon Tooltip */
-.info-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  margin-left: 8px;
-  font-size: 12px;
-  font-weight: bold;
-  color: #666;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid #3a3a45;
-  border-radius: 50%;
-  cursor: help;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 100;
-}
-
-.info-icon:hover {
-  color: var(--accent);
-  background: var(--accent-glow);
-  border-color: var(--accent);
-  transform: scale(1.1);
-  z-index: 10000;
-}
-
-.info-icon .tooltip {
-  visibility: hidden;
-  opacity: 0;
-  position: absolute;
-  bottom: calc(100% + 12px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(28,28,34,0.98);
-  color: #DADAE3;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--accent);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: normal;
-  line-height: 1.5;
-  z-index: 10001;
-  transition: all 0.3s ease;
-  pointer-events: none;
-  min-width: 200px;
-}
-
-.info-icon .tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--accent);
-}
-
-.info-icon:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-
-.table-container {
-    max-height: 320px;
-    overflow-y: auto;
-    border-radius: 8px;
-    position: relative;
-}
-
-.table-container thead {
-    position: sticky;
-    top: 0;
-    background: var(--panel);
-    z-index: 1;
-}
-
-.table-container::-webkit-scrollbar {
-    width: 8px;
-}
-
-.table-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-    background: rgba(56, 189, 248, 0.3);
-    border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(56, 189, 248, 0.5);
-}
-
-.table{width:100%;border-collapse:collapse;table-layout:fixed}
-.table th,.table td{padding:clamp(10px,1.5vw,12px);border-bottom:1px solid rgba(255,255,255,.06);font-size:clamp(13px,1.5vw,14px);vertical-align:top}
-.table td:nth-child(2){max-width:450px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.table th{text-align:left;color:var(--muted);font-weight:600}
-.table th.sortable{cursor:pointer;-webkit-user-select:none;user-select:none;min-height:44px;}
-.table th.sortable:hover{color:var(--text)}
-.table th.sortable span{margin-left:6px;display:inline-block;width:12px;}
-.footer{opacity:.7;font-size:clamp(11px,1.3vw,12px);margin:16px 0 40px;color:var(--muted)}
-.kpi{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-  margin-top:8px;
-}
-.kpi .pill{
-  background:var(--panel);
-  border:1px solid #334155;
-  padding:6px 10px;
-  border-radius:6px;
-  transition:all 0.2s ease;
-  min-width:80px;
-}
-.kpi .pill:hover{
-  background:var(--accent-glow);
-  border-color:var(--accent);
-  transform:translateY(-2px);
-}
-.kpi .num{
-  font-weight:700;
-  font-size:13px;
-  color:var(--accent);
-  margin-bottom:2px;
-  line-height:1.2;
-}
-.kpi .pill div:last-child{
-  font-size:10px;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:0.5px;
-}
-.badge{
-  display:inline-block;
-  padding:4px 10px;
-  background:rgba(56, 189, 248, 0.12);
-  border:1px solid rgba(56, 189, 248, 0.35);
-  color:#bae6fd;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:500;
-}
-.warn{
-  background:rgba(234,179,8,.12);
-  border:1px solid rgba(234,179,8,.4);
-  color:#fde68a;
-  padding:10px 14px;
-  border-radius:12px;
-  font-size:12px;
-  line-height:1.5;
-}
-.flex{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-.select{
-  appearance:none;
-  background:#232328 url('data:image/svg+xml;utf8,<svg fill="%23cbd5e1" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 10px center;
-  border:1px solid #334155;
-  color:#cbd5e1;
-  padding:clamp(8px,1.2vw,10px) clamp(32px,4vw,38px) clamp(8px,1.2vw,10px) clamp(12px,1.5vw,14px);
-  border-radius:8px;
-  font-size:clamp(13px,1.5vw,14px);
-  font-weight:500;
-  cursor:pointer;
-  transition:all 0.2s ease;
-  min-height:44px;
-}
-.select:hover{
-  background-color:var(--accent-glow);
-  border-color:var(--accent);
-}
-.select:focus{
-  outline:none;
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px var(--accent-glow);
-}
-.select option{
-  background:var(--panel);
-  color:var(--text);
-}
-.input{
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.1);
-  color:var(--text);
-  padding:clamp(10px,1.5vw,12px) clamp(12px,1.8vw,14px);
-  border-radius:10px;
-  font-size:clamp(13px,1.5vw,14px);
-  min-width:clamp(180px,25vw,240px);
-  transition:all 0.2s ease;
-  min-height:44px;
-}
-.input:hover{
-  background:rgba(255,255,255,.08);
-  border-color:rgba(56, 189, 248, 0.3);
-}
-.input:focus{
-  outline:none;
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px var(--accent-glow);
-}
-.input::placeholder{
-  color:var(--muted);
-  opacity:0.6;
-}
-.chips{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.chip{
-  padding:clamp(10px,1.5vw,12px) clamp(14px,2vw,16px);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:999px;
-  font-size:clamp(12px,1.4vw,13px);
-  font-weight:500;
-  cursor:pointer;
-  transition:all 0.2s ease;
-  background:rgba(255,255,255,.04);
-  min-height:44px;
-  display:inline-flex;
-  align-items:center;
-}
-.chip:hover{
-  background:rgba(255,255,255,.08);
-  border-color:rgba(56, 189, 248, 0.3);
-  transform:translateY(-1px);
-}
-.chip.active{
-  background:var(--accent-glow);
-  border-color:var(--accent);
-  color:#bae6fd;
-  box-shadow:0 0 0 2px rgba(56, 189, 248, 0.1);
-}
-.filter-pill{
-  background:rgba(56, 189, 248, 15);
-  border:1px solid rgba(56, 189, 248, 0.5);
-  color:#bae6fd;
-  padding:clamp(8px,1.2vw,10px) clamp(12px,1.8vw,14px);
-  font-size:clamp(12px,1.4vw,13px);
-  border-radius:999px;
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  transition:all 0.2s ease;
-  max-width:280px;
-}
-@media (prefers-reduced-motion: no-preference) {
   .filter-pill{
-    animation:slideIn 0.3s ease;
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--accent-glow);border:1px solid rgba(37,99,235,.4);border-radius:999px;
+    padding:3px 6px 3px 11px;font-size:12px;color:var(--ink);
   }
-}
-.filter-pill:hover{
-  background:var(--accent-glow);
-  border-color:var(--accent);
-  transform:translateY(-1px);
-}
-.filter-pill .key{
-  font-weight:600;
-  opacity:0.8;
-}
-.filter-pill .value{
-  font-weight:500;
-}
-.filter-pill .close-btn{
-  background:transparent;
-  border:none;
-  color:#bae6fd;
-  font-size:18px;
-  line-height:1;
-  cursor:pointer;
-  padding:0 4px;
-  margin-left:4px;
-  opacity:0.7;
-  transition:all 0.2s ease;
-  font-weight:bold;
-  min-width:auto;
-  min-height:auto;
-}
-.filter-pill .close-btn:hover{
-  opacity:1;
-  transform:scale(1.2);
-  color:#fff;
-}
-.filter-pill span{
-  cursor:pointer;
-  font-weight:bold;
-  font-size:14px;
-  line-height:1;
-  opacity:0.7;
-  transition:opacity 0.2s ease;
-}
-.filter-pill span:hover{
-  opacity:1;
-}
-.filter-counter{
-  background:rgba(56, 189, 248, 0.2);
-  border:1px solid rgba(56, 189, 248, 0.6);
-  color:#bae6fd;
-  padding:clamp(8px,1.2vw,10px) clamp(14px,2vw,16px);
-  font-size:clamp(12px,1.4vw,13px);
-  border-radius:999px;
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  font-weight:600;
-  letter-spacing:0.3px;
-}
-.filter-counter .icon{
-  font-size:clamp(14px,1.6vw,16px);
-}
-.filter-empty{
-  color:var(--muted);
-  font-size:clamp(12px,1.4vw,13px);
-  font-style:italic;
-  padding:8px 0;
-}
-@keyframes slideIn{
-  from{opacity:0;transform:translateX(-10px)}
-  to{opacity:1;transform:translateX(0)}
-}
-hr.sep{border:0;border-top:1px dashed rgba(255,255,255,.14);margin:12px 0}
-.table-filter-toggle{cursor:pointer;padding:4px;border-radius:6px;font-size:13px;color:var(--muted); margin-bottom:10px;}
-.table-filters{display:none; gap:10px; padding:10px; border:1px solid rgba(255,255,255,.08); border-radius:12px; margin-bottom:12px}
-#table-footer-note{font-size:12px;color:var(--muted);margin-top:10px;}
+  .filter-pill .key{color:var(--accent-soft);font-family:var(--mono);font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em}
+  .filter-pill .value{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+  .filter-pill .close-btn{border:none;background:none;color:var(--ink-4);cursor:pointer;padding:0 4px;font-size:13px;line-height:1;border-radius:50%}
+  .filter-pill .close-btn:hover{color:var(--bad)}
+  .filter-counter{font-family:var(--mono);font-size:11px;color:var(--ink-4);white-space:nowrap}
+  .filter-empty{color:var(--ink-4);font-size:11.5px;font-family:var(--mono)}
 
-/* CSS do Gemini - REMOVIDO */
-
-/* Botão Metodologia */
-.btn-metodologia:hover {
-  background: var(--accent-glow);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-/* Loading Overlay */
-.loading-overlay{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(11,15,26,0.95);
-  backdrop-filter:blur(8px);
-  z-index:9999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  opacity:0;
-  visibility:hidden;
-  transition:all 0.3s ease;
-}
-.loading-overlay.show{
-  opacity:1;
-  visibility:visible;
-}
-.loading-spinner{
-  text-align:center;
-}
-.spinner{
-  width:60px;
-  height:60px;
-  border:4px solid rgba(56, 189, 248, 0.2);
-  border-top-color:var(--accent);
-  border-radius:50%;
-  margin:0 auto 20px;
-  animation:spin 1s linear infinite;
-}
-@keyframes spin{
-  to{transform:rotate(360deg)}
-}
-.loading-text{
-  color:var(--text);
-  font-size:clamp(14px,1.6vw,16px);
-  font-weight:500;
-  margin-top:16px;
-}
-
-/* Botão Metodologia (continuação) */
-.btn-metodologia {
-  background: var(--panel);
-  border: 1px solid #334155;
-  color: #cbd5e1;
-  padding: clamp(10px,1.5vw,12px) clamp(14px,2vw,16px);
-  border-radius: 8px;
-  font-size: clamp(13px,1.5vw,14px);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-height:44px;
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-}
-
-.btn-metodologia:hover {
-  background: var(--accent-glow);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-/* Modal de Metodologia */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
-  z-index: 9999;
-  animation: fadeIn 0.2s ease;
-}
-
-.modal-overlay.active {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.modal-content {
-  background: linear-gradient(135deg, #0F0F12 0%, #1a1a1f 100%);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  border-radius: 16px;
-  max-width: 800px;
-  max-height: 85vh;
-  width: 100%;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(56, 189, 248, 0.2);
-  animation: slideUp 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(56, 189, 248, 0.05);
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: clamp(18px,2.2vw,22px);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.modal-close {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: clamp(18px,2vw,22px);
-  transition: all 0.2s ease;
-  padding: 0;
-}
-
-.modal-close:hover {
-  background: rgba(239, 68, 68, 0.25);
-  transform: scale(1.1);
-}
-
-.modal-body {
-  padding: 24px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.modal-body h3 {
-  color: #fff;
-  font-size: clamp(15px,2vw,17px);
-  margin: 0 0 12px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.modal-body ul {
-  margin: 0 0 16px 0;
-  padding-left: 24px;
-  color: #C9C9D1;
-  font-size: clamp(13px,1.5vw,14px);
-  line-height: 1.7;
-}
-
-.modal-body li {
-  margin-bottom: 10px;
-}
-
-.modal-body code {
-  background: var(--accent-glow);
-  color: var(--accent);
-  padding: 3px 8px;
-  border-radius: 5px;
-  font-family: 'Courier New', monospace;
-  font-size: clamp(11px,1.3vw,12px);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Scroll to top button */
-#scrollToTop {
-  position: fixed;
-  bottom: clamp(90px,12vw,110px);
-  right: clamp(20px,3vw,32px);
-  min-width: 48px;
-  min-height: 48px;
-  background: var(--panel);
-  border: 1px solid rgba(153, 41, 234, 0.4);
-  color: var(--accent);
-  border-radius: 50%;
-  font-size: clamp(20px,2.5vw,24px);
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  z-index: 140;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-}
-#scrollToTop.show {
-  display: flex;
-  opacity: 1;
-}
-@media (prefers-reduced-motion: no-preference) {
-  #scrollToTop:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 20px var(--accent-glow);
-    background: var(--accent-glow);
+  /* ===== alerts ===== */
+  #alerts{margin-top:12px}
+  #alerts:empty{margin:0}
+  .warn{
+    background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.35);color:var(--warn);
+    padding:10px 14px;border-radius:var(--r-sm);font-size:12px;line-height:1.5;
   }
-}
+  .badge{
+    display:inline-block;padding:4px 10px;background:var(--accent-glow);
+    border:1px solid rgba(37,99,235,.4);color:var(--accent-soft);
+    border-radius:999px;font-size:12px;
+  }
+  .version-badge{display:inline-block;background:var(--accent-glow);border:1px solid rgba(37,99,235,.4);color:var(--accent-soft);font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:10px;margin-left:8px;letter-spacing:0.5px;vertical-align:middle}
 
-/* Acessibilidade - skip link */
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 0;
-  background: var(--accent);
-  color: white;
-  padding: 8px 16px;
-  text-decoration: none;
-  border-radius: 0 0 8px 0;
-  z-index: 1000;
-  font-weight: 600;
-}
-.skip-link:focus {
-  top: 0;
-}
+  /* ===== cards e grid ===== */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line-strong);
+    border-radius:var(--r);padding:16px 18px;
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+    min-width:0;
+  }
+  .grid{display:grid;gap:14px;margin-top:16px;grid-template-columns:1fr}
+  .grid > .card{min-width:0}
+  @media (min-width:980px){
+    .grid-hero{grid-template-columns:.9fr 1.1fr}
+    .grid-two{grid-template-columns:1fr 1fr}
+  }
 
-/* Screen reader only (acessibilidade) */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
+  .card-header{
+    display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:12px;row-gap:2px;
+    margin-bottom:10px;
+  }
+  .card h2{
+    margin:0;font-size:14px;font-weight:700;color:var(--ink);letter-spacing:.01em;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  }
+  .card h2 small{color:var(--ink-4);font-weight:500;font-size:12px}
+  .card h2[data-number]::before{
+    content:attr(data-number);
+    font-family:var(--mono);font-size:10px;font-weight:700;color:var(--accent-soft);
+    border:1px solid rgba(37,99,235,.4);border-radius:6px;padding:2px 6px;flex:none;
+  }
+  .panel-sub{grid-column:1;font-size:12.5px;line-height:1.45;color:var(--ink-4);margin:2px 0 0;max-width:82ch}
+  .card-header .actions{grid-column:2;grid-row:1 / span 2;display:flex;gap:8px;align-items:center}
 
-/* Focus indicators globais para acessibilidade */
-button:focus-visible,
-a:focus-visible,
-select:focus-visible,
-input:focus-visible,
-.chip:focus-visible,
-.icon-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px var(--accent-glow);
-}
+  .card-header .icon-btn{
+    all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
+    width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-4);cursor:pointer;
+    border:1px solid var(--line);font-size:15px;
+    transition:color .15s,border-color .15s,background .15s;
+  }
+  .card-header .icon-btn:hover{color:var(--ink);border-color:var(--accent);background:var(--accent-glow)}
+  .card-header .icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-/* Remove outline padrão quando usando :focus-visible */
-button:focus:not(:focus-visible),
-a:focus:not(:focus-visible),
-select:focus:not(:focus-visible) {
-  outline: none;
-}
+  .chart-menu{
+    position:absolute;top:calc(100% + 4px);right:0;
+    background:var(--card-h);border:1px solid var(--line-strong);border-radius:var(--r-sm);
+    padding:6px;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:50;display:none;
+  }
+  .chart-menu.show{display:block}
+  .chart-menu button{
+    width:100%;background:transparent;border:none;padding:8px 10px;text-align:left;
+    color:var(--ink-2);font-size:12px;border-radius:6px;cursor:pointer;
+  }
+  .chart-menu button:hover{background:var(--accent-glow);color:var(--ink)}
+
+  .chart{width:100%;height:300px}
+  .chart.tall{height:340px}
+  .chart.x-tall{height:400px}
+
+  /* ===== KPIs (linha única) ===== */
+  .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:600px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{
+    background:var(--card);
+    border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;min-width:0
+  }
+  .kpi .label{color:var(--ink-4);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .value{font-size:24px;font-weight:700;margin-top:6px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .subv{color:var(--ink-4);font-size:11.5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ===== faixa executiva ===== */
+  .exec-band{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);padding:18px 20px;margin-bottom:16px}
+  .exec-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-bottom:8px}
+  .exec-kicker b{color:var(--accent);font-weight:700}
+  .exec-q{color:var(--ink);font-size:15px;font-weight:500;margin:0 0 14px;max-width:82ch;line-height:1.45}
+  .exec-insight{border-left:3px solid var(--accent);padding:6px 0 6px 14px;color:var(--ink-2);font-size:14px;line-height:1.55}
+  .exec-insight .ei-tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-soft);border:1px solid rgba(37,99,235,.4);padding:1px 7px;margin-right:8px}
+  .exec-insight b{color:var(--ink);font-weight:700}
+
+  /* ===== botões e controles ===== */
+  .btn{
+    background:var(--accent);border:1px solid var(--accent);color:#fff;
+    padding:8px 14px;font-weight:700;border-radius:var(--r-sm);
+    cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease;
+    font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;line-height:1.2
+  }
+  .btn:hover{background:#1d4ed8;border-color:#1d4ed8}
+  .btn.secondary{background:transparent;border:1px solid var(--line-strong);color:var(--ink-2)}
+  .btn.secondary:hover{background:var(--card-h);border-color:var(--line-strong)}
+  .btn.sm{padding:6px 10px;font-size:10.5px}
+  .btn:disabled{background:var(--card);border-color:var(--line);color:var(--ink-4);cursor:not-allowed}
+
+  input,select,.input,.select{
+    background:var(--card);border:1px solid var(--line-strong);
+    color:var(--ink-2);padding:7px 10px;border-radius:var(--r-sm);font-size:12px;font-family:var(--sans)
+  }
+  .select{cursor:pointer}
+  .select option{background:var(--panel);color:var(--ink-2)}
+  .input::placeholder{color:var(--ink-4);opacity:.8}
+
+  .flex{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    padding:6px 12px;border:1px solid var(--line-strong);border-radius:999px;
+    font-size:12px;font-weight:500;cursor:pointer;background:var(--card);color:var(--ink-3);
+    transition:background .15s,border-color .15s,color .15s;
+    display:inline-flex;align-items:center;
+  }
+  .chip:hover{background:var(--card-h);color:var(--ink)}
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ===== info icon tooltip ===== */
+  .info-icon{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:17px;height:17px;margin-left:2px;font-size:11px;font-weight:bold;
+    color:var(--ink-4);background:none;border:1px solid var(--line-strong);border-radius:50%;
+    cursor:help;transition:color .2s ease,border-color .2s ease;position:relative;z-index:100;flex:none;
+  }
+  .info-icon:hover{color:var(--accent-soft);border-color:var(--accent);z-index:10000}
+  .info-icon .tooltip{
+    visibility:hidden;opacity:0;position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);
+    background:var(--card-h);color:var(--ink-2);padding:10px 14px;border-radius:var(--r-sm);
+    border:1px solid var(--line-strong);box-shadow:0 8px 24px rgba(0,0,0,.4);
+    white-space:normal;width:260px;font-size:12px;font-weight:normal;line-height:1.5;
+    z-index:10001;transition:opacity .2s ease;pointer-events:none;
+  }
+  .info-icon .tooltip::after{
+    content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:6px solid transparent;border-top-color:var(--line-strong);
+  }
+  .info-icon:hover .tooltip{visibility:visible;opacity:1}
+
+  /* ===== tabela ===== */
+  .table-container{max-height:340px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r-sm);position:relative;background:var(--card)}
+  .table-container thead{position:sticky;top:0;background:var(--card-h);z-index:1}
+  .table{width:100%;border-collapse:collapse;table-layout:fixed}
+  .table th,.table td{padding:8px 10px;border-bottom:1px solid var(--line);font-size:12px;vertical-align:top;color:var(--ink-2)}
+  .table td:nth-child(2){max-width:450px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .table td a{color:var(--ink)}
+  .table th{text-align:left;color:var(--ink-3);font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+  .table th.sortable{cursor:pointer;-webkit-user-select:none;user-select:none}
+  .table th.sortable:hover{color:var(--ink)}
+  .table th.sortable span{margin-left:6px;display:inline-block;width:12px}
+  .table-filter-toggle{cursor:pointer;padding:4px 0;font-size:12px;color:var(--ink-4);margin-bottom:8px;font-family:var(--mono)}
+  .table-filter-toggle:hover{color:var(--ink)}
+  .table-filters{display:none;gap:10px;padding:10px;border:1px solid var(--line);border-radius:var(--r-sm);margin-bottom:12px}
+  #table-footer-note{font-size:12px;color:var(--ink-4);margin-top:10px}
+  .footer{font-size:12px;margin:16px 0 40px;color:var(--ink-4);font-family:var(--mono)}
+
+  /* ===== loading overlay ===== */
+  .loading-overlay{
+    position:fixed;inset:0;background:rgba(10,10,11,.92);backdrop-filter:blur(6px);
+    z-index:9999;display:flex;align-items:center;justify-content:center;
+    opacity:0;visibility:hidden;transition:all .3s ease;
+  }
+  .loading-overlay.show{opacity:1;visibility:visible}
+  .loading-spinner{text-align:center}
+  .spinner{
+    width:52px;height:52px;border:4px solid var(--accent-glow);border-top-color:var(--accent);
+    border-radius:50%;margin:0 auto 16px;animation:spin 1s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{color:var(--ink);font-size:14px;font-weight:500;margin-top:12px}
+
+  /* ===== modal de metodologia ===== */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+    z-index:9999;animation:fadeIn .2s ease;
+  }
+  .modal-overlay.active{display:flex;align-items:center;justify-content:center;padding:20px}
+  .modal-content{
+    background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);
+    max-width:800px;max-height:85vh;width:100%;overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);animation:slideUp .3s ease;display:flex;flex-direction:column;
+  }
+  .modal-header{
+    padding:18px 24px;border-bottom:1px solid var(--line-strong);
+    display:flex;justify-content:space-between;align-items:center;background:var(--card);
+  }
+  .modal-header h2{margin:0;font-size:18px;color:var(--ink);display:flex;align-items:center;gap:10px}
+  .modal-close{
+    background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:var(--bad);
+    width:32px;height:32px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:20px;transition:background .2s ease;padding:0;
+  }
+  .modal-close:hover{background:rgba(248,113,113,.25)}
+  .modal-body{padding:24px;overflow-y:auto;flex:1}
+  .modal-body h3{color:var(--ink);font-size:16px;margin:0 0 12px 0;display:flex;align-items:center;gap:8px}
+  .modal-body ul{margin:0 0 16px 0;padding-left:20px;color:var(--ink-2);font-size:13px;line-height:1.6}
+  .modal-body li{margin-bottom:8px}
+  .modal-body code{background:var(--accent-glow);color:var(--accent-soft);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:12px}
+  .btn-metodologia{
+    background:transparent;border:1px solid var(--line-strong);color:var(--ink-2);
+    padding:8px 14px;border-radius:var(--r-sm);font-size:11px;font-family:var(--mono);font-weight:700;
+    letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:all .2s ease;
+    display:flex;align-items:center;gap:6px;
+  }
+  .btn-metodologia:hover{border-color:var(--accent);color:var(--ink)}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ===== scroll to top ===== */
+  #scrollToTop{
+    position:fixed;bottom:90px;right:20px;width:44px;height:44px;
+    background:var(--panel);border:1px solid var(--line-strong);color:var(--accent-soft);
+    border-radius:50%;font-size:20px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);
+    transition:all .2s ease;z-index:140;display:none;align-items:center;justify-content:center;opacity:0;
+  }
+  #scrollToTop.show{display:flex;opacity:1}
+  #scrollToTop:hover{border-color:var(--accent);background:var(--card-h)}
+
+  /* ===== acessibilidade ===== */
+  .skip-link{
+    position:absolute;top:-40px;left:0;background:var(--accent);color:#fff;
+    padding:8px 16px;text-decoration:none;border-radius:0 0 8px 0;z-index:1000;font-weight:600;
+  }
+  .skip-link:focus{top:0}
+  .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0,0,0,0);white-space:nowrap;border-width:0;
+  }
+  button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visible{
+    outline:2px solid var(--accent);outline-offset:2px;
+  }
+  button:focus:not(:focus-visible),a:focus:not(:focus-visible),select:focus:not(:focus-visible){outline:none}
 </style>
-<style>.uploader,.upload-section,#empty-state{display:none!important}</style>
+<style>.uploader,.upload-section{display:none!important}</style>
 </head>
-<style id="exec-band-css">
-.exec-band{background:#131316;border:1px solid rgba(248,247,243,0.12);box-shadow:5px 5px 0 0 rgba(0,0,0,0.5);padding:22px 24px;margin:0 0 18px 0;font-family:'Space Grotesk',system-ui,sans-serif}
-.exec-band .exec-kicker{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a94;margin-bottom:8px}
-.exec-band .exec-kicker b{color:#2563eb}
-.exec-band .exec-q{font-size:15px;line-height:1.5;color:#f8f7f3;max-width:80ch;margin-bottom:18px}
-.exec-band .exec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
-.exec-band .exec-kpi{background:#1a1a1e;border:1px solid rgba(248,247,243,0.08);padding:14px 16px}
-.exec-band .exec-kpi .ev{font-size:30px;font-weight:700;line-height:1;color:#f8f7f3;font-variant-numeric:tabular-nums}
-.exec-band .exec-kpi .ev.good{color:#4ade80}
-.exec-band .exec-kpi .el{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a94;margin-top:8px}
-.exec-band .exec-kpi .eh{font-size:12px;color:#6b6b73;margin-top:3px}
-.exec-band .exec-insight{border-left:3px solid #2563eb;padding:10px 0 10px 14px;font-size:14px;line-height:1.55;color:#c9c9d0}
-.exec-band .exec-insight b{color:#f8f7f3;font-weight:600}
-.exec-band .exec-insight .ei-tag{display:inline-block;font-family:'Space Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;border:1px solid rgba(37,99,235,0.4);padding:1px 7px;margin-right:8px;vertical-align:middle}
-@media(max-width:720px){.exec-band .exec-kpis{grid-template-columns:repeat(2,1fr)}}
-.panel-sub{font-family:'Space Grotesk',system-ui,sans-serif;font-size:13px;line-height:1.45;color:#8a8a94;margin:-4px 0 16px;max-width:82ch}
-</style>
 <body>
 <a href="#main-content" class="skip-link">Pular para conteúdo principal</a>
 <header>
-  <div class="wrap">
-    <div class="title">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" stroke="var(--accent)" stroke-width="1.5"/>
-        <path d="M8 7h8M8 11h8M8 15h5" stroke="var(--accent-2)" stroke-width="1.2" stroke-linecap="round"/>
-      </svg>
-      <h1>NewsRadar • Dashboard Editorial <span class="version-badge">v1.0</span></h1>
-      <span class="badge">ECharts + CSV</span>
+  <div class="wrap hdr-in">
+    <div class="brand">
+      <div class="logo">&gt;_</div>
+      <div>
+        <h1>NewsRadar Editorial <span class="version-badge">demo</span></h1>
+        <div class="desc">radar de noticiário · artigos · fontes · keywords</div>
+      </div>
     </div>
-    
-    <div class="uploader">
-      <input id="file" type="file" accept=".csv" aria-label="Carregar arquivo CSV" />
-      <span class="hint">Carregue o arquivo CSV com artigos. Colunas esperadas: título, data, fonte (score, url, tags opcionais).</span>
+    <div class="hdr-actions">
+      <input id="file" type="file" accept=".csv" hidden aria-label="Carregar arquivo CSV"/>
+      <button class="btn-metodologia" onclick="openMetodologiaModal()">Metodologia</button>
     </div>
-
-    <!-- Controles de modelo IA removidos -->
-
-    <div class="kpi">
-      <div class="pill"><div class="num" id="kpi_total">0</div><div>Artigos</div></div>
-      <div class="pill"><div class="num" id="kpi_fontes">0</div><div>Fontes</div></div>
-      <div class="pill"><div class="num" id="kpi_keywords">0</div><div>Palavras-chave</div></div>
-      <div class="pill"><div class="num" id="kpi_recente">—</div><div>Última publicação</div></div>
+  </div>
+  <div class="filterbar">
+    <div class="wrap fb-in">
+      <span class="fb-label">janela</span>
+      <select id="sel-date" class="select" aria-label="Filtrar por janela de tempo">
+        <option value="all" selected>Todo o período</option>
+        <option value="30">Últimos 30 dias</option>
+        <option value="60">Últimos 60 dias</option>
+        <option value="90">Últimos 90 dias</option>
+      </select>
+      <span class="fb-label">fonte</span>
+      <select id="sel-fonte" class="select" aria-label="Filtrar artigos por fonte">
+        <option value="all" selected>Todas as fontes</option>
+      </select>
+      <input id="inp-keyword" class="input" placeholder="Buscar keyword..." aria-label="Buscar palavra-chave nos rankings">
+      <button id="btn-clear" class="btn secondary sm" aria-label="Limpar todos os filtros ativos">Limpar</button>
+      <span class="fb-sep"></span>
+      <div id="active-filters" class="fb-chips" aria-live="polite"></div>
     </div>
-
-    <div id="alerts" class="flex"></div>
-    <div id="active-filters"></div>
   </div>
 </header>
 
 <div class="wrap">
-  <div id="empty-state" class="card" style="text-align:center; padding:50px 20px;">
-    <h2 style="font-size:20px; color:var(--text)">Bem-vindo ao NewsRadar Dashboard</h2>
-    <p style="color:var(--muted); margin-top:8px;">Para começar, carregue um arquivo CSV de artigos usando o botão no canto superior esquerdo.</p>
+  <div id="alerts" class="flex" role="status" aria-live="polite"></div>
+
+  <div id="empty-state" class="card" style="text-align:center;padding:48px 20px;margin-top:16px;">
+    <h2 style="font-size:18px;color:var(--ink);margin:0 0 8px">Bem-vindo ao NewsRadar</h2>
+    <p style="color:var(--ink-4);margin:0">Envie um CSV de artigos pela barra de dados no topo, ou use "Preencher automaticamente" para ver o dashboard com uma base de exemplo.</p>
   </div>
 
   <main id="dashboard-content" style="display:none;">
-    <section class="exec-band" id="exec-band">
+    <div id="main-content"></div>
+    <section class="exec-band" id="exec-band" style="margin-top:16px">
       <div class="exec-kicker"><b>//</b> resumo executivo</div>
       <div class="exec-q">O que o radar capta no noticiário do período: volume de artigos, cobertura de fontes e concentração por palavra-chave.</div>
-      <div class="exec-kpis" id="exec-kpis"></div>
+      <div class="kpis" id="kpis" style="margin-bottom:14px"></div>
       <div class="exec-insight" id="exec-insight"></div>
     </section>
-    <div id="main-content"></div>
+
     <div class="grid grid-hero">
-      <div id="keyword-explorer" class="card">
+      <section id="top-keywords" class="card">
         <div class="card-header">
-          <h2 data-number="01">Keyword Explorer
-            <span class="info-icon">ⓘ<span class="tooltip">Exploração visual de palavras-chave mais frequentes em nuvem, rede e heatmap</span></span>
+          <h2 data-number="01">Top keywords
+            <span class="info-icon">ⓘ<span class="tooltip">As 15 palavras-chave com mais menções na seleção atual. Clique numa barra para filtrar todo o dashboard por essa keyword.</span></span>
           </h2>
-            <div class="panel-sub">Palavras-chave mais recorrentes no período e suas relações.</div>
+          <div class="panel-sub">Ranking por menções. Clique numa barra para aplicar o filtro.</div>
           <div class="actions">
             <div style="position:relative">
-              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações" aria-label="Ações do gráfico">⋮</button>
+              <div class="chart-menu">
+                <button onclick="downloadChartPNG('chart_top_keywords','top_keywords')">Download PNG</button>
+                <button onclick="exportChartDataCSV('chart_top_keywords','top_keywords')">Exportar CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="chart_top_keywords" class="chart tall"></div>
+      </section>
+
+      <section id="theme-evolution" class="card">
+        <div class="card-header">
+          <h2 data-number="02">Evolução de temas
+            <span class="info-icon">ⓘ<span class="tooltip">Menções semanais das 5 palavras-chave mais recorrentes da seleção. Clique numa linha para filtrar pela keyword.</span></span>
+          </h2>
+          <div class="panel-sub">Menções por semana das 5 keywords mais fortes do período.</div>
+          <div class="actions">
+            <div style="position:relative">
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações" aria-label="Ações do gráfico">⋮</button>
+              <div class="chart-menu">
+                <button onclick="downloadChartPNG('chart_theme_evolution','evolucao_temas')">Download PNG</button>
+                <button onclick="exportChartDataCSV('chart_theme_evolution','evolucao_temas')">Exportar CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="chart_theme_evolution" class="chart tall"></div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section id="keyword-explorer" class="card">
+        <div class="card-header">
+          <h2 data-number="03">Keyword Explorer
+            <span class="info-icon">ⓘ<span class="tooltip">Exploração das palavras-chave em três visões: nuvem, rede de co-ocorrência e heatmap semanal.</span></span>
+          </h2>
+          <div class="panel-sub">Visões complementares do vocabulário do período. A rede mostra até 30 termos (rótulo nos 10 mais fortes; o resto aparece no hover) e o heatmap até 30 linhas.</div>
+          <div class="actions">
+            <div style="position:relative">
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações" aria-label="Ações do gráfico">⋮</button>
               <div class="chart-menu">
                 <button onclick="downloadActiveKeywordChart()">Download PNG</button>
                 <button onclick="exportActiveKeywordData()">Exportar CSV</button>
@@ -989,91 +439,54 @@ select:focus:not(:focus-visible) {
             </div>
           </div>
         </div>
-         <div class="chips">
-            <div class="chip active" data-view="cloud">Word Cloud</div>
-            <div class="chip" data-view="graph">Rede</div>
-            <div class="chip" data-view="heatmap">Heatmap Semanal</div>
+        <div class="flex" style="margin-bottom:12px;">
+          <div class="chips">
+            <div class="chip active" data-view="cloud" role="button" tabindex="0">Word Cloud</div>
+            <div class="chip" data-view="graph" role="button" tabindex="0">Rede</div>
+            <div class="chip" data-view="heatmap" role="button" tabindex="0">Heatmap Semanal</div>
           </div>
-        <div class="flex" style="margin:12px 0;">
-          <select id="sel-topN" class="select">
+          <select id="sel-topN" class="select" aria-label="Quantidade de keywords na nuvem">
             <option value="50">Top 50</option>
             <option value="100" selected>Top 100</option>
             <option value="150">Top 150</option>
             <option value="200">Top 200</option>
           </select>
-          <div id="keyword-filter-wrapper">
-            <input id="inp-keyword" class="input" placeholder="Filtrar por keyword...">
-          </div>
-          <select id="sel-date" class="select">
-            <option value="all" selected>Todo o período</option>
-            <option value="30">Últimos 30 dias</option>
-            <option value="60">Últimos 60 dias</option>
-            <option value="90">Últimos 90 dias</option>
-          </select>
         </div>
-        <div id="chart_keyword_cloud" class="chart"></div>
-        <div id="chart_keyword_graph" class="chart" style="display:none"></div>
-        <div id="chart_keyword_heatmap" class="chart" style="display:none"></div>
-        <hr class="sep">
-        <div id="keyword-insights"></div>
-      </div>
-
-      <div id="theme-evolution" class="card">
-        <div class="card-header">
-            <h2 data-number="02">Evolução de Temas ao Longo do Tempo
-              <span class="info-icon">ⓘ<span class="tooltip">Série temporal mostrando tendências e sazonalidade dos principais temas editoriais</span></span>
-            </h2>
-            <div class="panel-sub">Como a cobertura de cada tema muda ao longo do tempo.</div>
-            <div class="actions">
-              <div style="position:relative">
-                <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
-                <div class="chart-menu">
-                  <button onclick="downloadChartPNG('chart_theme_evolution','evolucao_temas')">Download PNG</button>
-                  <button onclick="exportChartDataCSV('chart_theme_evolution','evolucao_temas')">Exportar CSV</button>
-                </div>
-              </div>
-            </div>
-        </div>
-        <div id="chart_theme_evolution" class="chart"></div>
-        <div class="flex">
-          <label for="sel-fonte" class="sr-only">Filtrar por fonte</label>
-          <select id="sel-fonte" class="select" aria-label="Filtrar artigos por fonte">
-            <option value="all" selected>Todas as fontes</option>
-          </select>
-          <button id="btn-clear" class="btn" aria-label="Limpar todos os filtros ativos">Limpar filtros</button>
-        </div>
-      </div>
+        <div id="chart_keyword_cloud" class="chart x-tall"></div>
+        <div id="chart_keyword_graph" class="chart x-tall" style="display:none"></div>
+        <div id="chart_keyword_heatmap" class="chart x-tall" style="display:none"></div>
+      </section>
     </div>
 
     <div class="grid grid-two">
-      <div id="sources" class="card">
+      <section id="sources" class="card">
         <div class="card-header">
-          <h2 data-number="03">Fontes por Score Médio
-            <span class="info-icon">ⓘ<span class="tooltip">Ranking de fontes editoriais por score médio de relevância e engajamento</span></span>
+          <h2 data-number="04">Fontes por Score Médio
+            <span class="info-icon">ⓘ<span class="tooltip">Score médio real dos artigos de cada veículo. Entram as 15 fontes de maior volume com pelo menos 3 artigos pontuados. Clique numa barra para filtrar pela fonte.</span></span>
           </h2>
-            <div class="panel-sub">Veículos ordenados pela relevância média dos artigos.</div>
+          <div class="panel-sub">Top 15 fontes por volume, mínimo de 3 artigos pontuados. Ordenado pelo score médio.</div>
           <div class="actions">
             <div style="position:relative">
-              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações" aria-label="Ações do gráfico">⋮</button>
               <div class="chart-menu">
-                <button onclick="downloadChartPNG('chart_sources','top_fontes')">Download PNG</button>
-                <button onclick="exportChartDataCSV('chart_sources','top_fontes')">Exportar CSV</button>
+                <button onclick="downloadChartPNG('chart_sources','fontes_score_medio')">Download PNG</button>
+                <button onclick="exportChartDataCSV('chart_sources','fontes_score_medio')">Exportar CSV</button>
               </div>
             </div>
           </div>
         </div>
-        <div id="chart_sources" class="chart"></div>
-      </div>
-    
-      <div class="card">
+        <div id="chart_sources" class="chart tall"></div>
+      </section>
+
+      <section class="card">
         <div class="card-header">
-          <h2 data-number="04">Fluxo de temas por fonte <small>(Sankey)</small>
-            <span class="info-icon">ⓘ<span class="tooltip">Diagrama Sankey revelando relação entre fontes e temas mais abordados</span></span>
+          <h2 data-number="05">Fluxo de temas por fonte <small>(Sankey)</small>
+            <span class="info-icon">ⓘ<span class="tooltip">As 5 maiores fontes cruzadas com as 5 keywords mais recorrentes. Clique num nó para filtrar por fonte ou keyword.</span></span>
           </h2>
-            <div class="panel-sub">Quais fontes cobrem quais temas e em que volume.</div>
+          <div class="panel-sub">Top 5 fontes por volume cruzadas com as top 5 keywords da seleção.</div>
           <div class="actions">
             <div style="position:relative">
-              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações">⋮</button>
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Ações" aria-label="Ações do gráfico">⋮</button>
               <div class="chart-menu">
                 <button onclick="downloadChartPNG('chart_sankey','sankey_temas')">Download PNG</button>
                 <button onclick="exportChartDataCSV('chart_sankey','sankey_temas')">Exportar CSV</button>
@@ -1081,51 +494,71 @@ select:focus:not(:focus-visible) {
             </div>
           </div>
         </div>
-        <div id="chart_sankey" class="chart"></div>
-      </div>
+        <div id="chart_sankey" class="chart tall"></div>
+      </section>
     </div>
 
-    <div id="top-articles" class="card">
-      <div class="card-header">
-        <h2 data-number="05">Top Artigos por Score
-          <span class="info-icon">ⓘ<span class="tooltip">Lista dos artigos com maior score de relevância, qualidade e engajamento</span></span>
-        </h2>
-            <div class="panel-sub">Artigos de maior relevância no período.</div>
-        <button id="btn-download-clean" class="btn" disabled>Exportar dados (.csv)</button>
-      </div>
-      <div id="table-filter-toggle" class="table-filter-toggle">Filtros da Tabela ▼</div>
-      <div id="table-filters" class="table-filters flex">
-        <input id="table-title-filter" class="input" placeholder="Filtrar por título...">
-        <input id="table-tags-filter" class="input" placeholder="Filtrar por tags..." style="min-width:160px">
-        <input id="table-score-filter" type="number" class="input" placeholder="Pontuação mínima..." style="min-width:160px">
-      </div>
-      <div class="table-container" id="raw-data">
-        <table class="table" id="table_latest">
-          <thead>
-            <tr>
-              <th class="sortable" data-sort="data">Data<span></span></th>
-              <th class="sortable" data-sort="titulo">Título<span></span></th>
-              <th class="sortable" data-sort="fonte">Fonte<span></span></th>
-              <th class="sortable" data-sort="score">Score<span></span></th>
-              <th>Tags/Keywords</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="footer">* Clique no título para abrir o link (quando disponível). O texto de títulos longos é cortado.</div>
-      <div id="table-footer-note"></div>
+    <div class="grid">
+      <section id="top-articles" class="card">
+        <div class="card-header">
+          <h2 data-number="06">Top Artigos por Score
+            <span class="info-icon">ⓘ<span class="tooltip">Lista dos artigos da seleção, ordenável por data, título, fonte e score.</span></span>
+          </h2>
+          <div class="panel-sub">Artigos da seleção atual. Clique nos cabeçalhos para ordenar.</div>
+          <div class="actions">
+            <button id="btn-download-clean" class="btn secondary sm" disabled>Exportar dados (.csv)</button>
+          </div>
+        </div>
+        <div id="table-filter-toggle" class="table-filter-toggle">Filtros da Tabela ▼</div>
+        <div id="table-filters" class="table-filters flex">
+          <input id="table-title-filter" class="input" placeholder="Filtrar por título...">
+          <input id="table-tags-filter" class="input" placeholder="Filtrar por tags..." style="min-width:160px">
+          <input id="table-score-filter" type="number" class="input" placeholder="Pontuação mínima..." style="min-width:160px">
+        </div>
+        <div class="table-container" id="raw-data">
+          <table class="table" id="table_latest">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="data">Data<span></span></th>
+                <th class="sortable" data-sort="titulo">Título<span></span></th>
+                <th class="sortable" data-sort="fonte">Fonte<span></span></th>
+                <th class="sortable" data-sort="score">Score<span></span></th>
+                <th>Tags/Keywords</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="footer" style="margin:10px 0 0">* Clique no título para abrir o link (quando disponível). Títulos longos são cortados.</div>
+        <div id="table-footer-note"></div>
+      </section>
     </div>
 
-    <div class="footer">Gerado automaticamente · NewsRadar v3.8</div>
+    <div class="footer">NewsRadar Editorial · dashboard de demonstração</div>
   </main>
 </div>
-
-<!-- Painel Gemini e FAB removidos -->
 
 <button id="scrollToTop" onclick="scrollToTop()" title="Voltar ao topo" aria-label="Voltar ao topo">↑</button>
 
 <script>
+/* ---------- Tema de visualização ----------
+   Paleta categórica validada (banda de luminosidade, croma, separação CVD,
+   piso de visão normal e contraste vs #131316). Ordem fixa; nunca ciclar.
+   Rampas de magnitude usam UM matiz azul com luminosidade monotônica. */
+const CAT_PALETTE = ['#2563eb','#d95926','#199e70','#c98500','#d55181','#008300','#9085e9','#e66767'];
+const SEQ_BLUE = ['#16233f','#1d3a6b','#1f55a3','#2f74d0','#60a5fa'];
+echarts.registerTheme('demo', {
+  color: CAT_PALETTE,
+  backgroundColor: 'transparent',
+  textStyle: { fontFamily: '"Space Grotesk",system-ui,sans-serif', color: '#d4d4d8' },
+  legend: { textStyle: { color: '#a1a1aa', fontSize: 11 }, itemWidth: 12, itemHeight: 12, icon: 'rect' },
+  tooltip: { backgroundColor: '#131316', borderColor: 'rgba(248,247,243,.18)', borderWidth: 1, textStyle: { color: '#d4d4d8', fontSize: 12 } },
+  categoryAxis: { axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisTick: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisLabel: { color: '#8a8a94' }, splitLine: { show: false } },
+  valueAxis: { axisLine: { show: false }, axisLabel: { color: '#8a8a94' }, splitLine: { lineStyle: { color: 'rgba(248,247,243,.07)' } } }
+});
+const ACCENT = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#2563eb';
+const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
 // ---------- Utils ----------
 const fmt = new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo'});
 const el = id => document.getElementById(id);
@@ -1186,13 +619,13 @@ function parseDateBr(s){
   if(m1){
     const d = String(m1[1]).padStart(2,'0'), mo = String(m1[2]).padStart(2,'0');
     let y = m1[3]; if(y.length===2) y = '20'+y;
-    return new Date(`${y}-${mo}-${d}T12:00:00Z`); // Usar UTC para evitar erros de fuso
+    return new Date(`${y}-${mo}-${d}T12:00:00Z`); // UTC para evitar erros de fuso
   }
   // Formato ISO: YYYY-MM-DD ou YYYY/MM/DD
   const m2 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
   if(m2){
     const y = m2[1], mo = String(m2[2]).padStart(2,'0'), d = String(m2[3]).padStart(2,'0');
-    return new Date(`${y}-${mo}-${d}T12:00:00Z`); // Usar UTC para evitar erros de fuso
+    return new Date(`${y}-${mo}-${d}T12:00:00Z`); // UTC para evitar erros de fuso
   }
   const d = new Date(s);
   return isNaN(+d) ? null : d;
@@ -1222,6 +655,8 @@ function saneUrl(u){
 }
 
 function slug(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+
+function truncLabel(v, n){ return v.length > n ? v.slice(0, n) + '…' : v; }
 
 // ---------- Column mapping ----------
 const expected = {titulo:['título','titulo','title','headline','manchete'],
@@ -1279,11 +714,15 @@ let rows = []; // cleaned
 let colmap = {};
 let keywordCounts = new Map();
 let keywordByWeek = new Map();
-let keywordByDay = new Map();
 let coocc = new Map();
 let sourcesCounts = new Map();
+let sourceScoreSum = new Map();
+let sourceScoreN = new Map();
+let sourceKwCounts = new Map();
 let keywordsAll = new Set();
 let sourcesAll = new Set();
+let filteredCount = 0;
+let lastDate = null;
 let chartDataStore = {};
 
 let filter = {keyword:null, fonte:'all', dateWin:'all'};
@@ -1291,8 +730,10 @@ let sortState = { column: 'data', order: 'desc' };
 
 function resetState(){
   raw = []; rows = []; colmap = {};
-  keywordCounts = new Map(); keywordByWeek = new Map(); keywordByDay = new Map(); coocc = new Map();
-  sourcesCounts = new Map(); keywordsAll = new Set(); sourcesAll = new Set();
+  keywordCounts = new Map(); keywordByWeek = new Map(); coocc = new Map();
+  sourcesCounts = new Map(); sourceScoreSum = new Map(); sourceScoreN = new Map(); sourceKwCounts = new Map();
+  keywordsAll = new Set(); sourcesAll = new Set();
+  filteredCount = 0; lastDate = null;
   chartDataStore = {};
   filter = {keyword:null, fonte:'all', dateWin:'all'};
   sortState = { column: 'data', order: 'desc' };
@@ -1304,16 +745,18 @@ function resetState(){
 }
 
 // ---------- Build aggregates ----------
-function dayKey(d){ return d ? d.toISOString().slice(0,10) : 'NA'; }
-
 function buildAggregates(){
   keywordCounts = new Map();
   keywordByWeek = new Map();
-  keywordByDay = new Map();
   coocc = new Map();
   sourcesCounts = new Map();
+  sourceScoreSum = new Map();
+  sourceScoreN = new Map();
+  sourceKwCounts = new Map();
   keywordsAll = new Set();
   sourcesAll = new Set();
+  filteredCount = 0;
+  lastDate = null;
   const now = new Date();
   const cutoff = (filter.dateWin==='all') ? null : new Date(now - Number(filter.dateWin)*24*3600*1000);
 
@@ -1322,12 +765,19 @@ function buildAggregates(){
     if(filter.keyword && !(r.keywords||[]).includes(filter.keyword)) return;
     if(cutoff && r.data && r.data<cutoff) return;
 
-    sourcesAll.add(r.fonte || '—');
-    sourcesCounts.set(r.fonte || '—', (sourcesCounts.get(r.fonte || '—')||0)+1);
+    filteredCount++;
+    if(r.data && (!lastDate || r.data>lastDate)) lastDate = r.data;
+
+    const f = r.fonte || 'sem fonte';
+    sourcesAll.add(f);
+    sourcesCounts.set(f, (sourcesCounts.get(f)||0)+1);
+    if(r.score !== null && !isNaN(r.score)){
+      sourceScoreSum.set(f, (sourceScoreSum.get(f)||0)+r.score);
+      sourceScoreN.set(f, (sourceScoreN.get(f)||0)+1);
+    }
 
     const wk = weekKey(r.data);
-    const dk = dayKey(r.data);
-    
+
     const ks = Array.from(new Set([...(r.keywords||[])]));
     ks.forEach(k=>{
       keywordsAll.add(k);
@@ -1337,11 +787,8 @@ function buildAggregates(){
       weekMap.set(k,(weekMap.get(k)||0)+1);
       keywordByWeek.set(wk,weekMap);
 
-      if(dk !== 'NA'){
-        const dayMap = keywordByDay.get(dk) || new Map();
-        dayMap.set(k,(dayMap.get(k)||0)+1);
-        keywordByDay.set(dk,dayMap);
-      }
+      const pairKey = f+'||'+k;
+      sourceKwCounts.set(pairKey,(sourceKwCounts.get(pairKey)||0)+1);
     });
 
     for(let i=0;i<ks.length;i++){
@@ -1355,8 +802,8 @@ function buildAggregates(){
 }
 
 // ---------- Renderers ----------
-function make(instId){ return echarts.init(el(instId)); }
-let cloud, graph, heatmap, themeEvolution, sourcesBar, sankey;
+function make(instId){ return echarts.init(el(instId), 'demo'); }
+let topKeywordsBar, cloud, graph, heatmap, themeEvolution, sourcesBar, sankey;
 
 function showEmptyChartMessage(chartInstance, message = 'Não há dados suficientes para exibir este gráfico.') {
     if(!chartInstance) return;
@@ -1366,21 +813,112 @@ function showEmptyChartMessage(chartInstance, message = 'Não há dados suficien
             type: 'text',
             left: 'center',
             top: 'center',
-            style: { text: message, fill: 'var(--muted)', font: '14px Montserrat' }
+            style: { text: message, fill: '#8a8a94', font: '13px "Space Grotesk", sans-serif' }
         }
     });
 }
 
-function renderKPIs(){
-  el('kpi_total').textContent = rows.length;
-  el('kpi_fontes').textContent = sourcesAll.size;
-  el('kpi_keywords').textContent = keywordsAll.size;
-  const last = rows.filter(r=>r.data).sort((a,b)=>b.data-a.data)[0];
-  el('kpi_recente').textContent = last? fmt.format(last.data) : '—';
-}
-
 function topEntries(map, topN){
   return Array.from(map.entries()).sort((a,b)=>b[1]-a[1]).slice(0,topN);
+}
+
+function renderKPIs(){
+  const wrap = el('kpis'); if(!wrap) return;
+  const total = filteredCount;
+  let topSrc = '-', topSrcN = 0;
+  sourcesCounts.forEach((v,k)=>{ if(v>topSrcN){ topSrcN=v; topSrc=k; } });
+  const conc = total ? Math.round(topSrcN/total*100) : 0;
+  const kpis = [
+    {label:'Artigos', value: total.toLocaleString('pt-BR'), sub:'na seleção atual'},
+    {label:'Fontes', value: sourcesAll.size, sub:'veículos cobertos'},
+    {label:'Palavras-chave', value: keywordsAll.size.toLocaleString('pt-BR'), sub:'termos rastreados'},
+    {label:'Última publicação', value: lastDate ? fmt.format(lastDate) : '-', sub:'artigo mais recente'},
+    {label:'Top fonte', value: conc+'%', sub: escHtml(topSrc)}
+  ];
+  wrap.innerHTML = kpis.map(k=>`<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="subv">${k.sub}</div></div>`).join('');
+}
+
+function renderExecInsight(){
+  const box = el('exec-insight'); if(!box) return;
+  if(filter.keyword){
+    const kw = filter.keyword;
+    const total = keywordCounts.get(kw)||0;
+    const topSrc = topFontesForKeyword(kw)[0];
+    let bestNeigh = null, bestW = 0;
+    coocc.forEach((w,key)=>{
+      const [a,b] = key.split('||');
+      if(a===kw && w>bestW){ bestW=w; bestNeigh=b; }
+      else if(b===kw && w>bestW){ bestW=w; bestNeigh=a; }
+    });
+    box.innerHTML = '<span class="ei-tag">keyword</span><b>'+escHtml(kw)+'</b> soma <b>'+total+'</b> menções na seleção'
+      + (topSrc ? '; fonte líder: <b>'+escHtml(topSrc[0])+'</b> ('+topSrc[1]+')' : '')
+      + (bestNeigh ? '; co-ocorrência mais forte com <b>'+escHtml(bestNeigh)+'</b> ('+bestW+')' : '') + '.';
+    return;
+  }
+  let topSrc='-', topSrcN=0;
+  sourcesCounts.forEach((v,k)=>{ if(v>topSrcN){ topSrcN=v; topSrc=k; } });
+  let topKw='-', topKwN=0;
+  keywordCounts.forEach((v,k)=>{ if(v>topKwN){ topKwN=v; topKw=k; } });
+  const conc = filteredCount ? Math.round(topSrcN/filteredCount*100) : 0;
+  box.innerHTML = '<span class="ei-tag">insight</span><b>'+escHtml(topSrc)+'</b> concentra <b>'+conc+'%</b> da cobertura da seleção; <b>'+escHtml(topKw)+'</b> é o tema mais recorrente ('+topKwN+' menções).';
+}
+
+function renderTopKeywords(){
+  if(!topKeywordsBar) topKeywordsBar = make('chart_top_keywords');
+  const term = el('inp-keyword').value.trim().toLowerCase();
+  let entries = Array.from(keywordCounts.entries());
+  if(term) entries = entries.filter(([k])=>k.includes(term));
+  const arr = entries.sort((a,b)=>b[1]-a[1]).slice(0,15);
+  chartDataStore.top_keywords = arr;
+
+  if (arr.length === 0) {
+      showEmptyChartMessage(topKeywordsBar, 'Nenhuma keyword encontrada para a busca atual.');
+      return;
+  }
+
+  topKeywordsBar.setOption({
+    graphic: {elements:[]},
+    grid:{left:130, right:24, top:8, bottom:26},
+    tooltip:{trigger:'axis', axisPointer:{type:'shadow'}, formatter: p=>{
+      const it = p[0];
+      return '<b>'+escHtml(it.name)+'</b><br>Menções: '+it.value;
+    }},
+    xAxis:{type:'value', minInterval:1},
+    yAxis:{type:'category', inverse:true, data:arr.map(x=>x[0]), axisLabel:{formatter: v=>truncLabel(v,18)}},
+    series:[{type:'bar', data:arr.map(x=>x[1]), barMaxWidth:16, itemStyle:{color:ACCENT}}]
+  }, true);
+  topKeywordsBar.off('click');
+  topKeywordsBar.on('click', p=>{ filter.keyword = p.name; syncFilters(); });
+}
+
+function renderThemeEvolution(){
+  if(!themeEvolution) themeEvolution = make('chart_theme_evolution');
+  const weeks = Array.from(keywordByWeek.keys()).filter(w=>w!=='NA').sort();
+  const topKw = topEntries(keywordCounts, 5).map(x=>x[0]);
+  const matrix = topKw.map(k=>weeks.map(w=>(keywordByWeek.get(w)||new Map()).get(k)||0));
+  chartDataStore.theme_evolution = {weeks, keywords: topKw, matrix};
+
+  if (weeks.length === 0 || topKw.length === 0) {
+      showEmptyChartMessage(themeEvolution);
+      return;
+  }
+
+  themeEvolution.setOption({
+    graphic: {elements:[]},
+    color: CAT_PALETTE.slice(0,5),
+    tooltip:{trigger:'axis'},
+    legend:{top:0, type:'scroll'},
+    grid:{left:40, right:16, top:34, bottom:28},
+    xAxis:{type:'category', data:weeks, boundaryGap:false, axisLabel:{formatter: v=>v.slice(5)}},
+    yAxis:{type:'value', minInterval:1},
+    series: topKw.map((k,i)=>({
+      name:k, type:'line', symbol:'circle', symbolSize:4,
+      lineStyle:{width:2}, emphasis:{focus:'series'},
+      data: matrix[i]
+    }))
+  }, true);
+  themeEvolution.off('click');
+  themeEvolution.on('click', p=>{ if(p.seriesName){ filter.keyword = p.seriesName; syncFilters(); } });
 }
 
 function renderKeywordCloud(){
@@ -1390,30 +928,35 @@ function renderKeywordCloud(){
   let arr = topEntries(keywordCounts, topN).map(([name,val])=>({name,value:val}));
   if(term) arr = arr.filter(x=>x.name.includes(term));
   chartDataStore.word_cloud = arr;
-  
+
   if (arr.length === 0) {
       showEmptyChartMessage(cloud);
       return;
   }
 
+  // Paleta fixa por ranking: topo, meio e cauda em três azuis.
+  const data = arr.map((d,i)=>({
+    name: d.name, value: d.value,
+    textStyle: { color: i < 10 ? '#2563eb' : (i < 40 ? '#60a5fa' : '#93c5fd') }
+  }));
+
   const option = {
     graphic: {elements:[]}, // Clear empty message
     tooltip:{formatter: p=>{
-      const kw = p.name; 
+      const kw = p.name;
       const total = keywordCounts.get(kw)||0;
-      const topSrc = topFontesForKeyword(kw).slice(0,3).map(x=>`${x[0]} (${x[1]})`).join(', ');
-      return `<b>${kw}</b><br>Total: ${total}<br>Top fontes: ${topSrc}`;
+      const topSrc = topFontesForKeyword(kw).slice(0,3).map(x=>escHtml(x[0])+' ('+x[1]+')').join(', ');
+      return `<b>${escHtml(kw)}</b><br>Total: ${total}<br>Top fontes: ${topSrc}`;
     }},
     series:[{
       type:'wordCloud',
       shape:'circle',
       gridSize: 8,
-      sizeRange:[12,46],
+      sizeRange:[12,42],
       rotationRange:[0,0],
-      textStyle:{fontFamily:'Montserrat'},
-      data: arr
-    }],
-    color:['#60a5fa', '#2563eb', '#93c5fd', '#bae6fd', '#e0f2fe', '#0369a1']
+      textStyle:{fontFamily:'"Space Grotesk",system-ui,sans-serif'},
+      data: data
+    }]
   };
   cloud.setOption(option, true);
   cloud.off('click');
@@ -1422,20 +965,25 @@ function renderKeywordCloud(){
 
 function renderKeywordGraph(){
   if(!graph) graph = make('chart_keyword_graph');
-  const topN = Number(el('sel-topN').value);
-  const nodesMap = new Map(topEntries(keywordCounts, topN));
-  const nodes = Array.from(nodesMap, ([name,val])=>({name,value:val,symbolSize:Math.max(10,Math.min(60,8+val))}));
+  const topN = Math.min(30, Number(el('sel-topN').value)); // rede capada em 30 nós
+  const entries = topEntries(keywordCounts, topN);
+  const nodesMap = new Map(entries);
+  const nodes = entries.map(([name,val],i)=>({
+    name, value: val,
+    symbolSize: Math.max(10, Math.min(60, 8+val)),
+    label: { show: i < 10 } // rótulo só nos 10 mais fortes; o resto no hover
+  }));
   const edges = [];
-  
+
   coocc.forEach((w,key)=>{
     const [a,b] = key.split('||');
-    if(nodesMap.has(a) && nodesMap.has(b) && w >= 1){ 
+    if(nodesMap.has(a) && nodesMap.has(b) && w >= 1){
       edges.push({source:a,target:b,value:w});
     }
   });
 
   chartDataStore.keyword_graph = {nodes, edges};
-  
+
   if (nodes.length === 0) {
       showEmptyChartMessage(graph, 'Não há keywords para exibir na rede.');
       return;
@@ -1447,76 +995,38 @@ function renderKeywordGraph(){
       show: true,
       formatter: (params) => {
         if (params.dataType === 'node') {
-          return `<strong>${params.data.name}</strong><br/>Ocorrências: ${params.data.value}`;
+          return `<b>${escHtml(params.data.name)}</b><br>Ocorrências: ${params.data.value}`;
         }
-        return `${params.data.source} → ${params.data.target}<br/>Co-ocorrências: ${params.data.value}`;
+        return `${escHtml(params.data.source)} + ${escHtml(params.data.target)}<br>Co-ocorrências: ${params.data.value}`;
       }
     },
-    animation: true,
-    animationDurationUpdate: 1000,
-    animationEasingUpdate: 'cubicInOut',
     series:[{
       type: 'graph',
       layout: 'force',
-      force: {
-        repulsion: 800,
-        edgeLength: 150,
-        gravity: 0.3,
-        friction: 0.2,
-        layoutAnimation: true
-      },
+      force: { repulsion: 500, edgeLength: 110, gravity: 0.3, friction: 0.2, layoutAnimation: true },
       roam: true,
       draggable: true,
-      zoom: 0.8,
+      zoom: 0.9,
       center: ['50%', '50%'],
-      scaleLimit: {
-        min: 0.4,
-        max: 2
-      },
+      scaleLimit: { min: 0.4, max: 2 },
       data: nodes,
       links: edges,
       label: {
-        show: true,
+        show: false,
         position: 'right',
         formatter: '{b}',
-        color: '#fff',
-        textBorderColor: '#000',
-        textBorderWidth: 3,
-        fontSize: 14,
-        fontWeight: 'bold',
+        color: '#d4d4d8',
+        fontSize: 11,
         distance: 5
       },
-      itemStyle: {
-        borderWidth: 2,
-        borderColor: '#fff',
-        shadowColor: 'rgba(0, 0, 0, 0.3)',
-        shadowBlur: 10
-      },
-      lineStyle: {
-        color: 'var(--accent)',
-        opacity: 0.4,
-        width: 3,
-        curveness: 0.2,
-        shadowColor: 'rgba(0, 0, 0, 0.2)',
-        shadowBlur: 5
-      },
+      itemStyle: { color: ACCENT },
+      lineStyle: { color: '#8a8a94', opacity: 0.3, width: 1.5, curveness: 0.2 },
       emphasis: {
         focus: 'adjacency',
-        scale: 1.2,
-        itemStyle: {
-          borderWidth: 3
-        },
-        lineStyle: {
-          width: 6,
-          opacity: 0.9
-        },
-        label: {
-          fontSize: 16,
-          fontWeight: 'bold'
-        }
+        label: { show: true },
+        lineStyle: { width: 3, opacity: 0.8 }
       }
-    }],
-    color:['#2563eb','#1d4ed8','#3b82f6','#bfdbfe','#60a5fa','#93c5fd']
+    }]
   };
   graph.setOption(option, true);
   if(edges.length === 0) {
@@ -1529,10 +1039,10 @@ function renderKeywordGraph(){
 function renderKeywordHeatmap(){
   if(!heatmap) heatmap = make('chart_keyword_heatmap');
   const weeks = Array.from(keywordByWeek.keys()).filter(x=>x!=='NA').sort();
-  const topN = Number(el('sel-topN').value);
+  const topN = Math.min(30, Number(el('sel-topN').value)); // heatmap capado em 30 linhas
   const topKw = topEntries(keywordCounts, topN).map(x=>x[0]);
   const data = [];
-  
+
   weeks.forEach((w,xi)=>{
     const wMap = keywordByWeek.get(w) || new Map();
     topKw.forEach((k,yi)=>{
@@ -1540,105 +1050,45 @@ function renderKeywordHeatmap(){
       if(v>0) data.push([xi, yi, v]);
     });
   });
-  
+
   chartDataStore.keyword_heatmap = {weeks, keywords: topKw, data};
 
   if (data.length === 0) {
       showEmptyChartMessage(heatmap, 'Não há dados semanais para as keywords selecionadas.');
       return;
   }
-  
+
   const option = {
     graphic: {elements:[]}, // Clear empty message
     tooltip:{formatter: p=>{
       const w = weeks[p.data[0]], k = topKw[p.data[1]], v = p.data[2];
-      return `<b>${k}</b><br>${w}: ${v}`;
+      return `<b>${escHtml(k)}</b><br>${w}: ${v}`;
     }},
-    grid:{left:120, right:10, top:10, bottom:60},
-    xAxis:{type:'category', data:weeks, axisLabel:{color:'#a7b0c0'}},
-    yAxis:{type:'category', data:topKw, axisLabel:{color:'#a7b0c0', formatter: v => v.length > 18 ? v.slice(0,18)+'...' : v }},
+    grid:{left:130, right:16, top:10, bottom:60},
+    xAxis:{type:'category', data:weeks, axisLabel:{formatter: v=>v.slice(5)}},
+    yAxis:{type:'category', data:topKw, axisLabel:{formatter: v=>truncLabel(v,18)}},
     visualMap:{
-      min:0, 
-      max:Math.max(1,...data.map(x=>x[2])), 
-      calculable:true, 
-      orient:'horizontal', 
-      left:'center', 
+      min:0,
+      max:Math.max(1,...data.map(x=>x[2])),
+      calculable:true,
+      orient:'horizontal',
+      left:'center',
       bottom:0,
-      inRange: {
-        color: ['#0c4a6e', '#075985', '#0369a1', '#60a5fa', '#2563eb', '#bae6fd']
-      },
-      textStyle: {
-        color: '#e5e7eb'
-      }
+      inRange: { color: SEQ_BLUE },
+      textStyle: { color: '#8a8a94' }
     },
-    series:[{type:'heatmap', data:data}],
-    color:['#f0f9ff','#e0f2fe','#bae6fd','#93c5fd','#2563eb','#60a5fa']
+    series:[{type:'heatmap', data:data}]
   };
   heatmap.setOption(option, true);
   heatmap.off('click');
   heatmap.on('click', p=>{ const k = topKw[p.data[1]]; filter.keyword=k; syncFilters(); });
 }
 
-function renderThemeEvolutionHeatmap() {
-  if(!themeEvolution) themeEvolution = make('chart_theme_evolution');
-  const topKw = topEntries(keywordCounts, 15).map(x => x[0]);
-  const days = Array.from(keywordByDay.keys()).filter(d => d !== 'NA').sort();
-  const data = [];
-  
-  days.forEach((d, xi) => {
-    const dayMap = keywordByDay.get(d) || new Map();
-    topKw.forEach((k, yi) => {
-      const v = dayMap.get(k) || 0;
-      if (v > 0) data.push([xi, yi, v]);
-    });
-  });
-
-  chartDataStore.theme_evolution = {days, keywords: topKw, data};
-
-  if (data.length === 0) {
-      showEmptyChartMessage(themeEvolution);
-      return;
-  }
-
-  const option = {
-    graphic: {elements:[]}, // Clear empty message
-    tooltip:{
-      formatter: p => {
-        const day = days[p.data[0]];
-        const kw = topKw[p.data[1]];
-        const count = p.data[2];
-        return `<b>${kw}</b><br>${day}: ${count} mençõe(s)`;
-      }
-    },
-    grid:{left:120, right:20, top:10, bottom:70},
-    xAxis:{type:'category', data:days, axisLabel:{
-      color:'#a7b0c0', 
-      rotate: 30,
-      formatter: val => val.slice(5)
-    }},
-    yAxis:{type:'category', data:topKw, axisLabel:{
-      color:'#a7b0c0',
-      formatter: val => val.length > 18 ? val.slice(0,18) + '...' : val
-    }},
-    visualMap:{
-      min: 0,
-      max: Math.max(1, ...data.map(x => x[2])),
-      calculable:true,
-      orient:'horizontal',
-      left:'center',
-      bottom:0,
-      inRange: { color: ['#0c4a6e', '#075985', '#60a5fa', '#93c5fd'] }
-    },
-    series:[{type:'heatmap', data: data}]
-  };
-  themeEvolution.setOption(option, true);
-}
-
 function topFontesForKeyword(kw){
   const m = new Map();
   rows.forEach(r=>{
     if(!kw || (r.keywords||[]).includes(kw)){
-      const f = r.fonte || '—';
+      const f = r.fonte || 'sem fonte';
       m.set(f,(m.get(f)||0)+1);
     }
   });
@@ -1647,71 +1097,81 @@ function topFontesForKeyword(kw){
 
 function renderSources(){
   if(!sourcesBar) sourcesBar = make('chart_sources');
-  const arr = topEntries(sourcesCounts, 20).reverse();
-  chartDataStore.top_sources = arr.slice().reverse();
+  // Score médio REAL por fonte: top 15 por volume, mínimo 3 artigos pontuados.
+  const byVolume = topEntries(sourcesCounts, 15).map(x=>x[0]);
+  const arr = byVolume
+    .map(f=>{
+      const n = sourceScoreN.get(f)||0;
+      return { fonte:f, n, avg: n ? sourceScoreSum.get(f)/n : null };
+    })
+    .filter(x=>x.n >= 3 && x.avg !== null)
+    .sort((a,b)=>b.avg-a.avg);
+  chartDataStore.top_sources = arr.map(x=>[x.fonte, Math.round(x.avg*10)/10, x.n]);
 
   if (arr.length === 0) {
-      showEmptyChartMessage(sourcesBar);
+      showEmptyChartMessage(sourcesBar, 'Sem fontes com 3 ou mais artigos pontuados na seleção.');
       return;
   }
 
   sourcesBar.setOption({
     graphic: {elements:[]}, // Clear empty message
-    grid:{left:120, right:20, top:10, bottom:30},
-    tooltip:{trigger:'axis'},
-    xAxis:{type:'value', axisLabel:{color:'#a7b0c0'}},
-    yAxis:{type:'category', data:arr.map(x=>x[0]), 
-           axisLabel:{
-              color:'#a7b0c0', 
-              formatter: v => v.length > 20 ? v.slice(0,20)+'...' : v
-           }},
-    series:[{type:'bar', data:arr.map(x=>x[1]), barMaxWidth:22}],
-    color:['var(--accent)']
+    grid:{left:130, right:30, top:10, bottom:26},
+    tooltip:{formatter: p=>{
+      const d = arr[p.dataIndex];
+      return `<b>${escHtml(d.fonte)}</b><br>Score médio: ${d.avg.toFixed(1)}<br>Artigos pontuados: ${d.n}`;
+    }},
+    xAxis:{type:'value'},
+    yAxis:{type:'category', inverse:true, data:arr.map(x=>x.fonte),
+           axisLabel:{formatter: v=>truncLabel(v,20)}},
+    series:[{type:'bar', data:arr.map(x=>Math.round(x.avg*10)/10), barMaxWidth:18, itemStyle:{color:ACCENT}}]
   }, true);
   sourcesBar.off('click');
   sourcesBar.on('click', p=>{ filter.fonte = p.name; syncFilters(); });
+}
+
+function populateFonteSelect(){
   const sel = el('sel-fonte');
-  sel.innerHTML = '<option value="all">Todas as fontes</option>' + Array.from(sourcesAll).sort().map(s=>`<option>${s}</option>`).join('');
+  const fontes = Array.from(new Set(rows.map(r=>r.fonte || 'sem fonte'))).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  sel.innerHTML = '<option value="all">Todas as fontes</option>' + fontes.map(s=>'<option value="'+escHtml(s)+'">'+escHtml(s)+'</option>').join('');
   sel.value = filter.fonte;
 }
 
 function renderSankey(){
   if(!sankey) sankey = make('chart_sankey');
-  const nodes = new Map();
+  // Capado em top 5 fontes x top 5 keywords.
+  const topSrc = topEntries(sourcesCounts, 5).map(x=>x[0]);
+  const srcSet = new Set(topSrc);
+  const topKw = topEntries(keywordCounts, 5).map(x=>x[0]).filter(k=>!srcSet.has(k));
   const links = [];
-  const topSrc = topEntries(sourcesCounts, 10).map(x=>x[0]);
-  topSrc.forEach(s=>nodes.set(s,{name:s}));
-
-  const topK = 8;
   topSrc.forEach(s=>{
-    const m = new Map();
-    rows.forEach(r=>{
-      if(r.fonte===s){
-        (r.keywords||[]).forEach(k => m.set(k,(m.get(k)||0)+1));
-      }
+    topKw.forEach(k=>{
+      const v = sourceKwCounts.get(s+'||'+k)||0;
+      if(v>0) links.push({source:s, target:k, value:v});
     });
-    const top = Array.from(m.entries()).sort((a,b)=>b[1]-a[1]).slice(0,topK);
-    top.forEach(([k,v])=>{ nodes.set(k,{name:k}); links.push({source:s,target:k,value:v}); });
   });
-  chartDataStore.sankey = { nodes: Array.from(nodes.values()), links };
-  
+  const usedKw = new Set(links.map(l=>l.target));
+  const nodes = topSrc.map((s,i)=>({name:s, itemStyle:{color:CAT_PALETTE[i%CAT_PALETTE.length]}}))
+    .concat(topKw.filter(k=>usedKw.has(k)).map(k=>({name:k, itemStyle:{color:'#60a5fa'}})));
+  chartDataStore.sankey = { nodes, links };
+
   if (links.length === 0) {
       showEmptyChartMessage(sankey);
       return;
   }
-  
+
   sankey.setOption({
     graphic: {elements:[]}, // Clear empty message
     tooltip:{trigger:'item'},
     series:[{
       type:'sankey',
-      data:Array.from(nodes.values()),
+      data:nodes,
       links:links,
       nodeAlign:'left',
+      nodeGap:10,
       emphasis:{focus:'adjacency'},
-      lineStyle:{color:'gradient',opacity:0.5}
-    }],
-    color:['#2563eb','#1d4ed8','#3b82f6','#bfdbfe','#60a5fa','#93c5fd']
+      label:{color:'#d4d4d8', fontSize:11},
+      lineStyle:{color:'source', opacity:0.35}
+    }]
   }, true);
   sankey.off('click');
   sankey.on('click', p=>{
@@ -1739,18 +1199,18 @@ function renderTable(){
   const scoreFilter = Number(el('table-score-filter').value || 0);
   tb.innerHTML = '';
   footerNote.textContent = '';
-  
+
   let filteredRows = [...rows];
-  
+
   // Filtros globais
   if(filter.fonte !== 'all') filteredRows = filteredRows.filter(r => r.fonte === filter.fonte);
   if(filter.keyword) filteredRows = filteredRows.filter(r => (r.keywords||[]).includes(filter.keyword));
-  
+
   // Filtros da tabela
   if(titleFilter) filteredRows = filteredRows.filter(r => r.titulo.toLowerCase().includes(titleFilter));
   if(tagsFilter) filteredRows = filteredRows.filter(r => (r.keywords||[]).some(k => k.toLowerCase().includes(tagsFilter)));
-  if(scoreFilter > 0) filteredRows = filteredRows.filter(r => (r.score || 0) >= scoreFilter);
-  
+  if(scoreFilter > 0) filteredRows = filteredRows.filter(r => r.score !== null && r.score >= scoreFilter);
+
   filteredRows.sort((a, b) => {
     const col = sortState.column;
     const order = sortState.order;
@@ -1761,52 +1221,44 @@ function renderTable(){
     if (col === 'data') {
       comparison = (valA?.getTime() || 0) - (valB?.getTime() || 0);
     } else if (col === 'score') {
-      // Tratar scores nulos para ordenação
       const scoreA = valA === null ? -Infinity : valA;
       const scoreB = valB === null ? -Infinity : valB;
       comparison = scoreA - scoreB;
-    } else { 
+    } else {
       comparison = String(valA ?? '').localeCompare(String(valB ?? ''));
     }
     return order === 'asc' ? comparison : -comparison;
   });
-  
-  const displayLimit = 50;
-  
-  const rowsToDisplay = filteredRows.filter(r => {
-    if (titleFilter && !r.titulo.toLowerCase().includes(titleFilter)) return false;
-    // Corrigido para ignorar filtro de score se o score do artigo for nulo
-    if (scoreFilter > 0 && (r.score === null || r.score < scoreFilter)) return false;
-    return true;
-  });
 
-  rowsToDisplay.slice(0, displayLimit).forEach(r=>{
+  const displayLimit = 50;
+
+  filteredRows.slice(0, displayLimit).forEach(r=>{
     const tr = document.createElement('tr');
-    const td0 = document.createElement('td'); td0.textContent = r.data? fmt.format(r.data): '—'; tr.appendChild(td0);
+    const td0 = document.createElement('td'); td0.textContent = r.data? fmt.format(r.data): '-'; tr.appendChild(td0);
     const td1 = document.createElement('td');
     td1.title = r.titulo;
-    if(r.url){ const a = document.createElement('a'); a.href=r.url; a.textContent=r.titulo||'—'; a.target='_blank'; a.style.color='var(--text)'; td1.appendChild(a); }
-    else { td1.textContent = r.titulo || '—'; }
+    if(r.url){ const a = document.createElement('a'); a.href=r.url; a.textContent=r.titulo||'-'; a.target='_blank'; a.rel='noopener'; td1.appendChild(a); }
+    else { td1.textContent = r.titulo || '-'; }
     tr.appendChild(td1);
-    const td2 = document.createElement('td'); td2.textContent = r.fonte || '—'; tr.appendChild(td2);
-    const td3 = document.createElement('td'); 
+    const td2 = document.createElement('td'); td2.textContent = r.fonte || '-'; tr.appendChild(td2);
+    const td3 = document.createElement('td');
     td3.textContent = r.score !== null ? r.score : 'Sem Pontuação';
     tr.appendChild(td3);
     const td4 = document.createElement('td'); td4.textContent = (r.keywords||[]).slice(0,6).join(', '); tr.appendChild(td4);
     tb.appendChild(tr);
   });
 
-  if (rowsToDisplay.length > displayLimit) {
-    footerNote.textContent = `Mostrando os primeiros ${displayLimit} de ${rowsToDisplay.length} resultados. Use os filtros da tabela para refinar a busca.`;
+  if (filteredRows.length > displayLimit) {
+    footerNote.textContent = `Mostrando os primeiros ${displayLimit} de ${filteredRows.length} resultados. Use os filtros da tabela para refinar a busca.`;
   }
 }
 
 function renderActiveFilters(){
   const box = el('active-filters');
   box.innerHTML = '';
-  
+
   const activeFilters = [];
-  
+
   if(filter.keyword){
     activeFilters.push({
       label: 'Keyword',
@@ -1821,23 +1273,16 @@ function renderActiveFilters(){
       remove: ()=> { filter.fonte='all'; el('sel-fonte').value='all'; syncFilters(); }
     });
   }
-  
+
   if(activeFilters.length === 0){
-    box.innerHTML = '<div class="filter-empty">Nenhum filtro ativo</div>';
+    box.innerHTML = '<div class="filter-empty">nenhum filtro · clique nos gráficos para filtrar</div>';
     return;
   }
-  
-  // Adicionar contador
-  const counter = document.createElement('div');
-  counter.className = 'filter-counter';
-  counter.innerHTML = `<span class="icon"></span> ${activeFilters.length} filtro${activeFilters.length > 1 ? 's' : ''} ativo${activeFilters.length > 1 ? 's' : ''}`;
-  box.appendChild(counter);
-  
-  // Adicionar pills
+
   activeFilters.forEach(({label, value, remove})=>{
     const pill = document.createElement('div');
     pill.className = 'filter-pill';
-    pill.innerHTML = `<span class="key">${label}:</span> <span class="value">${value}</span> <button class="close-btn" aria-label="Remover filtro ${label}">×</button>`;
+    pill.innerHTML = `<span class="key">${escHtml(label)}</span> <span class="value">${escHtml(value)}</span> <button class="close-btn" aria-label="Remover filtro ${escHtml(label)}">×</button>`;
     pill.querySelector('.close-btn').addEventListener('click', remove);
     box.appendChild(pill);
   });
@@ -1846,38 +1291,14 @@ function renderActiveFilters(){
 function syncFilters(){
   renderActiveFilters();
   buildAggregates();
+  populateFonteSelect();
   renderKPIs();
-  renderExec();
-  function renderExec(){
-    var txt=function(id){ var el=document.getElementById(id); return el?el.textContent.trim():'-'; };
-    var arts=txt('kpi_total'), fontes=txt('kpi_fontes'), kws=txt('kpi_keywords');
-    var data=(typeof rows!=='undefined'?rows:[])||[];
-    var total=data.length||1;
-    var srcCount={}, kwCount={};
-    data.forEach(function(r){
-      var f=(r&&r.fonte)||'-'; srcCount[f]=(srcCount[f]||0)+1;
-      ((r&&r.keywords)||[]).forEach(function(k){ if(k) kwCount[k]=(kwCount[k]||0)+1; });
-    });
-    var topSrc='-',topSrcN=0; Object.keys(srcCount).forEach(function(f){ if(srcCount[f]>topSrcN){topSrcN=srcCount[f];topSrc=f;} });
-    var topKw='-',topKwN=0; Object.keys(kwCount).forEach(function(k){ if(kwCount[k]>topKwN){topKwN=kwCount[k];topKw=k;} });
-    var conc=Math.round(topSrcN/total*100);
-    var kpis=[
-      {v:arts, l:'Artigos', h:'no período'},
-      {v:fontes, l:'Fontes', h:'veículos cobertos'},
-      {v:kws, l:'Palavras-chave', h:'temas rastreados'},
-      {v:conc+'%', l:'Top fonte', h:'concentração de cobertura'}
-    ];
-    var insight='<b>'+topSrc+'</b> concentra <b>'+conc+'%</b> da cobertura do período; <b>'+topKw+'</b> é o tema mais recorrente ('+topKwN+' menções).';
-    var kw=document.getElementById('exec-kpis');
-    if(kw) kw.innerHTML=kpis.map(function(k){ return '<div class="exec-kpi"><div class="ev'+(k.good?' good':'')+'">'+k.v+'</div><div class="el">'+k.l+'</div><div class="eh">'+k.h+'</div></div>'; }).join('');
-    var iw=document.getElementById('exec-insight');
-    if(iw) iw.innerHTML='<span class="ei-tag">insight</span>'+insight;
-  }
-  renderThemeEvolutionHeatmap();
+  renderExecInsight();
+  renderTopKeywords();
+  renderThemeEvolution();
   renderSources();
   renderSankey();
   updateAllKeywordViews();
-  renderKeywordInsights();
   renderTable();
 }
 
@@ -1886,12 +1307,12 @@ el('file').addEventListener('change', (ev)=>{
   const f = ev.target.files[0];
   if(!f) return;
   resetState();
-  
+
   // Mostrar loading spinner
   showLoadingState('Carregando arquivo CSV...');
-  
+
   Papa.parse(f,{
-    header:true, 
+    header:true,
     skipEmptyLines:true,
     chunk: (results, parser) => {
       // Processar em chunks para melhor performance
@@ -1899,14 +1320,14 @@ el('file').addEventListener('change', (ev)=>{
       updateLoadingProgress(`Processando: ${raw.length} linhas lidas...`);
     },
     complete: (res)=>{
-      if(!raw.length){ 
+      if(!raw.length){
         hideLoadingState();
-        addAlert('CSV vazio ou inválido.','warn'); 
-        return; 
+        addAlert('CSV vazio ou inválido.','warn');
+        return;
       }
-      
+
       updateLoadingProgress(`${raw.length} linhas carregadas. Processando dados...`);
-      
+
       // Processar com pequeno delay para UI atualizar
       setTimeout(() => {
         processLoadedData();
@@ -1925,25 +1346,25 @@ function processLoadedData(){
   const cols = Object.keys(raw[0]);
   colmap = autoMapColumns(cols);
   const misses = ['titulo','data','fonte'].filter(k=>!colmap[k]);
-  
+
   if(misses.length){
     addAlert('Mapeamento incompleto para: '+misses.join(', ')+'. Use cabeçalhos padrão.', 'warn');
   }
-  
+
   let ignoredNoDate = 0, fixedUrls = 0, duplicates = 0;
   const seen = new Set();
-  
+
   // IMPORTANTE: Deduplicação mantém APENAS a PRIMEIRA ocorrência de cada artigo
   // Chave única: URL (se existir) ou título+data
   // Garante que cada artigo seja analisado apenas UMA vez
   rows = raw.map(r=>{
     const scoreValue = r[colmap.score];
     const score = (scoreValue && !isNaN(parseFloat(scoreValue))) ? parseFloat(scoreValue) : null;
-    
+
     const row = {
       titulo: r[colmap.titulo] ?? r.titulo ?? r.title ?? '',
       data: parseDateBr(r[colmap.data] ?? r.data ?? r.date ?? ''),
-      fonte: (r[colmap.fonte] ?? r.fonte ?? r.source ?? '—') || '—',
+      fonte: (r[colmap.fonte] ?? r.fonte ?? r.source ?? 'sem fonte') || 'sem fonte',
       url: saneUrl(r[colmap.url] ?? r.url ?? r.link ?? ''),
       tags: (r[colmap.tags] ?? r.tags ?? '') || '',
       score: score
@@ -1956,9 +1377,9 @@ function processLoadedData(){
     if(!r.data){ ignoredNoDate++; return false; }
     // Cria chave única por URL ou título+data
     const key = r.url ? 'u:'+r.url : 't:'+slug(r.titulo)+'@'+(r.data?r.data.toISOString().slice(0,10):'');
-    // Se já existe, é duplicata → bloqueia (mantém primeira ocorrência)
+    // Se já existe, é duplicata: bloqueia (mantém primeira ocorrência)
     if(seen.has(key)){ duplicates++; return false; }
-    // Primeira vez → adiciona ao registro e permite
+    // Primeira vez: adiciona ao registro e permite
     seen.add(key);
     return true;
   });
@@ -1968,9 +1389,9 @@ function processLoadedData(){
   if(ignoredNoDate) messages.push(`${ignoredNoDate} linha(s) sem data ignoradas`);
   if(duplicates) messages.push(`${duplicates} duplicata(s) removida(s) (mantida 1ª ocorrência)`);
   if(fixedUrls) messages.push(`${fixedUrls} URL(s) corrigida(s)`);
-  
+
   if(messages.length){
-    addAlert('ℹ ' + messages.join(' • '), 'badge');
+    addAlert('ℹ ' + messages.join(' · '), 'badge');
   } else {
     addAlert(`${rows.length} artigos únicos processados com sucesso!`, 'badge');
   }
@@ -1996,16 +1417,21 @@ document.querySelectorAll('.chip').forEach(ch=>{
     el('chart_keyword_cloud').style.display = view === 'cloud' ? 'block' : 'none';
     el('chart_keyword_graph').style.display = view === 'graph' ? 'block' : 'none';
     el('chart_keyword_heatmap').style.display = view === 'heatmap' ? 'block' : 'none';
-    el('keyword-filter-wrapper').style.display = view === 'cloud' ? 'block' : 'none';
-    
+
+    if (view === 'cloud' && cloud) cloud.resize();
     if (view === 'graph' && graph) graph.resize();
     if (view === 'heatmap' && heatmap) heatmap.resize();
   });
+  ch.addEventListener('keydown', (ev)=>{
+    if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); ch.click(); }
+  });
 });
 
-// Função de análise com IA removida
 el('sel-topN').addEventListener('change', updateAllKeywordViews);
-el('inp-keyword').addEventListener('input', renderKeywordCloud);
+el('inp-keyword').addEventListener('input', ()=>{
+  renderTopKeywords();
+  renderKeywordCloud();
+});
 
 el('sel-date').addEventListener('change', ()=>{
   filter.dateWin = el('sel-date').value;
@@ -2024,6 +1450,7 @@ el('btn-clear').addEventListener('click', ()=>{
   el('sel-fonte').value='all';
   el('sel-date').value='all';
   el('table-title-filter').value = '';
+  el('table-tags-filter').value = '';
   el('table-score-filter').value = '';
   syncFilters();
 });
@@ -2071,237 +1498,6 @@ el('btn-download-clean').addEventListener('click', ()=>{
   a.click();
 });
 
-function renderKeywordInsights(){
-  const box = el('keyword-insights');
-  box.innerHTML = '';
-  const kw = filter.keyword;
-  if(!kw){ box.innerHTML = '<span class="note">Selecione uma keyword em um dos gráficos para ver insights.</span>'; return; }
-  const total = keywordCounts.get(kw)||0;
-  const topSrc = topFontesForKeyword(kw).slice(0,3);
-  const neigh = [];
-  coocc.forEach((w,key)=>{
-    const [a,b] = key.split('||');
-    if(a===kw) neigh.push([b,w]);
-    else if(b===kw) neigh.push([a,w]);
-  });
-  neigh.sort((a,b)=>b[1]-a[1]);
-  const topNeigh = neigh.slice(0,5);
-  const pill = (label,val)=>`<div class="pill"><div class="num">${val}</div><div>${label}</div></div>`;
-  const wrap = document.createElement('div');
-  wrap.className='kpi';
-  wrap.innerHTML = pill('Menções totais', total)
-    + (topSrc[0]? pill('Fonte líder', topSrc[0][0]+' ('+topSrc[0][1]+')'):'')
-    + (topNeigh[0]? pill('Co-ocorrência forte', topNeigh[0][0]+' ('+topNeigh[0][1]+')'):'');
-  box.appendChild(wrap);
-}
-
-// ---------- AI (Gemini & Discord) Integration ----------
-async function callGemini(prompt){
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === "GEMINI_API_KEY") {
-        return "Erro: A constante GEMINI_API_KEY não está definida ou não foi substituída. Insira sua chave de API no topo do <script> para usar esta funcionalidade.";
-    }
-
-    // Mostrar loading durante chamada da API
-    showLoadingState('Consultando Gemini AI...');
-
-    // 1. Pega o valor do modelo selecionado no menu do header.
-    const selectedModel = el('modelSelect').value;
-
-    // 2. Monta a URL dinamicamente com o modelo escolhido.
-    // Note que `selectedModel` já contém o caminho completo, ex: "models/gemini-2.5-flash"
-    const url = `https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`;
-    
-    const body = {contents:[{parts:[{text:prompt}]}]};
-    try {
-        const res = await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-        hideLoadingState();
-        
-        if(!res.ok){
-            const errorData = await res.json();
-            console.error("Erro da API Gemini:",errorData);
-            return `Erro na API Gemini: ${errorData.error.message}`;
-        }
-        const data = await res.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || "A API não retornou uma resposta válida.";
-    } catch(error) {
-        hideLoadingState();
-        console.error("Erro ao chamar a API Gemini:", error);
-        return "Falha na comunicação com a API Gemini. Verifique o console e sua conexão de rede para detalhes.";
-    }
-}
-
-async function sendToDiscord(textContent, buttonElement){
-    if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL === "SUA_URL_WEBHOOK_AQUI") {
-        alert("A URL do Webhook do Discord não está configurada no código.");
-        return;
-    }
-    const originalText = buttonElement.textContent;
-    buttonElement.disabled = true;
-    buttonElement.textContent = "Resumindo para o Discord...";
-    const summaryPrompt = `Você é um assistente de comunicação. Resuma o seguinte texto de análise de mídia em um formato claro e conciso para ser postado no Discord. Use bullet points (•) para os principais insights. O resumo deve ter menos de 1800 caracteres.\n\nTEXTO ORIGINAL:\n${textContent}`;
-    try {
-        const summary = await callGemini(summaryPrompt);
-        if (summary.startsWith("Erro:")) {
-            alert(summary); 
-            return;
-        }
-        buttonElement.textContent = "Enviando...";
-        const response = await fetch(DISCORD_WEBHOOK_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({content:summary})});
-        if(response.ok) {
-            alert("Resumo enviado para o Discord!");
-        } else {
-            alert(`Falha ao enviar para o Discord: ${response.statusText}`);
-        }
-    } catch(error) {
-        console.error("Erro ao resumir ou enviar para o Discord:", error);
-        alert("Ocorreu um erro. Verifique o console.");
-    } finally {
-        buttonElement.disabled = false;
-        buttonElement.textContent = originalText;
-    }
-}
-
-function toggleGemini(show = true){
-    const p = document.getElementById("geminiPanel");
-    if (p) p.classList.toggle("show", show);
-}
-
-// Resize Gemini Panel
-(function initGeminiResize(){
-  const panel = document.getElementById('geminiPanel');
-  if (!panel) return;
-  const handle = panel.querySelector('.resize-handle');
-  let dragging = false;
-  let startX = 0;
-  let startW = 0;
-  
-  const onMove = (e) => {
-    if(!dragging) return;
-    e.preventDefault();
-    const clientX = e.clientX || e.touches?.[0]?.clientX;
-    const dx = startX - clientX;
-    const newW = Math.max(350, Math.min(800, startW + dx));
-    panel.style.width = newW + 'px';
-  };
-  
-  const onUp = () => {
-    if(!dragging) return;
-    dragging = false;
-    panel.classList.remove('resizing');
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onUp);
-  };
-  
-  handle.addEventListener('mousedown', (e) => {
-    dragging = true;
-    panel.classList.add('resizing');
-    startX = e.clientX;
-    startW = panel.offsetWidth;
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  });
-  
-  handle.addEventListener('touchstart', (e) => {
-    const t = e.touches[0];
-    dragging = true;
-    panel.classList.add('resizing');
-    startX = t.clientX;
-    startW = panel.offsetWidth;
-    document.addEventListener('touchmove', onMove, {passive:false});
-    document.addEventListener('touchend', onUp);
-  });
-})();
-
-async function sendGemini(kind, buttonElement){
-    if(!document.getElementById("geminiPanel")){
-        alert("A análise com IA não está disponível nesta demonstração pública.");
-        return;
-    }
-    if(!chartDataStore || !chartDataStore.hasOwnProperty(kind)){
-        alert("Dados para este gráfico não foram encontrados. Processe o arquivo primeiro.");
-        return;
-    }
-    
-    const originalText = buttonElement.textContent;
-    buttonElement.disabled = true;
-    buttonElement.textContent = "Analisando...";
-    
-    toggleGemini(true);
-    const geminiOutput = document.getElementById("geminiOutput");
-    const geminiActions = document.getElementById("geminiActions");
-    geminiOutput.textContent = "Consultando Gemini, por favor aguarde...";
-    geminiActions.innerHTML = "";
-    
-    try {
-        const specificData = chartDataStore[kind];
-        const prompt = makeNewsPrompt(kind, specificData);
-        const resp = await callGemini(prompt);
-        geminiOutput.textContent = resp;
-        
-        if(resp && !resp.startsWith("Erro")){
-            const discordBtn = document.createElement('button');
-            discordBtn.textContent = "Enviar resumo para o Discord";
-            discordBtn.className = "btn";
-            discordBtn.onclick = () => sendToDiscord(resp, discordBtn);
-            geminiActions.appendChild(discordBtn);
-        }
-    } finally {
-        buttonElement.disabled = false;
-        buttonElement.textContent = originalText;
-    }
-}
-
-function makeNewsPrompt(kind, data){
-    const base = `Atue como um analista de mídia e conteúdo sênior. Sua tarefa é analisar os dados extraídos de um conjunto de artigos de notícias e fornecer insights claros, concisos e acionáveis. Apresente sua análise em formato de bullet points (tópicos).`;
-    let dataPrompt = "";
-    
-    // Helper para truncar dados grandes
-    const truncate = (arr, max) => arr.length > max ? arr.slice(0, max) : arr;
-
-    switch(kind){
-        case 'top_sources':
-            if (!data || data.length === 0) return base + "\n\nNão há dados de fontes para analisar. Informe ao usuário que o gráfico de 'Top Fontes' está vazio.";
-            const sourcesText = truncate(data, 30).map(item => `- ${item[0]}: ${item[1]} artigos`).join('\n');
-            dataPrompt = `Estes são os dados de volume de artigos por fonte:\n${sourcesText}\n\nCom base nisso, identifique as fontes dominantes, a concentração de publicações e quaisquer padrões notáveis na distribuição de conteúdo entre os veículos.`;
-            break;
-        case 'sankey':
-            if (!data || data.links.length === 0) return base + "\n\nNão há dados de fluxo entre fontes e temas para analisar. Informe que não há conexões para gerar o gráfico Sankey.";
-            const sankeyText = truncate(data.links, 40).map(l => `- A fonte "${l.source}" publicou ${l.value} vez(es) sobre o tema "${l.target}".`).join('\n');
-            dataPrompt = `Este é um resumo das conexões entre fontes e os temas que elas mais cobrem:\n${sankeyText}\n\nAnalise essas conexões para identificar as especializações editoriais de cada fonte. Quais fontes são referência em quais assuntos? Existem temas que são cobertos por muitas fontes ou temas de nicho?`;
-            break;
-        case 'word_cloud':
-            if (!data || data.length === 0) return base + "\n\nNão há palavras-chave para analisar no Word Cloud. Informe ao usuário que não há dados para esta visualização.";
-            const cloudText = truncate(data, 40).map(item => `- ${item.name} (frequência: ${item.value})`).join('\n');
-            dataPrompt = `As palavras-chave mais frequentes no período analisado são:\n${cloudText}\n\nIdentifique os temas centrais da cobertura. Agrupe palavras-chave relacionadas em narrativas ou assuntos principais. O que esses termos dizem sobre o foco da mídia no período?`;
-            break;
-
-        case 'theme_evolution':
-             if (!data || data.data.length === 0) return base + "\n\nNão há dados sobre a evolução de temas para analisar.";
-             const evolutionText = truncate(data.data, 50).map(([dayIdx, kwIdx, value]) => `- No dia ${data.days[dayIdx]}, o tema "${data.keywords[kwIdx]}" teve ${value} menções.`).join('\n');
-             dataPrompt = `Os dados mostram a frequência de temas ao longo do tempo:\n${evolutionText}\n\nAnalise a ascensão e queda de diferentes temas. Identifique picos de interesse, tendências emergentes ou assuntos que perderam relevância. Existem padrões sazonais ou reações a eventos específicos?`;
-             break;
-
-        case 'keyword_graph':
-            if (!data || !data.edges || data.edges.length === 0) return base + "\n\nNão há dados de co-ocorrência para gerar um gráfico de rede. Informe ao usuário que não há conexões suficientes entre os temas para a análise.";
-            const graphText = truncate(data.edges, 50).map(edge => `- O tema "${edge.source}" apareceu junto com "${edge.target}" ${edge.value} vez(es).`).join('\n');
-            dataPrompt = `A análise de rede de palavras-chave mostra como os temas se conectam. As conexões mais fortes são:\n${graphText}\n\nAnalise os clusters (grupos) de temas. Quais assuntos são frequentemente discutidos em conjunto? Existem temas "ponte" que conectam diferentes grupos de discussão? O que essas conexões revelam sobre as narrativas da mídia?`;
-            break;
-
-        case 'keyword_heatmap':
-            if (!data || !data.data || data.data.length === 0) return base + "\n\nNão há dados para gerar um heatmap semanal. Informe ao usuário que não há dados de frequência semanal para as palavras-chave.";
-            const heatmapText = truncate(data.data, 50).map(([weekIdx, kwIdx, value]) => `- Na semana ${data.weeks[weekIdx]}, o tema "${data.keywords[kwIdx]}" teve ${value} menções.`).join('\n');
-            dataPrompt = `O heatmap mostra a intensidade de cobertura dos principais temas a cada semana:\n${heatmapText}\n\nAnalise a performance semanal dos temas. Identifique quais semanas tiveram maior volume de notícias sobre determinados assuntos. Existem temas com cobertura constante ou temas que aparecem apenas em picos específicos?`;
-            break;
-        default:
-            dataPrompt=`Analise os seguintes dados brutos e extraia os principais insights:\n${JSON.stringify(data,null,2)}`;
-            break;
-    }
-}
-
-// ---------- Funções de AI (Gemini & Discord) REMOVIDAS ----------
-
 // =============================
 // Download de gráfico como PNG
 // =============================
@@ -2314,7 +1510,7 @@ function downloadChartPNG(domId, fileBase){
   const url = chart.getDataURL({
     type: 'png',
     pixelRatio: 2,
-    backgroundColor: '#0F172A'
+    backgroundColor: '#0a0a0b'
   });
   const a = document.createElement('a');
   a.href = url;
@@ -2324,21 +1520,27 @@ function downloadChartPNG(domId, fileBase){
 
 // Exporta dados do gráfico para CSV
 function exportChartDataCSV(domId, fileBase){
-  const kind = domId.replace('chart_', '');
+  let kind = domId.replace('chart_', '');
+  if(kind === 'sources') kind = 'top_sources';
   let data = chartDataStore[kind];
-  
+
   if(!data || (Array.isArray(data) && data.length === 0)){
     alert('Nenhum dado disponível para exportar');
     return;
   }
-  
+
   let lines = [];
-  
+
   // Formatar baseado no tipo de dado
-  if(kind === 'sources' || kind === 'top_sources'){
-    lines.push('Fonte,Quantidade');
-    data.forEach(([fonte, qtd]) => {
-      lines.push(`"${fonte}",${qtd}`);
+  if(kind === 'top_sources'){
+    lines.push('Fonte,Score médio,Artigos pontuados');
+    data.forEach(([fonte, avg, n]) => {
+      lines.push(`"${fonte}",${avg},${n}`);
+    });
+  } else if(kind === 'top_keywords'){
+    lines.push('Keyword,Menções');
+    data.forEach(([kw, qtd]) => {
+      lines.push(`"${kw}",${qtd}`);
     });
   } else if(kind === 'sankey'){
     lines.push('Origem,Destino,Valor');
@@ -2351,17 +1553,23 @@ function exportChartDataCSV(domId, fileBase){
       lines.push(`"${item.name}",${item.value}`);
     });
   } else if(kind === 'theme_evolution'){
-    lines.push('Data,Tema,Menções');
-    data.data.forEach(([dayIdx, kwIdx, count]) => {
-      const day = data.days[dayIdx];
-      const kw = data.keywords[kwIdx];
-      lines.push(`"${day}","${kw}",${count}`);
+    lines.push('Semana,Tema,Menções');
+    data.keywords.forEach((kw, ki) => {
+      data.weeks.forEach((w, wi) => {
+        const v = data.matrix[ki][wi];
+        if(v) lines.push(`"${w}","${kw}",${v}`);
+      });
+    });
+  } else if(kind === 'keyword_heatmap'){
+    lines.push('Semana,Keyword,Menções');
+    data.data.forEach(([wi, ki, v]) => {
+      lines.push(`"${data.weeks[wi]}","${data.keywords[ki]}",${v}`);
     });
   } else {
     // Fallback: JSON
     lines.push(JSON.stringify(data, null, 2));
   }
-  
+
   const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -2378,9 +1586,6 @@ function downloadActiveKeywordChart(){
 
 function exportActiveKeywordData(){
   const activeView = document.querySelector('.chip.active')?.dataset.view || 'cloud';
-  let kind = 'word_cloud';
-  if(activeView === 'graph') kind = 'keyword_graph';
-  if(activeView === 'heatmap') kind = 'keyword_heatmap';
   exportChartDataCSV(`chart_keyword_${activeView}`, `keywords_${activeView}`);
 }
 
@@ -2390,7 +1595,7 @@ function toggleChartMenu(btn){
   document.querySelectorAll('.chart-menu').forEach(m => {
     if(m !== btn.nextElementSibling) m.classList.remove('show');
   });
-  
+
   const menu = btn.nextElementSibling;
   menu.classList.toggle('show');
 }
@@ -2409,107 +1614,92 @@ window.addEventListener('keydown', e => {
   }
 });
 
+let resizeTimer = null;
 window.addEventListener('resize', ()=>{
-  [cloud,graph,heatmap,themeEvolution,sourcesBar,sankey].forEach(c=>{ try{ c && c.resize(); }catch(e){} });
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    [topKeywordsBar,themeEvolution,cloud,graph,heatmap,sourcesBar,sankey].forEach(c=>{ try{ c && c.resize(); }catch(e){} });
+  }, 150);
 });
-
-const header = document.querySelector('header');
-const shrinkThreshold = 50;
-if (header) {
-  window.addEventListener('scroll', () => {
-    header.classList.toggle('shrunk', window.scrollY > shrinkThreshold);
-  });
-}
 </script>
 
 <!-- Modal Metodologia -->
 <div class="modal-overlay" id="modalMetodologia">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Metodologia - Dashboard Editorial NewsRadar</h2>
-      <button class="modal-close" onclick="closeMetodologiaModal()">&times;</button>
+      <h2>Metodologia · NewsRadar Editorial</h2>
+      <button class="modal-close" onclick="closeMetodologiaModal()" aria-label="Fechar">&times;</button>
     </div>
     <div class="modal-body">
       <h3>Como usar este dashboard:</h3>
       <p style="background: var(--accent-glow); border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;">
-        <strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br>
-        <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar atividades da base de artigos do sistema.</span>
+        <strong>Arquivo necessário:</strong> <code>newsradar_artigos.csv</code><br>
+        <span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Export do monitoramento editorial, uma linha por artigo capturado.</span>
       </p>
       <ul style="margin-bottom: 16px;">
         <li><strong>Faça upload de um arquivo CSV</strong> contendo artigos com as seguintes colunas:
           <ul style="margin-top: 4px;">
             <li><strong>Obrigatórias:</strong>
               <ul style="margin-left: 20px; font-size: 11px;">
-                <li><code>título</code> ou <code>title</code> ou <code>headline</code> - Título do artigo</li>
-                <li><code>data</code> ou <code>date</code> ou <code>publicado_em</code> - Data de publicação</li>
-                <li><code>fonte</code> ou <code>source</code> ou <code>publisher</code> - Fonte/veículo</li>
+                <li><code>título</code> ou <code>title</code> ou <code>headline</code>: título do artigo</li>
+                <li><code>data</code> ou <code>date</code>: data de publicação</li>
+                <li><code>fonte</code> ou <code>source</code>: fonte/veículo</li>
               </ul>
             </li>
             <li><strong>Opcionais:</strong>
               <ul style="margin-left: 20px; font-size: 11px;">
-                <li><code>score</code> ou <code>relevância</code> - Score de relevância (0-100)</li>
-                <li><code>url</code> ou <code>link</code> - Link do artigo</li>
-                <li><code>tags</code> ou <code>keywords</code> - Palavras-chave (separadas por vírgula ou lista)</li>
-                <li><code>categoria</code> ou <code>category</code> - Categoria editorial</li>
+                <li><code>score</code>: score de relevância (0-100)</li>
+                <li><code>url</code> ou <code>link</code>: link do artigo</li>
+                <li><code>tags</code>: palavras-chave separadas por vírgula</li>
+                <li><code>categoria</code>: categoria editorial</li>
               </ul>
             </li>
           </ul>
         </li>
       </ul>
 
-      <h3>Funcionalidades principais:</h3>
-      <ul>
-        <li><strong>Keyword Explorer:</strong> Análise de palavras-chave com nuvem, grafo e heatmap</li>
-        <li><strong>Theme Evolution:</strong> Evolução de temas ao longo do tempo</li>
-        <li><strong>Source Analysis:</strong> Performance por fonte/veículo</li>
-        <li><strong>Sankey Flow:</strong> Fluxo de keywords → fontes → artigos</li>
-        <li><strong>Insights IA:</strong> Análises contextualizadas via Google Gemini</li>
-      </ul>
-
       <h3>Processamento automático:</h3>
       <ul>
-        <li><strong>Tokenização inteligente:</strong> Remove stopwords e normaliza termos</li>
-        <li><strong>Detecção de keywords:</strong> Extração de título + tags</li>
-        <li><strong>Análise de co-ocorrência:</strong> Relacionamento entre palavras-chave</li>
-        <li><strong>Agregação temporal:</strong> Agrupamento por dia/semana/mês</li>
-        <li><strong>Parseamento de datas:</strong> Suporta DD/MM/YYYY, YYYY-MM-DD e ISO</li>
-        <li><strong>Stopwords em português:</strong> Filtragem automática de artigos, preposições, etc.</li>
+        <li><strong>Tokenização inteligente:</strong> remove stopwords em português e normaliza termos</li>
+        <li><strong>Detecção de keywords:</strong> extração de título + tags</li>
+        <li><strong>Análise de co-ocorrência:</strong> relacionamento entre palavras-chave</li>
+        <li><strong>Agregação temporal:</strong> agrupamento por semana</li>
+        <li><strong>Parseamento de datas:</strong> suporta DD/MM/YYYY, YYYY-MM-DD e ISO</li>
+        <li><strong>Deduplicação:</strong> pela URL (ou título + data), mantendo a primeira ocorrência</li>
       </ul>
 
       <h3>Visualizações disponíveis:</h3>
       <ul>
-        <li><strong>Keyword Cloud:</strong> Nuvem de palavras com frequência</li>
-        <li><strong>Keyword Network:</strong> Grafo de relacionamentos entre termos</li>
-        <li><strong>Keyword Heatmap:</strong> Matriz de co-ocorrência (top keywords)</li>
-        <li><strong>Theme Evolution Heatmap:</strong> Evolução de temas por período</li>
-        <li><strong>Source Bar Chart:</strong> Ranking de fontes por volume</li>
-        <li><strong>Sankey Diagram:</strong> Fluxo de dados multi-dimensional</li>
-        <li><strong>Latest Articles Table:</strong> Listagem completa com filtros</li>
+        <li><strong>Top keywords:</strong> as 15 palavras-chave com mais menções na seleção</li>
+        <li><strong>Evolução de temas:</strong> menções semanais das 5 keywords mais fortes</li>
+        <li><strong>Keyword Explorer:</strong> nuvem de palavras, rede de co-ocorrência (até 30 nós) e heatmap semanal (até 30 linhas)</li>
+        <li><strong>Fontes por Score Médio:</strong> score médio real por veículo (top 15 por volume, mínimo 3 artigos pontuados)</li>
+        <li><strong>Fluxo de temas por fonte:</strong> Sankey com as top 5 fontes e top 5 keywords</li>
+        <li><strong>Top Artigos:</strong> listagem completa com filtros e ordenação</li>
       </ul>
 
       <h3>Filtros disponíveis:</h3>
       <ul>
-        <li><strong>Keyword filter:</strong> Filtrar por palavra-chave específica</li>
-        <li><strong>Source filter:</strong> Filtrar por fonte/veículo</li>
-        <li><strong>Date window:</strong> Últimos 7 dias, 30 dias, 90 dias ou todos</li>
-        <li><strong>Top N:</strong> Ajustar quantidade de keywords exibidas (10-100)</li>
-        <li><strong>Table filters:</strong> Busca em título, tags e score</li>
+        <li><strong>Janela de tempo:</strong> últimos 30, 60, 90 dias ou todo o período</li>
+        <li><strong>Fonte:</strong> filtrar por veículo específico</li>
+        <li><strong>Keyword:</strong> clique em qualquer gráfico de keywords para aplicar o filtro cruzado</li>
+        <li><strong>Busca de keyword:</strong> campo de texto que refina os rankings</li>
+        <li><strong>Filtros da tabela:</strong> busca em título, tags e score mínimo</li>
       </ul>
 
       <h3>Dicas de uso:</h3>
       <ul>
-        <li>Use <strong>filtros ativos</strong> (chips ciano) para refinar análises</li>
-        <li>Clique em <strong>""</strong> nos cards para insights de IA sobre cada visualização</li>
-        <li>Exporte dados limpos via <strong>"CSV Limpo"</strong></li>
-        <li>Clique em <strong>nodes do grafo</strong> para aplicar filtro de keyword</li>
-        <li>Use <strong>Discord webhook</strong> para enviar resumos automaticamente</li>
+        <li>Use os <strong>chips azuis</strong> da barra de filtros para ver e remover recortes ativos</li>
+        <li>Clique em <strong>barras, nós e linhas</strong> para aplicar o filtro cruzado de keyword ou fonte</li>
+        <li>Exporte a base tratada via <strong>"Exportar dados (.csv)"</strong></li>
+        <li>Cada card tem menu de ações com <strong>Download PNG</strong> e <strong>Exportar CSV</strong></li>
       </ul>
 
       <h3>Notas técnicas:</h3>
       <ul>
-        <li><strong>100% local:</strong> Nenhum dado é enviado para servidores (exceto IA/Discord quando ativado)</li>
-        <li><strong>Performance:</strong> Otimizado para até 10.000 artigos</li>
-        <li><strong>Limpeza automática:</strong> Remove registros sem título ou data</li>
+        <li><strong>100% local:</strong> o parse do CSV acontece no navegador; nenhum dado sai da sua máquina</li>
+        <li><strong>Performance:</strong> otimizado para até 10.000 artigos</li>
+        <li><strong>Limpeza automática:</strong> remove registros sem título ou data</li>
         <li><strong>Timezone:</strong> America/Sao_Paulo (UTC-3)</li>
       </ul>
     </div>
@@ -2534,9 +1724,6 @@ function closeMetodologiaModal() {
   document.body.style.overflow = '';
 }
 
-// ========== FUNÇÕES DE NAVEGAÇÃO ==========
-// Função toggleNav removida (menu de navegação descontinuado)
-
 function scrollToTop() {
   window.scrollTo({
     top: 0,
@@ -2556,32 +1743,6 @@ window.addEventListener('scroll', () => {
   }
 });
 
-// Destaca link ativo na navegação
-function updateActiveNavLink() {
-  const sections = document.querySelectorAll('.card[id]');
-  const navLinks = document.querySelectorAll('nav a[href^="#"]');
-  
-  let currentSection = '';
-  
-  sections.forEach(section => {
-    const sectionTop = section.offsetTop - 150;
-    const sectionHeight = section.clientHeight;
-    
-    if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
-      currentSection = section.getAttribute('id');
-    }
-  });
-  
-  navLinks.forEach(link => {
-    link.classList.remove('active');
-    if (link.getAttribute('href') === `#${currentSection}`) {
-      link.classList.add('active');
-    }
-  });
-}
-
-window.addEventListener('scroll', updateActiveNavLink);
-
 // Fechar modal com ESC
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
@@ -2595,54 +1756,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     closeMetodologiaModal();
   }
 });
-
-// Lógica para mostrar o cabeçalho APENAS no topo
-const headerElement = document.querySelector('header');
-const scrollThreshold = 10; // Uma pequena margem para não esconder em rolagens mínimas
-
-window.addEventListener('scroll', function() {
-    // Pega a posição atual da rolagem
-    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-    // Se a rolagem for maior que o limiar, esconde o cabeçalho.
-    if (scrollTop > scrollThreshold) { 
-        headerElement.classList.add('header-hidden');
-    } else { // Senão (se estiver no topo), mostra o cabeçalho.
-        headerElement.classList.remove('header-hidden');
-    }
-}, false);
-
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
 <script>
