@@ -396,7 +396,7 @@
   .suggestions-list::-webkit-scrollbar-track{background:var(--card);border-radius:3px}
 
   /* ===== tour guiado ===== */
-  .tour-hole{position:fixed;z-index:12000;pointer-events:none;border:2px solid var(--accent-soft);border-radius:10px;box-shadow:0 0 0 200vmax rgba(5,5,6,.74);transition:top .25s ease,left .25s ease,width .25s ease,height .25s ease}
+  .tour-hole{position:fixed;z-index:12000;pointer-events:none;border:2px solid var(--accent-soft);border-radius:10px;box-shadow:0 0 0 200vmax rgba(5,5,6,.74)}
   .tour-tip{position:fixed;z-index:12001;background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);padding:12px 14px;width:300px;box-shadow:0 12px 32px rgba(0,0,0,.55)}
   .tour-tip .tt{font-weight:700;color:var(--ink);font-size:13px;margin-bottom:4px}
   .tour-tip .tb{font-size:12px;color:var(--ink-2);line-height:1.5;margin-bottom:10px}
@@ -2932,41 +2932,59 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     ], done:'Entendi', next:'Próximo', prev:'Voltar', of:'de' }
   };
   var hole,tip,idx,steps;
+  var rafId=null, activeEl=null;
+  var ro=(window.ResizeObserver)?new ResizeObserver(function(){ layout(activeEl); }):null;
+  function layout(el){
+    if(!hole||!tip||!el) return;
+    var r=el.getBoundingClientRect(), pad=10;
+    hole.style.top=(r.top-pad)+'px'; hole.style.left=(r.left-pad)+'px';
+    hole.style.width=(r.width+pad*2)+'px'; hole.style.height=(r.height+pad*2)+'px';
+    var tw=300, gap=18, th=tip.offsetHeight||150;
+    var cardCenterX=r.left+r.width/2, onLeftHalf=cardCenterX<innerWidth/2;
+    var left = onLeftHalf ? (r.right+gap) : (r.left-gap-tw), top;
+    if(left>=8 && left+tw<=innerWidth-8){
+      // cabe ao lado (na direção do centro): centraliza vertical com o card
+      top = Math.max(8, Math.min(r.top+r.height/2-th/2, innerHeight-th-8));
+    } else if(r.bottom+gap+th<=innerHeight-8){
+      // não cabe ao lado, mas cabe abaixo
+      left = onLeftHalf ? Math.max(8, r.right-tw) : Math.min(innerWidth-tw-8, r.left);
+      top = r.bottom+gap;
+    } else if(r.top-gap-th>=8){
+      // cabe acima
+      left = onLeftHalf ? Math.max(8, r.right-tw) : Math.min(innerWidth-tw-8, r.left);
+      top = r.top-gap-th;
+    } else {
+      // card ocupa quase tudo (full-width alto): canto inferior da viewport, longe do centro do card
+      left = onLeftHalf ? (innerWidth-tw-16) : 16;
+      top = innerHeight-th-16;
+    }
+    tip.style.left=left+'px'; tip.style.top=top+'px';
+  }
+  // reforço: se o usuário rolar/redimensionar, o hole e a tooltip acompanham
+  function onScrollResize(){ layout(activeEl); }
+  // loop perpétuo (quando a aba está visível): hole e tooltip seguem o card
+  function tick(){ if(!hole){ rafId=null; return; } layout(activeEl); rafId=requestAnimationFrame(tick); }
   function place(){
     var sel=steps[idx][0]; var el=document.querySelector(sel);
     if(!el){ next(); return; }
     // foca o card inteiro, não só o gráfico interno
     if(sel!=='header'){ var card=el.closest('.card')||el.closest('.exec-band'); if(card) el=card; }
-    el.scrollIntoView({block:'center',behavior:'smooth'});
-    setTimeout(function(){
-      var r=el.getBoundingClientRect(), pad=10;
-      hole.style.top=(r.top-pad)+'px'; hole.style.left=(r.left-pad)+'px';
-      hole.style.width=(r.width+pad*2)+'px'; hole.style.height=(r.height+pad*2)+'px';
-      var d=TXT[L()], tw=300, gap=18;
-      // preenche primeiro para medir a altura real
-      tip.innerHTML='<div class="tt">'+steps[idx][1]+'</div><div class="tb">'+steps[idx][2]+'</div>'
-        +'<div class="tf"><span class="tstep">'+(idx+1)+' '+d.of+' '+steps.length+'</span>'
-        +(idx>0?'<button class="btn secondary sm" data-t="prev">'+d.prev+'</button>':'')
-        +'<button class="btn sm" data-t="next">'+(idx===steps.length-1?d.done:d.next)+'</button></div>';
-      var th=tip.offsetHeight||150;
-      // lado: o card fica de um lado da tela, a tooltip vai pro lado do CENTRO (nunca sobre o card)
-      var cardCenterX=r.left+r.width/2, onLeftHalf=cardCenterX<innerWidth/2;
-      var left = onLeftHalf ? (r.right+gap) : (r.left-gap-tw);
-      // se não couber ao lado (card largo/full-width), cai pra baixo ou pra cima, mas alinhado à borda do lado do centro
-      if(left<8 || left+tw>innerWidth-8){
-        left = onLeftHalf ? Math.max(8, r.right-tw) : Math.min(innerWidth-tw-8, r.left);
-        var below=r.bottom+gap;
-        var top = (below+th<=innerHeight-8) ? below : Math.max(8, r.top-gap-th);
-        tip.style.left=left+'px'; tip.style.top=top+'px'; return;
-      }
-      // ao lado: centraliza verticalmente com o card, preso à viewport
-      var top=Math.max(8, Math.min(r.top+r.height/2-th/2, innerHeight-th-8));
-      tip.style.left=left+'px'; tip.style.top=top+'px';
-    },260);
+    activeEl=el;
+    if(ro){ ro.disconnect(); try{ ro.observe(el); ro.observe(document.body); }catch(e){} }
+    var d=TXT[L()];
+    tip.innerHTML='<div class="tt">'+steps[idx][1]+'</div><div class="tb">'+steps[idx][2]+'</div>'
+      +'<div class="tf"><span class="tstep">'+(idx+1)+' '+d.of+' '+steps.length+'</span>'
+      +(idx>0?'<button class="btn secondary sm" data-t="prev">'+d.prev+'</button>':'')
+      +'<button class="btn sm" data-t="next">'+(idx===steps.length-1?d.done:d.next)+'</button></div>';
+    // scroll instantâneo + re-layout em alguns instantes (setTimeout roda mesmo com aba oculta,
+    // pegando qualquer scroll residual; o rAF/scroll-listener cobrem o resto quando visível)
+    el.scrollIntoView({block:'center',behavior:'auto'});
+    layout(el);
+    [0,60,180].forEach(function(ms){ setTimeout(function(){ if(activeEl===el) layout(el); }, ms); });
   }
   function next(){ if(idx>=steps.length-1){ end(); return; } idx++; place(); }
   function prev(){ if(idx>0){ idx--; place(); } }
-  function end(){ if(hole)hole.remove(); if(tip)tip.remove(); hole=tip=null; document.removeEventListener('keydown',onKey); }
+  function end(){ if(rafId){cancelAnimationFrame(rafId);rafId=null;} if(ro)ro.disconnect(); activeEl=null; if(hole)hole.remove(); if(tip)tip.remove(); hole=tip=null; document.removeEventListener('keydown',onKey); window.removeEventListener('scroll',onScrollResize,true); window.removeEventListener('resize',onScrollResize); }
   function onKey(e){ if(e.key==='Escape')end(); else if(e.key==='ArrowRight')next(); else if(e.key==='ArrowLeft')prev(); }
   function start(){
     end(); steps=TXT[L()].steps; idx=0;
@@ -2975,7 +2993,10 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     document.body.appendChild(hole); document.body.appendChild(tip);
     tip.addEventListener('click',function(e){ var b=e.target.closest('[data-t]'); if(!b)return; b.dataset.t==='next'?next():prev(); });
     document.addEventListener('keydown',onKey);
+    window.addEventListener('scroll',onScrollResize,true);
+    window.addEventListener('resize',onScrollResize);
     place();
+    if(!rafId) rafId=requestAnimationFrame(tick);
   }
   window.__startTour=start;
   window.enrichOnb=function(){
