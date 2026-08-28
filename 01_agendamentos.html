@@ -1349,25 +1349,36 @@ function renderTrend(data){
       data:vals
     };
   };
+  // série "Total" (somatório real de TODOS os registros da métrica, não só o top 6): começa oculta
+  const TOTAL=t('trTotalSeries');
+  const totalPer={}; rows.forEach(d=>{ const ms=msOf(d); if(ms==null) return; const k=keyOf(ms); totalPer[k]=(totalPer[k]||0)+1; });
+  const totalSeries={
+    name:TOTAL, type:'line', smooth:false, showSymbol:false, z:12,
+    lineStyle:{width:2,color:'#f8f7f3',type:'dashed'}, itemStyle:{color:'#f8f7f3'},
+    emphasis:{focus:'series'},
+    data:keys.map(k=>totalPer[k]||0)
+  };
   chartDataStore.trend={dim:trendDim,metric:trendMetric,rows:cats,cols:labels,data:cats.map(c=>keys.map(k=>(buckets[k]&&buckets[k][c])||0))};
+  const totalByLabel={}; keys.forEach((k,i)=>{ totalByLabel[labels[i]]=totalPer[k]||0; });
   const unit=trendMetric==='sales'?t('trUnitSales'):t('trUnitBookings');
   chart.setOption({
     grid:{left:8,right:16,top:38,bottom:26,containLabel:true},
-    legend:{top:2,data:cats,formatter:(n)=>dispVal(n),textStyle:{color:'#a1a1aa',fontSize:11},itemWidth:14,itemHeight:3,itemGap:16,type:'scroll'},
+    legend:{top:2,data:cats.concat([TOTAL]),selected:Object.assign({},{[TOTAL]:false}),formatter:(n)=>dispVal(n),textStyle:{color:'#a1a1aa',fontSize:11},itemWidth:14,itemHeight:3,itemGap:16,type:'scroll'},
     tooltip:{trigger:'axis',axisPointer:{type:'line',lineStyle:{color:'rgba(248,247,243,.25)'}},
       backgroundColor:'#131316',borderColor:'rgba(248,247,243,.18)',
-      formatter:(ps)=>{ const tot=ps.reduce((a,p)=>a+(p.value||0),0);
+      formatter:(ps)=>{ const totReal=totalByLabel[ps[0].axisValue]||0;
         let h='<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:#8a8a94;margin-bottom:4px">'+escHtml(ps[0].axisValue)+' · '+escHtml(unit)+'</div>';
-        ps.slice().filter(p=>p.value>0).sort((a,b)=>b.value-a.value).forEach(p=>{ const pct=tot?(p.value/tot*100).toFixed(0):0; h+='<div style="display:flex;justify-content:space-between;gap:18px"><span>'+p.marker+' '+escHtml(dispVal(p.seriesName))+'</span><span><b>'+p.value+'</b> <span style="color:#8a8a94">'+pct+'%</span></span></div>'; });
-        h+='<div style="display:flex;justify-content:space-between;gap:18px;margin-top:3px;border-top:1px solid rgba(248,247,243,.12);padding-top:3px;color:#8a8a94"><span>'+escHtml(t('trTotal'))+'</span><b>'+tot+'</b></div>';
+        // categorias (exclui a série Total, que é o somatório do todo)
+        ps.slice().filter(p=>p.seriesName!==TOTAL && p.value>0).sort((a,b)=>b.value-a.value).forEach(p=>{ const pct=totReal?(p.value/totReal*100).toFixed(0):0; h+='<div style="display:flex;justify-content:space-between;gap:18px"><span>'+p.marker+' '+escHtml(dispVal(p.seriesName))+'</span><span><b>'+p.value+'</b> <span style="color:#8a8a94">'+pct+'%</span></span></div>'; });
+        h+='<div style="display:flex;justify-content:space-between;gap:18px;margin-top:3px;border-top:1px solid rgba(248,247,243,.12);padding-top:3px;color:#8a8a94"><span>'+escHtml(t('trTotal'))+'</span><b>'+totReal+'</b></div>';
         return h; }},
     xAxis:{type:'category',boundaryGap:false,data:labels,axisLabel:{fontSize:9,color:'#8a8a94',hideOverlap:true}},
     yAxis:{type:'value',minInterval:1,axisLabel:{fontSize:9,color:'#8a8a94'},splitLine:{lineStyle:{color:'rgba(248,247,243,.06)'}},minorSplitLine:{show:true,lineStyle:{color:'rgba(248,247,243,.03)'}}},
-    series:cats.map(mkSeries),
+    series:cats.map(mkSeries).concat([totalSeries]),
     animationDuration:700
   });
   addResize(chart);
-  chart.on('click',p=>{ if(p.seriesName) addGlobalFilter({type:trendDim,value:p.seriesName,label:p.seriesName}); });
+  chart.on('click',p=>{ if(p.seriesName && p.seriesName!==TOTAL) addGlobalFilter({type:trendDim,value:p.seriesName,label:p.seriesName}); });
 }
 // hex #rrggbb + alpha -> rgba()
 function hexA(hex,a){ const h=hex.replace('#',''); const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
@@ -2278,7 +2289,7 @@ var I18N={
     hlTopFlow:'top flow', hlLeader:'leader', hlFastest:'fastest', hlBestConv:'best conv.', hlTop:'top', hlPeak:'peak',
     skFrom:'incoming', skTo:'outgoing',
     scScatter:'Volume × conversion (bubble = A+B quality)', scAvg:'avg',
-    trTotal:'Total', trPeak:'peak week', trUnitBookings:'bookings', trUnitSales:'sales',
+    trTotal:'Total', trTotalSeries:'Total (all)', trPeak:'peak week', trUnitBookings:'bookings', trUnitSales:'sales',
     fbHighValue:'high-value leads', fbMarket:'market', fbOverall:'overall',
     sugNoData:'Not enough data to generate suggestions. Process a valid CSV file first.',
     minimize:'Minimize', maximize:'Maximize',
@@ -2321,7 +2332,7 @@ var I18N={
     hlTopFlow:'maior fluxo', hlLeader:'líder', hlFastest:'mais rápida', hlBestConv:'melhor conv.', hlTop:'top', hlPeak:'pico',
     skFrom:'de onde vem', skTo:'para onde vai',
     scScatter:'Volume × conversão (bolha = qualidade A+B)', scAvg:'média',
-    trTotal:'Total', trPeak:'semana de pico', trUnitBookings:'agendamentos', trUnitSales:'vendas',
+    trTotal:'Total', trTotalSeries:'Total (todos)', trPeak:'semana de pico', trUnitBookings:'agendamentos', trUnitSales:'vendas',
     fbHighValue:'leads de alto valor', fbMarket:'mercado', fbOverall:'geral',
     sugNoData:'Dados insuficientes para gerar sugestões. Processe um arquivo CSV válido primeiro.',
     minimize:'Minimizar', maximize:'Maximizar',
