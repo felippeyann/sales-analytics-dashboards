@@ -401,17 +401,6 @@
     color: var(--warn);
   }
 
-  /* ===== funil ===== */
-  .funnel-body{padding:8px 4px 4px}
-  .funnel-step{font-family:var(--mono);font-size:11px;line-height:1;color:var(--ink-4);letter-spacing:.04em;margin:2px 0 8px 156px}
-  .funnel-row{display:flex;align-items:center;gap:14px;margin-bottom:6px}
-  .funnel-lbl{width:140px;flex:0 0 140px;text-align:right}
-  .funnel-lbl b{display:block;font-weight:600;color:var(--ink);font-size:14px}
-  .funnel-lbl small{font-family:var(--mono);font-size:11px;line-height:1.3;color:var(--ink-4)}
-  .funnel-track{flex:1;background:var(--card);border:1px solid var(--line);height:46px;position:relative;overflow:hidden;border-radius:var(--r-sm)}
-  .funnel-fill{height:100%;display:flex;align-items:center;padding-left:12px;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
-  .funnel-pct{width:52px;flex:0 0 52px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:600}
-
   /* ===== modal de diagnóstico ===== */
   .health-modal{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
   .health-modal-content{background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);max-width:800px;width:100%;max-height:80vh;overflow:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
@@ -423,8 +412,6 @@
   @media (max-width: 768px) {
     .card { padding: 14px; }
     .chart { height: 260px; }
-    .funnel-lbl{width:110px;flex-basis:110px}
-    .funnel-step{margin-left:126px}
   }
 </style>
 <style>.uploader,.upload-section,#emptyState{display:none!important}</style>
@@ -498,27 +485,25 @@
 
   <div id="dashboard" style="display:none">
     <div class="grid">
-      <!-- VIZ 01: Timeline de Atividades (small multiples alinhados) -->
+      <!-- VIZ 01: Rio do mix de atividades (themeRiver) -->
       <section class="card col-12">
         <div class="topic-head">
-          <h2 data-number="01"><span data-i18n="p1h">Activity Timeline</span>
-            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="p1tip">Chosen metric (line, top panel) aligned day by day with booking volume (bars, bottom panel). Each panel has its own scale starting at zero.</span></span>
+          <h2 data-number="01"><span data-i18n="p1h">Activity Mix Stream</span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="p1tip">Stream graph of daily volume per activity category over time. The width of each band is that category's volume on the day; the selector highlights one category and dims the rest.</span></span>
           </h2>
           <div class="topic-actions nowrap">
-            <span class="date-filter-label" data-i18n="lblMetric">Metric:</span>
+            <span class="date-filter-label" data-i18n="lblHighlight">Highlight:</span>
             <select id="tlMetricSelect" class="date-filter">
-              <option value="tentativas" selected data-i18n="mAttempts">Attempts</option>
+              <option value="all" selected data-i18n="hlAll">All categories</option>
               <option value="ligacoes" data-i18n="mCalls">Calls</option>
-              <option value="conexoes" data-i18n="mConnections">Connections</option>
               <option value="emails" data-i18n="mEmails">Emails</option>
               <option value="whatsapp">WhatsApp</option>
               <option value="tarefas" data-i18n="mTasks">Tasks</option>
-              <option value="quantidade" data-i18n="mVolume">Volume</option>
-              <option value="duracao" data-i18n="mDuration">Total duration (HH:MM)</option>
+              <option value="agendamentos" data-i18n="mBookings">Bookings</option>
             </select>
           </div>
         </div>
-        <div class="panel-sub" data-i18n="p1sub">Daily volume of the selected metric, with the same day's booking volume right below, on the same time axis.</div>
+        <div class="panel-sub" data-i18n="p1sub">Daily activity mix as a temporal stream: each band is a category, with bookings highlighted in orange.</div>
         <div id="mainChart" class="chart extra-tall"></div>
       </section>
 
@@ -528,15 +513,15 @@
           <span class="info-icon">ⓘ<span class="tooltip" data-i18n="p2tip">From call to booked meeting: volume at each stage of the prospecting funnel and the pass-through rate between them.</span></span>
         </h2>
         <div class="panel-sub" data-i18n="p2sub">How much each prospecting stage retains and the pass-through rate between stages.</div>
-        <div id="funnelBody" class="funnel-body"></div>
+        <div id="funnelChart" class="chart tall"></div>
       </section>
 
-      <!-- VIZ 03: Heatmap de Atividade Semanal -->
+      <!-- VIZ 03: Calendar heatmap contínuo -->
       <section class="card col-6">
-        <h2 data-number="03"><span data-i18n="p3h">Weekday Activity Heatmap</span>
-          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="p3tip">Activity intensity by weekday across the selected period. The lighter the cell, the higher the volume.</span></span>
+        <h2 data-number="03"><span data-i18n="p3h">Activity Calendar</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="p3tip">Continuous calendar: each cell is a day and its color encodes the volume of the chosen metric. The lighter the cell, the higher the volume.</span></span>
         </h2>
-        <div class="panel-sub" data-i18n="p3sub">Effort concentration by weekday, filterable by metric, SDR and period.</div>
+        <div class="panel-sub" data-i18n="p3sub">Daily volume on a monthly calendar, filterable by metric, SDR and period.</div>
         <div class="opts">
           <span class="date-filter-label" data-i18n="lblMetric">Metric:</span>
           <select id="heatmap_metric" class="date-filter">
@@ -561,9 +546,18 @@
         <div id="heatmapChart" class="chart tall"></div>
       </section>
 
-      <!-- VIZ 04: Ranking de SDRs -->
+      <!-- VIZ 04: Bump chart de ranking semanal -->
       <section class="card col-12">
-        <h2 data-number="04"><span data-i18n="p4h">SDR Ranking</span>
+        <h2 data-number="04"><span data-i18n="bumpH">Weekly Ranking Race</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="bumpTip">Each SDR's position in the weekly activity-volume ranking (top 8 of the loaded base, rank 1 at the top). Line crossings show overtakes from week to week.</span></span>
+        </h2>
+        <div class="panel-sub" data-i18n="bumpSub">Weekly position of the 8 highest-volume SDRs; the label at the end of each line identifies the SDR.</div>
+        <div id="bumpChart" class="chart tall"></div>
+      </section>
+
+      <!-- VIZ 05: Ranking de SDRs -->
+      <section class="card col-12">
+        <h2 data-number="05"><span data-i18n="p4h">SDR Ranking</span>
           <span class="info-icon">ⓘ<span class="tooltip" data-i18n="p4tip">Performance comparison with conversion and efficiency rates per SDR.</span></span>
         </h2>
         <div class="panel-sub" data-i18n="p4sub">Productivity comparison per SDR, sortable by volume, connection rate or bookings.</div>
@@ -679,7 +673,10 @@
         hcWarnCoverage: 'Low date coverage: {p}% ({d} of {e} days with data)',
         hcIssueNoType: 'Some rows came without an activity type: check that the activity_type column is filled in the CRM export.',
         hcWarnUnknownType: 'Unrecognized activity type: "{t}" (not counted in the calls, emails, WhatsApp or tasks metrics)',
-        dkSampleActs: '{n} sample activities'
+        dkSampleActs: '{n} sample activities',
+        allActs: 'All activities',
+        weekOf: 'Week of {d}',
+        actsUnit: 'activities'
       },
       pt: {
         optTeamAvg: 'Todos (Média do Time)',
@@ -739,7 +736,10 @@
         hcWarnCoverage: 'Cobertura temporal baixa: {p}% ({d} de {e} dias com dados)',
         hcIssueNoType: 'Parte das linhas veio sem tipo de atividade: confira se a coluna activity_type está preenchida no export do CRM.',
         hcWarnUnknownType: 'Tipo de atividade não reconhecido: "{t}" (não entra nas métricas de ligações, e-mails, WhatsApp ou tarefas)',
-        dkSampleActs: '{n} atividades de exemplo'
+        dkSampleActs: '{n} atividades de exemplo',
+        allActs: 'Todas atividades',
+        weekOf: 'Semana de {d}',
+        actsUnit: 'atividades'
       }
     };
     function t(k, vars) {
@@ -766,9 +766,11 @@
     let DATA = [];
     let chart = null;
     let heatmapChart = null;
+    let funnelChart = null;
+    let bumpChart = null;
     let dateFilterStart = null;
     let dateFilterEnd = null;
-    let timelineMetric = 'tentativas'; // métrica do painel de cima da timeline
+    let timelineMetric = 'all'; // categoria destacada no rio de atividades ('all' = nenhuma esmaecida)
 
     // Whitelist de SDRs válidos
     const SDR_WHITELIST = [
@@ -1410,34 +1412,60 @@
       renderHeatmap();
       renderExec();
       renderFunnel();
+      renderBump();
     }
 
-    // ==================== FUNIL DE CONVERSÃO ====================
+    // ==================== VIZ 02: FUNIL DE CONVERSÃO (funnel ECharts) ====================
+    // Etapas de funil são ordinais: rampa azul de um matiz só, do claro ao escuro.
+    // Labels internos com valor + taxa de passagem vs a etapa anterior; sort none, gap 2.
     function renderFunnel() {
+      var el = document.getElementById('funnelChart');
+      if (!el) return;
       var acts = RAW_ACTIVITIES || [];
       var tent = 0, conex = 0, agend = 0;
       acts.forEach(function (a) { if (isTentativa(a)) tent++; if (isConexao(a)) conex++; if (isAgendamento(a)) agend++; });
-      var top = Math.max(tent, 1);
       var nf = function (n) { return (n || 0).toLocaleString(LOCALE()); };
-      // Etapas de funil são ordinais: rampa azul de um matiz só, do claro ao escuro.
+      var pConn = tent > 0 ? Math.round(conex / tent * 100) : 0;
+      var pBook = conex > 0 ? Math.round(agend / conex * 100) : 0;
       var stages = [
-        { l: metricLabel('ligacoes'), s: t('fsAttemptsSub'), n: tent, c: FUNNEL_RAMP[0], tc: '#0a0a0b' },
-        { l: metricLabel('conexoes'), s: t('fsConnSub'), n: conex, c: FUNNEL_RAMP[1], tc: '#fff' },
-        { l: metricLabel('agendamentos'), s: t('fsBookSub'), n: agend, c: FUNNEL_RAMP[2], tc: '#fff' }
+        { name: metricLabel('ligacoes'), value: tent, sub: t('fsAttemptsSub'), step: null,
+          lbl: metricLabel('ligacoes') + '\n' + nf(tent),
+          itemStyle: { color: FUNNEL_RAMP[0] }, label: { color: '#0a0a0b' } },
+        { name: metricLabel('conexoes'), value: conex, sub: t('fsConnSub'), step: t('stepConn', { p: pConn }),
+          lbl: metricLabel('conexoes') + '\n' + nf(conex) + ' · ' + pConn + '%',
+          itemStyle: { color: FUNNEL_RAMP[1] } },
+        { name: metricLabel('agendamentos'), value: agend, sub: t('fsBookSub'), step: t('stepBook', { p: pBook }),
+          lbl: metricLabel('agendamentos') + '\n' + nf(agend) + ' · ' + pBook + '%',
+          itemStyle: { color: FUNNEL_RAMP[2] } }
       ];
-      var steps = [null, t('stepConn', { p: tent > 0 ? Math.round(conex / tent * 100) : 0 }), t('stepBook', { p: conex > 0 ? Math.round(agend / conex * 100) : 0 })];
-      var html = '';
-      stages.forEach(function (st, i) {
-        var w = Math.max(6, Math.round(st.n / top * 100)), pct = Math.round(st.n / top * 100);
-        if (i > 0) html += '<div class="funnel-step">↓ ' + steps[i] + '</div>';
-        html += '<div class="funnel-row">'
-          + '<div class="funnel-lbl"><b>' + st.l + '</b><small>' + st.s + '</small></div>'
-          + '<div class="funnel-track"><div class="funnel-fill" style="width:' + w + '%;background:' + st.c + ';color:' + st.tc + ';">' + nf(st.n) + '</div></div>'
-          + '<div class="funnel-pct">' + pct + '%</div>'
-          + '</div>';
+      funnelChart = makeChart(el);
+      funnelChart.setOption({
+        tooltip: {
+          trigger: 'item',
+          formatter: function (p) {
+            var d = p.data || {};
+            var out = '<b>' + escHtml(p.name) + '</b>: ' + nf(p.value) + '<br/>' + escHtml(d.sub || '');
+            if (d.step) out += '<br/><span style="color:#a1a1aa">↓ ' + escHtml(d.step) + '</span>';
+            return out;
+          }
+        },
+        series: [{
+          type: 'funnel',
+          sort: 'none',
+          gap: 2,
+          top: 14, bottom: 10, left: '6%', width: '88%',
+          minSize: '22%',
+          label: {
+            show: true, position: 'inside', color: '#fff',
+            fontWeight: 700, fontSize: 13, lineHeight: 18,
+            formatter: function (p) { return p.data.lbl; }
+          },
+          labelLine: { show: false },
+          itemStyle: { borderWidth: 0 },
+          emphasis: { label: { fontSize: 14 } },
+          data: stages
+        }]
       });
-      var el = document.getElementById('funnelBody');
-      if (el) el.innerHTML = html;
     }
 
     // ==================== RESUMO EXECUTIVO (KPIs + insight) ====================
@@ -1672,10 +1700,22 @@
       return parseFloat((sum / arr.length).toFixed(2)); // 2 casas decimais
     }
 
-    // ==================== VIZ 01: TIMELINE (small multiples alinhados) ====================
-    // Dois painéis empilhados no mesmo eixo de tempo: métrica escolhida (linha)
-    // em cima e agendamentos (barras) embaixo, cada um com escala própria a
-    // partir de zero. Sem eixo duplo.
+    // ==================== VIZ 01: THEMERIVER (rio do mix de atividades) ====================
+    // Rio das categorias de atividade por dia sobre um singleAxis temporal.
+    // O select vira destaque: a categoria escolhida mantém a cor cheia e as
+    // demais esmaecem. Cores por slot da paleta categórica (mesmos slots de
+    // METRICS); Agendamentos mantém o laranja de ênfase (#d95926).
+    const STREAM_CATS = [
+      { key: 'ligacoes', color: '#2563eb' },
+      { key: 'emails', color: '#199e70' },
+      { key: 'whatsapp', color: '#008300' },
+      { key: 'tarefas', color: '#c98500' },
+      { key: 'agendamentos', color: '#d95926' }
+    ];
+    function hexA(hex, a) {
+      const n = parseInt(hex.slice(1), 16);
+      return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+    }
     function renderChart() {
       if (DATA.length === 0) {
         document.getElementById('dashboard').style.display = 'none';
@@ -1688,67 +1728,53 @@
       document.getElementById('emptyState').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
 
-      const metric = METRICS.find(m => m.key === timelineMetric) || METRICS.find(m => m.key === 'tentativas');
-      const isDur = metric.key === 'duracao';
-      const mLabel = metricLabel(metric.key);
-      const agLabel = metricLabel('agendamentos');
-      const dates = DATA.map(d => fmtDM(d.date));
-      const topData = DATA.map(d => d[metric.key] || 0);
-      const agData = DATA.map(d => d.agendamentos || 0);
+      const hl = timelineMetric; // 'all' ou a chave da categoria destacada
+      const labels = STREAM_CATS.map(c => metricLabel(c.key));
+      const colors = STREAM_CATS.map(c => (hl === 'all' || hl === c.key) ? c.color : hexA(c.color, 0.16));
+      const riverData = [];
+      STREAM_CATS.forEach(c => {
+        const lbl = metricLabel(c.key);
+        DATA.forEach(d => { riverData.push([d.date, d[c.key] || 0, lbl]); });
+      });
 
       chart = makeChart(document.getElementById('mainChart'));
       chart.setOption({
-        legend: { data: [mLabel, agLabel], top: 0 },
+        color: colors,
+        legend: { data: labels, top: 0 },
         tooltip: {
           trigger: 'axis',
+          axisPointer: { type: 'line', lineStyle: { color: 'rgba(248,247,243,.35)', width: 1 } },
           formatter: (params) => {
-            let result = `<b>${escHtml(params[0].axisValueLabel)}</b><br/>`;
+            if (!params || !params.length) return '';
+            const dt = new Date(params[0].value[0]);
+            let out = '<b>' + (isNaN(dt) ? escHtml(String(params[0].value[0])) : dt.toLocaleDateString(LOCALE(), { day: '2-digit', month: '2-digit', year: 'numeric' })) + '</b><br/>';
             params.forEach(p => {
-              let value = p.value;
-              // Se for a série de duração, converter para HH:MM
-              if (isDur && p.seriesName === mLabel) {
-                value = formatMinutesToHHMM(p.value);
-              }
-              result += `${p.marker} ${escHtml(p.seriesName)}: <b>${value}</b><br/>`;
+              const name = p.value[2], val = Math.round(p.value[1]);
+              const strong = hl !== 'all' && name === metricLabel(hl);
+              out += (p.marker || '') + ' ' + (strong ? '<b>' : '') + escHtml(name) + ': ' + val + (strong ? '</b>' : '') + '<br/>';
             });
-            return result;
+            return out;
           }
         },
-        axisPointer: { link: [{ xAxisId: ['tlTop', 'tlBot'] }] },
-        grid: [
-          { left: 64, right: 16, top: 34, height: '38%' },
-          { left: 64, right: 16, top: '58%', height: '24%' }
-        ],
-        xAxis: [
-          { id: 'tlTop', type: 'category', gridIndex: 0, data: dates, axisLabel: { show: false }, axisTick: { show: false } },
-          { id: 'tlBot', type: 'category', gridIndex: 1, data: dates, axisLabel: { rotate: 45 } }
-        ],
-        yAxis: [
-          {
-            id: 'tlYTop', type: 'value', gridIndex: 0, min: 0,
-            name: mLabel, nameTextStyle: { color: '#a1a1aa', fontSize: 11 },
-            axisLabel: { formatter: (value) => isDur ? formatMinutesToHHMM(value) : value }
-          },
-          {
-            id: 'tlYBot', type: 'value', gridIndex: 1, min: 0,
-            name: agLabel, nameTextStyle: { color: '#a1a1aa', fontSize: 11 }
-          }
-        ],
-        series: [
-          {
-            name: mLabel, type: 'line', xAxisId: 'tlTop', yAxisId: 'tlYTop', data: topData,
-            smooth: true, symbol: 'circle', symbolSize: 5,
-            lineStyle: { width: 2, color: '#2563eb' }, itemStyle: { color: '#2563eb' }
-          },
-          {
-            name: agLabel, type: 'bar', xAxisId: 'tlBot', yAxisId: 'tlYBot', data: agData,
-            barMaxWidth: 14, itemStyle: { color: '#d95926' }
-          }
-        ]
+        singleAxis: {
+          type: 'time', top: 44, bottom: 36, left: 10, right: 10,
+          axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } },
+          axisTick: { lineStyle: { color: 'rgba(248,247,243,.18)' } },
+          axisLabel: { color: '#8a8a94', formatter: v => new Date(v).toLocaleDateString(LOCALE(), { day: '2-digit', month: '2-digit' }) },
+          axisPointer: { animation: true, label: { show: false } },
+          splitLine: { show: false }
+        },
+        series: [{
+          type: 'themeRiver',
+          data: riverData,
+          label: { show: false },
+          boundaryGap: ['8%', '8%'],
+          emphasis: { itemStyle: { shadowBlur: 18, shadowColor: 'rgba(0,0,0,0.55)' } }
+        }]
       });
     }
 
-    // ==================== VIZ 04: RANKING DE SDRs ====================
+    // ==================== VIZ 05: RANKING DE SDRs ====================
     // USA FUNÇÕES GLOBAIS: isTentativa(), isConexao(), isAgendamento(), getDuracao()
     function renderRanking() {
       const periodVal = document.getElementById('ranking_period').value;
@@ -1875,96 +1901,47 @@
       `;
     }
 
-    // ==================== VIZ 03: HEATMAP SEMANAL ====================
-    // USA DADOS DE RAW (já agregados usando funções globais)
+    // ==================== VIZ 03: CALENDAR HEATMAP CONTÍNUO ====================
+    // Calendário mensal/multi-mês (ECharts calendar + heatmap): cada célula é
+    // um dia, cor na rampa SEQ_BLUE pela métrica escolhida. USA DADOS DE RAW
+    // (já agregados usando funções globais); respeita o checkbox de fim de semana.
     function renderHeatmap() {
       const metric = document.getElementById('heatmap_metric').value;
       const sdr = document.getElementById('heatmap_sdr').value;
       const period = parseInt(document.getElementById('heatmap_period').value);
       const hideWeekendsHm = document.getElementById('heatmap_hideWeekends').checked;
 
-      // Filtrar dados
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - period);
-      const cutoffISO = cutoffDate.toISOString().split('T')[0];
+      // Janela do calendário: últimos N dias, terminando hoje
+      const pad2 = n => String(n).padStart(2, '0');
+      const isoOf = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+      const end = new Date(); end.setHours(12, 0, 0, 0);
+      const start = new Date(end); start.setDate(start.getDate() - (period - 1));
+      const startISO = isoOf(start), endISO = isoOf(end);
 
-      let filtered = RAW.filter(r => r.date >= cutoffISO);
+      let filtered = RAW.filter(r => r.date >= startISO && r.date <= endISO);
       if (sdr !== 'all') {
         filtered = filtered.filter(r => r.sdr === sdr);
       }
 
-      // Agrupar por data e extrair semana + dia da semana
-      const weekDayMap = {}; // Chave: "Semana X__DiaDaSemana" → Valor
-      const weeksSet = new Set();
-      const weekDatesMap = {}; // Mapear semana → {startDate, endDate}
+      const metricKey = metric === 'CALL' ? 'ligacoes' :
+                        metric === 'EMAIL' ? 'emails' :
+                        metric === 'TASK' ? 'tarefas' :
+                        metric === 'WHATSAPP' ? 'whatsapp' : 'quantidade';
 
+      // Agregar por dia; fim de semana sai da série quando o checkbox pede
+      const byDate = {};
       filtered.forEach(r => {
-        const date = new Date(r.date + 'T12:00:00');
-        const dayOfWeek = date.getDay(); // 0=Dom, 6=Sáb
-
-        // Pular fins de semana se necessário
-        if (hideWeekendsHm && (dayOfWeek === 0 || dayOfWeek === 6)) {
-          return;
-        }
-
-        // Calcular número da semana (simplificado: diferença de semanas desde início do ano)
-        const startOfYear = new Date(date.getFullYear(), 0, 1);
-        const diffDays = Math.floor((date - startOfYear) / (1000 * 60 * 60 * 24));
-        const weekNum = Math.floor(diffDays / 7) + 1;
-
-        // Rastrear datas min/max para cada semana
-        if (!weekDatesMap[weekNum]) {
-          weekDatesMap[weekNum] = { startDate: date, endDate: date };
-        } else {
-          if (date < weekDatesMap[weekNum].startDate) {
-            weekDatesMap[weekNum].startDate = date;
-          }
-          if (date > weekDatesMap[weekNum].endDate) {
-            weekDatesMap[weekNum].endDate = date;
-          }
-        }
-
-        // Obter valor da métrica
-        const value = metric === 'all' ? (r.quantidade || 0) :
-                     metric === 'CALL' ? (r.ligacoes || 0) :
-                     metric === 'EMAIL' ? (r.emails || 0) :
-                     metric === 'TASK' ? (r.tarefas || 0) :
-                     metric === 'WHATSAPP' ? (r.whatsapp || 0) : 0;
-
-        const key = `${weekNum}__${dayOfWeek}`;
-        weekDayMap[key] = (weekDayMap[key] || 0) + value;
-        weeksSet.add(weekNum);
+        if (hideWeekendsHm && isWeekend(r.date)) return;
+        byDate[r.date] = (byDate[r.date] || 0) + (r[metricKey] || 0);
       });
-
-      // Converter para array ordenado de semanas
-      const weeks = Array.from(weeksSet).sort((a, b) => a - b);
-      const daysToShow = hideWeekendsHm ? [1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5, 6];
-
-      // Preparar dados para ECharts [weekIndex, dayIndex, value]
-      const heatmapData = [];
+      const calData = Object.keys(byDate).sort().map(d => [d, byDate[d]]);
       let maxValue = 0;
+      calData.forEach(d => { maxValue = Math.max(maxValue, d[1]); });
 
-      weeks.forEach((weekNum, weekIndex) => {
-        daysToShow.forEach((dayOfWeek, dayIndex) => {
-          const key = `${weekNum}__${dayOfWeek}`;
-          const value = weekDayMap[key] || 0;
-          heatmapData.push([weekIndex, dayIndex, value]);
-          maxValue = Math.max(maxValue, value);
-        });
-      });
-
-      // Dias da semana na locale ativa (0=Dom)
-      const allDays = [0, 1, 2, 3, 4, 5, 6].map(wdShort);
-      const days = hideWeekendsHm ? allDays.slice(1, 6) : allDays;
-
-      // Labels de semana com o intervalo de datas (dispensa legenda separada)
-      const weekLabels = weeks.map(w => {
-        const dates = weekDatesMap[w];
-        if (!dates) return `${t('wkAbbr')} ${w}`;
-
-        const fmtShort = (d) => d.toLocaleDateString(LOCALE(), { day: '2-digit', month: '2-digit' });
-
-        return `${t('wkAbbr')} ${w} (${fmtShort(dates.startDate)}-${fmtShort(dates.endDate)})`;
+      const metricLbl = metric === 'all' ? t('allActs') : metricLabel(metricKey);
+      const monthNames = Array.from({ length: 12 }, (_, m) => {
+        let s = new Date(2023, m, 15).toLocaleDateString(LOCALE(), { month: 'short' }).replace(/\.$/, '');
+        return s.charAt(0).toUpperCase() + s.slice(1);
       });
 
       heatmapChart = makeChart(document.getElementById('heatmapChart'));
@@ -1972,40 +1949,12 @@
         tooltip: {
           position: 'top',
           formatter: (params) => {
-            const weekNum = weeks[params.value[0]];
-            const dates = weekDatesMap[weekNum];
-            const day = days[params.value[1]];
-            const value = Math.round(params.value[2]);
-
-            let dateRange = '';
-            if (dates) {
-              const fmtFull = (d) => d.toLocaleDateString(LOCALE(), { day: '2-digit', month: '2-digit', year: 'numeric' });
-              dateRange = `<br/><span style="color:var(--ink-4);font-size:11px;">${fmtFull(dates.startDate)} - ${fmtFull(dates.endDate)}</span>`;
-            }
-
-            return `<b>${t('week')} ${weekNum} - ${day}</b>${dateRange}<br/>${t('activities')}: ${value}`;
+            const d = parseDate(params.value[0]);
+            const full = (d && !isNaN(d))
+              ? d.toLocaleDateString(LOCALE(), { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })
+              : params.value[0];
+            return `<b>${escHtml(full)}</b><br/>${escHtml(metricLbl)}: <b>${Math.round(params.value[1])}</b>`;
           }
-        },
-        grid: {
-          left: 10,
-          right: 10,
-          top: 10,
-          bottom: 42,
-          containLabel: true
-        },
-        xAxis: {
-          type: 'category',
-          data: weekLabels,
-          axisLabel: {
-            fontSize: 10,
-            interval: 0,
-            rotate: weeks.length > 5 ? 45 : 0
-          }
-        },
-        yAxis: {
-          type: 'category',
-          data: days,
-          axisLabel: { fontSize: 11 }
         },
         visualMap: {
           min: 0,
@@ -2018,12 +1967,23 @@
           inRange: { color: SEQ_BLUE },
           textStyle: { color: '#8a8a94', fontSize: 11 }
         },
+        calendar: {
+          range: [startISO, endISO],
+          orient: 'horizontal',
+          left: 48, right: 12, top: 34, bottom: 58,
+          cellSize: ['auto', 'auto'],
+          firstDay: 1,
+          splitLine: { lineStyle: { color: 'rgba(248,247,243,.18)', width: 1 } },
+          itemStyle: { color: '#1a1a1e', borderColor: '#131316', borderWidth: 2 },
+          dayLabel: { nameMap: [0, 1, 2, 3, 4, 5, 6].map(wdShort), color: '#8a8a94', fontSize: 10 },
+          monthLabel: { nameMap: monthNames, color: '#a1a1aa', fontSize: 11 },
+          yearLabel: { show: false }
+        },
         series: [{
-          name: t('activities'),
+          name: metricLbl,
           type: 'heatmap',
-          data: heatmapData,
-          label: { show: false },
-          itemStyle: { borderColor: '#131316', borderWidth: 1 },
+          coordinateSystem: 'calendar',
+          data: calData,
           emphasis: {
             itemStyle: {
               shadowBlur: 10,
@@ -2048,13 +2008,113 @@
       });
     }
 
+    // ==================== VIZ 04: BUMP CHART (posição semanal no ranking) ====================
+    // Posição (1..8) dos 8 SDRs de maior volume por semana (semana começa na
+    // segunda), eixo Y invertido (1 no topo), linhas suaves em cores por slot
+    // da paleta categórica e rótulo do SDR na última semana.
+    function weekStartISO(dateStr) {
+      const d = parseDate(dateStr);
+      if (!d || isNaN(d)) return null;
+      const shift = (d.getDay() + 6) % 7; // 0 = segunda-feira
+      d.setDate(d.getDate() - shift);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function renderBump() {
+      const el = document.getElementById('bumpChart');
+      if (!el) return;
+      const acts = RAW_ACTIVITIES || [];
+
+      // Volume de atividades por SDR por semana + total por SDR
+      const bySdrWeek = {};
+      const weekSet = new Set();
+      const totals = {};
+      acts.forEach(a => {
+        const wk = weekStartISO(a.date);
+        if (!wk) return;
+        weekSet.add(wk);
+        if (!bySdrWeek[a.sdr]) bySdrWeek[a.sdr] = {};
+        bySdrWeek[a.sdr][wk] = (bySdrWeek[a.sdr][wk] || 0) + 1;
+        totals[a.sdr] = (totals[a.sdr] || 0) + 1;
+      });
+
+      let weeks = Array.from(weekSet).sort();
+      if (weeks.length > 12) weeks = weeks.slice(-12); // últimas 12 semanas: legível
+      const topSdrs = Object.keys(totals).sort((a, b) => totals[b] - totals[a]).slice(0, 8);
+      if (!weeks.length || !topSdrs.length) return;
+
+      // Posição semanal entre os top 8 (desempate por nome, estável)
+      const posBySdr = {};
+      const countBySdr = {};
+      topSdrs.forEach(s => { posBySdr[s] = []; countBySdr[s] = []; });
+      weeks.forEach(wk => {
+        const order = topSdrs.slice().sort((a, b) =>
+          ((bySdrWeek[b] && bySdrWeek[b][wk]) || 0) - ((bySdrWeek[a] && bySdrWeek[a][wk]) || 0) || a.localeCompare(b));
+        order.forEach((s, i) => {
+          posBySdr[s].push(i + 1);
+          countBySdr[s].push((bySdrWeek[s] && bySdrWeek[s][wk]) || 0);
+        });
+      });
+
+      const weekLabels = weeks.map(fmtDM);
+      const series = topSdrs.map((s, i) => {
+        const c = CAT_PALETTE[i % CAT_PALETTE.length];
+        return {
+          name: s,
+          type: 'line',
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 9,
+          data: posBySdr[s],
+          lineStyle: { width: 3, color: c },
+          itemStyle: { color: c },
+          endLabel: { show: true, formatter: () => s, color: c, fontSize: 11, fontWeight: 700, distance: 8 },
+          emphasis: { focus: 'series' }
+        };
+      });
+
+      bumpChart = makeChart(el);
+      bumpChart.setOption({
+        legend: { show: false },
+        tooltip: {
+          trigger: 'axis',
+          formatter: (params) => {
+            if (!params || !params.length) return '';
+            const wi = params[0].dataIndex;
+            let out = '<b>' + escHtml(t('weekOf', { d: weekLabels[wi] })) + '</b><br/>';
+            params.slice().sort((a, b) => a.value - b.value).forEach(p => {
+              out += (p.marker || '') + ' #' + p.value + ' ' + escHtml(p.seriesName)
+                + ' · ' + countBySdr[p.seriesName][wi] + ' ' + escHtml(t('actsUnit')) + '<br/>';
+            });
+            return out;
+          }
+        },
+        grid: { left: 44, right: 156, top: 18, bottom: 34 },
+        xAxis: {
+          type: 'category',
+          data: weekLabels,
+          boundaryGap: false,
+          axisLabel: { rotate: weeks.length > 8 ? 30 : 0 }
+        },
+        yAxis: {
+          type: 'value',
+          inverse: true,
+          min: 1,
+          max: topSdrs.length,
+          interval: 1,
+          axisLabel: { formatter: v => '#' + v },
+          splitLine: { lineStyle: { color: 'rgba(248,247,243,.07)' } }
+        },
+        series
+      });
+    }
+
     // Event listeners
     document.getElementById('healthCheckBtn').addEventListener('click', showHealthCheck);
     document.getElementById('sdrSelect').addEventListener('change', applyFilters);
     document.getElementById('hideWeekends').addEventListener('change', applyFilters);
     document.getElementById('hideZeros').addEventListener('change', applyFilters);
 
-    // Métrica do painel de cima da timeline (VIZ 01)
+    // Categoria destacada no rio de atividades (VIZ 01)
     document.getElementById('tlMetricSelect')?.addEventListener('change', (e) => {
       timelineMetric = e.target.value;
       renderChart();
@@ -2096,6 +2156,8 @@
     window.addEventListener('resize', () => {
       if (chart) chart.resize();
       if (heatmapChart) heatmapChart.resize();
+      if (funnelChart) funnelChart.resize();
+      if (bumpChart) bumpChart.resize();
     });
 
     // A base de exemplo e o upload de CSV sao controlados pela barra de dados (DATAKIT),
@@ -2117,23 +2179,28 @@
       esTitle: 'Nenhum arquivo carregado',
       esBody: 'Envie o CSV de atividades exportado do CRM: uma linha por atividade registrada.',
       esCols: 'Colunas esperadas: <code>activity_date</code>, <code>activity_type</code>, <code>user_id</code>, <code>duration</code>, <code>activity_id</code>, <code>deal_id</code>. O painel "Como montar o CSV", na barra de dados no topo da página, traz o contrato completo e um template para download.',
-      p1h: 'Timeline de Atividades',
-      p1tip: 'Métrica escolhida (linha, painel de cima) alinhada dia a dia ao volume de agendamentos (barras, painel de baixo). Cada painel tem escala própria começando em zero.',
-      p1sub: 'Volume diário da métrica selecionada, com o volume de agendamentos do mesmo dia logo abaixo, no mesmo eixo de tempo.',
+      p1h: 'Rio de Atividades',
+      p1tip: 'Stream (rio) com o volume diário de cada categoria de atividade ao longo do tempo. A largura de cada faixa é o volume da categoria naquele dia; o seletor destaca uma categoria e esmaece as demais.',
+      p1sub: 'Mix diário de atividades como um rio temporal: cada faixa é uma categoria, com agendamentos destacados em laranja.',
       lblMetric: 'Métrica:',
+      lblHighlight: 'Destacar:',
+      hlAll: 'Todas as categorias',
       mAttempts: 'Tentativas', mCalls: 'Ligações', mConnections: 'Conexões', mEmails: 'Emails',
       mTasks: 'Tarefas', mVolume: 'Quantidade', mDuration: 'Duração total (HH:MM)', mBookings: 'Agendamentos',
       p2h: 'Funil de Conversão',
       p2tip: 'Da ligação à reunião marcada: volume em cada etapa do funil de prospecção e a taxa de passagem entre elas.',
       p2sub: 'Quanto cada etapa da prospecção retém e a taxa de passagem entre elas.',
-      p3h: 'Heatmap de Atividade por Dia da Semana',
-      p3tip: 'Intensidade de atividades por dia da semana ao longo do período selecionado. Quanto mais claro, maior o volume.',
-      p3sub: 'Concentração de esforço por dia da semana, filtrável por métrica, SDR e período.',
+      p3h: 'Calendário de Atividade',
+      p3tip: 'Calendário contínuo: cada célula é um dia e a cor codifica o volume da métrica escolhida. Quanto mais clara a célula, maior o volume.',
+      p3sub: 'Volume diário em calendário mensal, filtrável por métrica, SDR e período.',
       hmAll: 'Todas atividades',
       lblPeriod: 'Período:',
       last7: 'Últimos 7 dias', last15: 'Últimos 15 dias', last30: 'Últimos 30 dias',
       last60: 'Últimos 60 dias', last90: 'Últimos 90 dias',
       allTime: 'Todo período',
+      bumpH: 'Corrida de Ranking Semanal',
+      bumpTip: 'Posição de cada SDR no ranking semanal de volume de atividades (top 8 da base carregada, posição 1 no topo). Cruzamentos de linha mostram ultrapassagens de uma semana para outra.',
+      bumpSub: 'Posição semanal dos 8 SDRs de maior volume; o rótulo no fim de cada linha identifica o SDR.',
       p4h: 'Ranking de SDRs',
       p4tip: 'Comparação de performance com taxas de conversão e eficiência por SDR.',
       p4sub: 'Comparativo de produtividade por SDR, ordenável por volume, taxa de conexão ou agendamentos.',
@@ -2183,11 +2250,12 @@
 
       // Re-renderiza tudo que é desenhado por JS na língua ativa
       if (RAW_ACTIVITIES.length > 0) {
-        applyFilters();      // timeline (e estado vazio pós-filtro)
+        applyFilters();      // rio de atividades (e estado vazio pós-filtro)
         renderRanking();
         renderHeatmap();
         renderExec();
         renderFunnel();
+        renderBump();
       }
 
       // Camadas compartilhadas (já bilíngues): barra de dados e onboarding/CTA
