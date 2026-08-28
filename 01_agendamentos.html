@@ -26,6 +26,7 @@
   /* ===== tokens (fonte única de verdade do arquivo) ===== */
   :root{
     --bg:#0a0a0b;
+    --dot:#26262b;
     --panel:#131316;
     --card:#1a1a1e;
     --card-h:#232328;
@@ -94,6 +95,24 @@
 #suggestionsBox .panelBtn:hover{background:var(--card-h)}
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink-2);font-family:var(--sans);font-size:14px}
+  body{background-image:radial-gradient(var(--dot) 1px, transparent 0);background-size:20px 20px}
+
+  /* scrollbars discretas (a nativa clara destoa do tema) */
+  *{scrollbar-width:thin;scrollbar-color:var(--card-h) transparent}
+  *::-webkit-scrollbar{width:8px;height:8px}
+  *::-webkit-scrollbar-track{background:transparent}
+  *::-webkit-scrollbar-thumb{background:var(--card-h);border-radius:4px}
+  *::-webkit-scrollbar-thumb:hover{background:#2e2e34}
+  *::-webkit-scrollbar-corner{background:transparent}
+
+  /* insight chip: o dado-chave de cada card, recalculado a cada filtro */
+  .hl-chip{
+    font-family:var(--mono);font-size:10px;letter-spacing:.03em;font-weight:400;
+    color:var(--accent-soft);background:var(--accent-glow);
+    border:1px solid rgba(37,99,235,.35);border-radius:999px;padding:2px 9px;
+    white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;flex:none;
+  }
+  .hl-chip b{color:var(--ink);font-weight:700}
   a{color:var(--accent-soft);text-decoration:none}
   button{font-family:var(--sans)}
 
@@ -415,12 +434,12 @@
 
   /* --- Scorecard de squads --- */
   .scorecard{overflow:auto;cursor:default}
-  .scorecard table{width:100%;border-collapse:collapse;font-size:12px}
+  .scorecard table{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
   .scorecard th{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:7px 9px;border-bottom:1px solid var(--line-strong);font-weight:700;white-space:nowrap}
   .scorecard td{padding:8px 9px;border-bottom:1px solid var(--line);color:var(--ink-2);vertical-align:middle;font-variant-numeric:tabular-nums}
   .scorecard tr:last-child td{border-bottom:none}
   .scorecard .sq{color:var(--ink);font-weight:700;white-space:nowrap}
-  .sc-cell{display:flex;align-items:center;gap:8px;min-width:110px}
+  .sc-cell{display:flex;align-items:center;gap:6px;min-width:0}
   .sc-bar{position:relative;flex:1;height:12px;background:var(--card);border-radius:3px;overflow:hidden;min-width:56px}
   .sc-bar i{position:absolute;top:0;bottom:0;left:0;background:var(--accent);border-radius:3px}
   .sc-val{font-size:11.5px;color:var(--ink-2);white-space:nowrap;min-width:44px;text-align:right}
@@ -827,8 +846,8 @@ echarts.registerTheme('demo', {
   textStyle: { fontFamily: '"Space Grotesk",system-ui,sans-serif', color: '#d4d4d8' },
   legend: { textStyle: { color: '#a1a1aa', fontSize: 11 }, itemWidth: 12, itemHeight: 12, icon: 'rect' },
   tooltip: { backgroundColor: '#131316', borderColor: 'rgba(248,247,243,.18)', borderWidth: 1, textStyle: { color: '#d4d4d8', fontSize: 12 } },
-  categoryAxis: { axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisTick: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisLabel: { color: '#8a8a94' }, splitLine: { show: false } },
-  valueAxis: { axisLine: { show: false }, axisLabel: { color: '#8a8a94' }, splitLine: { lineStyle: { color: 'rgba(248,247,243,.07)' } } }
+  categoryAxis: { axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisTick: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisLabel: { color: '#8a8a94' }, splitLine: { show: true, lineStyle: { color: 'rgba(248,247,243,.045)' } } },
+  valueAxis: { axisLine: { show: false }, axisLabel: { color: '#8a8a94' }, splitLine: { lineStyle: { color: 'rgba(248,247,243,.10)' } }, minorSplitLine: { show: true, lineStyle: { color: 'rgba(248,247,243,.035)' } } }
 });
 function makeChart(el){ echarts.dispose(el); return echarts.init(el, 'demo'); }
 const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1533,6 +1552,10 @@ function renderTagsTreemap(data, groupBy = 'deal_status'){
 function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
   const el=document.getElementById(domId); if(!el) return; const chart=makeChart(el);
   const data=[]; for(let i=0;i<rows.length;i++){for(let j=0;j<cols.length;j++){data.push([j,i,mat[i][j]||0]);}}
+  // destaque sutil: a célula de maior concentração ganha contorno
+  let maxIdx=-1,maxVal=-Infinity;
+  data.forEach((d,idx)=>{ if(d[2]>maxVal){maxVal=d[2];maxIdx=idx;} });
+  if(maxIdx>=0&&maxVal>0) data[maxIdx]={value:data[maxIdx],itemStyle:{borderColor:'#60a5fa',borderWidth:2}};
   const isTASquad = domId === 'chartHeatTASquad';
   // Dynamic font size: fewer columns -> bigger font
   let xFont = 11; if(isTASquad){ if(cols.length>10) xFont=10; if(cols.length>14) xFont=9; if(cols.length>18) xFont=8; }
@@ -1558,7 +1581,7 @@ function renderHeat(domId,rows,cols,mat,rowFilterKey,colFilterKey){
       return {left:leftPad,right:70,top:26,bottom:40,containLabel:true}; })(),
     xAxis:{type:'category',data:cols,axisLabel:{interval:0,formatter:wrapLabel,fontSize:xFont}},
   yAxis:{type:'category',data:rows,axisLabel:{interval:0,fontSize:11,align:'right',formatter:(raw)=>dispVal(raw)}},
-    visualMap:(()=>{ const base={min:0,max:Math.max(1,...data.map(d=>d[2])),calculable:true,inRange:{color:SEQ_BLUE},textStyle:{color:'#8a8a94'}};
+    visualMap:(()=>{ const base={min:0,max:Math.max(1,maxVal),calculable:true,inRange:{color:SEQ_BLUE},textStyle:{color:'#8a8a94'}};
       if(!isTASquad) return {...base,orient:'horizontal',left:'center',bottom:0,itemWidth:16};
       return {...base,orient:'vertical',right:10,top:20,itemWidth:14,itemHeight:120}; })(),
     series:[{type:'heatmap',data,label:{show:false},itemStyle:{borderColor:'#131316',borderWidth:1}}]
@@ -1666,10 +1689,60 @@ function buildAll(data){
   const squadScore = ctab(data,'origin_group_name','score', null, SCORE_ORDER);
   chartDataStore.squad = squadScore.rows.map((row, ri) => ({squad: row, A: squadScore.mat[ri][0]||0, B: squadScore.mat[ri][1]||0, C: squadScore.mat[ri][2]||0, D: squadScore.mat[ri][3]||0}));
 
+  renderInsightChips(data);
+
   document.getElementById('usedCols').innerHTML = Array.from(usedColumns).sort().map(c=> `<span class="pill">${c}</span>`).join(' ');
   extractKeyInsights(data);
   // Passa a habilitar via função que conecta ao Gemini
   enableSuggestions();
+}
+
+/* ---------- Insight chips: o dado-chave de cada card, recalculado a cada filtro ---------- */
+function setHl(chartId, html){
+  const host=document.getElementById(chartId); if(!host) return;
+  const card=host.closest('.card')||host.closest('section'); if(!card) return;
+  const h2=card.querySelector('h2'); if(!h2) return;
+  let chip=h2.querySelector('.hl-chip');
+  if(!html){ if(chip) chip.remove(); return; }
+  if(!chip){ chip=document.createElement('span'); chip.className='hl-chip'; h2.appendChild(chip); }
+  chip.innerHTML=html;
+}
+function renderInsightChips(data){
+  try{
+    const t1=Math.max(1,data.length);
+    // Sankey: maior fluxo fonte -> squad
+    const pair={};
+    data.forEach(d=>{ const k=d.d_utm_source+'||'+d.origin_group_name; pair[k]=(pair[k]||0)+1; });
+    const topPair=Object.entries(pair).sort((a,b)=>b[1]-a[1])[0];
+    if(topPair){ const [src,sq]=topPair[0].split('||'); setHl('chartFlow', `${t('hlTopFlow')}: <b>${escHtml(dispVal(src))} → ${escHtml(sq)}</b>`); }
+    else setHl('chartFlow','');
+    // Sunburst: % A+B dentro de WON
+    const won=data.filter(d=>d.deal_status==='WON');
+    if(won.length){ const ab=won.filter(d=>d.score==='A'||d.score==='B').length; setHl('chartStatusScore', `WON · <b>${Math.round(ab/won.length*100)}% A+B</b>`); }
+    else setHl('chartStatusScore','');
+    // Heat qualidade x velocidade: % dos A com TA <= 3d
+    const a=data.filter(d=>d.score==='A');
+    if(a.length){ const fast=a.filter(d=>d.ta==='Até 1,5 dia'||d.ta==='Até 3 dias').length; setHl('chartScoreTA', `A · <b>${Math.round(fast/a.length*100)}% ≤ 3d</b>`); }
+    else setHl('chartScoreTA','');
+    // Race: líder acumulado
+    const sdrTot=countBy(data,'sdr');
+    const topSdr=Object.entries(sdrTot).sort((a,b)=>b[1]-a[1])[0];
+    setHl('chartSDR', topSdr?`${t('hlLeader')}: <b>${escHtml(dispVal(topSdr[0]))}</b> · ${topSdr[1]}`:'');
+    // Campanhas: top + share
+    const camp=Object.entries(countBy(data,'d_utm_campaign')).sort((a,b)=>b[1]-a[1])[0];
+    setHl('chartCampaign', camp?`${t('hlTop')}: <b>${escHtml(dispVal(camp[0]))}</b> · ${Math.round(camp[1]/t1*100)}%`:'');
+    // Tags: dominante
+    const topTag=Object.entries(countTags(data)).sort((a,b)=>b[1]-a[1])[0];
+    setHl('chartNestedTags', topTag?`${t('hlTop')}: <b>${escHtml(topTag[0])}</b> · ${topTag[1]}`:'');
+    // TA x squad: squad mais rápida
+    const taList=computeTASquadMetrics(data).list;
+    if(taList.length){ const f=taList.reduce((m,c)=>c.fastPct>m.fastPct?c:m,taList[0]); setHl('chartHeatTASquad', `${t('hlFastest')}: <b>${escHtml(f.squad)}</b> · ${f.fastPct.toFixed(0)}% ≤3d`); }
+    else setHl('chartHeatTASquad','');
+    // Scorecard: melhor conversão
+    const sqList=computeSquadMetrics(data).list;
+    if(sqList.length){ const b=sqList.reduce((m,c)=>c.wonPct>m.wonPct?c:m,sqList[0]); setHl('chartSquadRadar', `${t('hlBestConv')}: <b>${escHtml(b.squad)}</b> · ${b.wonPct.toFixed(0)}%`); }
+    else setHl('chartSquadRadar','');
+  }catch(e){ console.warn('insight chips', e); }
 }
 
 /* ---------- Gemini API ---------- */
@@ -2209,6 +2282,7 @@ var I18N={
     siFastest:'Highest % Fast (≤3d)', siSlowest:'Highest % Slow (>10d)', siBalanced:'Most Balanced', siLowVol:'Lowest Volume',
     bAlert:'ALERT', siFast:'Fast',
     wkOf:'Week of ',
+    hlTopFlow:'top flow', hlLeader:'leader', hlFastest:'fastest', hlBestConv:'best conv.', hlTop:'top', hlPeak:'peak',
     fbHighValue:'high-value leads', fbMarket:'market', fbOverall:'overall',
     sugNoData:'Not enough data to generate suggestions. Process a valid CSV file first.',
     minimize:'Minimize', maximize:'Maximize',
@@ -2248,6 +2322,7 @@ var I18N={
     siFastest:'Maior % Rápido (≤3d)', siSlowest:'Maior % Lento (>10d)', siBalanced:'Mais Balanceado', siLowVol:'Menor Volume',
     bAlert:'ALERTA', siFast:'Rápido',
     wkOf:'Semana de ',
+    hlTopFlow:'maior fluxo', hlLeader:'líder', hlFastest:'mais rápida', hlBestConv:'melhor conv.', hlTop:'top', hlPeak:'pico',
     fbHighValue:'leads de alto valor', fbMarket:'mercado', fbOverall:'geral',
     sugNoData:'Dados insuficientes para gerar sugestões. Processe um arquivo CSV válido primeiro.',
     minimize:'Minimizar', maximize:'Maximizar',
