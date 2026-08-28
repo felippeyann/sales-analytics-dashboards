@@ -391,7 +391,7 @@
       </ul>
       <h3 data-i18n="mProcTitle">Automatic processing:</h3>
       <ul data-i18n="mProc">
-        <li>Automatic filtering: only data from <strong>2024 and 2025</strong></li>
+        <li>Automatic filtering: only records with <strong>valid dates</strong></li>
         <li>Removal of <strong>negative intervals</strong> (booking before the deal/activity)</li>
         <li><strong>Outlier</strong> removal using the 99th percentile (P99)</li>
         <li><strong>Automatic detection of AI bookings:</strong>
@@ -437,7 +437,7 @@ const I18N = {
     alCsvInvalid: 'Please select a valid CSV file.',
     alCsvEmpty: 'Error: empty or invalid CSV.',
     alCsvParse: 'Error while parsing the CSV: ',
-    alNoValid: 'No valid data found. Check that the CSV contains:\n- deal_created_at (creation date)\n- first_schedule_date (first booking date)\n- Data from 2024 or 2025',
+    alNoValid: 'No valid data found. Check that the CSV contains:\n- deal_created_at (creation date)\n- first_schedule_date (first booking date)\n- Valid creation and booking dates',
     alNoPeriod: 'No records found in the selected period.',
     alPickDates: 'Please select both start and end dates.',
     alDateOrder: 'The start date cannot be later than the end date.',
@@ -492,7 +492,7 @@ const I18N = {
     alCsvInvalid: 'Por favor, selecione um arquivo CSV válido.',
     alCsvEmpty: 'Erro: CSV vazio ou inválido.',
     alCsvParse: 'Erro ao processar CSV: ',
-    alNoValid: 'Nenhum dado válido encontrado. Verifique se o CSV contém:\n- deal_created_at (data de criação)\n- first_schedule_date (data do 1º agendamento)\n- Dados de 2024 ou 2025',
+    alNoValid: 'Nenhum dado válido encontrado. Verifique se o CSV contém:\n- deal_created_at (data de criação)\n- first_schedule_date (data do 1º agendamento)\n- Datas de criacao e agendamento validas',
     alNoPeriod: 'Nenhum registro encontrado no período selecionado.',
     alPickDates: 'Por favor, selecione as datas de início e fim.',
     alDateOrder: 'A data de início não pode ser posterior à data de fim.',
@@ -829,10 +829,8 @@ function processData() {
       _rawRow: row // Preservar linha original para detecção de IA
     };
   }).filter(d => {
-    // Filtrar apenas registros de 2024 ou 2025 com dados válidos
+    // Registros com datas válidas e intervalo não negativo (sem trava de ano)
     if (!d.deal_created_at || !d.first_schedule_date) return false;
-    const year = d.deal_created_at.getFullYear();
-    if (year !== 2024 && year !== 2025) return false;
     if (d.days_to_schedule == null || d.days_to_schedule < 0) return false;
     return true;
   });
@@ -2030,7 +2028,7 @@ function updateGlobalDateInfo() {
     mFile: '<strong>Arquivo necessário:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #fbbf24;">activities.csv</code><br><span style="font-size: 12px; opacity: 0.85; font-weight: 400;">Exportar atividades de primeiro agendamento do CRM (contém datas de criação e agendamento).</span>',
     mCols: '<li><strong>Faça upload de um arquivo CSV</strong> contendo as colunas:<ul style="margin-top: 4px;"><li><strong>Data de criação do deal/atividade:</strong><ul style="margin-left: 20px; font-size: 11px;"><li><code>ta_created_at</code> (atividades CRM)</li><li><code>deal_created_at</code> (deals)</li><li><code>created_at</code></li><li><code>data_criacao</code></li></ul></li><li><strong>Data do agendamento/reunião:</strong><ul style="margin-left: 20px; font-size: 11px;"><li><code>data_do_agendamento</code> (CRM)</li><li><code>data_da_call</code> (CRM)</li><li><code>first_schedule_date</code></li><li><code>data_primeiro_agendamento</code></li><li><code>primeira_reuniao</code></li></ul></li><li><strong>Colunas para detecção de IA:</strong><ul style="margin-left: 20px; font-size: 11px;"><li><code>sdr</code> (email do SDR) - para detectar +123 ou +789</li><li><code>user_email</code> (email do usuário) - alternativa</li><li><code>contact_tags</code> (tags do contato) - para detectar tags IA</li></ul></li><li><strong>Colunas opcionais:</strong> <code>deal_id</code>, <code>contact_id</code>, <code>origin_name</code>, <code>deal_status</code>, <code>type</code></li></ul></li>',
     mProcTitle: 'Processamento automático:',
-    mProc: '<li>Filtragem automática: apenas dados de <strong>2024 e 2025</strong></li><li>Remoção de <strong>intervalos negativos</strong> (agendamento anterior ao deal/atividade)</li><li>Remoção de <strong>outliers</strong> usando percentil 99 (P99)</li><li><strong>Detecção automática de agendamentos IA:</strong><ul style="margin-left: 20px; font-size: 11px;"><li>Emails SDR contendo <code>+123</code> ou <code>+789</code></li><li>Tags: "agendado ia", "tentativa ia", "tentativas esgotadas ia", "agendado ligação ia", "ligar depois ia", "reunião removida - ia", "fora do icp - ia", "agendado whatsapp"</li></ul></li><li>Cálculo automático de: mediana, quartis, distribuições e tendências temporais</li><li><strong>Compatível com CSV de atividades do CRM</strong> (colunas <code>ta_created_at</code>, <code>data_do_agendamento</code>)</li><li><strong>Filtro global de datas</strong> - Configure o período de análise desejado</li>',
+    mProc: '<li>Filtragem automática: apenas registros com <strong>datas válidas</strong></li><li>Remoção de <strong>intervalos negativos</strong> (agendamento anterior ao deal/atividade)</li><li>Remoção de <strong>outliers</strong> usando percentil 99 (P99)</li><li><strong>Detecção automática de agendamentos IA:</strong><ul style="margin-left: 20px; font-size: 11px;"><li>Emails SDR contendo <code>+123</code> ou <code>+789</code></li><li>Tags: "agendado ia", "tentativa ia", "tentativas esgotadas ia", "agendado ligação ia", "ligar depois ia", "reunião removida - ia", "fora do icp - ia", "agendado whatsapp"</li></ul></li><li>Cálculo automático de: mediana, quartis, distribuições e tendências temporais</li><li><strong>Compatível com CSV de atividades do CRM</strong> (colunas <code>ta_created_at</code>, <code>data_do_agendamento</code>)</li><li><strong>Filtro global de datas</strong> - Configure o período de análise desejado</li>',
     mStats: 'Estatísticas dos dados carregados:'
   };
   const META = {
@@ -2550,9 +2548,11 @@ function updateGlobalDateInfo() {
     var rows = [];
     for (var i = 0; i < 600; i++) {
       var isIA = Math.random() < 0.38;
-      // deal_created_at precisa cair em 2024 ou 2025: o dashboard descarta o resto
-      var ano = Math.random() < 0.25 ? '2024-01-01' : '2025-01-01';
-      var dealCreated = addDays(ano, randInt(0, 330));
+      // base recente: negocios criados nos ultimos ~10 meses ate hoje
+      var hoje = new Date(); hoje.setHours(12, 0, 0, 0);
+      var inicioBase = new Date(hoje); inicioBase.setDate(inicioBase.getDate() - 300);
+      var baseIso = inicioBase.getFullYear() + '-' + String(inicioBase.getMonth() + 1).padStart(2, '0') + '-' + String(inicioBase.getDate()).padStart(2, '0');
+      var dealCreated = addDays(baseIso, randInt(0, 298));
       // IA responde em horas ou no mesmo dia; humano tem cauda longa
       var dias = isIA ? randInt(0, 2) : (Math.random() < 0.7 ? randInt(1, 9) : randInt(10, 34));
       var tags = rand(TAGS) + (isIA && Math.random() < 0.5 ? ',Agendado IA' : '');
@@ -2576,9 +2576,9 @@ function updateGlobalDateInfo() {
       name: 'primeiro_agendamento.csv',
       input: '#csvFile',
       desc: 'Export de negocios com a data do primeiro agendamento. Uma linha por negocio. '
-          + 'Sao considerados apenas negocios criados em 2024 ou 2025 e com agendamento posterior a criacao.',
+          + 'Sao considerados negocios com datas validas e agendamento posterior a criacao.',
       desc_en: 'Deal export with the first booking date. One row per deal. '
-          + 'Only deals created in 2024 or 2025 with a booking after creation are considered.',
+          + 'Deals with valid dates and a booking after creation are considered.',
       cols: [
         { n: 'deal_id', t: 'texto', t_en: 'text', d: 'Identificador do negocio.', d_en: 'Deal identifier.' },
         { n: 'deal_created_at', t: 'data AAAA-MM-DD', t_en: 'date YYYY-MM-DD', d: 'Criacao do negocio. Aceita tambem created_at, data_criacao ou data_deal.', d_en: 'Deal creation. Also accepts created_at, data_criacao or data_deal.', req: 1 },
