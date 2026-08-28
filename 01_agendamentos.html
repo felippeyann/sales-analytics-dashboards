@@ -124,23 +124,34 @@
     border-bottom:1px solid var(--line-strong);
   }
   .wrap{max-width:1400px;margin:0 auto;padding:0 20px}
-  .hdr-in{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;padding:8px 0}
-  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .hdr-in{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;min-height:46px;padding:6px 0}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0;flex:none;cursor:default}
   .logo{
-    width:30px;height:30px;border-radius:var(--r-sm);flex:none;
+    width:26px;height:26px;border-radius:var(--r-sm);flex:none;
     background:var(--accent);color:#fff;
-    font-family:var(--mono);font-weight:700;font-size:12px;
+    font-family:var(--mono);font-weight:700;font-size:11px;
     display:flex;align-items:center;justify-content:center;
   }
-  h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .desc{color:var(--ink-4);font-size:11px;font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  h1{font-size:15px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap}
+  .hdr-in input[type="date"]{padding:5px 6px;font-size:11px;width:118px}
+  .hdr-in .select{padding:5px 8px;font-size:11px}
+  .hdr-in .filter-empty-text{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #globalDateInfo:empty{display:none}
+  .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+
+  /* barra de dados mais compacta nesta página */
+  .dk-bar .dk-in{padding:6px 16px !important;gap:8px !important}
+  .dk-bar .dk-btn{padding:6px 10px !important;font-size:10px !important;box-shadow:2px 2px 0 0 rgba(0,0,0,.6) !important}
+  .dk-bar .dk-btn.p{box-shadow:2px 2px 0 0 #1d4ed8 !important}
+  .dk-bar .dk-btn.g{box-shadow:none !important}
+  .dk-bar .dk-k{font-size:10px !important}
+  .dk-bar .dk-st{padding:4px 9px !important;font-size:10px !important}
   .lang-sw{display:flex;align-items:center;height:32px;padding:0 8px;background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r-sm);font-family:var(--mono)}
   .lang-sw button{background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink-4);padding:0 5px}
   .lang-sw button:hover{color:var(--ink)}
   .lang-sw button.on{color:var(--accent-soft);font-weight:700}
   .lang-sw .sep{color:var(--ink-4);font-size:11px;opacity:.5}
-  @media (max-width:760px){ .desc{display:none} h1{font-size:14px} }
+  @media (max-width:760px){ h1{font-size:13.5px} }
 
   /* ===== filter bar ===== */
   .filterbar{border-top:1px solid var(--line);background:rgba(19,19,22,.9)}
@@ -594,11 +605,26 @@
 <body>
 <header>
   <div class="wrap hdr-in">
-    <div class="brand">
+    <div class="brand" title='top of funnel · title="Agendamento de reunião" · type=SCHEDULE'>
       <div class="logo">&gt;_</div>
-      <div>
-        <h1><span data-i18n="h1">Bookings Analysis</span> <span class="version-badge">demo</span></h1>
-        <div class="desc" data-i18n="desc">top of funnel · title="Agendamento de reunião" · type=SCHEDULE</div>
+      <h1><span data-i18n="h1">Bookings Analysis</span> <span class="version-badge">demo</span></h1>
+    </div>
+    <span class="fb-sep"></span>
+    <span class="fb-label" data-i18n="fbPeriod">period</span>
+    <input id="globalDateStart" type="date" class="date-filter">
+    <input id="globalDateEnd" type="date" class="date-filter">
+    <button id="applyGlobalDate" class="btn sm" data-i18n="fbApply">Apply</button>
+    <button id="clearGlobalDate" class="btn secondary sm" data-i18n="fbClearBtn">Clear</button>
+    <span id="globalDateInfo"></span>
+    <span class="fb-sep"></span>
+    <div id="filter-panel" class="fb-chips">
+      <span id="filter-count" hidden>0</span>
+      <div class="filter-body">
+        <div id="filter-chips" class="filter-chip-list"></div>
+        <div class="filter-actions">
+          <span id="filter-empty-text" class="filter-empty-text" data-i18n="fbEmpty">none · click any chart to filter</span>
+          <button id="filter-clear" class="filter-clear" type="button" disabled data-i18n="fbClearAll">Clear all</button>
+        </div>
       </div>
     </div>
     <div class="hdr-actions">
@@ -611,28 +637,6 @@
       <button class="btn-metodologia" onclick="openMetodologiaModal()" data-i18n="btnMeth">Methodology</button>
       <div class="lang-sw" role="group" aria-label="Language" data-pt-aria="Idioma">
         <button type="button" data-lang-btn="en" aria-pressed="true">EN</button><span class="sep">/</span><button type="button" data-lang-btn="pt" aria-pressed="false">PT</button>
-      </div>
-    </div>
-  </div>
-  <div class="filterbar">
-    <div class="wrap fb-in">
-      <span class="fb-label" data-i18n="fbPeriod">period</span>
-      <input id="globalDateStart" type="date" class="date-filter">
-      <input id="globalDateEnd" type="date" class="date-filter">
-      <button id="applyGlobalDate" class="btn sm" data-i18n="fbApply">Apply</button>
-      <button id="clearGlobalDate" class="btn secondary sm" data-i18n="fbClearBtn">Clear</button>
-      <span id="globalDateInfo"></span>
-      <span class="fb-sep"></span>
-      <span class="fb-label" data-i18n="fbFilters">filters</span>
-      <div id="filter-panel" class="fb-chips">
-        <span id="filter-count" hidden>0</span>
-        <div class="filter-body">
-          <div id="filter-chips" class="filter-chip-list"></div>
-          <div class="filter-actions">
-            <span id="filter-empty-text" class="filter-empty-text" data-i18n="fbEmpty">none · click any chart to filter</span>
-            <button id="filter-clear" class="filter-clear" type="button" disabled data-i18n="fbClearAll">Clear all</button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -809,11 +813,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </section>
   </div>
 
-  <section class="card panel">
-    <h2 data-i18n="ucH">Columns used in the analysis</h2>
-    <div class="used-cols" id="usedCols">
-      </div>
-  </section>
 </main>
 
 <div id="toast" class="toast" data-i18n="toast0">Copied to clipboard.</div>
@@ -1691,7 +1690,6 @@ function buildAll(data){
 
   renderInsightChips(data);
 
-  document.getElementById('usedCols').innerHTML = Array.from(usedColumns).sort().map(c=> `<span class="pill">${c}</span>`).join(' ');
   extractKeyInsights(data);
   // Passa a habilitar via função que conecta ao Gemini
   enableSuggestions();
