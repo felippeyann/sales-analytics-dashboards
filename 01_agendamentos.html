@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <!--
-  ╔═══════════════════════════════════════════════════════════╗
-  ║  Analytics Dashboard - Bookings Analysis                 ║
-  ║  Version: v1.0                                           ║
-  ║  Last update: 31/10/2025                                 ║
-  ║  Description: interactive dashboard for bookings         ║
-  ║               analysis with cross filters                ║
-  ╚═══════════════════════════════════════════════════════════╝
+  Bookings Analysis · reference dashboard for the sales-analytics-dashboards demos.
+  Single self-contained HTML file. Vanilla JS + ECharts 6 + PapaParse. No build step, no LLM calls.
+
+  Anatomy (same skeleton the other dashboards follow):
+    1. <style>       design tokens in :root, then component styles (header, filter bar, cards, KPIs, tour).
+    2. <header>      one compact sticky row: brand + date range + active-filter chips + actions + EN/PT.
+    3. .top-row      executive summary (KPIs + insight) · "how to read" · suggestions, side by side.
+    4. cards         one <section class="card"> per chart; charts render into #chart* divs.
+    5. app script    utils → CSS-token-driven ECharts theme ('demo') → data (CSV/mock) → filters
+                     (FILTER_DEFINITIONS + cross-filter) → renderers → buildAll() → i18n (I18N + applyLang).
+    6. DATAKIT       shared data bar (contract, template, auto-fill). Bilingual via DK.relabel(). Do not edit inline.
+    7. onb-cta       shared onboarding card + portfolio CTA. Bilingual via window.__onbCtaRebuild().
+
+  i18n: English is the static default; PT lives in the I18N dict and swaps on applyLang('pt'|'en').
+        Every new user-facing string must exist in both languages.
+  Colors: CAT_PALETTE (categorical, fixed order), SCORE_COLORS/STATUS_* (ordinal/semantic), SEQ_BLUE (heatmaps).
 -->
 <html lang="en">
 <head>
@@ -133,14 +142,10 @@
   .lang-sw .sep{color:var(--ink-4);font-size:11px;opacity:.5}
   @media (max-width:760px){ h1{font-size:13.5px} }
 
-  /* ===== filter bar ===== */
-  .filterbar{border-top:1px solid var(--line);background:rgba(19,19,22,.9)}
-  .fb-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 0}
+  /* ===== filtros: rótulos, separador, chips ===== */
   .fb-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);white-space:nowrap}
   .fb-sep{width:1px;height:22px;background:var(--line-strong);flex:none}
   #globalDateInfo{font-family:var(--mono);font-size:11px;color:var(--ink-4)}
-
-  /* chips de filtros ativos, inline na barra */
   .fb-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
   .filter-toggle{display:none}
   .filter-body{display:contents}
@@ -193,7 +198,6 @@
     display:flex;align-items:center;gap:8px
   }
   .panel .sub{color:var(--ink-4);font-size:12.5px;margin-bottom:10px;line-height:1.5}
-  .chart-title{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin:0 0 8px}
 
   /* ===== KPIs (linha única) ===== */
   .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
@@ -236,7 +240,6 @@
   .exec-insight{border-left:3px solid var(--accent);padding:3px 0 3px 11px;color:var(--ink-2);font-size:11.5px;line-height:1.5}
   .exec-insight .ei-tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-soft);border:1px solid rgba(37,99,235,.4);padding:1px 6px;margin-right:7px}
   .exec-insight b{color:var(--ink);font-weight:700}
-  .panel-sub{font-size:13px;line-height:1.45;color:var(--ink-4);margin:-4px 0 16px;max-width:82ch}
 
   /* ===== botões ===== */
   .btn{
@@ -264,9 +267,6 @@
   .seg-b:last-child{border-right:0}
   .seg-b:hover{color:var(--ink-2)}
   .seg-b.active{background:var(--accent);color:#fff}
-  .topic-head.tight{align-items:flex-start}
-  .topic-head.tight h2{margin-top:2px}
-  .topic-head.tight .topic-actions{padding-top:2px}
 
   /* ===== ações inline por gráfico ===== */
   .chart-actions{display:inline-flex;gap:5px}
@@ -377,15 +377,7 @@
   .toggle-label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;}
   .toggle-label input[type="checkbox"]{cursor:pointer;accent-color:var(--accent);width:16px;height:16px;}
   .toggle-label span{color:var(--ink-3);font-weight:500;}
-  .footnote{color:var(--ink-4);font-size:12px;margin-top:10px}
-  .pill{display:inline-block;border:1px solid var(--line-strong);padding:3px 8px;border-radius:999px;font-size:11px;margin-right:6px;color:var(--ink-3);font-family:var(--mono)}
   .version-badge{display:inline-block;background:var(--accent-glow);border:1px solid rgba(37,99,235,.4);color:var(--accent-soft);font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:10px;margin-left:8px;letter-spacing:0.5px;vertical-align:middle}
-  .toast{
-    position:fixed;right:16px;bottom:16px;background:var(--card-h);color:var(--ink);padding:10px 12px;border:1px solid var(--line-strong);
-    border-radius:var(--r-sm);opacity:0;transform:translateY(6px);transition:all .25s ease;pointer-events:none
-  }
-  .toast.show{opacity:1;transform:none}
-  .used-cols{font-size:12px;line-height:1.6}
   .muted{color:var(--ink-4)}
 
   .suggestions-list {
@@ -449,8 +441,6 @@
   .squad-table th{position:sticky;top:0;background:var(--card-h);font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:7px 9px;text-align:left;color:var(--ink-3)}
   .squad-table td{padding:5px 9px;border-bottom:1px solid var(--line);color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
   .squad-table tr:last-child td{border-bottom:none}
-  .metric-bad{color:var(--bad);font-weight:600}
-  .metric-good{color:var(--ok);font-weight:600}
 
   /* --- Filtros Rápidos TA --- */
   .ta-quick-filters{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px;padding:4px 2px 2px}
@@ -855,7 +845,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </main>
 
-<div id="toast" class="toast" data-i18n="toast0">Copied to clipboard.</div>
 
 
 <script>
@@ -891,7 +880,6 @@ function paraDataISO(dataString){if(!dataString||typeof dataString!=='string')re
 function getScoreBand(score){const num=parseInt(score,10);if(isNaN(num))return'D';if(num>=80)return'A';if(num>=60)return'B';if(num>=40)return'C';return'D';}
 function calcularDiasTA(dataTaskStr,dataDealStr){if(!dataTaskStr||!dataDealStr)return null;try{const dataTask=new Date(dataTaskStr.split(' ')[0]);const dataDeal=new Date(dataDealStr.split(' ')[0]);const diffTime=Math.abs(dataTask-dataDeal);const diffDays=Math.ceil(diffTime/(1000*60*60*24));return diffDays;}catch(e){return null;}}
 function buckTA(days){if(days===null||isNaN(days))return'desconhecido';if(days<=1.5)return'Até 1,5 dia';if(days<=3)return'Até 3 dias';if(days<=5)return'Até 5 dias';if(days<=10)return'Até 10 dias';if(days<=20)return'Até 20 dias';if(days<=30)return'Até 30 dias';return'Acima de 30 dias';}
-function showToast(msg){const el=document.getElementById('toast');el.textContent=msg||t('toastCopied');el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1600);}
 function parseMaybeList(raw){if(raw==null)return[];const s=String(raw).trim();if(!s)return[];try{if((s.startsWith('[')&&s.endsWith(']'))||(s.startsWith('{')&&s.endsWith('}'))){const v=JSON.parse(s.replace(/'/g,'"'));if(Array.isArray(v))return v.map(x=>String(x).trim().toLowerCase()).filter(Boolean);if(v&&typeof v==='object')return Object.keys(v).filter(k=>v[k]).map(k=>k.toLowerCase());}}catch(e){} return s.split(/[,;|]/).map(x=>x.trim().toLowerCase()).filter(x=>x.length>1);}
 const TA_ORDER=['Até 1,5 dia','Até 3 dias','Até 5 dias','Até 10 dias','Até 20 dias','Até 30 dias','Acima de 30 dias'];
 const SCORE_ORDER=['A','B','C','D'];
@@ -2271,7 +2259,7 @@ function isAggLabel(n){ return n==='Outros'||n==='Others'; }
 var I18N={
   en:{
     others:'Others',
-    toastCopied:'Copied to clipboard.', pdfNotFound:'Dashboard not found!',
+    pdfNotFound:'Dashboard not found!',
     insTag:'insight',
     insLead:function(s,r,d){return '<b>'+s+'</b> leads conversion with a <b>'+r+'%</b> win rate, '+d+' p.p. above the period average.';},
     insCorp:function(p){return '<b>'+p+'%</b> of bookings come from corporate email, the segment with the best lead quality.';},
@@ -2314,7 +2302,7 @@ var I18N={
   },
   pt:{
     others:'Outros',
-    toastCopied:'Copiado para a área de transferência.', pdfNotFound:'Dashboard não encontrado!',
+    pdfNotFound:'Dashboard não encontrado!',
     insTag:'insight',
     insLead:function(s,r,d){return '<b>'+s+'</b> lidera a conversão com <b>'+r+'%</b> de ganho, '+d+' p.p. acima da média do período.';},
     insCorp:function(p){return '<b>'+p+'%</b> dos agendamentos vêm de e-mail corporativo, o segmento de melhor qualidade de lead.';},
@@ -2404,7 +2392,6 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     scdTip:'As 5 métricas de cada squad em escalas honestas: volume absoluto e percentuais reais, sem normalização.',
     scdSub:'Volume, qualidade (A+B), conversão, velocidade e e-mail corporativo por squad.',
     ucH:'Colunas utilizadas na análise',
-    toast0:'Copiado para a área de transferência.',
     gpH:'Resposta Gemini',
     mH:'Metodologia - Análise de Agendamentos',
     m1H:'O que este painel responde',
