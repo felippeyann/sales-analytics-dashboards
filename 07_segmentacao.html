@@ -19,6 +19,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
@@ -241,7 +242,7 @@
         <div class="topic-head">
           <h2 data-i18n="c1h">Base composition by segment</h2>
         </div>
-        <div class="panel-sub" data-i18n="c1s">Top 10 canonical segments by record count; the rest is grouped as "Other". Records without a mapping are not counted here (see Data quality).</div>
+        <div class="panel-sub" data-i18n="c1s">Each rectangle is a canonical segment; the area is proportional to the record count. Records without a mapping are not counted here (see Data quality).</div>
         <div id="chartComposition" class="chart tall"></div>
       </section>
 
@@ -249,8 +250,8 @@
         <div class="topic-head">
           <h2 data-i18n="c2h">Data quality</h2>
         </div>
-        <div class="panel-sub" data-i18n="c2s">Distribution of the base across the four normalization quality tiers.</div>
-        <div id="chartQuality" class="chart short"></div>
+        <div class="panel-sub" data-i18n="c2s">Inner ring: the four normalization quality tiers. Outer ring: the top segments inside each tier.</div>
+        <div id="chartQuality" class="chart tall"></div>
         <div class="quality-rule" data-i18n="rule"><b>Quality rule:</b> High = a secondary source or the profile confirms a single canonical; Medium = only the main source; Low = no mapping; Conflict = sources diverge.</div>
       </section>
 
@@ -258,7 +259,7 @@
         <div class="topic-head">
           <h2 data-i18n="c3h">Most frequent new terms</h2>
         </div>
-        <div class="panel-sub" data-i18n="c3s">Top 15 terms outside the canonical dictionary, by frequency in the base: the priority order for dictionary curation.</div>
+        <div class="panel-sub" data-i18n="c3s">Terms outside the canonical dictionary; word size is proportional to frequency in the base: the priority order for dictionary curation.</div>
         <div id="chartNewTerms" class="chart"></div>
       </section>
     </div>
@@ -325,7 +326,6 @@
         mapsLoaded: function (n) { return n + ' mappings loaded'; },
         actReview: 'Review manually',
         others: 'Other',
-        qCat: 'Records',
         q_high: 'High', q_medium: 'Medium', q_low: 'Low', q_conflict: 'Conflict',
         qb_high: 'HIGH', qb_medium: 'MEDIUM', qb_low: 'LOW', qb_conflict: 'CONFLICT',
         emptySeg: 'No mapped segments',
@@ -355,7 +355,6 @@
         mapsLoaded: function (n) { return n + ' mapeamentos carregados'; },
         actReview: 'Validar manualmente',
         others: 'Outros',
-        qCat: 'Base',
         q_high: 'Alta', q_medium: 'Média', q_low: 'Baixa', q_conflict: 'Conflito',
         qb_high: 'ALTA', qb_medium: 'MÉDIA', qb_low: 'BAIXA', qb_conflict: 'CONFLITO',
         emptySeg: 'Sem segmentos mapeados',
@@ -412,12 +411,12 @@
         upb2p: 'Mapeamento termo → canônico (raw_term,segmento_canonico)',
         upbtn: 'Processar Segmentação',
         c1h: 'Composição da base por segmento',
-        c1s: 'Top 10 segmentos canônicos por contagem de registros; o restante agrega em "Outros". Registros sem mapeamento não entram aqui (ver Qualidade da base).',
+        c1s: 'Cada retângulo é um segmento canônico; a área é proporcional à contagem de registros. Registros sem mapeamento não entram aqui (ver Qualidade da base).',
         c2h: 'Qualidade da base',
-        c2s: 'Distribuição da base pelas quatro faixas de qualidade da normalização.',
+        c2s: 'Anel interno: as quatro faixas de qualidade da normalização. Anel externo: os principais segmentos dentro de cada faixa.',
         rule: '<b>Regra de qualidade:</b> Alta = fonte secundária ou perfil confirmam um único canônico; Média = só a fonte principal; Baixa = sem mapeamento; Conflito = fontes divergem.',
         c3h: 'Termos novos mais frequentes',
-        c3s: 'Top 15 termos fora do dicionário canônico, por frequência na base: a ordem de prioridade para a curadoria do dicionário.',
+        c3s: 'Termos fora do dicionário canônico; o tamanho da palavra é proporcional à frequência na base: a ordem de prioridade para a curadoria do dicionário.',
         t1h: 'Fila de Conflitos',
         t1s: 'Registros em que as fontes discordam do segmento e exigem revisão manual.',
         t2h: 'Termos Novos (não mapeados)',
@@ -747,7 +746,8 @@
     function renderCharts(stats) {
       const tot = Math.max(1, stats.total || 0);
 
-      // (a) Composição da base por segmento canônico: top 10 + Outros
+      // (a) Composição da base: TREEMAP por segmento canônico (área = registros).
+      //     Todos os segmentos entram; acima de 15, agrega a cauda em "Outros".
       const segCount = {};
       enrichedData.forEach(r => {
         const seg = r['segmento_canonico'];
@@ -755,59 +755,118 @@
         segCount[seg] = (segCount[seg] || 0) + 1;
       });
       const sorted = Object.entries(segCount).sort((a, b) => b[1] - a[1]);
-      const top = sorted.slice(0, 10);
-      const restSum = sorted.slice(10).reduce((s, e) => s + e[1], 0);
-      if (restSum > 0) top.push([t('others'), restSum]);
+      let leaves = sorted;
+      if (sorted.length > 15) {
+        leaves = sorted.slice(0, 15);
+        const restSum = sorted.slice(15).reduce((s, e) => s + e[1], 0);
+        if (restSum > 0) leaves = leaves.concat([[t('others'), restSum]]);
+      }
 
       const compChart = makeChart(document.getElementById('chartComposition'));
-      if (top.length === 0) {
+      if (leaves.length === 0) {
         compChart.setOption(emptyChartOption(t('emptySeg')));
       } else {
         compChart.setOption({
-          grid: {left: 8, right: 28, top: 10, bottom: 8, containLabel: true},
-          tooltip: {trigger: 'axis', axisPointer: {type: 'shadow'},
-            formatter: p => escHtml(p[0].name) + ': <b>' + nf(p[0].value) + '</b> (' + Math.round(p[0].value / tot * 100) + '%)'},
-          xAxis: {type: 'value'},
-          yAxis: {type: 'category', inverse: true, data: top.map(e => e[0]), axisLabel: {width: 120, overflow: 'truncate'}},
-          series: [{type: 'bar', data: top.map(e => e[1]), itemStyle: {color: '#2563eb'}, barMaxWidth: 18}]
+          tooltip: {
+            formatter: p => escHtml(p.name) + ': <b>' + nf(p.value) + '</b> (' + Math.round(p.value / tot * 100) + '%)'
+          },
+          series: [{
+            type: 'treemap',
+            left: 0, right: 0, top: 0, bottom: 0,
+            roam: false, nodeClick: false,
+            breadcrumb: {show: false},
+            data: leaves.map(e => ({name: e[0], value: e[1]})),
+            itemStyle: {color: '#2563eb', borderColor: '#131316', borderWidth: 2, gapWidth: 2},
+            label: {
+              show: true, position: 'insideTopLeft', distance: 8,
+              formatter: p => p.name + '\n' + nf(p.value),
+              color: '#f8f7f3', fontSize: 12, lineHeight: 17, fontWeight: 500
+            },
+            emphasis: {itemStyle: {color: '#1d4ed8'}}
+          }]
         });
       }
       addResize(compChart);
 
-      // (b) Qualidade da base: UMA barra horizontal 100% empilhada
-      const qCounts = {};
-      QUALITY_SERIES.forEach(q => { qCounts[qLabel(q.key)] = stats[q.key] || 0; });
+      // (b) Qualidade da base: SUNBURST. Anel interno = faixas de qualidade
+      //     (rampa azul + warn no conflito); anel externo = top segmentos de cada faixa.
+      //     Baixa nao tem anel externo de proposito: sem mapeamento, sem segmento.
+      const qSeg = {};
+      QUALITY_SERIES.forEach(q => { qSeg[q.key] = {}; });
+      enrichedData.forEach(r => {
+        const q = r['segmento_quality'];
+        const seg = r['segmento_canonico'];
+        if (!qSeg[q] || !seg || seg === 'Sem Segmento') return;
+        qSeg[q][seg] = (qSeg[q][seg] || 0) + 1;
+      });
+      const sunData = QUALITY_SERIES.map(q => {
+        const darkInk = (q.key === 'low' || q.key === 'conflict'); // fatias claras pedem texto escuro
+        const labelColor = darkInk ? '#0a0a0b' : '#f8f7f3';
+        const entries = Object.entries(qSeg[q.key]).sort((a, b) => b[1] - a[1]);
+        const children = entries.slice(0, 5).map(e => ({
+          name: e[0], value: e[1], label: {color: labelColor}
+        }));
+        const rest = entries.slice(5).reduce((s, e) => s + e[1], 0);
+        if (rest > 0) children.push({name: t('others'), value: rest, label: {color: labelColor}});
+        return {
+          name: qLabel(q.key),
+          value: stats[q.key] || 0,
+          itemStyle: {color: q.color},
+          label: {color: labelColor},
+          children: children
+        };
+      }).filter(n => n.value > 0);
+
       const qChart = makeChart(document.getElementById('chartQuality'));
       qChart.setOption({
-        grid: {left: 8, right: 28, top: 34, bottom: 6, containLabel: true},
-        legend: {top: 0, left: 0, data: QUALITY_SERIES.map(q => qLabel(q.key))},
-        tooltip: {trigger: 'axis', axisPointer: {type: 'shadow'},
-          formatter: params => params.map(p =>
-            p.marker + escHtml(p.seriesName) + ': <b>' + nf(qCounts[p.seriesName]) + '</b> (' + p.value + '%)'
-          ).join('<br>')},
-        xAxis: {type: 'value', max: 100, axisLabel: {formatter: '{value}%'}},
-        yAxis: {type: 'category', data: [t('qCat')]},
-        series: QUALITY_SERIES.map(q => ({
-          name: qLabel(q.key), type: 'bar', stack: 'qualidade',
-          data: [ +((stats[q.key] || 0) / tot * 100).toFixed(1) ],
-          itemStyle: {color: q.color}, barMaxWidth: 26
-        }))
+        tooltip: {
+          formatter: p => escHtml(p.name) + ': <b>' + nf(p.value) + '</b> (' + Math.round(p.value / tot * 100) + '%)'
+        },
+        series: [{
+          type: 'sunburst',
+          radius: [0, '92%'],
+          center: ['50%', '50%'],
+          nodeClick: false,
+          sort: null,
+          data: sunData,
+          itemStyle: {borderColor: '#131316', borderWidth: 2},
+          label: {rotate: 'radial', fontSize: 11, minAngle: 8},
+          levels: [
+            {},
+            {r0: 0, r: '48%', label: {rotate: 0, fontSize: 12, fontWeight: 700}},
+            {r0: '48%', r: '92%', itemStyle: {opacity: .85}}
+          ],
+          emphasis: {focus: 'ancestor'}
+        }]
       });
       addResize(qChart);
 
-      // (c) Termos novos mais frequentes: top 15 para priorizar a curadoria
-      const terms = newTermsData.slice(0, 15);
+      // (c) Termos novos: WORDCLOUD (plugin echarts-wordcloud). Tamanho proporcional
+      //     a frequencia; tres tons de azul por ranking (topo, meio, cauda).
+      const terms = newTermsData; // ja vem ordenado por frequencia desc
       const ntChart = makeChart(document.getElementById('chartNewTerms'));
       if (terms.length === 0) {
         ntChart.setOption(emptyChartOption(t('emptyTerms')));
       } else {
+        const nT = terms.length;
+        const cut1 = Math.ceil(nT / 3), cut2 = Math.ceil(2 * nT / 3);
         ntChart.setOption({
-          grid: {left: 8, right: 16, top: 16, bottom: 8, containLabel: true},
-          tooltip: {trigger: 'axis', axisPointer: {type: 'shadow'},
-            formatter: p => escHtml(p[0].name) + ': <b>' + nf(p[0].value) + '</b> ' + t('occ')},
-          xAxis: {type: 'category', data: terms.map(x => x['Termo']), axisLabel: {rotate: 30, width: 96, overflow: 'truncate'}},
-          yAxis: {type: 'value'},
-          series: [{type: 'bar', data: terms.map(x => x['Frequência']), itemStyle: {color: '#2563eb'}, barMaxWidth: 26}]
+          tooltip: {
+            formatter: p => escHtml(p.name) + ': <b>' + nf(p.value) + '</b> ' + t('occ')
+          },
+          series: [{
+            type: 'wordCloud',
+            shape: 'circle',
+            gridSize: 8,
+            sizeRange: [12, 42],
+            rotationRange: [0, 0],
+            textStyle: {fontFamily: '"Space Grotesk",system-ui,sans-serif'},
+            data: terms.map((x, i) => ({
+              name: x['Termo'],
+              value: x['Frequência'],
+              textStyle: {color: i < cut1 ? '#2563eb' : (i < cut2 ? '#60a5fa' : '#93c5fd')}
+            }))
+          }]
         });
       }
       addResize(ntChart);
