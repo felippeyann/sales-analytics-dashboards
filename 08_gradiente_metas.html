@@ -15,12 +15,12 @@
   ║    ao novo backend (Apps Script ou REST API direta)             ║
   ╚══════════════════════════════════════════════════════════════════╝
 -->
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gradiente de Metas | Felippe Yann</title>
+  <title>Goal Gradient | Felippe Yann</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,6 +89,13 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 
 .fullscreen-btn { background:var(--card); border:1px solid var(--line-strong); color:var(--ink-2); width:42px; height:42px; border-radius:var(--r-sm); font-size:20px; line-height:1; cursor:pointer; transition:border-color 0.2s ease,color 0.2s ease; }
 .fullscreen-btn:hover { border-color:var(--accent); color:var(--ink); }
+
+/* Seletor de idioma (dentro do canvas 1920x1080: escala junto com o painel) */
+.lang-sw { display:flex; align-items:center; height:42px; padding:0 10px; background:var(--card); border:1px solid var(--line-strong); border-radius:var(--r-sm); font-family:var(--mono); }
+.lang-sw button { background:none; border:0; cursor:pointer; font-family:var(--mono); font-size:15px; letter-spacing:.06em; color:var(--ink-4); padding:0 6px; line-height:1; }
+.lang-sw button:hover { color:var(--ink); }
+.lang-sw button.on { color:var(--accent-soft); font-weight:700; }
+.lang-sw .sep { color:var(--ink-4); font-size:13px; opacity:.5; }
 
 /* Main */
 .main-content { flex:1; display:flex; flex-direction:column; gap:20px; }
@@ -237,7 +244,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
   <!-- Loading Overlay -->
   <div id="loading" class="loading-overlay">
     <div class="loading-spinner"></div>
-    <div class="loading-text">Carregando dados...</div>
+    <div class="loading-text" data-i18n="loading">Loading data...</div>
   </div>
 
   <!-- Container principal 1920×1080 -->
@@ -245,8 +252,8 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 
     <header class="header">
       <div class="header-left">
-        <div class="logo"><b>&gt;_</b> GRADIENTE DE METAS</div>
-        <button id="config-btn" class="config-btn" title="Configurar metas" aria-label="Configurar metas">&#9881;</button>
+        <div class="logo" data-i18n="logo"><b>&gt;_</b> GOAL GRADIENT</div>
+        <button id="config-btn" class="config-btn" title="Goal settings" aria-label="Goal settings" data-pt-title="Configurar metas" data-pt-aria="Configurar metas">&#9881;</button>
       </div>
       <div class="header-center">
         <div id="mes-atual" class="mes-titulo"></div>
@@ -254,11 +261,14 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
       </div>
       <div class="header-right">
         <div class="header-controls">
-          <select id="strategySelect" class="strategy-select" title="Como redistribuir déficits entre semanas">
-            <option value="diluir">Ideia Diluir</option>
-            <option value="seguinte">Ideia Seguinte</option>
+          <select id="strategySelect" class="strategy-select" title="How to redistribute weekly deficits" data-pt-title="Como redistribuir déficits entre semanas">
+            <option value="diluir" data-i18n="stDilute">Dilute deficit</option>
+            <option value="seguinte" data-i18n="stCascade">Cascade deficit</option>
           </select>
-          <button id="fullscreen-btn" class="fullscreen-btn" title="Tela cheia" aria-label="Tela cheia">&#x26F6;</button>
+          <div class="lang-sw" role="group" aria-label="Language" data-pt-aria="Idioma">
+            <button type="button" data-lang-btn="en" aria-pressed="true">EN</button><span class="sep">/</span><button type="button" data-lang-btn="pt" aria-pressed="false">PT</button>
+          </div>
+          <button id="fullscreen-btn" class="fullscreen-btn" title="Fullscreen" aria-label="Fullscreen" data-pt-title="Tela cheia" data-pt-aria="Tela cheia">&#x26F6;</button>
         </div>
       </div>
     </header>
@@ -267,18 +277,18 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
       <!-- Progresso mensal -->
       <section class="progress-section">
         <div class="progress-header">
-          <div class="progress-title">PROGRESSO DO MÊS</div>
+          <div class="progress-title" data-i18n="progTitle">MONTHLY PROGRESS</div>
           <div class="progress-stats">
             <div class="pstat">
-              <span class="pstat-label">Meta</span>
+              <span class="pstat-label" data-i18n="statGoal">Goal</span>
               <span id="meta-valor-display" class="pstat-value">R$ 0</span>
             </div>
             <div class="pstat">
-              <span class="pstat-label">Realizado</span>
+              <span class="pstat-label" data-i18n="statActual">Actual</span>
               <span id="realizado-valor" class="pstat-value">R$ 0</span>
             </div>
             <div class="pstat">
-              <span id="faltante-label" class="pstat-label">Faltante</span>
+              <span id="faltante-label" class="pstat-label" data-i18n="statRemaining">Remaining</span>
               <span id="faltante-info" class="pstat-value">R$ 0</span>
             </div>
           </div>
@@ -308,8 +318,8 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
       <!-- Timeline de vendas -->
       <section class="timeline-section">
         <div class="timeline-header">
-          <span class="timeline-title">TIMELINE DE VENDAS DO MÊS</span>
-          <span id="timeline-count" class="timeline-count">0 vendas</span>
+          <span class="timeline-title" data-i18n="tlTitle">MONTH SALES TIMELINE</span>
+          <span id="timeline-count" class="timeline-count" data-i18n="tlZero">0 sales</span>
         </div>
         <div class="timeline-container" id="timeline-container"></div>
       </section>
@@ -321,15 +331,15 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
       <div class="config-backdrop" onclick="closeConfigModal()"></div>
       <div class="config-panel">
         <div class="config-header">
-          <h2 class="config-title">Configurar Metas</h2>
+          <h2 class="config-title" data-i18n="cfgTitle">Goal Settings</h2>
           <button class="config-close" onclick="closeConfigModal()">&times;</button>
         </div>
         <div class="config-body" id="config-body"></div>
         <div class="config-footer">
-          <button class="config-btn-add" onclick="addMetaMonth()">+ Adicionar Mês</button>
+          <button class="config-btn-add" onclick="addMetaMonth()" data-i18n="cfgAdd">+ Add Month</button>
           <div class="config-actions">
-            <button class="config-btn-cancel" onclick="closeConfigModal()">Cancelar</button>
-            <button class="config-btn-save" onclick="saveMetasConfig()">Salvar</button>
+            <button class="config-btn-cancel" onclick="closeConfigModal()" data-i18n="cfgCancel">Cancel</button>
+            <button class="config-btn-save" onclick="saveMetasConfig()" data-i18n="cfgSave">Save</button>
           </div>
         </div>
       </div>
@@ -347,19 +357,102 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 let gradienteData = null;
 
 // ============================================================================
+// I18N (EN default; PT via localStorage 'lang')
+// Valores monetarios continuam em BRL (R$) nas duas linguas: o dado e em reais.
+// ============================================================================
+
+const I18N = {
+  en: {
+    months: ['', 'January', 'February', 'March', 'April', 'May', 'June',
+             'July', 'August', 'September', 'October', 'November', 'December'],
+    weeks: { S1: 'Week 1', S2: 'Week 2', S3: 'Week 3', S4: 'Week 4', SF: 'Final Sprint' },
+    weekIds: { S1: 'W1', S2: 'W2', S3: 'W3', S4: 'W4', SF: 'FS' },
+    metaPrefix: 'Goal: ',
+    remaining: 'Remaining', surplus: 'Surplus',
+    paceLabel: 'pace: ',
+    paceTitle: 'Expected cumulative goal up to today: ',
+    paceHit: '✓ goal hit', paceOn: '→ on pace', paceBehind: '! behind pace',
+    stGoalHit: 'Goal hit', stInProgress: 'In progress', stClosed: 'Closed', stUpcoming: 'Upcoming',
+    wkGoalHit: '✓ Goal hit', wkDone: '✓ Completed',
+    lblGoal: 'Goal', lblOrigGoal: 'Original goal', lblActual: 'Actual',
+    lblToGo: 'To go', lblStatus: 'Status', lblNeededAvg: 'Needed avg', perDay: '/day',
+    recentSales: 'Recent Sales', noSales: 'No sales recorded', noSalesYet: 'No sales recorded yet',
+    sale: 'sale', sales: 'sales',
+    periodTo: ' to ', noCloser: 'No closer',
+    loadErr: 'Could not load the data. Retrying in 30 seconds...',
+    renderErr: 'Could not render this week',
+    csvNoValid: 'No valid sales in the CSV. Check the data and valor columns.',
+    csvNoLib: 'The CSV parsing library did not load. Reload the page.',
+    csvNoRows: 'No valid rows in the CSV. The "data" column is required.',
+    csvReadErr: 'Error reading the CSV: ',
+    cfgMonth: 'Month', cfgYear: 'Year', cfgMonthlyGoal: 'Monthly Goal (R$)',
+    cfgRemove: 'Remove', cfgTotal: 'Total: ', cfgPlaceholder: '1,500,000',
+    errSum: 'Error: {m}: weekly weights add up to {p}% (must be 100%)',
+    errGoal: 'Error: {m} has an invalid goal',
+    errSave: 'Could not save the settings in this browser',
+    savedOk: 'Goals saved'
+  },
+  pt: {
+    months: ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+             'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+    weeks: { S1: 'Semana 1', S2: 'Semana 2', S3: 'Semana 3', S4: 'Semana 4', SF: 'Sprint Final' },
+    weekIds: { S1: 'S1', S2: 'S2', S3: 'S3', S4: 'S4', SF: 'SF' },
+    metaPrefix: 'Meta: ',
+    remaining: 'Faltante', surplus: 'Excedente',
+    paceLabel: 'pace: ',
+    paceTitle: 'Meta acumulada esperada ate hoje: ',
+    paceHit: '✓ meta batida', paceOn: '→ no ritmo', paceBehind: '! abaixo do ritmo',
+    stGoalHit: 'Meta batida', stInProgress: 'Em andamento', stClosed: 'Encerrada', stUpcoming: 'A iniciar',
+    wkGoalHit: '✓ Meta batida', wkDone: '✓ Concluída',
+    lblGoal: 'Meta', lblOrigGoal: 'Meta original', lblActual: 'Realizado',
+    lblToGo: 'Falta', lblStatus: 'Status', lblNeededAvg: 'Média necessária', perDay: '/dia',
+    recentSales: 'Vendas Recentes', noSales: 'Nenhuma venda registrada', noSalesYet: 'Nenhuma venda registrada ainda',
+    sale: 'venda', sales: 'vendas',
+    periodTo: ' a ', noCloser: 'Sem closer',
+    loadErr: 'Erro ao carregar dados. Tentando novamente em 30 segundos...',
+    renderErr: 'Erro ao renderizar semana',
+    csvNoValid: 'Nenhuma venda valida no CSV. Confira as colunas data e valor.',
+    csvNoLib: 'Biblioteca de leitura de CSV nao carregou. Recarregue a pagina.',
+    csvNoRows: 'CSV sem linhas validas. A coluna "data" e obrigatoria.',
+    csvReadErr: 'Erro ao ler o CSV: ',
+    cfgMonth: 'Mês', cfgYear: 'Ano', cfgMonthlyGoal: 'Meta Mensal (R$)',
+    cfgRemove: 'Remover', cfgTotal: 'Total: ', cfgPlaceholder: '1.500.000',
+    errSum: 'Erro: {m} — percentuais somam {p}% (deve ser 100%)',
+    errGoal: 'Erro: {m} tem meta inválida',
+    errSave: 'Erro ao salvar a configuração no navegador',
+    savedOk: 'Metas salvas'
+  }
+};
+
+function LANG() { try { return (localStorage.getItem('lang') || 'en') === 'pt' ? 'pt' : 'en'; } catch (e) { return 'en'; } }
+function t(k) { const d = I18N[LANG()]; return (d && d[k] != null) ? d[k] : (I18N.en[k] != null ? I18N.en[k] : k); }
+const NLOC = () => LANG() === 'pt' ? 'pt-BR' : 'en-US';
+function monthsArr() { return I18N[LANG()].months; }
+function monthName(m) { return monthsArr()[m] || ''; }
+function weekName(id) { return I18N[LANG()].weeks[id] || id; }
+function weekIdLabel(id) { return I18N[LANG()].weekIds[id] || id; }
+// expostos para o bloco de configuracao do DATAKIT ("DK — 08") no fim do arquivo
+window.t = t; window.LANG = LANG; window.monthName = monthName; window.monthsArr = monthsArr;
+window.weekName = weekName; window.weekIdLabel = weekIdLabel;
+
+// ============================================================================
 // UTILIDADES
 // ============================================================================
 
 const formatCurrency = (num) => {
   if (num === null || num === undefined) return '—';
-  return 'R$ ' + Math.round(num).toLocaleString('pt-BR');
+  return 'R$ ' + Math.round(num).toLocaleString(NLOC());
 };
 
 const formatCurrencyShort = (num) => {
   if (num === null || num === undefined) return '—';
-  if (num >= 1000000) return 'R$ ' + (num / 1000000).toFixed(1).replace('.', ',') + 'M';
+  if (num >= 1000000) {
+    let m = (num / 1000000).toFixed(1);
+    if (LANG() === 'pt') m = m.replace('.', ',');
+    return 'R$ ' + m + 'M';
+  }
   if (num >= 1000) return 'R$ ' + Math.round(num / 1000) + 'k';
-  return 'R$ ' + Math.round(num).toLocaleString('pt-BR');
+  return 'R$ ' + Math.round(num).toLocaleString(NLOC());
 };
 
 // ============================================================================
@@ -376,7 +469,7 @@ function scaleToFit() {
   if (!container) return;
   const bar = document.querySelector('.dk-bar');
   const barH = (bar && !bar.classList.contains('dk-hidden')) ? (bar.offsetHeight || 0) : 0;
-  const s = Math.min(window.innerWidth / 1920, Math.max(50, window.innerHeight - barH) / 1080);
+  const s = Math.min(Math.max(120, window.innerWidth) / 1920, Math.max(120, window.innerHeight - barH) / 1080);
   container.style.top = barH + 'px';
   container.style.transform = 'scale(' + s + ')';
 }
@@ -441,9 +534,9 @@ function onDataLoaded(data) {
 }
 
 function onDataError(error) {
-  console.error('Erro ao carregar dados:', error);
+  console.error('Error loading data:', error);
   document.getElementById('loading').classList.add('hidden');
-  showError('Erro ao carregar dados. Tentando novamente em 30 segundos...');
+  showError(t('loadErr'));
   setTimeout(() => loadData(), 30000);
 }
 
@@ -467,8 +560,8 @@ function showError(message) {
 function updateHeader(data) {
   document.getElementById('mes-atual').textContent = data.mesAtual.nome;
   const metaEl = document.getElementById('meta-mensal');
-  metaEl.textContent = 'Meta: ' + formatCurrencyShort(data.mesAtual.metaMensal);
-  metaEl.title = 'Meta: ' + formatCurrency(data.mesAtual.metaMensal);
+  metaEl.textContent = t('metaPrefix') + formatCurrencyShort(data.mesAtual.metaMensal);
+  metaEl.title = t('metaPrefix') + formatCurrency(data.mesAtual.metaMensal);
 }
 
 function updateProgressBar(mesAtual) {
@@ -482,7 +575,8 @@ function updateProgressBar(mesAtual) {
   // percentual real, sem clamp no texto (104% aparece como 104%)
   const pct = mesAtual.percentual;
   const pctEl = document.getElementById('percentual-total');
-  pctEl.textContent = pct.toFixed(1).replace('.', ',');
+  const pctText = pct.toFixed(1);
+  pctEl.textContent = LANG() === 'pt' ? pctText.replace('.', ',') : pctText;
   pctEl.classList.toggle('done', pct >= 100);
 
   // faltante / excedente com semaforo (icone + rotulo, nunca so cor;
@@ -492,11 +586,11 @@ function updateProgressBar(mesAtual) {
   const faltLabel = document.getElementById('faltante-label');
   faltEl.classList.remove('ok', 'warn');
   if (faltante > 0) {
-    faltLabel.textContent = 'Faltante';
+    faltLabel.textContent = t('remaining');
     faltEl.textContent = formatCurrencyShort(faltante);
     faltEl.title = formatCurrency(faltante);
   } else {
-    faltLabel.textContent = 'Excedente';
+    faltLabel.textContent = t('surplus');
     faltEl.textContent = '✓ ' + formatCurrencyShort(Math.abs(faltante));
     faltEl.title = formatCurrency(Math.abs(faltante));
     faltEl.classList.add('ok');
@@ -518,8 +612,8 @@ function updateProgressBar(mesAtual) {
     const pacePos = Math.min(100, (pace / mesAtual.metaMensal) * 100);
     paceMarker.style.display = '';
     paceMarker.style.left = pacePos + '%';
-    paceLabel.textContent = 'pace: ' + formatCurrencyShort(pace);
-    paceMarker.title = 'Meta acumulada esperada ate hoje: ' + formatCurrency(pace);
+    paceLabel.textContent = t('paceLabel') + formatCurrencyShort(pace);
+    paceMarker.title = t('paceTitle') + formatCurrency(pace);
   } else {
     paceMarker.style.display = 'none';
   }
@@ -528,14 +622,14 @@ function updateProgressBar(mesAtual) {
   const paceStatus = document.getElementById('pace-status');
   paceStatus.classList.remove('ok', 'warn');
   if (pct >= 100) {
-    paceStatus.textContent = '✓ meta batida';
+    paceStatus.textContent = t('paceHit');
     paceStatus.classList.add('ok');
   } else if (noPace) {
     paceStatus.textContent = '';
   } else if (onPace) {
-    paceStatus.textContent = '→ no ritmo';
+    paceStatus.textContent = t('paceOn');
   } else {
-    paceStatus.textContent = '! abaixo do ritmo';
+    paceStatus.textContent = t('paceBehind');
     paceStatus.classList.add('warn');
   }
 
@@ -550,7 +644,7 @@ function updateProgressBar(mesAtual) {
     const marker = document.createElement('div');
     marker.className = 'progress-marker';
     marker.style.left = acum + '%';
-    marker.setAttribute('data-label', semanas[i].id);
+    marker.setAttribute('data-label', weekIdLabel(semanas[i].id));
     barBg.insertBefore(marker, progressBar);
   }
 }
@@ -568,7 +662,7 @@ function createWeekCard(semana) {
     card.className = 'week-card ' + semana.status;
     // status sempre com icone + rotulo textual (nunca so cor)
     const statusIcons = { batida: '✓', em_andamento: '→', passada: '○', futura: '·' };
-    const statusLabels = { batida: 'Meta batida', em_andamento: 'Em andamento', passada: 'Encerrada', futura: 'A iniciar' };
+    const statusLabels = { batida: t('stGoalHit'), em_andamento: t('stInProgress'), passada: t('stClosed'), futura: t('stUpcoming') };
     // mini-barra: batida --ok, em andamento accent, encerrada sem meta ink-3, futura ink-4
     const progressClass = semana.status === 'futura' ? 'future'
       : semana.status === 'batida' ? 'good'
@@ -579,12 +673,12 @@ function createWeekCard(semana) {
     if (semana.status === 'em_andamento' && semana.diasRestantes > 0) {
       if (semana.faltante > 0) {
         faltanteText = formatCurrencyShort(semana.faltante);
-        mediaDiariaText = `${formatCurrencyShort(semana.mediaDiaria)}/dia`;
+        mediaDiariaText = `${formatCurrencyShort(semana.mediaDiaria)}${t('perDay')}`;
       } else {
-        faltanteText = '✓ Meta batida'; faltanteClass = ' ok';
+        faltanteText = t('wkGoalHit'); faltanteClass = ' ok';
       }
     } else if (semana.status === 'batida') {
-      faltanteText = '✓ Concluída'; faltanteClass = ' ok';
+      faltanteText = t('wkDone'); faltanteClass = ' ok';
     } else if (semana.status === 'passada') {
       faltanteText = formatCurrencyShort(semana.faltante); faltanteClass = ' warn';
     }
@@ -610,31 +704,31 @@ function createWeekCard(semana) {
       </div>
       <div class="week-values">
         <div class="week-row">
-          <span class="week-label">Meta (${semana.pct}%)${semana.metaAjustada ? ' *' : ''}</span>
+          <span class="week-label">${t('lblGoal')} (${semana.pct}%)${semana.metaAjustada ? ' *' : ''}</span>
           <span class="week-value meta" title="${formatCurrency(semana.meta)}">${formatCurrencyShort(semana.meta)}</span>
         </div>
         ${semana.metaAjustada ? `
         <div class="week-row">
-          <span class="week-label">Meta original</span>
+          <span class="week-label">${t('lblOrigGoal')}</span>
           <span class="week-value sub" title="${formatCurrency(semana.metaOriginal)}">${formatCurrencyShort(semana.metaOriginal)}</span>
         </div>` : ''}
         <div class="week-row">
-          <span class="week-label">Realizado</span>
+          <span class="week-label">${t('lblActual')}</span>
           <span class="week-value realizado" title="${semana.status === 'futura' ? '' : formatCurrency(semana.realizado)}">${semana.status === 'futura' ? '—' : formatCurrencyShort(semana.realizado)}</span>
         </div>
         <div class="week-row">
-          <span class="week-label">${semana.status === 'em_andamento' && semana.diasRestantes > 0 ? 'Falta' : 'Status'}</span>
+          <span class="week-label">${semana.status === 'em_andamento' && semana.diasRestantes > 0 ? t('lblToGo') : t('lblStatus')}</span>
           <span class="week-value${faltanteClass}">${faltanteText}</span>
         </div>
         ${mediaDiariaText ? `
         <div class="week-row">
-          <span class="week-label">Média necessária (${semana.diasRestantes}d)</span>
+          <span class="week-label">${t('lblNeededAvg')} (${semana.diasRestantes}d)</span>
           <span class="week-value">${mediaDiariaText}</span>
         </div>` : ''}
       </div>
       ${vendasVisiveis.length > 0 ? `
       <div class="week-sales">
-        <div class="week-sales-title">Vendas Recentes</div>
+        <div class="week-sales-title">${t('recentSales')}</div>
         <div class="week-sales-list">
         ${vendasVisiveis.map(v => `
           <div class="week-sale-item">
@@ -642,17 +736,17 @@ function createWeekCard(semana) {
             <span class="week-sale-value" title="${formatCurrency(v.valor)}">${formatCurrencyShort(v.valor)}</span>
           </div>`).join('')}
         </div>
-        ${vendasCortadas > 0 ? `<div class="week-sales-more">+${vendasCortadas} venda${vendasCortadas > 1 ? 's' : ''}</div>` : ''}
+        ${vendasCortadas > 0 ? `<div class="week-sales-more">+${vendasCortadas} ${vendasCortadas > 1 ? t('sales') : t('sale')}</div>` : ''}
       </div>` : (semana.status !== 'futura' ? `
       <div class="week-sales">
-        <div class="week-sales-empty">Nenhuma venda registrada</div>
+        <div class="week-sales-empty">${t('noSales')}</div>
       </div>` : '')}
     `;
     return card;
   } catch(e) {
-    console.error('Erro ao criar card:', e);
+    console.error('Error creating week card:', e);
     const div = document.createElement('div');
-    div.textContent = 'Erro ao renderizar semana';
+    div.textContent = t('renderErr');
     return div;
   }
 }
@@ -662,16 +756,16 @@ function updateTimeline(mesAtual) {
   const countEl = document.getElementById('timeline-count');
   const todasVendas = (mesAtual && mesAtual.todasVendas) || [];
   if (!todasVendas.length) {
-    container.innerHTML = '<div class="no-data"><div class="no-data-text">Nenhuma venda registrada ainda</div></div>';
-    countEl.textContent = '0 vendas';
+    container.innerHTML = '<div class="no-data"><div class="no-data-text">' + t('noSalesYet') + '</div></div>';
+    countEl.textContent = '0 ' + t('sales');
     return;
   }
-  countEl.textContent = `${todasVendas.length} venda${todasVendas.length > 1 ? 's' : ''}`;
+  countEl.textContent = `${todasVendas.length} ${todasVendas.length > 1 ? t('sales') : t('sale')}`;
 
   // mes de REFERENCIA vem dos dados (mes da venda mais recente do CSV,
   // determinado pelo build() do pipeline), nunca de new Date()
   const ultimoDia = mesAtual.ultimoDia || 31;
-  const mesNum = mesAtual.mesNum || Math.max(1, MESES_NOMES.indexOf(String(mesAtual.nome || '').split(' ')[0]));
+  const mesNum = mesAtual.mesNum || Math.max(1, monthsArr().indexOf(String(mesAtual.nome || '').split(' ')[0]));
   const pad2 = (n) => String(n).padStart(2, '0');
 
   const vendasPorDia = {};
@@ -706,7 +800,7 @@ function updateTimeline(mesAtual) {
     bar.className = 'timeline-bar';
     bar.style.left = posicao + '%';
     bar.style.height = 'max(4px, ' + hPct.toFixed(1) + '%)';
-    bar.title = pad2(d.dia) + '/' + pad2(mesNum) + ' · ' + formatCurrency(d.total) + ' · ' + d.count + ' venda' + (d.count > 1 ? 's' : '');
+    bar.title = pad2(d.dia) + '/' + pad2(mesNum) + ' · ' + formatCurrency(d.total) + ' · ' + d.count + ' ' + (d.count > 1 ? t('sales') : t('sale'));
     if (top5.has(d.dia)) {
       const row = (d.dia - lastLabeledDia < 3) ? (1 - lastRow) : 0;
       lastLabeledDia = d.dia; lastRow = row;
@@ -744,9 +838,15 @@ document.addEventListener('DOMContentLoaded', function() {
 // CONFIG MODAL — Painel Admin de Metas
 // ============================================================================
 
-const MESES_NOMES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+// nomes de mes vem dos arrays de locale do I18N (monthName/monthsArr)
 let configMetas = [];
+
+// rotulo de exibicao de um mes da configuracao, no idioma ativo
+function metaMonthLabel(meta) {
+  const m = parseInt(meta.MES_NUM);
+  const nome = monthName(m);
+  return nome ? nome + ' ' + meta.ANO : (meta.MES || '');
+}
 
 // A configuracao (meta mensal + 5 pesos por mes) persiste em localStorage e
 // alimenta o calculo de verdade: o build() do pipeline de dados (bloco DATAKIT
@@ -787,7 +887,7 @@ function closeConfigModal() {
 
 function createDefaultMonth(mes, ano) {
   return {
-    MES: MESES_NOMES[mes] + ' ' + ano, ANO: String(ano), MES_NUM: String(mes),
+    MES: monthName(mes) + ' ' + ano, ANO: String(ano), MES_NUM: String(mes),
     META_MENSAL: '1500000', PCT_S1: '18', PCT_S2: '20', PCT_S3: '22', PCT_S4: '25', PCT_SF: '15'
   };
 }
@@ -802,56 +902,56 @@ function renderConfigMonths() {
   body.innerHTML = configMetas.map((meta, i) => `
     <div class="config-month-card" data-index="${i}">
       <div class="config-month-header">
-        <span class="config-month-label">${meta.MES || MESES_NOMES[parseInt(meta.MES_NUM)] + ' ' + meta.ANO}</span>
-        <button class="config-month-delete" onclick="deleteMetaMonth(${i})">Remover</button>
+        <span class="config-month-label">${metaMonthLabel(meta)}</span>
+        <button class="config-month-delete" onclick="deleteMetaMonth(${i})">${t('cfgRemove')}</button>
       </div>
       <div class="config-row">
-        <div class="config-field" style="flex:0 0 100px;"><label>Mês</label>
+        <div class="config-field" style="flex:0 0 100px;"><label>${t('cfgMonth')}</label>
           <select onchange="onMonthFieldChange(${i},'MES_NUM',this.value)">
             ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m =>
-              `<option value="${m}" ${parseInt(meta.MES_NUM)===m?'selected':''}>${MESES_NOMES[m]}</option>`
+              `<option value="${m}" ${parseInt(meta.MES_NUM)===m?'selected':''}>${monthName(m)}</option>`
             ).join('')}
           </select></div>
-        <div class="config-field" style="flex:0 0 80px;"><label>Ano</label>
+        <div class="config-field" style="flex:0 0 80px;"><label>${t('cfgYear')}</label>
           <input type="number" value="${meta.ANO}" min="2025" max="2030"
                  onchange="onMonthFieldChange(${i},'ANO',this.value)"></div>
-        <div class="config-field"><label>Meta Mensal (R$)</label>
+        <div class="config-field"><label>${t('cfgMonthlyGoal')}</label>
           <input type="text" value="${formatMetaInput(meta.META_MENSAL)}"
-                 oninput="onMetaValueChange(${i},this)" placeholder="1.500.000"></div>
+                 oninput="onMetaValueChange(${i},this)" placeholder="${t('cfgPlaceholder')}"></div>
       </div>
       <div class="config-pct-row">
         ${['S1','S2','S3','S4','SF'].map(s => `
-        <div class="config-field"><label>${s} %</label>
+        <div class="config-field"><label>${weekIdLabel(s)} %</label>
           <input type="number" value="${meta['PCT_'+s]}" min="0" max="100" step="1"
                  onchange="onPctChange(${i},'PCT_${s}',this.value)"></div>`).join('')}
       </div>
       <div class="config-pct-total ${getPctTotalClass(meta)}" id="pct-total-${i}">
-        Total: ${getPctTotal(meta)}%
+        ${t('cfgTotal')}${getPctTotal(meta)}%
       </div>
     </div>`).join('');
 }
 
 function formatMetaInput(val) {
   const num = parseInt(String(val).replace(/\D/g, ''));
-  return isNaN(num) ? '' : num.toLocaleString('pt-BR');
+  return isNaN(num) ? '' : num.toLocaleString(NLOC());
 }
 function onMetaValueChange(index, input) {
   const raw = input.value.replace(/\D/g, '');
   configMetas[index].META_MENSAL = raw;
   const num = parseInt(raw);
-  if (!isNaN(num)) { const pos = input.selectionStart, old = input.value.length; input.value = num.toLocaleString('pt-BR'); input.setSelectionRange(pos+(input.value.length-old),pos+(input.value.length-old)); }
+  if (!isNaN(num)) { const pos = input.selectionStart, old = input.value.length; input.value = num.toLocaleString(NLOC()); input.setSelectionRange(pos+(input.value.length-old),pos+(input.value.length-old)); }
 }
 function onMonthFieldChange(index, field, value) {
   configMetas[index][field] = value;
   const mesNum = parseInt(configMetas[index].MES_NUM), ano = configMetas[index].ANO;
-  configMetas[index].MES = MESES_NOMES[mesNum] + ' ' + ano;
+  configMetas[index].MES = monthName(mesNum) + ' ' + ano;
   const card = document.querySelector(`[data-index="${index}"] .config-month-label`);
-  if (card) card.textContent = configMetas[index].MES;
+  if (card) card.textContent = metaMonthLabel(configMetas[index]);
 }
 function onPctChange(index, field, value) {
   configMetas[index][field] = value;
   const el = document.getElementById('pct-total-' + index);
-  if (el) { el.textContent = 'Total: ' + getPctTotal(configMetas[index]) + '%'; el.className = 'config-pct-total ' + getPctTotalClass(configMetas[index]); }
+  if (el) { el.textContent = t('cfgTotal') + getPctTotal(configMetas[index]) + '%'; el.className = 'config-pct-total ' + getPctTotalClass(configMetas[index]); }
 }
 function getPctTotal(meta) {
   return ['S1','S2','S3','S4','SF'].reduce((s, k) => s + (parseInt(meta['PCT_'+k])||0), 0);
@@ -877,8 +977,8 @@ function deleteMetaMonth(index) {
 function saveMetasConfig() {
   for (let i = 0; i < configMetas.length; i++) {
     const meta = configMetas[i];
-    if (getPctTotal(meta) !== 100) { showToast('Erro: ' + meta.MES + ' — percentuais somam ' + getPctTotal(meta) + '% (deve ser 100%)', true); return; }
-    if (!meta.META_MENSAL || parseInt(meta.META_MENSAL) <= 0) { showToast('Erro: ' + meta.MES + ' tem meta inválida', true); return; }
+    if (getPctTotal(meta) !== 100) { showToast(t('errSum').replace('{m}', metaMonthLabel(meta)).replace('{p}', getPctTotal(meta)), true); return; }
+    if (!meta.META_MENSAL || parseInt(meta.META_MENSAL) <= 0) { showToast(t('errGoal').replace('{m}', metaMonthLabel(meta)), true); return; }
   }
 
   // Persiste em localStorage e dispara o reprocessamento: loadData() (versao
@@ -886,10 +986,10 @@ function saveMetasConfig() {
   try {
     localStorage.setItem(CONFIG_KEY, JSON.stringify(configMetas));
   } catch (e) {
-    showToast('Erro ao salvar a configuração no navegador', true);
+    showToast(t('errSave'), true);
     return;
   }
-  showToast('Metas salvas');
+  showToast(t('savedOk'));
   closeConfigModal();
   loadData();
 }
@@ -909,6 +1009,64 @@ function showToast(msg, isError) {
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
+
+// ============================================================================
+// SELETOR DE IDIOMA (EN default estatico; PT via dicionario)
+// Mesmo mecanismo do index.html: EN capturado do HTML, PT no dict abaixo.
+// ============================================================================
+
+(function () {
+  const PT_STATIC = {
+    loading: 'Carregando dados...',
+    logo: '<b>&gt;_</b> GRADIENTE DE METAS',
+    stDilute: 'Ideia Diluir', stCascade: 'Ideia Seguinte',
+    progTitle: 'PROGRESSO DO MÊS',
+    statGoal: 'Meta', statActual: 'Realizado', statRemaining: 'Faltante',
+    tlTitle: 'TIMELINE DE VENDAS DO MÊS', tlZero: '0 vendas',
+    cfgTitle: 'Configurar Metas', cfgAdd: '+ Adicionar Mês',
+    cfgCancel: 'Cancelar', cfgSave: 'Salvar'
+  };
+  const META = {
+    en: { title: 'Goal Gradient | Felippe Yann' },
+    pt: { title: 'Gradiente de Metas | Felippe Yann' }
+  };
+  const EN_STATIC = {}; const ATTRS = ['title', 'aria'];
+  document.querySelectorAll('[data-i18n]').forEach(el => { EN_STATIC[el.getAttribute('data-i18n')] = el.innerHTML; });
+  ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(el => {
+    const real = a === 'aria' ? 'aria-label' : a;
+    el.setAttribute('data-en-' + a, el.getAttribute(real) || '');
+  }));
+
+  window.applyLang = function (lang) {
+    lang = lang === 'pt' ? 'pt' : 'en';
+    try { localStorage.setItem('lang', lang); } catch (e) {}
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const v = (lang === 'pt' ? PT_STATIC : EN_STATIC)[el.getAttribute('data-i18n')];
+      if (v != null) el.innerHTML = v;
+    });
+    ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(el => {
+      const real = a === 'aria' ? 'aria-label' : a;
+      el.setAttribute(real, el.getAttribute('data-' + (lang === 'pt' ? 'pt' : 'en') + '-' + a));
+    }));
+    document.documentElement.setAttribute('lang', lang === 'pt' ? 'pt-BR' : 'en');
+    document.title = META[lang].title;
+    document.querySelectorAll('[data-lang-btn]').forEach(b => {
+      const on = b.getAttribute('data-lang-btn') === lang;
+      b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
+    });
+    // barra DATAKIT: recria com os rotulos do idioma ativo; depois religa o
+    // auto-hide (o relabel troca o elemento .dk-bar) e recalcula a escala
+    if (window.DK && typeof window.DK.relabel === 'function') { try { window.DK.relabel(); } catch (e) {} }
+    if (typeof window.__dk08AutoHideRearm === 'function') { try { window.__dk08AutoHideRearm(); } catch (e) {} }
+    if (typeof window.__onbCtaRebuild === 'function') { try { window.__onbCtaRebuild(); } catch (e) {} }
+    // re-renderiza o painel inteiro no idioma ativo
+    if (typeof window.loadData === 'function') { try { window.loadData(); } catch (e) {} }
+  };
+
+  document.querySelectorAll('[data-lang-btn]').forEach(b =>
+    b.addEventListener('click', () => window.applyLang(b.getAttribute('data-lang-btn'))));
+  window.applyLang(LANG());
+})();
 </script>
 
 
@@ -959,6 +1117,48 @@ function showToast(msg, isError) {
   var CFG = null;
   var els = {};
   var mode = 'empty'; // 'empty' | 'demo' | 'user'
+  var lastUserFile = null;
+
+  /* ---------- idioma (ingles default; 'pt' via localStorage 'lang') ---------- */
+  function dkLang() { var l = 'en'; try { l = localStorage.getItem('lang') || 'en'; } catch (e) {} return l === 'pt' ? 'pt' : 'en'; }
+  var DK_STR = {
+    en: {
+      kicker: '[ <b>data</b> ]',
+      fill: 'Auto-fill with sample data',
+      upload: 'Upload CSV', uploads: 'Upload CSVs',
+      help: 'How to build the CSV',
+      panelTitle: 'How to use your data',
+      panelIntro: 'This dashboard is fed by a CSV exported from your CRM or source spreadsheet. Parsing happens 100% in the browser: no file ever leaves your machine. Download the template below, replace the sample rows with your data and upload it back. Columns marked with <span class="dk-req">*</span> are required; the rest can be empty.',
+      thCol: 'column', thType: 'type', thWhat: 'what it is', thEx: 'example',
+      tplBtn: 'Download CSV template', upThis: 'Upload this file',
+      panelFoot: 'Just browsing? The <b style="color:#f8f7f3">Auto-fill</b> button generates a synthetic dataset that follows this exact contract and renders every chart instantly.',
+      stDemo: '<b>sample data</b>', stUser: '<b>your data</b>',
+      stNone: 'no data loaded', stFail: 'failed to generate sample data',
+      badge: '<b>sample data</b> &middot; upload your CSV to use yours'
+    },
+    pt: {
+      kicker: '[ <b>dados</b> ]',
+      fill: 'Preencher automaticamente',
+      upload: 'Enviar CSV', uploads: 'Enviar CSVs',
+      help: 'Como montar o CSV',
+      panelTitle: 'Como usar seus dados',
+      panelIntro: 'Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.',
+      thCol: 'coluna', thType: 'tipo', thWhat: 'o que e', thEx: 'exemplo',
+      tplBtn: 'Baixar template CSV', upThis: 'Enviar este arquivo',
+      panelFoot: 'Prefere so olhar? O botao <b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que respeita exatamente esse contrato e renderiza todos os graficos na hora.',
+      stDemo: '<b>dados de exemplo</b>', stUser: '<b>seus dados</b>',
+      stNone: 'sem dados carregados', stFail: 'falha ao gerar dados de exemplo',
+      badge: '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus'
+    }
+  };
+  function S(k) { var d = DK_STR[dkLang()]; return (d && d[k]) || DK_STR.en[k] || k; }
+  function pickCfg(base, enVal) { return dkLang() === 'pt' ? base : (enVal || base); }
+  function summaryText() {
+    try {
+      if (dkLang() === 'en' && CFG && CFG.summary_en) return CFG.summary_en();
+      return CFG && CFG.summary ? CFG.summary() : '';
+    } catch (e) { return ''; }
+  }
 
   /* ---------- utilitarios ---------- */
 
@@ -1090,35 +1290,30 @@ function showToast(msg, isError) {
 
   function panelHTML() {
     var out = '<div class="dk-pin">';
-    out += '<h2 class="dk-h">Como usar seus dados</h2>';
-    out += '<p class="dk-p">Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. '
-        + 'O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. '
-        + 'Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. '
-        + 'Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.</p>';
+    out += '<h2 class="dk-h">' + S('panelTitle') + '</h2>';
+    out += '<p class="dk-p">' + S('panelIntro') + '</p>';
 
     CFG.files.forEach(function (f, i) {
       var s = sampleOf(f)[0] || {};
       out += '<div class="dk-file">';
       out += '<div class="dk-fh"><span class="dk-fn">' + esc(f.name) + '</span><span class="dk-fa">';
-      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">Baixar template CSV</button>';
-      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">Enviar este arquivo</button>';
+      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">' + S('tplBtn') + '</button>';
+      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">' + S('upThis') + '</button>';
       out += '</span></div>';
-      out += '<p class="dk-fd">' + esc(f.desc) + '</p>';
+      out += '<p class="dk-fd">' + esc(pickCfg(f.desc, f.desc_en)) + '</p>';
       out += '<div class="dk-scroll"><table class="dk-t"><thead><tr>'
-          + '<th>coluna</th><th>tipo</th><th>o que e</th><th>exemplo</th>'
+          + '<th>' + S('thCol') + '</th><th>' + S('thType') + '</th><th>' + S('thWhat') + '</th><th>' + S('thEx') + '</th>'
           + '</tr></thead><tbody>';
       f.cols.forEach(function (c) {
         out += '<tr><td class="c">' + esc(c.n) + (c.req ? '<span class="dk-req">*</span>' : '') + '</td>'
-            + '<td class="t">' + esc(c.t) + '</td>'
-            + '<td>' + esc(c.d) + '</td>'
+            + '<td class="t">' + esc(pickCfg(c.t, c.t_en)) + '</td>'
+            + '<td>' + esc(pickCfg(c.d, c.d_en)) + '</td>'
             + '<td class="x">' + esc(s[c.n]) + '</td></tr>';
       });
       out += '</tbody></table></div></div>';
     });
 
-    out += '<p class="dk-p" style="margin:2px 0 0">Prefere so olhar? O botao '
-        + '<b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que '
-        + 'respeita exatamente esse contrato e renderiza todos os graficos na hora.</p>';
+    out += '<p class="dk-p" style="margin:2px 0 0">' + S('panelFoot') + '</p>';
     out += '</div>';
     return out;
   }
@@ -1130,14 +1325,14 @@ function showToast(msg, isError) {
     bar.setAttribute('aria-label', 'Dados do dashboard');
 
     var many = CFG.files.filter(function (f) { return !!f.input; }).length > 1;
-    var upLabel = many ? 'Enviar CSVs' : 'Enviar CSV';
+    var upLabel = many ? S('uploads') : S('upload');
     var hasInput = CFG.files.some(function (f) { return !!f.input; });
 
     var inner = '<div class="dk-in">'
-      + '<span class="dk-k">[ <b>dados</b> ]</span>'
-      + '<button type="button" class="dk-btn p" data-dk="fill">Preencher automaticamente</button>'
+      + '<span class="dk-k">' + S('kicker') + '</span>'
+      + '<button type="button" class="dk-btn p" data-dk="fill">' + S('fill') + '</button>'
       + (hasInput ? '<button type="button" class="dk-btn" data-dk="upload">' + upLabel + '</button>' : '')
-      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">Como montar o CSV &#9656;</button>'
+      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">' + S('help') + ' &#9656;</button>'
       + '<span class="dk-sep"></span>'
       + '<span class="dk-st" data-dk="status"></span>'
       + '</div>'
@@ -1168,7 +1363,7 @@ function showToast(msg, isError) {
 
     var badge = document.createElement('div');
     badge.className = 'dk-badge';
-    badge.innerHTML = '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus';
+    badge.innerHTML = S('badge');
     els.badge = badge;
 
     document.body.insertBefore(bar, document.body.firstChild);
@@ -1227,7 +1422,7 @@ function showToast(msg, isError) {
     var open = (force === undefined) ? !els.panel.classList.contains('open') : !!force;
     els.panel.classList.toggle('open', open);
     els.help.setAttribute('aria-expanded', String(open));
-    els.help.innerHTML = 'Como montar o CSV ' + (open ? '&#9662;' : '&#9656;');
+    els.help.innerHTML = S('help') + ' ' + (open ? '&#9662;' : '&#9656;');
     reflow();
     if (typeof CFG.onResize === 'function') CFG.onResize();
   }
@@ -1269,7 +1464,7 @@ function showToast(msg, isError) {
           // espera o dashboard terminar de montar antes do primeiro preenchimento
           waitReady(0);
         } else {
-          setStatus('sem dados carregados');
+          setStatus(S('stNone'));
         }
       };
       if (document.readyState === 'loading') {
@@ -1282,18 +1477,32 @@ function showToast(msg, isError) {
         CFG.fill();
         mode = 'demo';
         if (els.badge) els.badge.style.display = '';
-        setStatus('<b>dados de exemplo</b> &middot; ' + (CFG.summary ? CFG.summary() : 'base sintetica'));
+        setStatus(S('stDemo') + ' &middot; ' + summaryText());
       } catch (e) {
         console.error('[DK] falha ao preencher:', e);
-        setStatus('falha ao gerar dados de exemplo');
+        setStatus(S('stFail'));
       }
     },
 
     markUserData: function (name) {
       mode = 'user';
+      lastUserFile = name || null;
       if (els.badge) els.badge.style.display = 'none';
-      setStatus('<b>seus dados</b> &middot; ' + esc(name || 'CSV enviado'));
+      setStatus(S('stUser') + ' &middot; ' + esc(name || 'CSV'));
       toggleHelp(false);
+    },
+
+    relabel: function () {
+      if (!els.bar) return;
+      var open = els.panel && els.panel.classList.contains('open');
+      if (els.bar.parentNode) els.bar.parentNode.removeChild(els.bar);
+      if (els.badge && els.badge.parentNode) els.badge.parentNode.removeChild(els.badge);
+      lastH = -1;
+      build();
+      if (open) toggleHelp(true);
+      if (mode === 'demo') { if (els.badge) els.badge.style.display = ''; setStatus(S('stDemo') + ' &middot; ' + summaryText()); }
+      else if (mode === 'user') { if (els.badge) els.badge.style.display = 'none'; setStatus(S('stUser') + ' &middot; ' + esc(lastUserFile || 'CSV')); }
+      else setStatus(S('stNone'));
     },
 
     mode: function () { return mode; }
@@ -1318,15 +1527,15 @@ function showToast(msg, isError) {
 (function () {
   var CLOSERS = ['Fernanda Costa', 'Gabriel Nunes', 'Helena Dias', 'Igor Aguiar', 'Juliana Melo'];
   var META_PADRAO = 1500000;
+  // chaves internas S1..SF ficam; nomes/rotulos de exibicao vem do I18N do
+  // dashboard (window.weekName / window.weekIdLabel / window.monthName)
   var PCT = [
-    { id: 'S1', nome: 'Semana 1', ini: 1, fim: 7, pct: 18 },
-    { id: 'S2', nome: 'Semana 2', ini: 8, fim: 14, pct: 20 },
-    { id: 'S3', nome: 'Semana 3', ini: 15, fim: 21, pct: 22 },
-    { id: 'S4', nome: 'Semana 4', ini: 22, fim: 28, pct: 25 },
-    { id: 'SF', nome: 'Sprint Final', ini: 29, fim: 31, pct: 15 }
+    { id: 'S1', ini: 1, fim: 7, pct: 18 },
+    { id: 'S2', ini: 8, fim: 14, pct: 20 },
+    { id: 'S3', ini: 15, fim: 21, pct: 22 },
+    { id: 'S4', ini: 22, fim: 28, pct: 25 },
+    { id: 'SF', ini: 29, fim: 31, pct: 15 }
   ];
-  var MESES = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-               'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
   // Configuracao salva pelo modal de metas (meta mensal + pesos S1..SF).
   // Prioridade: entrada do mes de referencia; com um unico mes salvo, ele vale
@@ -1415,9 +1624,9 @@ function showToast(msg, isError) {
       var valor = parseValor(r.valor != null ? r.valor : r.value);
       if (!metaMensal) metaMensal = parseValor(r.meta_mensal);
       if (!d || valor <= 0) return;
-      vendas.push({ d: d, valor: valor, closer: String(r.closer || 'Sem closer').trim() || 'Sem closer' });
+      vendas.push({ d: d, valor: valor, closer: String(r.closer || window.t('noCloser')).trim() || window.t('noCloser') });
     });
-    if (!vendas.length) return { error: 'Nenhuma venda valida no CSV. Confira as colunas data e valor.' };
+    if (!vendas.length) return { error: window.t('csvNoValid') };
     if (!metaMensal) metaMensal = META_PADRAO;
 
     // mes de referencia: o da venda mais recente
@@ -1438,7 +1647,7 @@ function showToast(msg, isError) {
 
     var faixas = PCT.map(function (f) {
       return {
-        id: f.id, nome: f.nome, ini: f.ini,
+        id: f.id, ini: f.ini,
         fim: Math.min(f.fim === 31 ? ultimoDia : f.fim, ultimoDia),
         pct: (pesos && pesos[f.id] != null) ? pesos[f.id] : f.pct
       };
@@ -1478,8 +1687,8 @@ function showToast(msg, isError) {
       var status = f.status;
       if (status === 'passada' && f.realizado >= f.meta) status = 'batida';
       return {
-        id: f.id, nome: f.nome,
-        periodo: pad(f.ini) + '/' + pad(mes + 1) + (f.ini === f.fim ? '' : ' a ' + pad(f.fim) + '/' + pad(mes + 1)),
+        id: f.id, nome: window.weekName(f.id),
+        periodo: pad(f.ini) + '/' + pad(mes + 1) + (f.ini === f.fim ? '' : window.t('periodTo') + pad(f.fim) + '/' + pad(mes + 1)),
         pct: String(f.pct),
         meta: f.meta, metaOriginal: f.metaOriginal,
         metaAjustada: Math.round(f.meta) !== Math.round(f.metaOriginal),
@@ -1507,7 +1716,7 @@ function showToast(msg, isError) {
     var agora = new Date();
     return {
       mesAtual: {
-        nome: MESES[mes + 1] + ' ' + ano,
+        nome: window.monthName(mes + 1) + ' ' + ano,
         metaMensal: metaMensal,
         totalRealizado: totalRealizado,
         percentual: (totalRealizado / metaMensal) * 100,
@@ -1550,17 +1759,17 @@ function showToast(msg, isError) {
   };
 
   function readCSV(file) {
-    if (typeof Papa === 'undefined') { alert('Biblioteca de leitura de CSV nao carregou. Recarregue a pagina.'); return; }
+    if (typeof Papa === 'undefined') { alert(window.t('csvNoLib')); return; }
     Papa.parse(file, {
       header: true, skipEmptyLines: true, encoding: 'UTF-8',
       transformHeader: function (h) { return String(h).trim().toLowerCase(); },
       complete: function (res) {
         var rows = (res.data || []).filter(function (r) { return r && (r.data || r.date); });
-        if (!rows.length) { alert('CSV sem linhas validas. A coluna "data" e obrigatoria.'); return; }
+        if (!rows.length) { alert(window.t('csvNoRows')); return; }
         STATE.rows = rows; STATE.source = 'csv';
         render();
       },
-      error: function (err) { alert('Erro ao ler o CSV: ' + err.message); }
+      error: function (err) { alert(window.t('csvReadErr') + err.message); }
     });
   }
 
@@ -1573,11 +1782,15 @@ function showToast(msg, isError) {
           + '(S1 dias 1-7, S2 8-14, S3 15-21, S4 22-28, Sprint Final 29 ao fim do mes), '
           + 'compara com a meta de cada semana e redistribui o deficit das semanas encerradas '
           + 'segundo a estrategia escolhida no cabecalho.',
+      desc_en: 'Won sales for the month. One row per sale. The dashboard groups them by week '
+          + '(W1 days 1-7, W2 8-14, W3 15-21, W4 22-28, Final Sprint from the 29th to month end), '
+          + 'compares each week against its goal and redistributes the deficit of closed weeks '
+          + 'according to the strategy chosen in the header.',
       cols: [
-        { n: 'data', t: 'data AAAA-MM-DD', d: 'Dia da venda. Tambem aceita DD/MM/AAAA. O mes de referencia e o da venda mais recente.', req: 1 },
-        { n: 'valor', t: 'numero', d: 'Valor da venda em reais. Aceita 45000 ou 45.000,00.', req: 1 },
-        { n: 'closer', t: 'texto', d: 'Quem fechou. Aparece na lista de vendas de cada semana.' },
-        { n: 'meta_mensal', t: 'numero', d: 'Meta do mes. Basta preencher na primeira linha. Vazio assume R$ 1.500.000.' }
+        { n: 'data', t: 'data AAAA-MM-DD', t_en: 'date YYYY-MM-DD', d: 'Dia da venda. Tambem aceita DD/MM/AAAA. O mes de referencia e o da venda mais recente.', d_en: 'Day of the sale. Also accepts DD/MM/YYYY. The reference month is the month of the most recent sale.', req: 1 },
+        { n: 'valor', t: 'numero', t_en: 'number', d: 'Valor da venda em reais. Aceita 45000 ou 45.000,00.', d_en: 'Sale amount in BRL. Accepts 45000 or 45.000,00.', req: 1 },
+        { n: 'closer', t: 'texto', t_en: 'text', d: 'Quem fechou. Aparece na lista de vendas de cada semana.', d_en: 'Who closed the deal. Shown in each week\'s sales list.' },
+        { n: 'meta_mensal', t: 'numero', t_en: 'number', d: 'Meta do mes. Basta preencher na primeira linha. Vazio assume R$ 1.500.000.', d_en: 'Monthly goal in BRL. Fill it in on the first row only. Empty defaults to R$ 1,500,000.' }
       ],
       sample: function () { return GEN(); }
     }],
@@ -1587,15 +1800,21 @@ function showToast(msg, isError) {
       render();
     },
     onMount: function (bar) {
-      // input real de upload (o dashboard nao tinha um) + reserva de espaco para a barra
-      var input = document.createElement('input');
-      input.type = 'file'; input.accept = '.csv'; input.id = 'dkCsvFile';
-      input.style.display = 'none';
-      input.addEventListener('change', function (e) {
-        var f = e.target.files && e.target.files[0];
-        if (f) readCSV(f);
-      });
-      document.body.appendChild(input);
+      // ATENCAO: onMount roda de novo a cada DK.relabel() (troca de idioma),
+      // que RECRIA o elemento .dk-bar. Tudo aqui e idempotente e a escala
+      // consulta a barra ATUAL na hora do uso, nunca uma referencia guardada.
+
+      // input real de upload (o dashboard nao tinha um): criado uma unica vez
+      if (!document.getElementById('dkCsvFile')) {
+        var input = document.createElement('input');
+        input.type = 'file'; input.accept = '.csv'; input.id = 'dkCsvFile';
+        input.style.display = 'none';
+        input.addEventListener('change', function (e) {
+          var f = e.target.files && e.target.files[0];
+          if (f) readCSV(f);
+        });
+        document.body.appendChild(input);
+      }
 
       var app = document.getElementById('app-container');
       var ultimaAltura = 0;
@@ -1603,25 +1822,35 @@ function showToast(msg, isError) {
         // fator UNICO (sem distorcao anamorfica): s = min(w/1920, h/1080),
         // descontando a barra so quando visivel; letterbox horizontal via
         // left:50% + margin-left:-960px + transform-origin:top center (CSS)
-        var h = bar.offsetHeight || 0;
-        if (h < 8) h = ultimaAltura;   // barra ainda sem layout: mantem a ultima medida
+        var b = document.querySelector('.dk-bar');
+        var h = b ? (b.offsetHeight || 0) : 0;
+        if (b && h < 8) h = ultimaAltura;   // barra ainda sem layout: mantem a ultima medida
         ultimaAltura = h;
-        var efetiva = bar.classList.contains('dk-hidden') ? 0 : h;
-        var s = Math.min(window.innerWidth / 1920, Math.max(50, window.innerHeight - efetiva) / 1080);
+        var efetiva = (!b || b.classList.contains('dk-hidden')) ? 0 : h;
+        var s = Math.min(Math.max(120, window.innerWidth) / 1920, Math.max(120, window.innerHeight - efetiva) / 1080);
         if (app) {
           app.style.top = efetiva + 'px';
           app.style.transform = 'scale(' + s + ')';
         }
       }
       window.scaleToFit = fit;   // o dashboard chama scaleToFit() no resize
-      window.addEventListener('resize', fit);
-      window.addEventListener('load', fit);
-      new MutationObserver(fit).observe(bar, { attributes: true, childList: true, subtree: true });
+      if (!window.__dk08FitHooked) {
+        window.__dk08FitHooked = true;
+        window.addEventListener('resize', function () { if (typeof window.scaleToFit === 'function') window.scaleToFit(); });
+        window.addEventListener('load', function () { if (typeof window.scaleToFit === 'function') window.scaleToFit(); });
+      }
+      // observa a barra recem-criada (apos relabel, a anterior foi descartada)
+      if (window.__dk08BarObs) { try { window.__dk08BarObs.disconnect(); } catch (e) {} }
+      window.__dk08BarObs = new MutationObserver(function () { if (typeof window.scaleToFit === 'function') window.scaleToFit(); });
+      window.__dk08BarObs.observe(bar, { attributes: true, childList: true, subtree: true });
       fit();
       setTimeout(fit, 200);
     },
     summary: function () {
       return STATE.rows ? STATE.rows.length + ' vendas' : 'base sintetica';
+    },
+    summary_en: function () {
+      return STATE.rows ? STATE.rows.length + ' sales' : 'synthetic base';
     }
   });
 })();
@@ -1632,7 +1861,12 @@ function showToast(msg, isError) {
    apos 10s sem interacao com a barra ela desliza para fora da tela;
    reaparece quando o mouse encosta no topo (hotzone de 8px) ou na tecla D.
    O badge "dados de exemplo" (canto inferior) persiste sempre.
-   A escala do painel e recalculada a cada esconde/mostra. */
+   A escala do painel e recalculada a cada esconde/mostra.
+   IMPORTANTE: DK.relabel() (troca de idioma) RECRIA o elemento .dk-bar, entao
+   nada aqui guarda referencia a barra: tudo consulta getBar() na hora do uso
+   e os listeners de interacao sao delegados no document (sobrevivem ao swap).
+   applyLang() chama window.__dk08AutoHideRearm apos o relabel para reexibir a
+   barra nova e rearmar o timer de esconder. */
 (function () {
   var HIDE_MS = 10000;
   var timer = null;
@@ -1664,9 +1898,11 @@ function showToast(msg, isError) {
 
   function wake() { setHidden(false); arm(); }
 
+  // religa o ciclo apos DK.relabel(): barra nova visivel + contagem rearmada
+  window.__dk08AutoHideRearm = wake;
+
   function start() {
-    var bar = getBar();
-    if (!bar) { setTimeout(start, 300); return; }
+    if (!getBar()) { setTimeout(start, 300); return; }
 
     // hotzone de 8px no topo: reexibe a barra quando o mouse encosta
     var hz = document.createElement('div');
@@ -1675,9 +1911,14 @@ function showToast(msg, isError) {
     document.body.appendChild(hz);
     hz.addEventListener('pointerenter', wake);
 
-    // interacao com a barra reinicia a contagem
+    // interacao com a barra reinicia a contagem: delegado no document e
+    // filtrado por closest('.dk-bar'), para valer para a barra ATUAL mesmo
+    // depois de o relabel trocar o elemento
     ['pointermove', 'pointerdown', 'keydown', 'focusin'].forEach(function (ev) {
-      bar.addEventListener(ev, function () { setHidden(false); arm(); });
+      document.addEventListener(ev, function (e) {
+        var el = e.target;
+        if (el && el.closest && el.closest('.dk-bar')) { setHidden(false); arm(); }
+      });
     });
 
     // tecla D reexibe (fora de campos de formulario)
@@ -1717,6 +1958,28 @@ function showToast(msg, isError) {
 </style>
 <script id="onb-cta">
 (function(){
+  function oLang(){ var l='en'; try{ l=localStorage.getItem('lang')||'en'; }catch(e){} return l==='pt'?'pt':'en'; }
+  var OT={
+    en:{ h:'How to read this panel',
+      s1:'<li><b>Executive summary</b>: the essentials of the period are right at the top.</li>',
+      s2:'<li><b>Filters</b>: slice by period and segment to investigate.</li>',
+      s3:'<li><b>Panels</b>: each one has a subtitle saying what it shows; hover the info icons for details.</li>',
+      k:'// sales analytics',
+      ch:'Sample dashboards from a RevOps analytics system built by Felippe Yann.',
+      cs:'Want this kind of visibility over your sales operation?',
+      b1:'See all dashboards', b2:'View portfolio', b3:'Chat on LinkedIn',
+      mail:'Prefer email? ' },
+    pt:{ h:'Como ler este painel',
+      s1:'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>',
+      s2:'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>',
+      s3:'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>',
+      k:'// analytics comercial',
+      ch:'Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.',
+      cs:'Quer visibilidade assim no seu comercial?',
+      b1:'Ver todos os dashboards', b2:'Ver portf\u00f3lio', b3:'Falar no LinkedIn',
+      mail:'Prefere conversar por e-mail? ' }
+  };
+  function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
     try{
@@ -1724,11 +1987,9 @@ function showToast(msg, isError) {
         var onb=document.createElement('div');
         onb.className='onb-card';
         onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">Como ler este painel</div>'
+          +'<div class="onb-h">'+OS('h')+'</div>'
           +'<ol class="onb-steps">'
-          +'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>'
-          +'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>'
-          +'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>'
+          +OS('s1')+OS('s2')+OS('s3')
           +'</ol>';
         band.parentNode.insertBefore(onb, band.nextSibling);
         onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
@@ -1737,18 +1998,22 @@ function showToast(msg, isError) {
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
-      cta.innerHTML='<div class="cta-txt"><div class="cta-k">// analytics comercial</div>'
-        +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
-        +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
+      cta.innerHTML='<div class="cta-txt"><div class="cta-k">'+OS('k')+'</div>'
+        +'<div class="cta-h">'+OS('ch')+'</div>'
+        +'<div class="cta-s">'+OS('cs')+'</div></div>'
         +'<div class="cta-actions">'
-        +'<a class="cta-btn primary" href="index.html">Ver todos os dashboards</a>'
-        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
-        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
+        +'<a class="cta-btn primary" href="index.html">'+OS('b1')+'</a>'
+        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">'+OS('b2')+'</a>'
+        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">'+OS('b3')+'</a>'
         +'</div>';
       (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
-      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML='Prefere conversar por e-mail? <a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
+      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML=OS('mail')+'<a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
     }
   }
+  window.__onbCtaRebuild=function(){
+    ['.onb-card','.cta-band','.cta-mail'].forEach(function(sel){ var e=document.querySelector(sel); if(e&&e.parentNode) e.parentNode.removeChild(e); });
+    build();
+  };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
 })();
 </script>
