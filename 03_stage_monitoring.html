@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <!--
   Stage Monitoring | Felippe Yann
-  Versao: v2.0 (redesign enterprise)
+  Version: v2.0 (enterprise redesign)
   Pipeline: Base > Ativacao > Conducao > Conexao > Conversao > Passagem para SDR
-  Monitoramento de mudancas de etapa no funil de social selling:
-  volume, tempo de permanencia, retencao e fluxo entre etapas.
+  Monitoring of stage changes in the social selling funnel:
+  volume, dwell time, retention and flow between stages.
+  i18n: EN default (static HTML) + PT-BR via dictionary; stage names are DATA VALUES and are never translated.
 -->
-<html lang="pt-br">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Dashboard BI para monitoramento de etapas do pipeline de social selling" />
+  <meta name="description" content="BI dashboard for monitoring social selling pipeline stages" />
   <title>Stage Monitoring | Felippe Yann</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -66,6 +67,13 @@
   .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}
   @media (max-width:760px){ .desc{display:none} h1{font-size:14px} }
   .version-badge{display:inline-block;background:var(--accent-glow);border:1px solid rgba(37,99,235,.4);color:var(--accent-soft);font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:10px;margin-left:8px;letter-spacing:0.5px;vertical-align:middle}
+
+  /* ===== language switch (hub mechanism) ===== */
+  .lang-sw{display:flex;align-items:center;height:30px;padding:0 6px;background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r-sm);font-family:var(--mono);flex:none}
+  .lang-sw button{background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-4);padding:0 5px}
+  .lang-sw button:hover{color:var(--ink)}
+  .lang-sw button.on{color:var(--accent-soft);font-weight:700}
+  .lang-sw .sep{color:var(--ink-4);font-size:10px;opacity:.5}
 
   /* ===== filter bar ===== */
   .filterbar{border-top:1px solid var(--line);background:rgba(19,19,22,.9)}
@@ -235,42 +243,45 @@
     <div class="brand">
       <div class="logo">&gt;_</div>
       <div>
-        <h1>Monitoramento de Stages <span class="version-badge">demo</span></h1>
-        <div class="desc">pipeline social selling · Base → Ativação → Condução → Conexão → Conversão → SDR</div>
+        <h1>Stage Monitoring <span class="version-badge">demo</span></h1>
+        <div class="desc" data-i18n="hdrDesc">social selling pipeline · Base → Ativação → Condução → Conexão → Conversão → SDR</div>
       </div>
     </div>
     <div class="hdr-actions">
+      <div class="lang-sw" role="group" aria-label="Language" data-pt-aria="Idioma">
+        <button type="button" data-lang-btn="en" aria-pressed="true">EN</button><span class="sep">/</span><button type="button" data-lang-btn="pt" aria-pressed="false">PT</button>
+      </div>
       <input type="file" id="fileUpload" accept=".csv" hidden />
     </div>
   </div>
   <div class="filterbar">
     <div class="wrap fb-in">
-      <span class="fb-label">período</span>
-      <select id="filterPeriod" title="Período rápido">
-        <option value="all">Todos os dados</option>
-        <option value="7">7 dias</option>
-        <option value="15">15 dias</option>
-        <option value="30">30 dias</option>
-        <option value="60">60 dias</option>
-        <option value="90">90 dias</option>
+      <span class="fb-label" data-i18n="fbPeriod">period</span>
+      <select id="filterPeriod" title="Quick range" data-pt-title="Período rápido">
+        <option value="all" data-i18n="optAllData">All data</option>
+        <option value="7" data-i18n="opt7">7 days</option>
+        <option value="15" data-i18n="opt15">15 days</option>
+        <option value="30" data-i18n="opt30">30 days</option>
+        <option value="60" data-i18n="opt60">60 days</option>
+        <option value="90" data-i18n="opt90">90 days</option>
       </select>
-      <input type="date" id="filterDateStart" title="Data início" />
-      <input type="date" id="filterDateEnd" title="Data fim" />
+      <input type="date" id="filterDateStart" title="Start date" data-pt-title="Data início" />
+      <input type="date" id="filterDateEnd" title="End date" data-pt-title="Data fim" />
       <span class="fb-sep"></span>
-      <span class="fb-label">etapa</span>
-      <select id="filterStage" title="Stage atual">
-        <option value="all">Todos os stages</option>
+      <span class="fb-label" data-i18n="fbStage">stage</span>
+      <select id="filterStage" title="Current stage" data-pt-title="Stage atual">
+        <option value="all">All stages</option>
       </select>
-      <select id="filterFromStage" title="Stage de origem">
-        <option value="all">Qualquer origem</option>
+      <select id="filterFromStage" title="Origin stage" data-pt-title="Stage de origem">
+        <option value="all">Any origin</option>
       </select>
       <span class="fb-sep"></span>
       <div class="data-period" id="dataPeriodIndicator" style="display:none;">
-        <span>de <strong id="periodStart">-</strong> até <strong id="periodEnd">-</strong></span>
+        <span><span data-i18n="fromWord">from</span> <strong id="periodStart">-</strong> <span data-i18n="toWord">to</span> <strong id="periodEnd">-</strong></span>
         <span class="count" id="recordCount">0</span>
-        <span>registros ·</span>
+        <span data-i18n="recWord">records ·</span>
         <span id="uniqueDeals">0</span>
-        <span>deals únicos</span>
+        <span data-i18n="udWord">unique deals</span>
       </div>
       <div class="active-filters" id="activeFilters"></div>
     </div>
@@ -281,33 +292,33 @@
   <div class="wrap panel">
 
     <section class="exec-band" id="exec-band">
-      <div class="exec-kicker"><b>//</b> resumo executivo</div>
-      <div class="exec-q">Onde os leads avançam e onde travam ao longo das etapas do funil, e qual estágio concentra a maior perda.</div>
+      <div class="exec-kicker" data-i18n="execK"><b>//</b> executive summary</div>
+      <div class="exec-q" data-i18n="execQ">Where leads advance and where they stall along the funnel stages, and which stage concentrates the biggest loss.</div>
       <div class="kpis" id="kpis" style="margin-bottom:14px"></div>
       <div class="exec-insight" id="exec-insight"></div>
     </section>
 
     <!-- Loading -->
     <div class="loading" id="loadingIndicator">
-      <p>Carregando dados...</p>
+      <p data-i18n="loadingTxt">Loading data...</p>
     </div>
 
     <!-- Insights Summary -->
     <div class="summary-box" id="insightsSummary" style="display:none;">
-      <div class="summary-title">Insights do funil</div>
-      <div class="summary-text" id="insightsText">Carregue dados para gerar insights automáticos...</div>
+      <div class="summary-title" data-i18n="insTitle">Funnel insights</div>
+      <div class="summary-text" id="insightsText" data-i18n="insDefault">Load data to generate automatic insights...</div>
     </div>
 
     <!-- Estado Atual por Stage -->
     <div class="card" id="current-state" style="display:none;">
-      <h2>Estado atual · deals por etapa
+      <h2><span data-i18n="csH">Current state · deals per stage</span>
         <span class="info-icon">ⓘ
-          <span class="tooltip">Quantidade atual de deals em cada stage (saldo acumulado mais recente)</span>
+          <span class="tooltip" data-i18n="csTip">Current number of deals in each stage (latest cumulative balance)</span>
         </span>
       </h2>
-      <div class="panel-sub">Distribuição atual de deals em cada etapa do funil.</div>
+      <div class="panel-sub" data-i18n="csSub">Current distribution of deals across each funnel stage.</div>
       <div class="current-state" id="current-state-grid"></div>
-      <p class="foot">Snapshot atual do funil: distribuição de deals por etapa</p>
+      <p class="foot" data-i18n="csFoot">Current funnel snapshot: deal distribution per stage</p>
     </div>
 
     <div class="grid">
@@ -315,120 +326,120 @@
       <!-- Evolução temporal (saldo + entradas, fundidos) -->
       <div class="card full-width" id="chart-temporal">
         <div class="topic-head">
-          <h2>Evolução temporal · saldo e entradas
+          <h2><span data-i18n="tmpH">Time evolution · balance and inflows</span>
             <span class="info-icon">ⓘ
-              <span class="tooltip">Saldo acumulado de deals por stage ao longo do tempo, ou entradas diárias empilhadas por stage. Use o zoom para investigar períodos.</span>
+              <span class="tooltip" data-i18n="tmpTip">Cumulative deal balance per stage over time, or daily inflows stacked by stage. Use the zoom to investigate periods.</span>
             </span>
           </h2>
           <div class="topic-actions">
-            <button type="button" id="tglSaldo" class="btn secondary sm active">Saldo acumulado</button>
-            <button type="button" id="tglEntradas" class="btn secondary sm">Entradas por dia</button>
+            <button type="button" id="tglSaldo" class="btn secondary sm active" data-i18n="tglSaldoBtn">Cumulative balance</button>
+            <button type="button" id="tglEntradas" class="btn secondary sm" data-i18n="tglEntradasBtn">Inflows per day</button>
           </div>
         </div>
-        <div class="panel-sub">Como o estoque de cada etapa evolui, e quanto entra por dia em cada uma.</div>
+        <div class="panel-sub" data-i18n="tmpSub">How each stage's stock evolves, and how much enters each one per day.</div>
         <div class="chart tall" id="chart_temporal"></div>
-        <p class="foot">Evolução do estoque e do fluxo diário de deals por etapa</p>
+        <p class="foot" data-i18n="tmpFoot">Evolution of stock and daily deal flow per stage</p>
       </div>
 
       <!-- Tabela Entradas/Saídas -->
       <div class="card" id="chart1">
-        <h2>Entradas e saídas · por etapa
+        <h2><span data-i18n="tblH">Inflows and outflows · per stage</span>
           <span class="info-icon">ⓘ
-            <span class="tooltip">Resumo detalhado de movimentação: quantos entraram e saíram de cada stage</span>
+            <span class="tooltip" data-i18n="tblTip">Detailed movement summary: how many entered and left each stage</span>
           </span>
         </h2>
-        <div class="panel-sub">Fluxo de entradas e saídas de deals em cada etapa no período.</div>
+        <div class="panel-sub" data-i18n="tblSub">Deal inflows and outflows for each stage in the period.</div>
         <div style="overflow-x: auto;">
           <table class="stage-table" id="entries-exits-table">
             <thead>
               <tr>
                 <th>Stage</th>
-                <th>Entradas</th>
-                <th>Saídas</th>
-                <th>Saldo</th>
-                <th>Taxa Retenção</th>
+                <th data-i18n="thIn">Inflows</th>
+                <th data-i18n="thOut">Outflows</th>
+                <th data-i18n="thBal">Balance</th>
+                <th data-i18n="thRet">Retention rate</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td colspan="5" style="text-align: center; color: var(--muted); padding: 20px;">Carregue dados para visualizar</td>
+                <td colspan="5" style="text-align: center; color: var(--muted); padding: 20px;" data-i18n="emptyTable">Load data to view</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <p class="foot">Análise quantitativa da movimentação entre etapas</p>
+        <p class="foot" data-i18n="tblFoot">Quantitative analysis of movement between stages</p>
       </div>
 
       <!-- Volume por Stage -->
       <div class="card" id="chart3">
-        <h2>Volume de entradas · por etapa
+        <h2><span data-i18n="volH">Inflow volume · per stage</span>
           <span class="info-icon">ⓘ
-            <span class="tooltip">Quantidade de deals que entraram em cada stage no período selecionado</span>
+            <span class="tooltip" data-i18n="volTip">Number of deals that entered each stage in the selected period</span>
           </span>
         </h2>
-        <div class="panel-sub">Quantos deals entraram em cada etapa, na ordem do funil.</div>
+        <div class="panel-sub" data-i18n="volSub">How many deals entered each stage, in funnel order.</div>
         <div class="chart" id="chart_volume"></div>
-        <p class="foot">Total de entradas por etapa: visão de volume e distribuição</p>
+        <p class="foot" data-i18n="volFoot">Total inflows per stage: volume and distribution view</p>
       </div>
 
       <!-- Tempo nos Stages -->
       <div class="card" id="chart4">
-        <h2>Tempo médio · permanência por etapa
+        <h2><span data-i18n="tpoH">Average time · dwell per stage</span>
           <span class="info-icon">ⓘ
-            <span class="tooltip">Tempo médio que deals ficam em cada stage antes de avançar ou sair. A barra destacada é o gargalo do funil.</span>
+            <span class="tooltip" data-i18n="tpoTip">Average time deals spend in each stage before moving on or leaving. The highlighted bar is the funnel bottleneck.</span>
           </span>
         </h2>
-        <div class="panel-sub">Permanência média dos deals em cada etapa, com o gargalo destacado.</div>
+        <div class="panel-sub" data-i18n="tpoSub">Average deal dwell time in each stage, with the bottleneck highlighted.</div>
         <div class="chart" id="chart_tempo"></div>
-        <p class="foot">Análise de velocidade: identificação de gargalos no funil</p>
+        <p class="foot" data-i18n="tpoFoot">Speed analysis: identifying funnel bottlenecks</p>
       </div>
 
       <!-- Retenção por Stage -->
       <div class="card" id="chart7">
-        <h2>Retenção · % que permanece por etapa
+        <h2><span data-i18n="retH">Retention · % remaining per stage</span>
           <span class="info-icon">ⓘ
-            <span class="tooltip">Percentual de deals que entraram no stage e ainda não saíram. O volume de entradas aparece no tooltip.</span>
+            <span class="tooltip" data-i18n="retTip">Percentage of deals that entered the stage and have not left yet. Inflow volume shows in the tooltip.</span>
           </span>
         </h2>
-        <div class="panel-sub">Taxa de retenção por etapa: onde o funil segura e onde perde.</div>
+        <div class="panel-sub" data-i18n="retSub">Retention rate per stage: where the funnel holds and where it loses.</div>
         <div class="chart" id="chart_performance"></div>
-        <p class="foot">Eficiência de cada etapa: onde há mais perdas e oportunidades</p>
+        <p class="foot" data-i18n="retFoot">Each stage's efficiency: where losses and opportunities concentrate</p>
       </div>
 
       <!-- Fluxo de Conversão (Sankey) -->
       <div class="card full-width" id="chart5">
-        <h2>Fluxo entre etapas · diagrama de conversão
+        <h2><span data-i18n="snkH">Flow between stages · conversion diagram</span>
           <span class="info-icon">ⓘ
-            <span class="tooltip">Visualização do fluxo de deals entre stages: a largura representa o volume</span>
+            <span class="tooltip" data-i18n="snkTip">Visualization of deal flow between stages: width represents volume</span>
           </span>
         </h2>
-        <div class="panel-sub">Passagem de deals de uma etapa para a etapa seguinte.</div>
+        <div class="panel-sub" data-i18n="snkSub">Deals moving from one stage to the next.</div>
         <div class="chart" id="chart_sankey"></div>
-        <p class="foot">Diagrama de Sankey mostrando perdas e avanços no funil</p>
+        <p class="foot" data-i18n="snkFoot">Sankey diagram showing funnel losses and advances</p>
       </div>
 
       <!-- Distribuição de Tempo -->
       <div class="card" id="chart8">
-        <h2>Distribuição de tempo · por faixa
+        <h2><span data-i18n="dstH">Time distribution · by range</span>
           <span class="info-icon">ⓘ
-            <span class="tooltip">Distribuição do tempo de permanência por faixa, empilhada por stage</span>
+            <span class="tooltip" data-i18n="dstTip">Distribution of dwell time by range, stacked by stage</span>
           </span>
         </h2>
-        <div class="panel-sub">Dispersão do tempo de permanência dos deals por etapa.</div>
+        <div class="panel-sub" data-i18n="dstSub">Spread of deal dwell time per stage.</div>
         <div class="chart" id="chart_distribuicao"></div>
-        <p class="foot">Variabilidade no tempo: outliers e padrões de comportamento</p>
+        <p class="foot" data-i18n="dstFoot">Time variability: outliers and behavior patterns</p>
       </div>
 
       <!-- Ranking de Stages -->
       <div class="card" id="chart9">
-        <h2>Ranking de movimentação · entradas e saídas
+        <h2><span data-i18n="rnkH">Movement ranking · inflows and outflows</span>
           <span class="info-icon">ⓘ
-            <span class="tooltip">Comparação de stages por volume total (entradas + saídas) no período</span>
+            <span class="tooltip" data-i18n="rnkTip">Stage comparison by total volume (inflows + outflows) in the period</span>
           </span>
         </h2>
-        <div class="panel-sub">Etapas ordenadas pelo volume total de deals no período.</div>
+        <div class="panel-sub" data-i18n="rnkSub">Stages ordered by total deal volume in the period.</div>
         <div class="chart" id="chart_ranking"></div>
-        <p class="foot">Identificação das etapas mais ativas do funil</p>
+        <p class="foot" data-i18n="rnkFoot">Identifying the most active funnel stages</p>
       </div>
 
     </div>
@@ -437,12 +448,92 @@
 </main>
 
 <script>
-// Estado global
+// Global state
 let rawData = [];
 let dailyData = [];
-let filteredData = [];    // linhas agregadas por dia+stage (alimentam os gráficos)
-let filteredRecords = []; // registros individuais filtrados (sankey, deals únicos)
+let filteredData = [];    // rows aggregated by day+stage (feed the charts)
+let filteredRecords = []; // filtered individual records (sankey, unique deals)
 let temporalMode = 'saldo';
+
+/* ---------- i18n (EN default; PT via localStorage 'lang') ----------
+   Stage names (Base, Ativação, Condução, Conexão, Conversão, Passagem para SDR)
+   are DATA VALUES from the CSV: identical in both languages, never translated. */
+function LANG() { let l = 'en'; try { l = localStorage.getItem('lang') || 'en'; } catch (e) {} return l === 'pt' ? 'pt' : 'en'; }
+const I18N = {
+  en: {
+    optAllStages: 'All stages',
+    optAnyOrigin: 'Any origin',
+    emptyTable: 'Load data to view',
+    inProgress: 'In progress',
+    noTimeData: 'No time data available',
+    sankeyWaitT: 'Waiting for transition data...',
+    sankeyWaitS: 'Upload a CSV with from_stage_label to see the flow',
+    alertFormat: 'Unrecognized data format. Check that the file contains the expected columns.',
+    alertEmpty: 'Empty file or invalid format.',
+    alertCsv: 'Error processing the CSV file.',
+    fpPeriod: 'Period', fpStage: 'Stage', fpOrigin: 'Origin', fpFrom: 'From', fpTo: 'To',
+    daysSuf: ' days',
+    removeFilter: 'Remove filter',
+    kMoves: 'Movements', kMovesSub: 'stage changes',
+    kDeals: 'Unique deals', kDealsSub: 'in the period',
+    kTime: 'Avg time/stage', kTimeSub: 'dwell time',
+    kConv: 'Conversion to SDR', kConvSub: 'base to handoff',
+    kTop: 'Highest volume', kTopSub: 'most active stage',
+    kVel: 'Velocity/day', kVelSub: 'movements/day',
+    insightTag: 'insight',
+    execInsight: ' concentrates the highest deal volume in the funnel, the point to watch to unlock the SDR handoff.',
+    insTop: '<strong>{s}</strong> is the most active stage with {n} movements.',
+    insLow: 'Conversion rate of <strong>{v}%</strong> is below expectations.',
+    insHigh: 'Conversion rate of <strong>{v}%</strong> is above the 20% benchmark.',
+    insSlow: 'Average time of <strong>{t}</strong> per stage may indicate bottlenecks.',
+    insFast: 'Velocity of <strong>{v}</strong> movements/day indicates an active funnel.',
+    insNone: 'Data loaded successfully. Use the filters for deeper analysis.',
+    tipInflows: 'Inflows', tipOutflows: 'Outflows', tipShare: 'Share',
+    tipAvgTime: 'Avg time', tipBottleneck: 'BOTTLENECK: highest average time in the funnel',
+    tipAvgLine: 'Average', tipMoves: 'Movements', tipTotal: 'Total',
+    tipBalanceTotal: 'Total balance', tipRetention: 'Retention',
+    serRetention: 'Retention rate', serInflows: 'Inflows', serOutflows: 'Outflows'
+  },
+  pt: {
+    optAllStages: 'Todos os stages',
+    optAnyOrigin: 'Qualquer origem',
+    emptyTable: 'Carregue dados para visualizar',
+    inProgress: 'Em andamento',
+    noTimeData: 'Sem dados de tempo disponíveis',
+    sankeyWaitT: 'Aguardando dados de transição...',
+    sankeyWaitS: 'Carregue um CSV com from_stage_label para ver o fluxo',
+    alertFormat: 'Formato de dados não reconhecido. Verifique se o arquivo contém as colunas esperadas.',
+    alertEmpty: 'Arquivo vazio ou formato inválido.',
+    alertCsv: 'Erro ao processar arquivo CSV.',
+    fpPeriod: 'Período', fpStage: 'Stage', fpOrigin: 'Origem', fpFrom: 'De', fpTo: 'Até',
+    daysSuf: ' dias',
+    removeFilter: 'Remover filtro',
+    kMoves: 'Movimentações', kMovesSub: 'mudanças de etapa',
+    kDeals: 'Deals únicos', kDealsSub: 'no período',
+    kTime: 'Tempo médio/etapa', kTimeSub: 'permanência',
+    kConv: 'Conversão p/ SDR', kConvSub: 'da base à passagem',
+    kTop: 'Maior volume', kTopSub: 'etapa mais ativa',
+    kVel: 'Velocidade/dia', kVelSub: 'movimentações/dia',
+    insightTag: 'insight',
+    execInsight: ' concentra o maior volume de deals no funil, o ponto a monitorar para destravar a passagem para SDR.',
+    insTop: '<strong>{s}</strong> é o stage mais ativo com {n} movimentações.',
+    insLow: 'Taxa de conversão de <strong>{v}%</strong> está abaixo do esperado.',
+    insHigh: 'Taxa de conversão de <strong>{v}%</strong> está acima da referência de 20%.',
+    insSlow: 'Tempo médio de <strong>{t}</strong> por stage pode indicar gargalos.',
+    insFast: 'Velocidade de <strong>{v}</strong> movimentações/dia indica funil ativo.',
+    insNone: 'Dados carregados com sucesso. Explore os filtros para análises detalhadas.',
+    tipInflows: 'Entradas', tipOutflows: 'Saídas', tipShare: 'Participação',
+    tipAvgTime: 'Tempo médio', tipBottleneck: 'GARGALO: maior tempo médio do funil',
+    tipAvgLine: 'Média', tipMoves: 'Movimentações', tipTotal: 'Total',
+    tipBalanceTotal: 'Saldo total', tipRetention: 'Retenção',
+    serRetention: 'Taxa de retenção', serInflows: 'Entradas', serOutflows: 'Saídas'
+  }
+};
+function t(k) {
+  const d = I18N[LANG()];
+  if (d && d[k] != null) return d[k];
+  return I18N.en[k] != null ? I18N.en[k] : k;
+}
 
 /* ---------- Tema de visualização ----------
    Paleta categórica validada (banda de luminosidade, croma, separação CVD,
@@ -497,7 +588,7 @@ function formatNumber(num) {
   if (!num && num !== 0) return '0';
   const value = parseFloat(num);
   if (isNaN(value)) return '0';
-  return new Intl.NumberFormat('pt-BR', {
+  return new Intl.NumberFormat(LANG() === 'pt' ? 'pt-BR' : 'en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 1
   }).format(value);
@@ -571,16 +662,16 @@ document.getElementById('fileUpload').addEventListener('change', function(event)
             rawData = results.data.filter(row => row.deal_id && row.stage_label);
             processData();
           } else {
-            alert('Formato de dados não reconhecido. Verifique se o arquivo contém as colunas esperadas.');
+            alert(t('alertFormat'));
           }
         } else {
-          alert('Arquivo vazio ou formato inválido.');
+          alert(t('alertEmpty'));
         }
         document.getElementById('loadingIndicator').classList.remove('show');
       },
       error: function(error) {
-        console.error('Erro ao processar arquivo:', error);
-        alert('Erro ao processar arquivo CSV.');
+        console.error('CSV parse error:', error);
+        alert(t('alertCsv'));
         document.getElementById('loadingIndicator').classList.remove('show');
       }
     });
@@ -703,8 +794,8 @@ function updateFilters() {
     (a, b) => (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0)
   );
 
-  stageSelect.innerHTML = '<option value="all">Todos os stages</option>';
-  fromStageSelect.innerHTML = '<option value="all">Qualquer origem</option>';
+  stageSelect.innerHTML = '<option value="all">' + escHtml(t('optAllStages')) + '</option>';
+  fromStageSelect.innerHTML = '<option value="all">' + escHtml(t('optAnyOrigin')) + '</option>';
 
   uniqueStages.forEach(stage => {
     const option1 = document.createElement('option');
@@ -725,9 +816,11 @@ function updateFilters() {
     document.getElementById('filterDateStart').value = dates[0];
     document.getElementById('filterDateEnd').value = dates[dates.length - 1];
 
-    // Atualizar indicador de período
-    document.getElementById('periodStart').textContent = formatDateBR(dates[0]);
-    document.getElementById('periodEnd').textContent = formatDateBR(dates[dates.length - 1]);
+    // Update the period indicator (raw ISO kept for locale re-render on language switch)
+    const psEl = document.getElementById('periodStart');
+    const peEl = document.getElementById('periodEnd');
+    psEl.textContent = formatDateLoc(dates[0]); psEl.dataset.iso = dates[0];
+    peEl.textContent = formatDateLoc(dates[dates.length - 1]); peEl.dataset.iso = dates[dates.length - 1];
   }
 
   // Add event listeners apenas uma vez
@@ -739,10 +832,11 @@ function updateFilters() {
   }
 }
 
-function formatDateBR(dateStr) {
+// Dates in the active locale: dd/mm/yyyy (pt) or mm/dd/yyyy (en)
+function formatDateLoc(dateStr) {
   if (!dateStr) return '-';
   const [year, month, day] = dateStr.split('-');
-  return `${day}/${month}/${year}`;
+  return LANG() === 'pt' ? `${day}/${month}/${year}` : `${month}/${day}/${year}`;
 }
 
 function applyFilters() {
@@ -798,19 +892,19 @@ function updateActiveFilters() {
   const dateEnd = document.getElementById('filterDateEnd').value;
 
   if (period !== 'all') {
-    addFilterPill(container, 'Período', period + ' dias', 'filterPeriod');
+    addFilterPill(container, t('fpPeriod'), period + t('daysSuf'), 'filterPeriod');
   }
   if (stage !== 'all') {
-    addFilterPill(container, 'Stage', stage, 'filterStage');
+    addFilterPill(container, t('fpStage'), stage, 'filterStage');
   }
   if (fromStage !== 'all') {
-    addFilterPill(container, 'Origem', fromStage, 'filterFromStage');
+    addFilterPill(container, t('fpOrigin'), fromStage, 'filterFromStage');
   }
   if (dateStart) {
-    addFilterPill(container, 'De', formatDateBR(dateStart), 'filterDateStart');
+    addFilterPill(container, t('fpFrom'), formatDateLoc(dateStart), 'filterDateStart');
   }
   if (dateEnd) {
-    addFilterPill(container, 'Até', formatDateBR(dateEnd), 'filterDateEnd');
+    addFilterPill(container, t('fpTo'), formatDateLoc(dateEnd), 'filterDateEnd');
   }
 }
 
@@ -819,7 +913,7 @@ function addFilterPill(container, label, value, filterId) {
   pill.className = 'filter-chip';
   pill.innerHTML = `
     <span class="filter-chip-label"><strong>${escHtml(label)}</strong><span class="filter-chip-value">${escHtml(value)}</span></span>
-    <button type="button" class="chip-remove" onclick="clearFilter('${filterId}')" aria-label="Remover filtro"></button>
+    <button type="button" class="chip-remove" onclick="clearFilter('${filterId}')" aria-label="${escHtml(t('removeFilter'))}"></button>
   `;
   container.appendChild(pill);
 }
@@ -896,12 +990,12 @@ function renderKPIs(k) {
   if (!wrap) return;
   const convNum = parseFloat(String(k.conversionRate).replace(',', '.'));
   const kpis = [
-    { label: 'Movimentações', value: formatNumber(k.totalMoves), sub: 'mudanças de etapa' },
-    { label: 'Deals únicos', value: formatNumber(k.totalDeals), sub: 'no período' },
-    { label: 'Tempo médio/etapa', value: formatTime(k.avgTime), sub: 'permanência' },
-    { label: 'Conversão p/ SDR', value: k.conversionRate + '%', sub: 'da base à passagem', cls: isFinite(convNum) && convNum >= 20 ? 'good' : '' },
-    { label: 'Maior volume', value: escHtml(stageLabel(k.bottleneck)), sub: 'etapa mais ativa' },
-    { label: 'Velocidade/dia', value: k.velocity, sub: 'movimentações/dia' }
+    { label: t('kMoves'), value: formatNumber(k.totalMoves), sub: t('kMovesSub') },
+    { label: t('kDeals'), value: formatNumber(k.totalDeals), sub: t('kDealsSub') },
+    { label: t('kTime'), value: formatTime(k.avgTime), sub: t('kTimeSub') },
+    { label: t('kConv'), value: formatNumber(k.conversionRate) + '%', sub: t('kConvSub'), cls: isFinite(convNum) && convNum >= 20 ? 'good' : '' },
+    { label: t('kTop'), value: escHtml(stageLabel(k.bottleneck)), sub: t('kTopSub') },
+    { label: t('kVel'), value: formatNumber(k.velocity), sub: t('kVelSub') }
   ];
   wrap.innerHTML = kpis.map(i =>
     `<div class="kpi"><div class="label">${i.label}</div><div class="value${i.cls ? ' ' + i.cls : ''}">${i.value}</div><div class="subv">${i.sub}</div></div>`
@@ -911,8 +1005,8 @@ function renderKPIs(k) {
 function renderExecInsight(bottleneckLabel) {
   const iw = document.getElementById('exec-insight');
   if (iw) {
-    iw.innerHTML = '<span class="ei-tag">insight</span><b>' + escHtml(bottleneckLabel) +
-      '</b> concentra o maior volume de deals no funil, o ponto a monitorar para destravar a passagem para SDR.';
+    iw.innerHTML = '<span class="ei-tag">' + escHtml(t('insightTag')) + '</span><b>' + escHtml(bottleneckLabel) +
+      '</b>' + t('execInsight');
   }
 }
 
@@ -924,24 +1018,24 @@ function generateInsights(stageVolumes, avgTime, conversionRate, velocity) {
   const topStage = sortedStages[0];
 
   if (topStage) {
-    insights.push(`<strong>${escHtml(topStage[0])}</strong> é o stage mais ativo com ${formatNumber(topStage[1])} movimentações.`);
+    insights.push(t('insTop').replace('{s}', escHtml(topStage[0])).replace('{n}', formatNumber(topStage[1])));
   }
 
   if (parseFloat(conversionRate) < 10) {
-    insights.push(`Taxa de conversão de <strong>${conversionRate}%</strong> está abaixo do esperado.`);
+    insights.push(t('insLow').replace('{v}', formatNumber(conversionRate)));
   } else if (parseFloat(conversionRate) >= 20) {
-    insights.push(`Taxa de conversão de <strong>${conversionRate}%</strong> está acima da referência de 20%.`);
+    insights.push(t('insHigh').replace('{v}', formatNumber(conversionRate)));
   }
 
-  if (avgTime > 86400 * 3) { // mais de 3 dias
-    insights.push(`Tempo médio de <strong>${formatTime(avgTime)}</strong> por stage pode indicar gargalos.`);
+  if (avgTime > 86400 * 3) { // more than 3 days
+    insights.push(t('insSlow').replace('{t}', formatTime(avgTime)));
   }
 
   if (velocity > 50) {
-    insights.push(`Velocidade de <strong>${velocity}</strong> movimentações/dia indica funil ativo.`);
+    insights.push(t('insFast').replace('{v}', formatNumber(velocity)));
   }
 
-  const insightsText = insights.length > 0 ? insights.join(' &nbsp;·&nbsp; ') : 'Dados carregados com sucesso. Explore os filtros para análises detalhadas.';
+  const insightsText = insights.length > 0 ? insights.join(' &nbsp;·&nbsp; ') : t('insNone');
   document.getElementById('insightsText').innerHTML = insightsText;
 }
 
@@ -1040,7 +1134,7 @@ function renderVolumeChart() {
       axisPointer: { type: 'shadow' },
       formatter: (params) => {
         const p = params[0];
-        return `<b>${p.name}</b><br>Entradas: <b>${formatNumber(p.value)}</b><br>Participação: <b>${p.data.percent}%</b>`;
+        return `<b>${p.name}</b><br>${t('tipInflows')}: <b>${formatNumber(p.value)}</b><br>${t('tipShare')}: <b>${p.data.percent}%</b>`;
       }
     }
   });
@@ -1072,7 +1166,7 @@ function renderTempoChart() {
   if (sortedStages.length === 0) {
     chart.setOption({
       title: {
-        text: 'Sem dados de tempo disponíveis',
+        text: t('noTimeData'),
         left: 'center',
         top: 'center',
         textStyle: { color: '#8a8a94', fontSize: 14, fontWeight: 'normal' }
@@ -1121,7 +1215,7 @@ function renderTempoChart() {
         silent: true,
         symbol: 'none',
         lineStyle: { color: '#8a8a94', type: 'dashed', width: 1.5 },
-        data: [{ yAxis: avgOverall, label: { formatter: 'Média', color: '#8a8a94', fontSize: 10 } }]
+        data: [{ yAxis: avgOverall, label: { formatter: t('tipAvgLine'), color: '#8a8a94', fontSize: 10 } }]
       },
       animationDuration: 700
     }],
@@ -1131,9 +1225,9 @@ function renderTempoChart() {
       formatter: (params) => {
         const p = params[0];
         const status = p.data.isBottleneck
-          ? '<br><span style="color:#f87171">Gargalo: maior tempo médio do funil</span>'
+          ? `<br><span style="color:#f87171">${t('tipBottleneck')}</span>`
           : '';
-        return `<b>${p.name}</b><br>Tempo médio: <b>${formatTime(p.value)}</b>${status}`;
+        return `<b>${p.name}</b><br>${t('tipAvgTime')}: <b>${formatTime(p.value)}</b>${status}`;
       }
     }
   });
@@ -1221,8 +1315,8 @@ function renderSankeyChart() {
   if (nodes.length === 0 || links.length === 0) {
     chart.setOption({
       title: {
-        text: 'Aguardando dados de transição...',
-        subtext: 'Carregue um CSV com from_stage_label para ver o fluxo',
+        text: t('sankeyWaitT'),
+        subtext: t('sankeyWaitS'),
         left: 'center',
         top: 'center',
         textStyle: { color: '#a1a1aa', fontSize: 14, fontWeight: 'normal' },
@@ -1258,7 +1352,7 @@ function renderSankeyChart() {
       trigger: 'item',
       formatter: (params) => {
         if (params.dataType === 'edge') {
-          return `<b>${params.data.source}</b> → <b>${params.data.target}</b><br>Movimentações: ${formatNumber(params.data.value)}`;
+          return `<b>${params.data.source}</b> → <b>${params.data.target}</b><br>${t('tipMoves')}: ${formatNumber(params.data.value)}`;
         }
         return `<b>${params.name}</b>`;
       }
@@ -1352,7 +1446,7 @@ function renderTemporalChart() {
         fontSize: 10,
         formatter: (value) => {
           const [y, m, d] = value.split('-');
-          return `${d}/${m}`;
+          return LANG() === 'pt' ? `${d}/${m}` : `${m}/${d}`;
         }
       }
     },
@@ -1368,11 +1462,10 @@ function renderTemporalChart() {
       axisPointer: { type: temporalMode === 'saldo' ? 'line' : 'shadow' },
       formatter: (params) => {
         const date = params[0].axisValue;
-        const [y, m, d] = date.split('-');
         const total = params.reduce((sum, p) => sum + (typeof p.value === 'number' ? p.value : 0), 0);
 
-        let tooltip = `<b>${d}/${m}/${y}</b><br>`;
-        tooltip += `${temporalMode === 'saldo' ? 'Saldo total' : 'Entradas'}: <b>${formatNumber(total)}</b><br>`;
+        let tooltip = `<b>${formatDateLoc(date)}</b><br>`;
+        tooltip += `${temporalMode === 'saldo' ? t('tipBalanceTotal') : t('tipInflows')}: <b>${formatNumber(total)}</b><br>`;
 
         params.filter(p => p.value > 0).forEach(param => {
           const percent = total > 0 ? ((param.value / total) * 100).toFixed(0) : 0;
@@ -1424,7 +1517,7 @@ function renderPerformanceChart() {
       axisLabel: { formatter: '{value}%' }
     },
     series: [{
-      name: 'Taxa de retenção',
+      name: t('serRetention'),
       type: 'bar',
       barWidth: '55%',
       itemStyle: { color: '#2563eb', borderRadius: [3, 3, 0, 0] },
@@ -1439,9 +1532,9 @@ function renderPerformanceChart() {
         const stage = stages[idx];
         const data = stagePerformance[stage];
         return `<b>${stageLabel(stage)}</b><br>` +
-          `Retenção: <b>${retentionData[idx].toFixed(1)}%</b><br>` +
-          `Entradas: ${formatNumber(data.entered)}<br>` +
-          `Saídas: ${formatNumber(data.exited)}`;
+          `${t('tipRetention')}: <b>${formatNumber(retentionData[idx])}%</b><br>` +
+          `${t('tipInflows')}: ${formatNumber(data.entered)}<br>` +
+          `${t('tipOutflows')}: ${formatNumber(data.exited)}`;
       }
     }
   });
@@ -1522,7 +1615,7 @@ function renderDistribuicaoChart() {
         const percent = totalRecords > 0 ? ((total / totalRecords) * 100).toFixed(1) : 0;
 
         let tooltip = `<b>${range.label}</b><br>`;
-        tooltip += `Total: <b>${formatNumber(total)}</b> (${percent}%)<br><br>`;
+        tooltip += `${t('tipTotal')}: <b>${formatNumber(total)}</b> (${percent}%)<br><br>`;
 
         params.filter(p => p.value > 0).forEach(param => {
           const stagePercent = total > 0 ? ((param.value / total) * 100).toFixed(0) : 0;
@@ -1575,7 +1668,7 @@ function renderRankingChart() {
     legend: { top: 0 },
     series: [
       {
-        name: 'Entradas',
+        name: t('serInflows'),
         type: 'bar',
         stack: 'total',
         barWidth: '55%',
@@ -1584,7 +1677,7 @@ function renderRankingChart() {
         animationDuration: 700
       },
       {
-        name: 'Saídas',
+        name: t('serOutflows'),
         type: 'bar',
         stack: 'total',
         barWidth: '55%',
@@ -1601,9 +1694,9 @@ function renderRankingChart() {
         const data = stageActivity[stage];
         const rank = sortedStages.indexOf(stage) + 1;
         let tooltip = `<b>#${rank} ${stage}</b><br>`;
-        tooltip += `<span style="color:#2563eb">●</span> Entradas: ${formatNumber(data.entered)}<br>`;
-        tooltip += `<span style="color:#d95926">●</span> Saídas: ${formatNumber(data.exited)}<br>`;
-        tooltip += `Total: <b>${formatNumber(data.total)}</b>`;
+        tooltip += `<span style="color:#2563eb">●</span> ${t('tipInflows')}: ${formatNumber(data.entered)}<br>`;
+        tooltip += `<span style="color:#d95926">●</span> ${t('tipOutflows')}: ${formatNumber(data.exited)}<br>`;
+        tooltip += `${t('tipTotal')}: <b>${formatNumber(data.total)}</b>`;
         return tooltip;
       }
     }
@@ -1638,7 +1731,7 @@ function renderEntriesExitsTable() {
     tbody.innerHTML = `
       <tr>
         <td colspan="5" style="text-align: center; color: var(--muted); padding: 20px;">
-          Carregue dados para visualizar
+          ${escHtml(t('emptyTable'))}
         </td>
       </tr>
     `;
@@ -1653,10 +1746,10 @@ function renderEntriesExitsTable() {
 
     if (data.entered > 0) {
       if (data.exited === 0) {
-        retentionDisplay = '<span style="color: var(--ink-4); font-style: italic;">Em andamento</span>';
+        retentionDisplay = `<span style="color: var(--ink-4); font-style: italic;">${escHtml(t('inProgress'))}</span>`;
       } else {
         const retentionRate = (100 - ((data.exited / data.entered) * 100));
-        retentionDisplay = `${retentionRate.toFixed(1)}%`;
+        retentionDisplay = `${formatNumber(retentionRate)}%`;
         retentionClass = retentionRate >= 80 ? 'positive' : retentionRate >= 50 ? '' : 'negative';
       }
     }
@@ -1683,6 +1776,126 @@ function renderEntriesExitsTable() {
     `;
   }).join('');
 }
+
+/* ==========================================================================
+   Language switch (hub mechanism): EN is the default (static HTML);
+   PT swaps in from the dict below. Stage names are data values: untouched.
+   ========================================================================== */
+(function () {
+  const PT_DOM = {
+    hdrDesc: 'pipeline social selling · Base → Ativação → Condução → Conexão → Conversão → SDR',
+    fbPeriod: 'período',
+    optAllData: 'Todos os dados',
+    opt7: '7 dias', opt15: '15 dias', opt30: '30 dias', opt60: '60 dias', opt90: '90 dias',
+    fbStage: 'etapa',
+    fromWord: 'de', toWord: 'até',
+    recWord: 'registros ·', udWord: 'deals únicos',
+    execK: '<b>//</b> resumo executivo',
+    execQ: 'Onde os leads avançam e onde travam ao longo das etapas do funil, e qual estágio concentra a maior perda.',
+    loadingTxt: 'Carregando dados...',
+    insTitle: 'Insights do funil',
+    insDefault: 'Carregue dados para gerar insights automáticos...',
+    csH: 'Estado atual · deals por etapa',
+    csTip: 'Quantidade atual de deals em cada stage (saldo acumulado mais recente)',
+    csSub: 'Distribuição atual de deals em cada etapa do funil.',
+    csFoot: 'Snapshot atual do funil: distribuição de deals por etapa',
+    tmpH: 'Evolução temporal · saldo e entradas',
+    tmpTip: 'Saldo acumulado de deals por stage ao longo do tempo, ou entradas diárias empilhadas por stage. Use o zoom para investigar períodos.',
+    tglSaldoBtn: 'Saldo acumulado',
+    tglEntradasBtn: 'Entradas por dia',
+    tmpSub: 'Como o estoque de cada etapa evolui, e quanto entra por dia em cada uma.',
+    tmpFoot: 'Evolução do estoque e do fluxo diário de deals por etapa',
+    tblH: 'Entradas e saídas · por etapa',
+    tblTip: 'Resumo detalhado de movimentação: quantos entraram e saíram de cada stage',
+    tblSub: 'Fluxo de entradas e saídas de deals em cada etapa no período.',
+    thIn: 'Entradas', thOut: 'Saídas', thBal: 'Saldo', thRet: 'Taxa Retenção',
+    emptyTable: 'Carregue dados para visualizar',
+    tblFoot: 'Análise quantitativa da movimentação entre etapas',
+    volH: 'Volume de entradas · por etapa',
+    volTip: 'Quantidade de deals que entraram em cada stage no período selecionado',
+    volSub: 'Quantos deals entraram em cada etapa, na ordem do funil.',
+    volFoot: 'Total de entradas por etapa: visão de volume e distribuição',
+    tpoH: 'Tempo médio · permanência por etapa',
+    tpoTip: 'Tempo médio que deals ficam em cada stage antes de avançar ou sair. A barra destacada é o gargalo do funil.',
+    tpoSub: 'Permanência média dos deals em cada etapa, com o gargalo destacado.',
+    tpoFoot: 'Análise de velocidade: identificação de gargalos no funil',
+    retH: 'Retenção · % que permanece por etapa',
+    retTip: 'Percentual de deals que entraram no stage e ainda não saíram. O volume de entradas aparece no tooltip.',
+    retSub: 'Taxa de retenção por etapa: onde o funil segura e onde perde.',
+    retFoot: 'Eficiência de cada etapa: onde há mais perdas e oportunidades',
+    snkH: 'Fluxo entre etapas · diagrama de conversão',
+    snkTip: 'Visualização do fluxo de deals entre stages: a largura representa o volume',
+    snkSub: 'Passagem de deals de uma etapa para a etapa seguinte.',
+    snkFoot: 'Diagrama de Sankey mostrando perdas e avanços no funil',
+    dstH: 'Distribuição de tempo · por faixa',
+    dstTip: 'Distribuição do tempo de permanência por faixa, empilhada por stage',
+    dstSub: 'Dispersão do tempo de permanência dos deals por etapa.',
+    dstFoot: 'Variabilidade no tempo: outliers e padrões de comportamento',
+    rnkH: 'Ranking de movimentação · entradas e saídas',
+    rnkTip: 'Comparação de stages por volume total (entradas + saídas) no período',
+    rnkSub: 'Etapas ordenadas pelo volume total de deals no período.',
+    rnkFoot: 'Identificação das etapas mais ativas do funil'
+  };
+  const META = {
+    en: { title: 'Stage Monitoring | Felippe Yann', desc: 'BI dashboard for monitoring social selling pipeline stages' },
+    pt: { title: 'Stage Monitoring | Felippe Yann', desc: 'Dashboard BI para monitoramento de etapas do pipeline de social selling' }
+  };
+  const EN_DOM = {}; const ATTRS = ['title', 'aria'];
+  document.querySelectorAll('[data-i18n]').forEach(el => { EN_DOM[el.getAttribute('data-i18n')] = el.innerHTML; });
+  ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(el => {
+    const real = a === 'aria' ? 'aria-label' : a;
+    el.setAttribute('data-en-' + a, el.getAttribute(real) || '');
+  }));
+
+  window.applyLang = function (lang) {
+    lang = lang === 'pt' ? 'pt' : 'en';
+    try { localStorage.setItem('lang', lang); } catch (e) {}
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const v = (lang === 'pt' ? PT_DOM : EN_DOM)[el.getAttribute('data-i18n')];
+      if (v != null) el.innerHTML = v;
+    });
+    ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(el => {
+      const real = a === 'aria' ? 'aria-label' : a;
+      el.setAttribute(real, el.getAttribute('data-' + (lang === 'pt' ? 'pt' : 'en') + '-' + a));
+    }));
+    document.documentElement.setAttribute('lang', lang === 'pt' ? 'pt-BR' : 'en');
+    document.title = META[lang].title;
+    const md = document.querySelector('meta[name="description"]');
+    if (md) md.setAttribute('content', META[lang].desc);
+    document.querySelectorAll('[data-lang-btn]').forEach(b => {
+      const on = b.getAttribute('data-lang-btn') === lang;
+      b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
+    });
+
+    // JS-built select placeholders (survive updateFilters rebuilds)
+    const os1 = document.querySelector('#filterStage option[value="all"]');
+    if (os1) os1.textContent = t('optAllStages');
+    const os2 = document.querySelector('#filterFromStage option[value="all"]');
+    if (os2) os2.textContent = t('optAnyOrigin');
+
+    // period indicator dates in the active locale
+    ['periodStart', 'periodEnd'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.dataset.iso) el.textContent = formatDateLoc(el.dataset.iso);
+    });
+
+    // bilingual blocks handle themselves
+    if (window.DK && typeof DK.relabel === 'function') DK.relabel();
+    if (typeof window.__onbCtaRebuild === 'function') window.__onbCtaRebuild();
+
+    // re-render chips, KPIs, insights and every chart in the new language
+    if (allRecords.length > 0 || dailyData.length > 0 || filteredData.length > 0) {
+      applyFilters();
+    }
+  };
+
+  let savedLang = 'en';
+  try { savedLang = localStorage.getItem('lang') || 'en'; } catch (e) {}
+  applyLang(savedLang === 'pt' ? 'pt' : 'en');
+  document.querySelectorAll('[data-lang-btn]').forEach(b =>
+    b.addEventListener('click', () => applyLang(b.getAttribute('data-lang-btn'))));
+})();
 </script>
 
 
@@ -1736,6 +1949,48 @@ function renderEntriesExitsTable() {
   var CFG = null;
   var els = {};
   var mode = 'empty'; // 'empty' | 'demo' | 'user'
+  var lastUserFile = null;
+
+  /* ---------- idioma (ingles default; 'pt' via localStorage 'lang') ---------- */
+  function dkLang() { var l = 'en'; try { l = localStorage.getItem('lang') || 'en'; } catch (e) {} return l === 'pt' ? 'pt' : 'en'; }
+  var DK_STR = {
+    en: {
+      kicker: '[ <b>data</b> ]',
+      fill: 'Auto-fill with sample data',
+      upload: 'Upload CSV', uploads: 'Upload CSVs',
+      help: 'How to build the CSV',
+      panelTitle: 'How to use your data',
+      panelIntro: 'This dashboard is fed by a CSV exported from your CRM or source spreadsheet. Parsing happens 100% in the browser: no file ever leaves your machine. Download the template below, replace the sample rows with your data and upload it back. Columns marked with <span class="dk-req">*</span> are required; the rest can be empty.',
+      thCol: 'column', thType: 'type', thWhat: 'what it is', thEx: 'example',
+      tplBtn: 'Download CSV template', upThis: 'Upload this file',
+      panelFoot: 'Just browsing? The <b style="color:#f8f7f3">Auto-fill</b> button generates a synthetic dataset that follows this exact contract and renders every chart instantly.',
+      stDemo: '<b>sample data</b>', stUser: '<b>your data</b>',
+      stNone: 'no data loaded', stFail: 'failed to generate sample data',
+      badge: '<b>sample data</b> &middot; upload your CSV to use yours'
+    },
+    pt: {
+      kicker: '[ <b>dados</b> ]',
+      fill: 'Preencher automaticamente',
+      upload: 'Enviar CSV', uploads: 'Enviar CSVs',
+      help: 'Como montar o CSV',
+      panelTitle: 'Como usar seus dados',
+      panelIntro: 'Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.',
+      thCol: 'coluna', thType: 'tipo', thWhat: 'o que e', thEx: 'exemplo',
+      tplBtn: 'Baixar template CSV', upThis: 'Enviar este arquivo',
+      panelFoot: 'Prefere so olhar? O botao <b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que respeita exatamente esse contrato e renderiza todos os graficos na hora.',
+      stDemo: '<b>dados de exemplo</b>', stUser: '<b>seus dados</b>',
+      stNone: 'sem dados carregados', stFail: 'falha ao gerar dados de exemplo',
+      badge: '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus'
+    }
+  };
+  function S(k) { var d = DK_STR[dkLang()]; return (d && d[k]) || DK_STR.en[k] || k; }
+  function pickCfg(base, enVal) { return dkLang() === 'pt' ? base : (enVal || base); }
+  function summaryText() {
+    try {
+      if (dkLang() === 'en' && CFG && CFG.summary_en) return CFG.summary_en();
+      return CFG && CFG.summary ? CFG.summary() : '';
+    } catch (e) { return ''; }
+  }
 
   /* ---------- utilitarios ---------- */
 
@@ -1867,35 +2122,30 @@ function renderEntriesExitsTable() {
 
   function panelHTML() {
     var out = '<div class="dk-pin">';
-    out += '<h2 class="dk-h">Como usar seus dados</h2>';
-    out += '<p class="dk-p">Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. '
-        + 'O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. '
-        + 'Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. '
-        + 'Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.</p>';
+    out += '<h2 class="dk-h">' + S('panelTitle') + '</h2>';
+    out += '<p class="dk-p">' + S('panelIntro') + '</p>';
 
     CFG.files.forEach(function (f, i) {
       var s = sampleOf(f)[0] || {};
       out += '<div class="dk-file">';
       out += '<div class="dk-fh"><span class="dk-fn">' + esc(f.name) + '</span><span class="dk-fa">';
-      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">Baixar template CSV</button>';
-      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">Enviar este arquivo</button>';
+      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">' + S('tplBtn') + '</button>';
+      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">' + S('upThis') + '</button>';
       out += '</span></div>';
-      out += '<p class="dk-fd">' + esc(f.desc) + '</p>';
+      out += '<p class="dk-fd">' + esc(pickCfg(f.desc, f.desc_en)) + '</p>';
       out += '<div class="dk-scroll"><table class="dk-t"><thead><tr>'
-          + '<th>coluna</th><th>tipo</th><th>o que e</th><th>exemplo</th>'
+          + '<th>' + S('thCol') + '</th><th>' + S('thType') + '</th><th>' + S('thWhat') + '</th><th>' + S('thEx') + '</th>'
           + '</tr></thead><tbody>';
       f.cols.forEach(function (c) {
         out += '<tr><td class="c">' + esc(c.n) + (c.req ? '<span class="dk-req">*</span>' : '') + '</td>'
-            + '<td class="t">' + esc(c.t) + '</td>'
-            + '<td>' + esc(c.d) + '</td>'
+            + '<td class="t">' + esc(pickCfg(c.t, c.t_en)) + '</td>'
+            + '<td>' + esc(pickCfg(c.d, c.d_en)) + '</td>'
             + '<td class="x">' + esc(s[c.n]) + '</td></tr>';
       });
       out += '</tbody></table></div></div>';
     });
 
-    out += '<p class="dk-p" style="margin:2px 0 0">Prefere so olhar? O botao '
-        + '<b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que '
-        + 'respeita exatamente esse contrato e renderiza todos os graficos na hora.</p>';
+    out += '<p class="dk-p" style="margin:2px 0 0">' + S('panelFoot') + '</p>';
     out += '</div>';
     return out;
   }
@@ -1907,14 +2157,14 @@ function renderEntriesExitsTable() {
     bar.setAttribute('aria-label', 'Dados do dashboard');
 
     var many = CFG.files.filter(function (f) { return !!f.input; }).length > 1;
-    var upLabel = many ? 'Enviar CSVs' : 'Enviar CSV';
+    var upLabel = many ? S('uploads') : S('upload');
     var hasInput = CFG.files.some(function (f) { return !!f.input; });
 
     var inner = '<div class="dk-in">'
-      + '<span class="dk-k">[ <b>dados</b> ]</span>'
-      + '<button type="button" class="dk-btn p" data-dk="fill">Preencher automaticamente</button>'
+      + '<span class="dk-k">' + S('kicker') + '</span>'
+      + '<button type="button" class="dk-btn p" data-dk="fill">' + S('fill') + '</button>'
       + (hasInput ? '<button type="button" class="dk-btn" data-dk="upload">' + upLabel + '</button>' : '')
-      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">Como montar o CSV &#9656;</button>'
+      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">' + S('help') + ' &#9656;</button>'
       + '<span class="dk-sep"></span>'
       + '<span class="dk-st" data-dk="status"></span>'
       + '</div>'
@@ -1945,7 +2195,7 @@ function renderEntriesExitsTable() {
 
     var badge = document.createElement('div');
     badge.className = 'dk-badge';
-    badge.innerHTML = '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus';
+    badge.innerHTML = S('badge');
     els.badge = badge;
 
     document.body.insertBefore(bar, document.body.firstChild);
@@ -2004,7 +2254,7 @@ function renderEntriesExitsTable() {
     var open = (force === undefined) ? !els.panel.classList.contains('open') : !!force;
     els.panel.classList.toggle('open', open);
     els.help.setAttribute('aria-expanded', String(open));
-    els.help.innerHTML = 'Como montar o CSV ' + (open ? '&#9662;' : '&#9656;');
+    els.help.innerHTML = S('help') + ' ' + (open ? '&#9662;' : '&#9656;');
     reflow();
     if (typeof CFG.onResize === 'function') CFG.onResize();
   }
@@ -2046,7 +2296,7 @@ function renderEntriesExitsTable() {
           // espera o dashboard terminar de montar antes do primeiro preenchimento
           waitReady(0);
         } else {
-          setStatus('sem dados carregados');
+          setStatus(S('stNone'));
         }
       };
       if (document.readyState === 'loading') {
@@ -2059,18 +2309,32 @@ function renderEntriesExitsTable() {
         CFG.fill();
         mode = 'demo';
         if (els.badge) els.badge.style.display = '';
-        setStatus('<b>dados de exemplo</b> &middot; ' + (CFG.summary ? CFG.summary() : 'base sintetica'));
+        setStatus(S('stDemo') + ' &middot; ' + summaryText());
       } catch (e) {
         console.error('[DK] falha ao preencher:', e);
-        setStatus('falha ao gerar dados de exemplo');
+        setStatus(S('stFail'));
       }
     },
 
     markUserData: function (name) {
       mode = 'user';
+      lastUserFile = name || null;
       if (els.badge) els.badge.style.display = 'none';
-      setStatus('<b>seus dados</b> &middot; ' + esc(name || 'CSV enviado'));
+      setStatus(S('stUser') + ' &middot; ' + esc(name || 'CSV'));
       toggleHelp(false);
+    },
+
+    relabel: function () {
+      if (!els.bar) return;
+      var open = els.panel && els.panel.classList.contains('open');
+      if (els.bar.parentNode) els.bar.parentNode.removeChild(els.bar);
+      if (els.badge && els.badge.parentNode) els.badge.parentNode.removeChild(els.badge);
+      lastH = -1;
+      build();
+      if (open) toggleHelp(true);
+      if (mode === 'demo') { if (els.badge) els.badge.style.display = ''; setStatus(S('stDemo') + ' &middot; ' + summaryText()); }
+      else if (mode === 'user') { if (els.badge) els.badge.style.display = 'none'; setStatus(S('stUser') + ' &middot; ' + esc(lastUserFile || 'CSV')); }
+      else setStatus(S('stNone'));
     },
 
     mode: function () { return mode; }
@@ -2157,13 +2421,15 @@ function renderEntriesExitsTable() {
       input: '#fileUpload',
       desc: 'Historico de movimentacao do pipeline. Uma linha por entrada de deal em um stage. '
           + 'O Sankey de fluxo usa from_stage_label -> stage_label; o grafico de gargalos usa time_in_stage.',
+      desc_en: 'Pipeline movement history. One row per deal entering a stage. '
+          + 'The flow Sankey uses from_stage_label -> stage_label; the bottleneck chart uses time_in_stage.',
       cols: [
-        { n: 'deal_id', t: 'texto', d: 'Identificador do negocio que se moveu.', req: 1 },
-        { n: 'stage_label', t: 'texto', d: 'Stage em que o deal entrou.', req: 1 },
-        { n: 'stage_order', t: 'inteiro', d: 'Posicao do stage no funil (1 = topo). Define a ordem dos eixos.', req: 1 },
-        { n: 'entered_day_sp', t: 'data AAAA-MM-DD', d: 'Dia da entrada no stage (fuso de Sao Paulo).', req: 1 },
-        { n: 'from_stage_label', t: 'texto', d: 'Stage de origem. Vazio quando o deal entrou direto no funil.' },
-        { n: 'time_in_stage', t: 'intervalo', d: 'Tempo que o deal ficou nesse stage, no formato "2 days 5 hours" ou "18 hours".' }
+        { n: 'deal_id', t: 'texto', t_en: 'text', d: 'Identificador do negocio que se moveu.', d_en: 'Identifier of the deal that moved.', req: 1 },
+        { n: 'stage_label', t: 'texto', t_en: 'text', d: 'Stage em que o deal entrou.', d_en: 'Stage the deal entered.', req: 1 },
+        { n: 'stage_order', t: 'inteiro', t_en: 'integer', d: 'Posicao do stage no funil (1 = topo). Define a ordem dos eixos.', d_en: 'Stage position in the funnel (1 = top). Sets the axis order.', req: 1 },
+        { n: 'entered_day_sp', t: 'data AAAA-MM-DD', t_en: 'date YYYY-MM-DD', d: 'Dia da entrada no stage (fuso de Sao Paulo).', d_en: 'Day the deal entered the stage (Sao Paulo timezone).', req: 1 },
+        { n: 'from_stage_label', t: 'texto', t_en: 'text', d: 'Stage de origem. Vazio quando o deal entrou direto no funil.', d_en: 'Origin stage. Empty when the deal entered the funnel directly.' },
+        { n: 'time_in_stage', t: 'intervalo', t_en: 'interval', d: 'Tempo que o deal ficou nesse stage, no formato "2 days 5 hours" ou "18 hours".', d_en: 'Time the deal spent in this stage, in the format "2 days 5 hours" or "18 hours".' }
       ],
       sample: function () { return GEN(); }
     }],
@@ -2176,7 +2442,8 @@ function renderEntriesExitsTable() {
       var li = document.getElementById('loadingIndicator');
       if (li) li.classList.remove('show');
     },
-    summary: function () { return LAST.toLocaleString('pt-BR') + ' movimentacoes'; }
+    summary: function () { return LAST.toLocaleString('pt-BR') + ' movimentacoes'; },
+    summary_en: function () { return LAST.toLocaleString('en-US') + ' movements'; }
   });
 })();
 </script>
@@ -2204,6 +2471,28 @@ function renderEntriesExitsTable() {
 </style>
 <script id="onb-cta">
 (function(){
+  function oLang(){ var l='en'; try{ l=localStorage.getItem('lang')||'en'; }catch(e){} return l==='pt'?'pt':'en'; }
+  var OT={
+    en:{ h:'How to read this panel',
+      s1:'<li><b>Executive summary</b>: the essentials of the period are right at the top.</li>',
+      s2:'<li><b>Filters</b>: slice by period and segment to investigate.</li>',
+      s3:'<li><b>Panels</b>: each one has a subtitle saying what it shows; hover the info icons for details.</li>',
+      k:'// sales analytics',
+      ch:'Sample dashboards from a RevOps analytics system built by Felippe Yann.',
+      cs:'Want this kind of visibility over your sales operation?',
+      b1:'See all dashboards', b2:'View portfolio', b3:'Chat on LinkedIn',
+      mail:'Prefer email? ' },
+    pt:{ h:'Como ler este painel',
+      s1:'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>',
+      s2:'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>',
+      s3:'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>',
+      k:'// analytics comercial',
+      ch:'Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.',
+      cs:'Quer visibilidade assim no seu comercial?',
+      b1:'Ver todos os dashboards', b2:'Ver portf\u00f3lio', b3:'Falar no LinkedIn',
+      mail:'Prefere conversar por e-mail? ' }
+  };
+  function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
     try{
@@ -2211,11 +2500,9 @@ function renderEntriesExitsTable() {
         var onb=document.createElement('div');
         onb.className='onb-card';
         onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">Como ler este painel</div>'
+          +'<div class="onb-h">'+OS('h')+'</div>'
           +'<ol class="onb-steps">'
-          +'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>'
-          +'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>'
-          +'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>'
+          +OS('s1')+OS('s2')+OS('s3')
           +'</ol>';
         band.parentNode.insertBefore(onb, band.nextSibling);
         onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
@@ -2224,18 +2511,22 @@ function renderEntriesExitsTable() {
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
-      cta.innerHTML='<div class="cta-txt"><div class="cta-k">// analytics comercial</div>'
-        +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
-        +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
+      cta.innerHTML='<div class="cta-txt"><div class="cta-k">'+OS('k')+'</div>'
+        +'<div class="cta-h">'+OS('ch')+'</div>'
+        +'<div class="cta-s">'+OS('cs')+'</div></div>'
         +'<div class="cta-actions">'
-        +'<a class="cta-btn primary" href="index.html">Ver todos os dashboards</a>'
-        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
-        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
+        +'<a class="cta-btn primary" href="index.html">'+OS('b1')+'</a>'
+        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">'+OS('b2')+'</a>'
+        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">'+OS('b3')+'</a>'
         +'</div>';
       (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
-      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML='Prefere conversar por e-mail? <a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
+      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML=OS('mail')+'<a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
     }
   }
+  window.__onbCtaRebuild=function(){
+    ['.onb-card','.cta-band','.cta-mail'].forEach(function(sel){ var e=document.querySelector(sel); if(e&&e.parentNode) e.parentNode.removeChild(e); });
+    build();
+  };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
 })();
 </script>
