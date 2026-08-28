@@ -2281,18 +2281,7 @@ var I18N={
     fbHighValue:'high-value leads', fbMarket:'market', fbOverall:'overall',
     sugNoData:'Not enough data to generate suggestions. Process a valid CSV file first.',
     minimize:'Minimize', maximize:'Maximize',
-    tipAI:'Analyze with AI', tipPNG:'Download PNG', tipCSV:'Export CSV', tipTbl:'Table / insights',
-    analyzing:'Analyzing...',
-    gNotReady:'This chart\'s data is not ready yet. Process the CSV and wait for the charts to load.',
-    gWorking:'Generating AI analysis...', gNoContent:'No content returned.', gErr:'An error occurred during the analysis. Check the console.',
-    gKeyPrompt:'Demo: to try the AI analysis, paste your Gemini API key (create one for free at aistudio.google.com/apikey).\n\nIt stays in your browser only and goes straight to Google, never through this site.',
-    gCanceled:'AI analysis canceled. Paste a Gemini API key to try it (it stays in your browser only).',
-    gApiErr:'API error: ', gNoResp:'No response from the API.',
-    gNetFail:'Failed to reach the Gemini API. Check the console and your network connection for details.',
-    gPromptHead:['You are a senior MarTech and Sales analyst. Produce a clear, direct and actionable analysis.','Structure it as: {name of the analyzed visualization} • Brief summary of the analyzed data • Insight(s) • Diagnosis • Immediate recommendations (high priority) • Risks/warnings.','Business context: selected bookings (current dashboard selection).'],
-    gPromptViz:'Analyzed visualization: ', gPromptModel:'Model: ', gPromptData:'Summarized data (JSON):',
-    gSugWorking:'Generating research suggestions to dig into the findings...',
-    gSugPrompt:['List 8-12 research/action ideas to accelerate wins and reduce friction in today\'s bookings.','Prioritize high impact and low execution cost. Each idea must include: goal, how to execute in 3 steps and a success metric.','Base it on the data below.'],
+    tipPNG:'Download PNG', tipCSV:'Export CSV', tipTbl:'Table / insights',
     pngNoChart:'Chart not found: ', pngNoInst:'ECharts instance not available yet.', pngFail:'Failed to generate the PNG. See the console.',
     csvNoData:'There is no structured data for this chart.', csvFail:'Failed to export the CSV. See the console.',
     csvCat:'category', csvVal:'value', csvKey:'key',
@@ -2324,18 +2313,7 @@ var I18N={
     fbHighValue:'leads de alto valor', fbMarket:'mercado', fbOverall:'geral',
     sugNoData:'Dados insuficientes para gerar sugestões. Processe um arquivo CSV válido primeiro.',
     minimize:'Minimizar', maximize:'Maximizar',
-    tipAI:'Analisar com IA', tipPNG:'Baixar PNG', tipCSV:'Exportar CSV', tipTbl:'Tabela / insights',
-    analyzing:'Analisando...',
-    gNotReady:'Dados deste gráfico ainda não estão prontos. Processe o CSV e aguarde o carregamento dos gráficos.',
-    gWorking:'Gerando análise com IA...', gNoContent:'Sem conteúdo retornado.', gErr:'Ocorreu um erro durante a análise. Verifique o console.',
-    gKeyPrompt:'Demonstração: para testar a análise com IA, cole a sua chave da API Gemini (crie uma grátis em aistudio.google.com/apikey).\n\nEla fica só no seu navegador e vai direto para o Google, nunca passa por este site.',
-    gCanceled:'Análise com IA cancelada. Cole uma chave da API Gemini para testar (ela fica só no seu navegador).',
-    gApiErr:'Erro na API: ', gNoResp:'Sem resposta da API.',
-    gNetFail:'Falha na comunicação com a API Gemini. Verifique o console e sua conexão de rede para detalhes.',
-    gPromptHead:['Você é um analista sênior de MarTech e Vendas. Gere uma análise clara, direta e acionável.','Estruture em: {nome do visualizador analisado} • Breve resumo dos dados analisados • Insight(s) • Diagnóstico • Recomendações imediatas (prioridade alta) • Riscos/atenções.','Contexto de negócio: agendamentos selecionados (seleção atual do dashboard).'],
-    gPromptViz:'Visualização analisada: ', gPromptModel:'Modelo: ', gPromptData:'Dados sintetizados (JSON):',
-    gSugWorking:'Gerando sugestões de pesquisa para aprofundar os achados...',
-    gSugPrompt:['Liste 8-12 ideias de pesquisas/ações para acelerar ganhos e reduzir atritos nos agendamentos do dia.','Priorize impacto alto e custo baixo de execução. Cada ideia deve vir com: objetivo, como executar em 3 passos e métrica de sucesso.','Baseie-se nos dados abaixo.'],
+    tipPNG:'Baixar PNG', tipCSV:'Exportar CSV', tipTbl:'Tabela / insights',
     pngNoChart:'Gráfico não encontrado: ', pngNoInst:'Instância ECharts não disponível ainda.', pngFail:'Falha ao gerar o PNG. Veja o console.',
     csvNoData:'Não há dados estruturados para este gráfico.', csvFail:'Falha ao exportar CSV. Veja console.',
     csvCat:'categoria', csvVal:'valor', csvKey:'chave',
@@ -2359,7 +2337,6 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     sugH:'Principais Ações e Pesquisas Sugeridas',
     sugSub:'Clique no botão para gerar uma lista de pesquisas e ações recomendadas com base nos dados carregados.',
     sugBtn:'Gerar sugestões de pesquisa',
-    aiBtn:'Analisar com IA',
     trH:'Evolução no tempo',
     trTip:'Volume semanal quebrado pela dimensão escolhida. Linhas retas com pontos delicados; o pico de cada série é marcado em verde e o vale em vermelho. As áreas sobrepostas revelam o cruzamento.',
     trSub:'Volume semanal pela dimensão escolhida. Linhas retas, pontos delicados e o pico/vale de cada série destacados.',
@@ -2392,7 +2369,6 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     scdTip:'As 5 métricas de cada squad em escalas honestas: volume absoluto e percentuais reais, sem normalização.',
     scdSub:'Volume, qualidade (A+B), conversão, velocidade e e-mail corporativo por squad.',
     ucH:'Colunas utilizadas na análise',
-    gpH:'Resposta Gemini',
     mH:'Metodologia - Análise de Agendamentos',
     m1H:'O que este painel responde',
     m1L:'<li>Onde o topo do funil ganha e perde, da origem ao agendamento: por <strong>squad</strong>, <strong>canal</strong>, <strong>campanha</strong>, <strong>SDR</strong>, <strong>closer</strong>, <strong>score</strong> e <strong>velocidade (TA)</strong>.</li>',
@@ -2434,6 +2410,7 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     if(window.DK && typeof window.DK.relabel==='function'){ try{ window.DK.relabel(); }catch(e){} }
     if(typeof window.__onbCtaRebuild==='function'){ try{ window.__onbCtaRebuild(); }catch(e){} }
     if(typeof window.__rebuildChartActions==='function'){ try{ window.__rebuildChartActions(); }catch(e){} }
+    if(typeof window.__navRelabel==='function'){ try{ window.__navRelabel(); }catch(e){} }
     if(typeof applyAndRender==='function' && Array.isArray(DATA) && DATA.length){ applyAndRender(); }
     if(typeof applyMultiLineHeadingAlignment==='function'){ setTimeout(applyMultiLineHeadingAlignment,60); }
   };
@@ -2478,7 +2455,7 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
 <!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
 <script>
 /* ==========================================================================
-   DATAKIT (DK) — barra de dados compartilhada dos dashboards
+   DATAKIT (DK): barra de dados compartilhada dos dashboards
    --------------------------------------------------------------------------
    Responsabilidades:
      1. Toolbar no topo: "Preencher automaticamente" / "Enviar CSV" /
@@ -2899,7 +2876,7 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
 })();
 </script>
 <script>
-/* DK — 01 Analise de Agendamentos (dados sinteticos) */
+/* DK: 01 Analise de Agendamentos (dados sinteticos) */
 (function () {
   var SDRS = ['Ana Souza', 'Bruno Lima', 'Carla Mendes', 'Diego Castro', 'Elisa Ramos'];
   var CLOSERS = ['Fernanda Costa', 'Gabriel Nunes', 'Helena Dias', 'Igor Aguiar'];
@@ -3212,6 +3189,110 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     b.addEventListener('click',start);
     var steps=card.querySelector('.onb-steps');
     (steps&&steps.parentNode?steps.parentNode:card).appendChild(b);
+  };
+})();
+</script>
+
+<!-- ==== NAV-SHELL: barra lateral de navegação entre os 8 dashboards ====
+     Componente compartilhado e auto-contido (CSS + markup + lógica). Copiar igual nos 8;
+     o item ativo é detectado pelo nome do arquivo na URL. Idioma segue localStorage 'lang'. -->
+<script id="nav-shell">
+(function(){
+  if(window.__navShell) return; window.__navShell=1;
+  var PAGES=[
+    {f:'index.html', en:'All dashboards', pt:'Todos os painéis', ic:'M4 6h16M4 12h16M4 18h16', hub:1},
+    {f:'01_agendamentos.html', en:'Bookings', pt:'Agendamentos', ic:'M8 2v3M16 2v3M3.5 9h17M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v13a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V6A1.5 1.5 0 0 1 5 4.5z'},
+    {f:'02_produtividade_sdr.html', en:'SDR productivity', pt:'Produtividade SDR', ic:'M22 12h-4l-3 9L9 3l-3 9H2'},
+    {f:'03_stage_monitoring.html', en:'Stage monitoring', pt:'Monitor. de etapas', ic:'M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'},
+    {f:'04_leadscoring.html', en:'Lead scoring', pt:'Lead scoring', ic:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'},
+    {f:'05_primeiro_agendamento.html', en:'Time to booking', pt:'Tempo ao agend.', ic:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2'},
+    {f:'06_newsradar.html', en:'NewsRadar', pt:'NewsRadar', ic:'M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16M5 18.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'},
+    {f:'07_segmentacao.html', en:'Segmentation', pt:'Segmentação', ic:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z'},
+    {f:'08_gradiente_metas.html', en:'Goal gradient', pt:'Gradiente de metas', ic:'M4 21V4M4 4c3-2 6 2 9 0s5-2 7 0v9c-2-2-4 2-7 0s-6-2-9 0'}
+  ];
+  var lang=function(){ var l='en'; try{ l=localStorage.getItem('lang')||'en'; }catch(e){} return l==='pt'?'pt':'en'; };
+  var here=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+  var collapsed=false; try{ collapsed=localStorage.getItem('navCollapsed')==='1'; }catch(e){}
+  if(window.innerWidth<820) collapsed=true;
+
+  var CSS=[
+    '.nav-shell{position:fixed;top:0;left:0;bottom:0;width:210px;z-index:9600;',
+    '  background:#0d0d0f;border-right:1px solid var(--line-strong);display:flex;flex-direction:column;',
+    '  font-family:var(--sans);transition:width .18s ease;overflow:hidden}',
+    '.nav-shell.col{width:56px}',
+    'body.has-nav main{overflow-x:clip}',
+    'body.has-nav>main,body.has-nav>.cta-band,body.has-nav>.cta-mail{transition:margin-left .18s ease}',
+    'body.has-nav .dk-bar{left:210px!important;width:auto!important;transition:left .18s ease}',
+    'body.has-nav.nav-col .dk-bar{left:56px!important}',
+    'body.has-nav .dk-badge{left:226px!important;transition:left .18s ease}',
+    'body.has-nav.nav-col .dk-badge{left:72px!important}',
+    '.nav-top{display:flex;align-items:center;gap:8px;height:37px;padding:0 8px 0 12px;border-bottom:1px solid var(--line)}',
+    '.nav-brand{display:flex;align-items:center;gap:9px;color:var(--ink);text-decoration:none;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:-.3px;min-width:0;flex:1;overflow:hidden;white-space:nowrap}',
+    '.nav-brand .p{color:var(--accent)}',
+    '.nav-shell.col .nav-brand-txt{display:none}',
+    '.nav-toggle{background:none;border:0;color:var(--ink-4);cursor:pointer;font-size:14px;line-height:1;padding:6px;border-radius:6px;flex:none}',
+    '.nav-toggle:hover{color:var(--ink);background:var(--card)}',
+    '.nav-shell.col .nav-top{padding:0;justify-content:center}',
+    '.nav-shell.col .nav-brand{flex:none;justify-content:center}',
+    '.nav-shell.col .nav-toggle{display:none}',
+    '.nav-items{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 8px}',
+    '.nav-foot{padding:8px;border-top:1px solid var(--line)}',
+    '.nav-item{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:var(--r-sm);',
+    '  color:var(--ink-3);text-decoration:none;font-size:12.5px;white-space:nowrap;transition:background .12s,color .12s;position:relative}',
+    '.nav-item svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}',
+    '.nav-item:hover{background:var(--card);color:var(--ink)}',
+    '.nav-item.active{background:var(--accent-glow);color:var(--accent-soft)}',
+    '.nav-item.active::before{content:"";position:absolute;left:-8px;top:6px;bottom:6px;width:3px;background:var(--accent);border-radius:0 3px 3px 0}',
+    '.nav-item.hub{color:var(--ink-4);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}',
+    '.nav-shell.col .nav-label{display:none}',
+    '.nav-shell.col .nav-item{justify-content:center;padding:9px 0}',
+    '.nav-shell.col .nav-item.active::before{left:0}',
+    '@media print{.nav-shell{display:none} body.has-nav{padding-left:0}}'
+  ].join('');
+  var st=document.createElement('style'); st.id='nav-shell-css'; st.textContent=CSS; document.head.appendChild(st);
+
+  var esc=function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  function itemHTML(p){
+    var active=(p.f.toLowerCase()===here)?' active':'';
+    var hub=p.hub?' hub':'';
+    return '<a class="nav-item'+active+hub+'" href="'+p.f+'" data-nav="'+esc(p.f)+'" title="'+esc(p[lang()])+'">'
+      +'<svg viewBox="0 0 24 24"><path d="'+p.ic+'"/></svg>'
+      +'<span class="nav-label">'+esc(p[lang()])+'</span></a>';
+  }
+  var aside=document.createElement('aside');
+  aside.className='nav-shell'+(collapsed?' col':'');
+  aside.innerHTML='<div class="nav-top"><a class="nav-brand" href="index.html"><span class="p">&gt;_</span><span class="nav-brand-txt">FELIPPE_YANN</span></a>'
+    +'<button class="nav-toggle" type="button" aria-label="Toggle navigation">&#171;</button></div>'
+    +'<nav class="nav-items">'+PAGES.slice(0,1).map(itemHTML).join('')+PAGES.slice(1).map(itemHTML).join('')+'</nav>';
+  document.body.insertBefore(aside, document.body.firstChild);
+  document.body.classList.add('has-nav');
+
+  // offset dos elementos de topo (via JS inline: mais robusto que regra CSS aqui).
+  // header aceita padding-left; main/cta aceitam margin-left. dk-bar/badge vêm do CSS !important.
+  function applyOffset(){
+    var px=aside.classList.contains('col')?56:210;
+    // o header é full-width (fundo sob a sidebar); desloca-se o conteúdo interno (.wrap)
+    var hw=document.querySelector('header .wrap'); if(hw) hw.style.paddingLeft=(px+16)+'px';
+    ['main','.cta-band','.cta-mail'].forEach(function(sel){ var e=document.querySelector(sel); if(e) e.style.marginLeft=px+'px'; });
+  }
+  if(collapsed){ aside.classList.add('col'); document.body.classList.add('nav-col'); }
+  applyOffset();
+
+  aside.querySelector('.nav-toggle').addEventListener('click', function(){
+    var col=aside.classList.toggle('col'); document.body.classList.toggle('nav-col', col);
+    try{ localStorage.setItem('navCollapsed', col?'1':'0'); }catch(e){}
+    applyOffset();
+    window.dispatchEvent(new Event('resize'));
+  });
+  // a lib onb-cta realoca a CTA depois; reaplica o offset a ela
+  window.__navApplyOffset=applyOffset;
+  // re-traduz os rótulos quando o idioma muda
+  window.__navRelabel=function(){
+    aside.querySelectorAll('.nav-item').forEach(function(a){
+      var p=PAGES.filter(function(x){return x.f===a.getAttribute('data-nav');})[0]; if(!p) return;
+      var lbl=a.querySelector('.nav-label'); if(lbl) lbl.textContent=p[lang()];
+      a.title=p[lang()];
+    });
   };
 })();
 </script>
