@@ -115,7 +115,6 @@
   .grid{display:grid;gap:14px;margin-top:16px;grid-template-columns:1fr}
   .grid > .card{min-width:0}
   @media (min-width:980px){
-    .grid-hero{grid-template-columns:.9fr 1.1fr}
     .grid-two{grid-template-columns:1fr 1fr}
   }
 
@@ -390,13 +389,34 @@
       <div class="exec-insight" id="exec-insight"></div>
     </section>
 
-    <div class="grid grid-hero">
+    <div class="grid">
+      <section id="theme-river" class="card">
+        <div class="card-header">
+          <h2 data-number="01"><span data-i18n="c2t">Theme river</span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt2">Weekly stream of the selection's 6 strongest keywords: the thickness of each band is the number of mentions in that week. Click a band to filter the whole dashboard by that keyword.</span></span>
+          </h2>
+          <div class="panel-sub" data-i18n="sub2">Weekly flow of the period's 6 strongest keywords. Band thickness = mentions. Click a band to apply the filter.</div>
+          <div class="actions">
+            <div style="position:relative">
+              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Actions" data-pt-title="Ações" aria-label="Chart actions" data-pt-aria="Ações do gráfico">⋮</button>
+              <div class="chart-menu">
+                <button onclick="downloadChartPNG('chart_theme_river','rio_de_temas')">Download PNG</button>
+                <button onclick="exportChartDataCSV('chart_theme_river','rio_de_temas')" data-i18n="mExpCsv">Export CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="chart_theme_river" class="chart x-tall"></div>
+      </section>
+    </div>
+
+    <div class="grid grid-two">
       <section id="top-keywords" class="card">
         <div class="card-header">
-          <h2 data-number="01">Top keywords
-            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt1">The 15 keywords with the most mentions in the current selection. Click a bar to filter the whole dashboard by that keyword.</span></span>
+          <h2 data-number="02">Top keywords <small>(treemap)</small>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt1">The 20 keywords with the most mentions in the current selection, sized by mentions; the remaining terms are grouped in the "Other" block. Click a block to filter the whole dashboard by that keyword.</span></span>
           </h2>
-          <div class="panel-sub" data-i18n="sub1">Ranking by mentions. Click a bar to apply the filter.</div>
+          <div class="panel-sub" data-i18n="sub1">Area = mentions. Top 20 keywords plus an aggregated "Other" block. Click a block to apply the filter.</div>
           <div class="actions">
             <div style="position:relative">
               <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Actions" data-pt-title="Ações" aria-label="Chart actions" data-pt-aria="Ações do gráfico">⋮</button>
@@ -407,33 +427,33 @@
             </div>
           </div>
         </div>
-        <div id="chart_top_keywords" class="chart tall"></div>
+        <div id="chart_top_keywords" class="chart x-tall"></div>
       </section>
 
-      <section id="theme-evolution" class="card">
+      <section id="sources" class="card">
         <div class="card-header">
-          <h2 data-number="02"><span data-i18n="c2t">Theme evolution</span>
-            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt2">Weekly mentions of the 5 most recurring keywords in the selection. Click a line to filter by that keyword.</span></span>
+          <h2 data-number="03"><span data-i18n="c4t">Score distribution by source</span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt4">One dot per article (x = editorial score, 0-100) for the 8 highest-volume sources. The orange diamond marks each source's average score. Click any dot or diamond to filter by that source.</span></span>
           </h2>
-          <div class="panel-sub" data-i18n="sub2">Weekly mentions of the period's 5 strongest keywords.</div>
+          <div class="panel-sub" data-i18n="sub4">Top 8 sources by volume. Each dot is one article's score; the orange diamond is the source's average. Click to filter.</div>
           <div class="actions">
             <div style="position:relative">
               <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Actions" data-pt-title="Ações" aria-label="Chart actions" data-pt-aria="Ações do gráfico">⋮</button>
               <div class="chart-menu">
-                <button onclick="downloadChartPNG('chart_theme_evolution','evolucao_temas')">Download PNG</button>
-                <button onclick="exportChartDataCSV('chart_theme_evolution','evolucao_temas')" data-i18n="mExpCsv">Export CSV</button>
+                <button onclick="downloadChartPNG('chart_sources','score_por_fonte')">Download PNG</button>
+                <button onclick="exportChartDataCSV('chart_sources','score_por_fonte')" data-i18n="mExpCsv">Export CSV</button>
               </div>
             </div>
           </div>
         </div>
-        <div id="chart_theme_evolution" class="chart tall"></div>
+        <div id="chart_sources" class="chart x-tall"></div>
       </section>
     </div>
 
     <div class="grid">
       <section id="keyword-explorer" class="card">
         <div class="card-header">
-          <h2 data-number="03">Keyword Explorer
+          <h2 data-number="04">Keyword Explorer
             <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt3">Keyword exploration in three views: cloud, co-occurrence network and weekly heatmap.</span></span>
           </h2>
           <div class="panel-sub" data-i18n="sub3">Complementary views of the period's vocabulary. The network shows up to 30 terms (labels on the 10 strongest; the rest on hover) and the heatmap up to 30 rows.</div>
@@ -466,26 +486,7 @@
       </section>
     </div>
 
-    <div class="grid grid-two">
-      <section id="sources" class="card">
-        <div class="card-header">
-          <h2 data-number="04"><span data-i18n="c4t">Sources by average score</span>
-            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt4">Actual average score of each outlet's articles. Includes the 15 highest-volume sources with at least 3 scored articles. Click a bar to filter by that source.</span></span>
-          </h2>
-          <div class="panel-sub" data-i18n="sub4">Top 15 sources by volume, minimum of 3 scored articles. Sorted by average score.</div>
-          <div class="actions">
-            <div style="position:relative">
-              <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Actions" data-pt-title="Ações" aria-label="Chart actions" data-pt-aria="Ações do gráfico">⋮</button>
-              <div class="chart-menu">
-                <button onclick="downloadChartPNG('chart_sources','fontes_score_medio')">Download PNG</button>
-                <button onclick="exportChartDataCSV('chart_sources','fontes_score_medio')" data-i18n="mExpCsv">Export CSV</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="chart_sources" class="chart tall"></div>
-      </section>
-
+    <div class="grid">
       <section class="card">
         <div class="card-header">
           <h2 data-number="05"><span data-i18n="c5t">Theme flow by source</span> <small>(Sankey)</small>
@@ -668,6 +669,26 @@ function slug(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300
 
 function truncLabel(v, n){ return v.length > n ? v.slice(0, n) + '…' : v; }
 
+// Hash FNV-1a -> [0,1). Jitter determinístico do beeswarm: mesmo artigo, mesma posição.
+function hash01(s){
+  let h = 2166136261;
+  s = String(s || '');
+  for(let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return ((h >>> 0) % 100000) / 100000;
+}
+
+// "2026-W23" -> Date (segunda-feira ISO da semana), para o eixo temporal do themeRiver.
+function weekKeyToDate(wk){
+  const m = /^(\d{4})-W(\d{2})$/.exec(wk || '');
+  if(!m) return null;
+  const y = +m[1], w = +m[2];
+  const jan4 = new Date(Date.UTC(y, 0, 4));
+  const dow = jan4.getUTCDay() || 7;
+  const monday = new Date(jan4);
+  monday.setUTCDate(jan4.getUTCDate() - dow + 1 + (w - 1) * 7);
+  return monday;
+}
+
 // ---------- Column mapping ----------
 const expected = {titulo:['título','titulo','title','headline','manchete'],
                   data:['data','date','publicado','publish','created','criado'],
@@ -731,6 +752,7 @@ let sourceScoreN = new Map();
 let sourceKwCounts = new Map();
 let keywordsAll = new Set();
 let sourcesAll = new Set();
+let viewRows = []; // linhas que passam nos filtros ativos (alimenta o beeswarm)
 let filteredCount = 0;
 let lastDate = null;
 let chartDataStore = {};
@@ -742,7 +764,7 @@ function resetState(){
   raw = []; rows = []; colmap = {};
   keywordCounts = new Map(); keywordByWeek = new Map(); coocc = new Map();
   sourcesCounts = new Map(); sourceScoreSum = new Map(); sourceScoreN = new Map(); sourceKwCounts = new Map();
-  keywordsAll = new Set(); sourcesAll = new Set();
+  keywordsAll = new Set(); sourcesAll = new Set(); viewRows = [];
   filteredCount = 0; lastDate = null;
   chartDataStore = {};
   filter = {keyword:null, fonte:'all', dateWin:'all'};
@@ -765,6 +787,7 @@ function buildAggregates(){
   sourceKwCounts = new Map();
   keywordsAll = new Set();
   sourcesAll = new Set();
+  viewRows = [];
   filteredCount = 0;
   lastDate = null;
   const now = new Date();
@@ -776,6 +799,7 @@ function buildAggregates(){
     if(cutoff && r.data && r.data<cutoff) return;
 
     filteredCount++;
+    viewRows.push(r);
     if(r.data && (!lastDate || r.data>lastDate)) lastDate = r.data;
 
     const f = r.fonte || 'sem fonte';
@@ -813,7 +837,7 @@ function buildAggregates(){
 
 // ---------- Renderers ----------
 function make(instId){ return echarts.init(el(instId), 'demo'); }
-let topKeywordsBar, cloud, graph, heatmap, themeEvolution, sourcesBar, sankey;
+let keywordsTreemap, cloud, graph, heatmap, themeRiver, sourcesBeeswarm, sankey;
 
 function showEmptyChartMessage(chartInstance, message) {
     if(!chartInstance) return;
@@ -875,61 +899,112 @@ function renderExecInsight(){
 }
 
 function renderTopKeywords(){
-  if(!topKeywordsBar) topKeywordsBar = make('chart_top_keywords');
+  if(!keywordsTreemap) keywordsTreemap = make('chart_top_keywords');
   const term = el('inp-keyword').value.trim().toLowerCase();
   let entries = Array.from(keywordCounts.entries());
   if(term) entries = entries.filter(([k])=>k.includes(term));
-  const arr = entries.sort((a,b)=>b[1]-a[1]).slice(0,15);
-  chartDataStore.top_keywords = arr;
+  entries.sort((a,b)=>b[1]-a[1]);
+  const top = entries.slice(0,20);
+  const restSum = entries.slice(20).reduce((s,x)=>s+x[1],0);
+  chartDataStore.top_keywords = restSum ? top.concat([[t('twOther'), restSum]]) : top;
 
-  if (arr.length === 0) {
-      showEmptyChartMessage(topKeywordsBar, t('emptyKwSearch'));
+  if (top.length === 0) {
+      showEmptyChartMessage(keywordsTreemap, t('emptyKwSearch'));
       return;
   }
 
-  topKeywordsBar.setOption({
+  // Treemap: área = menções; um matiz só (accent) com alpha por magnitude; borda #131316.
+  const data = top.map(([name,value])=>({ name, value }));
+  if(restSum){
+    data.push({
+      name: t('twOther'), value: restSum, isOther: true,
+      itemStyle: { color:'#3f3f46' },
+      label: { color:'#a1a1aa' }
+    });
+  }
+
+  keywordsTreemap.setOption({
     graphic: {elements:[]},
-    grid:{left:130, right:24, top:8, bottom:26},
-    tooltip:{trigger:'axis', axisPointer:{type:'shadow'}, formatter: p=>{
-      const it = p[0];
-      return '<b>'+escHtml(it.name)+'</b><br>'+t('ttMentions')+': '+it.value;
-    }},
-    xAxis:{type:'value', minInterval:1},
-    yAxis:{type:'category', inverse:true, data:arr.map(x=>x[0]), axisLabel:{formatter: v=>truncLabel(v,18)}},
-    series:[{type:'bar', data:arr.map(x=>x[1]), barMaxWidth:16, itemStyle:{color:ACCENT}}]
+    tooltip:{formatter: p=>'<b>'+escHtml(p.name)+'</b><br>'+t('ttMentions')+': '+p.value},
+    series:[{
+      type:'treemap',
+      left:0, right:0, top:0, bottom:0,
+      roam:false, nodeClick:false,
+      breadcrumb:{show:false},
+      color:[ACCENT],
+      colorAlpha:[0.45, 1],
+      itemStyle:{ borderColor:'#131316', borderWidth:2, gapWidth:2 },
+      label:{ show:true, formatter: p=>p.name+'\n'+p.value, color:'#f8f7f3', fontSize:11, lineHeight:15, overflow:'truncate' },
+      emphasis:{ label:{show:true} },
+      data
+    }]
   }, true);
-  topKeywordsBar.off('click');
-  topKeywordsBar.on('click', p=>{ filter.keyword = p.name; syncFilters(); });
+  keywordsTreemap.off('click');
+  keywordsTreemap.on('click', p=>{
+    if(p.data && p.data.isOther) return; // "Other" é agregado, não filtra
+    if(p.name && keywordCounts.has(p.name)){ filter.keyword = p.name; syncFilters(); }
+  });
 }
 
-function renderThemeEvolution(){
-  if(!themeEvolution) themeEvolution = make('chart_theme_evolution');
+function renderThemeRiver(){
+  if(!themeRiver) themeRiver = make('chart_theme_river');
   const weeks = Array.from(keywordByWeek.keys()).filter(w=>w!=='NA').sort();
-  const topKw = topEntries(keywordCounts, 5).map(x=>x[0]);
+  const topKw = topEntries(keywordCounts, 6).map(x=>x[0]);
   const matrix = topKw.map(k=>weeks.map(w=>(keywordByWeek.get(w)||new Map()).get(k)||0));
-  chartDataStore.theme_evolution = {weeks, keywords: topKw, matrix};
+  chartDataStore.theme_river = {weeks, keywords: topKw, matrix};
 
   if (weeks.length === 0 || topKw.length === 0) {
-      showEmptyChartMessage(themeEvolution);
+      showEmptyChartMessage(themeRiver);
       return;
   }
 
-  themeEvolution.setOption({
+  // themeRiver precisa de eixo temporal: converte a chave ISO da semana em data (segunda-feira).
+  const weekDates = weeks.map(w=>{
+    const d = weekKeyToDate(w);
+    return d ? d.toISOString().slice(0,10) : w;
+  });
+  const data = [];
+  topKw.forEach((k,ki)=>{
+    weeks.forEach((w,wi)=>{ data.push([weekDates[wi], matrix[ki][wi], k]); });
+  });
+
+  themeRiver.setOption({
     graphic: {elements:[]},
-    color: CAT_PALETTE.slice(0,5),
-    tooltip:{trigger:'axis'},
-    legend:{top:0, type:'scroll'},
-    grid:{left:40, right:16, top:34, bottom:28},
-    xAxis:{type:'category', data:weeks, boundaryGap:false, axisLabel:{formatter: v=>v.slice(5)}},
-    yAxis:{type:'value', minInterval:1},
-    series: topKw.map((k,i)=>({
-      name:k, type:'line', symbol:'circle', symbolSize:4,
-      lineStyle:{width:2}, emphasis:{focus:'series'},
-      data: matrix[i]
-    }))
+    color: CAT_PALETTE.slice(0, topKw.length),
+    tooltip:{
+      trigger:'axis',
+      axisPointer:{type:'line', lineStyle:{color:'rgba(248,247,243,.35)', width:1}},
+      formatter: params=>{
+        const list = (params||[]).filter(q=>Array.isArray(q.data));
+        if(!list.length) return '';
+        const v0 = list[0].data[0];
+        // string YYYY-MM-DD ganha meio-dia UTC para o fuso de exibição não voltar um dia
+        const d = typeof v0 === 'number' ? new Date(v0) : new Date(String(v0).slice(0,10)+'T12:00:00Z');
+        const head = isNaN(+d) ? '' : '<b>'+fmtDate(d)+'</b><br>';
+        return head + list.map(q=>q.marker+' '+escHtml(q.data[2])+': '+q.data[1]).join('<br>');
+      }
+    },
+    singleAxis:{
+      type:'time', top:30, bottom:34, left:16, right:16,
+      axisLabel:{color:'#8a8a94', fontSize:10.5},
+      axisLine:{lineStyle:{color:'rgba(248,247,243,.18)'}},
+      axisTick:{lineStyle:{color:'rgba(248,247,243,.18)'}},
+      splitLine:{show:false}
+    },
+    series:[{
+      type:'themeRiver',
+      label:{show:true, color:'#d4d4d8', fontSize:11},
+      itemStyle:{borderColor:'#131316', borderWidth:1},
+      emphasis:{focus:'self', itemStyle:{shadowBlur:14, shadowColor:'rgba(0,0,0,.55)'}},
+      data
+    }]
   }, true);
-  themeEvolution.off('click');
-  themeEvolution.on('click', p=>{ if(p.seriesName){ filter.keyword = p.seriesName; syncFilters(); } });
+  themeRiver.off('click');
+  themeRiver.on('click', p=>{
+    const kw = (Array.isArray(p.data) && p.data[2]) ? p.data[2]
+             : (p.seriesName && p.seriesName !== 'themeRiver' ? p.seriesName : null);
+    if(kw && keywordCounts.has(kw)){ filter.keyword = kw; syncFilters(); }
+  });
 }
 
 function renderKeywordCloud(){
@@ -1107,37 +1182,75 @@ function topFontesForKeyword(kw){
 }
 
 function renderSources(){
-  if(!sourcesBar) sourcesBar = make('chart_sources');
-  // Score médio REAL por fonte: top 15 por volume, mínimo 3 artigos pontuados.
-  const byVolume = topEntries(sourcesCounts, 15).map(x=>x[0]);
-  const arr = byVolume
-    .map(f=>{
-      const n = sourceScoreN.get(f)||0;
-      return { fonte:f, n, avg: n ? sourceScoreSum.get(f)/n : null };
-    })
-    .filter(x=>x.n >= 3 && x.avg !== null)
-    .sort((a,b)=>b.avg-a.avg);
-  chartDataStore.top_sources = arr.map(x=>[x.fonte, Math.round(x.avg*10)/10, x.n]);
+  if(!sourcesBeeswarm) sourcesBeeswarm = make('chart_sources');
+  // Beeswarm: 1 ponto por artigo pontuado (x = score 0-100), top 8 fontes por volume.
+  // Jitter vertical determinístico (hash do url+título); losango laranja marca a média.
+  const topSrcs = topEntries(sourcesCounts, 8).map(x=>x[0]);
+  const srcIdx = new Map(topSrcs.map((s,i)=>[s,i]));
+  const ptsBySrc = topSrcs.map(()=>[]);
 
-  if (arr.length === 0) {
-      showEmptyChartMessage(sourcesBar, t('emptySources'));
+  viewRows.forEach(r=>{
+    const f = r.fonte || 'sem fonte';
+    if(!srcIdx.has(f)) return;
+    if(r.score === null || isNaN(r.score)) return;
+    const i = srcIdx.get(f);
+    const jit = (hash01((r.url||'') + '|' + (r.titulo||'')) - 0.5) * 0.64;
+    ptsBySrc[i].push({ value:[r.score, i + jit], titulo: r.titulo, score: r.score });
+  });
+
+  // Média por fonte vem dos agregados já filtrados (sourceScoreSum/N).
+  const means = topSrcs
+    .map((s,i)=>{
+      const n = sourceScoreN.get(s) || 0;
+      return n ? { name:s, value:[sourceScoreSum.get(s)/n, i], n } : null;
+    })
+    .filter(Boolean);
+  chartDataStore.top_sources = means.map(m=>[m.name, Math.round(m.value[0]*10)/10, m.n]);
+
+  if (means.length === 0) {
+      showEmptyChartMessage(sourcesBeeswarm, t('emptySources'));
       return;
   }
 
-  sourcesBar.setOption({
+  const series = topSrcs.map((s,i)=>({
+    name:s, type:'scatter', symbolSize:4,
+    itemStyle:{ color:ACCENT, opacity:0.5 },
+    z:2,
+    data: ptsBySrc[i]
+  }));
+  series.push({
+    name:'__avg', type:'scatter', symbol:'diamond', symbolSize:14,
+    itemStyle:{ color:'#d95926', borderColor:'#131316', borderWidth:1 },
+    label:{ show:true, position:'top', distance:4, color:'#d95926',
+            fontFamily:'"Space Mono",ui-monospace,monospace', fontSize:10, fontWeight:700,
+            formatter: p=>Number(p.value[0]).toFixed(1) },
+    z:5,
+    data: means
+  });
+
+  sourcesBeeswarm.setOption({
     graphic: {elements:[]}, // Clear empty message
-    grid:{left:130, right:30, top:10, bottom:26},
-    tooltip:{formatter: p=>{
-      const d = arr[p.dataIndex];
-      return `<b>${escHtml(d.fonte)}</b><br>${t('ttAvgScore')}: ${d.avg.toFixed(1)}<br>${t('ttScored')}: ${d.n}`;
+    legend:{show:false},
+    grid:{left:130, right:24, top:14, bottom:30},
+    tooltip:{trigger:'item', formatter: p=>{
+      if(p.seriesName === '__avg'){
+        return `<b>${escHtml(p.name)}</b><br>${t('ttAvgScore')}: ${Number(p.value[0]).toFixed(1)}<br>${t('ttScored')}: ${p.data.n}`;
+      }
+      return `<b>${escHtml(p.data.titulo)}</b><br>${t('ttScore')}: ${p.data.score}<br>${escHtml(p.seriesName)}`;
     }},
-    xAxis:{type:'value'},
-    yAxis:{type:'category', inverse:true, data:arr.map(x=>x.fonte),
-           axisLabel:{formatter: v=>truncLabel(v,20)}},
-    series:[{type:'bar', data:arr.map(x=>Math.round(x.avg*10)/10), barMaxWidth:18, itemStyle:{color:ACCENT}}]
+    xAxis:{type:'value', min:0, max:100},
+    yAxis:{
+      type:'value', min:-1, max:topSrcs.length, inverse:true, interval:1,
+      axisLabel:{ formatter: v => topSrcs[v] ? truncLabel(topSrcs[v],18) : '' },
+      splitLine:{show:false}, axisTick:{show:false}, axisLine:{show:false}
+    },
+    series
   }, true);
-  sourcesBar.off('click');
-  sourcesBar.on('click', p=>{ filter.fonte = p.name; syncFilters(); });
+  sourcesBeeswarm.off('click');
+  sourcesBeeswarm.on('click', p=>{
+    const src = p.seriesName === '__avg' ? p.name : p.seriesName;
+    if(src && srcIdx.has(src)){ filter.fonte = src; syncFilters(); }
+  });
 }
 
 function populateFonteSelect(){
@@ -1306,7 +1419,7 @@ function syncFilters(){
   renderKPIs();
   renderExecInsight();
   renderTopKeywords();
-  renderThemeEvolution();
+  renderThemeRiver();
   renderSources();
   renderSankey();
   updateAllKeywordViews();
@@ -1563,7 +1676,7 @@ function exportChartDataCSV(domId, fileBase){
     data.forEach(item => {
       lines.push(`"${item.name}",${item.value}`);
     });
-  } else if(kind === 'theme_evolution'){
+  } else if(kind === 'theme_river'){
     lines.push(t('csvHTheme'));
     data.keywords.forEach((kw, ki) => {
       data.weeks.forEach((w, wi) => {
@@ -1629,7 +1742,7 @@ let resizeTimer = null;
 window.addEventListener('resize', ()=>{
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(()=>{
-    [topKeywordsBar,themeEvolution,cloud,graph,heatmap,sourcesBar,sankey].forEach(c=>{ try{ c && c.resize(); }catch(e){} });
+    [keywordsTreemap,themeRiver,cloud,graph,heatmap,sourcesBeeswarm,sankey].forEach(c=>{ try{ c && c.resize(); }catch(e){} });
   }, 150);
 });
 </script>
@@ -1681,10 +1794,10 @@ window.addEventListener('resize', ()=>{
 
       <h3 data-i18n="mH3">Available visualizations:</h3>
       <ul data-i18n="mU3">
-        <li><strong>Top keywords:</strong> the 15 keywords with the most mentions in the selection</li>
-        <li><strong>Theme evolution:</strong> weekly mentions of the 5 strongest keywords</li>
+        <li><strong>Theme river:</strong> weekly stream of the 6 strongest keywords (band thickness = mentions)</li>
+        <li><strong>Top keywords:</strong> treemap of the 20 most mentioned keywords plus an aggregated "Other" block</li>
+        <li><strong>Score distribution by source:</strong> one dot per scored article, with each source's average marked as a diamond (top 8 sources by volume)</li>
         <li><strong>Keyword Explorer:</strong> word cloud, co-occurrence network (up to 30 nodes) and weekly heatmap (up to 30 rows)</li>
-        <li><strong>Sources by average score:</strong> actual average score per outlet (top 15 by volume, minimum of 3 scored articles)</li>
         <li><strong>Theme flow by source:</strong> Sankey with the top 5 sources and top 5 keywords</li>
         <li><strong>Top articles:</strong> full listing with filters and sorting</li>
       </ul>
@@ -1701,7 +1814,7 @@ window.addEventListener('resize', ()=>{
       <h3 data-i18n="mH5">Usage tips:</h3>
       <ul data-i18n="mU5">
         <li>Use the <strong>blue chips</strong> in the filter bar to see and remove active slices</li>
-        <li>Click <strong>bars, nodes and lines</strong> to apply the keyword or source cross-filter</li>
+        <li>Click <strong>blocks, bands, dots and nodes</strong> to apply the keyword or source cross-filter</li>
         <li>Export the cleaned dataset via <strong>"Export data (.csv)"</strong></li>
         <li>Each card has an actions menu with <strong>Download PNG</strong> and <strong>Export CSV</strong></li>
       </ul>
@@ -2279,7 +2392,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
         { n: 'score', t: 'inteiro 0-100', t_en: 'integer 0-100', d: 'Pontuacao editorial do artigo.', d_en: 'Editorial score of the article.' },
         { n: 'url', t: 'texto', t_en: 'text', d: 'Link do artigo. Usado como chave de deduplicacao.', d_en: 'Article link. Used as the deduplication key.' },
         { n: 'tags', t: 'lista separada por virgula', t_en: 'comma-separated list', d: 'Tags do artigo.', d_en: 'Article tags.' },
-        { n: 'categoria', t: 'texto', t_en: 'text', d: 'Categoria editorial. Alimenta a evolucao de temas.', d_en: 'Editorial category. Feeds the theme evolution chart.' }
+        { n: 'categoria', t: 'texto', t_en: 'text', d: 'Categoria editorial. Alimenta o rio de temas.', d_en: 'Editorial category. Feeds the theme river chart.' }
       ],
       sample: function () { return GEN(); }
     }],
@@ -2400,20 +2513,20 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     esP: 'Envie um CSV de artigos pela barra de dados no topo, ou use "Preencher automaticamente" para ver o dashboard com uma base de exemplo.',
     exK: '<b>//</b> resumo executivo',
     exQ: 'O que o radar capta no noticiário do período: volume de artigos, cobertura de fontes e concentração por palavra-chave.',
-    c2t: 'Evolução de temas',
-    c4t: 'Fontes por Score Médio',
+    c2t: 'Rio de temas',
+    c4t: 'Distribuição de score por fonte',
     c5t: 'Fluxo de temas por fonte',
     c6t: 'Top Artigos por Score',
-    tt1: 'As 15 palavras-chave com mais menções na seleção atual. Clique numa barra para filtrar todo o dashboard por essa keyword.',
-    tt2: 'Menções semanais das 5 palavras-chave mais recorrentes da seleção. Clique numa linha para filtrar pela keyword.',
+    tt1: 'As 20 palavras-chave com mais menções na seleção atual, dimensionadas pelas menções; os demais termos ficam agrupados no bloco "Outros". Clique num bloco para filtrar todo o dashboard por essa keyword.',
+    tt2: 'Fluxo semanal das 6 palavras-chave mais fortes da seleção: a espessura de cada faixa é o número de menções na semana. Clique numa faixa para filtrar todo o dashboard pela keyword.',
     tt3: 'Exploração das palavras-chave em três visões: nuvem, rede de co-ocorrência e heatmap semanal.',
-    tt4: 'Score médio real dos artigos de cada veículo. Entram as 15 fontes de maior volume com pelo menos 3 artigos pontuados. Clique numa barra para filtrar pela fonte.',
+    tt4: 'Um ponto por artigo (x = score editorial, 0-100) nas 8 fontes de maior volume. O losango laranja marca o score médio de cada fonte. Clique num ponto ou losango para filtrar pela fonte.',
     tt5: 'As 5 maiores fontes cruzadas com as 5 keywords mais recorrentes. Clique num nó para filtrar por fonte ou keyword.',
     tt6: 'Lista dos artigos da seleção, ordenável por data, título, fonte e score.',
-    sub1: 'Ranking por menções. Clique numa barra para aplicar o filtro.',
-    sub2: 'Menções por semana das 5 keywords mais fortes do período.',
+    sub1: 'Área = menções. Top 20 keywords mais um bloco agregado "Outros". Clique num bloco para aplicar o filtro.',
+    sub2: 'Fluxo semanal das 6 keywords mais fortes do período. Espessura da faixa = menções. Clique numa faixa para aplicar o filtro.',
     sub3: 'Visões complementares do vocabulário do período. A rede mostra até 30 termos (rótulo nos 10 mais fortes; o resto aparece no hover) e o heatmap até 30 linhas.',
-    sub4: 'Top 15 fontes por volume, mínimo de 3 artigos pontuados. Ordenado pelo score médio.',
+    sub4: 'Top 8 fontes por volume. Cada ponto é o score de um artigo; o losango laranja é a média da fonte. Clique para filtrar.',
     sub5: 'Top 5 fontes por volume cruzadas com as top 5 keywords da seleção.',
     sub6: 'Artigos da seleção atual. Clique nos cabeçalhos para ordenar.',
     chipNet: 'Rede', chipHeat: 'Heatmap Semanal',
@@ -2429,11 +2542,11 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     mH2: 'Processamento automático:',
     mU2: '<li><strong>Tokenização inteligente:</strong> remove stopwords em português e normaliza termos</li><li><strong>Detecção de keywords:</strong> extração de título + tags</li><li><strong>Análise de co-ocorrência:</strong> relacionamento entre palavras-chave</li><li><strong>Agregação temporal:</strong> agrupamento por semana</li><li><strong>Parseamento de datas:</strong> suporta DD/MM/YYYY, YYYY-MM-DD e ISO</li><li><strong>Deduplicação:</strong> pela URL (ou título + data), mantendo a primeira ocorrência</li>',
     mH3: 'Visualizações disponíveis:',
-    mU3: '<li><strong>Top keywords:</strong> as 15 palavras-chave com mais menções na seleção</li><li><strong>Evolução de temas:</strong> menções semanais das 5 keywords mais fortes</li><li><strong>Keyword Explorer:</strong> nuvem de palavras, rede de co-ocorrência (até 30 nós) e heatmap semanal (até 30 linhas)</li><li><strong>Fontes por Score Médio:</strong> score médio real por veículo (top 15 por volume, mínimo 3 artigos pontuados)</li><li><strong>Fluxo de temas por fonte:</strong> Sankey com as top 5 fontes e top 5 keywords</li><li><strong>Top Artigos:</strong> listagem completa com filtros e ordenação</li>',
+    mU3: '<li><strong>Rio de temas:</strong> fluxo semanal das 6 keywords mais fortes (espessura da faixa = menções)</li><li><strong>Top keywords:</strong> treemap das 20 keywords com mais menções, mais um bloco agregado "Outros"</li><li><strong>Distribuição de score por fonte:</strong> um ponto por artigo pontuado, com a média de cada fonte marcada como losango (top 8 fontes por volume)</li><li><strong>Keyword Explorer:</strong> nuvem de palavras, rede de co-ocorrência (até 30 nós) e heatmap semanal (até 30 linhas)</li><li><strong>Fluxo de temas por fonte:</strong> Sankey com as top 5 fontes e top 5 keywords</li><li><strong>Top Artigos:</strong> listagem completa com filtros e ordenação</li>',
     mH4: 'Filtros disponíveis:',
     mU4: '<li><strong>Janela de tempo:</strong> últimos 30, 60, 90 dias ou todo o período</li><li><strong>Fonte:</strong> filtrar por veículo específico</li><li><strong>Keyword:</strong> clique em qualquer gráfico de keywords para aplicar o filtro cruzado</li><li><strong>Busca de keyword:</strong> campo de texto que refina os rankings</li><li><strong>Filtros da tabela:</strong> busca em título, tags e score mínimo</li>',
     mH5: 'Dicas de uso:',
-    mU5: '<li>Use os <strong>chips azuis</strong> da barra de filtros para ver e remover recortes ativos</li><li>Clique em <strong>barras, nós e linhas</strong> para aplicar o filtro cruzado de keyword ou fonte</li><li>Exporte a base tratada via <strong>"Exportar dados (.csv)"</strong></li><li>Cada card tem menu de ações com <strong>Download PNG</strong> e <strong>Exportar CSV</strong></li>',
+    mU5: '<li>Use os <strong>chips azuis</strong> da barra de filtros para ver e remover recortes ativos</li><li>Clique em <strong>blocos, faixas, pontos e nós</strong> para aplicar o filtro cruzado de keyword ou fonte</li><li>Exporte a base tratada via <strong>"Exportar dados (.csv)"</strong></li><li>Cada card tem menu de ações com <strong>Download PNG</strong> e <strong>Exportar CSV</strong></li>',
     mH6: 'Notas técnicas:',
     mU6: '<li><strong>100% local:</strong> o parse do CSV acontece no navegador; nenhum dado sai da sua máquina</li><li><strong>Performance:</strong> otimizado para até 10.000 artigos</li><li><strong>Limpeza automática:</strong> remove registros sem título ou data</li><li><strong>Timezone:</strong> America/Sao_Paulo (UTC-3)</li>'
   };
@@ -2475,7 +2588,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
       emptyNet: 'No keywords to display in the network.',
       emptyNetEdges: 'Keywords found, but no co-occurrences to build a network.',
       emptyHeat: 'No weekly data for the selected keywords.',
-      emptySources: 'No sources with 3 or more scored articles in the selection.',
+      emptySources: 'No scored articles in the selection.',
       kArticles: 'Articles', kSources: 'Sources', kKeywords: 'Keywords',
       kLastPub: 'Last published', kTopSource: 'Top source',
       kSubSel: 'in current selection', kSubOutlets: 'outlets covered',
@@ -2487,6 +2600,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
       ttMentions: 'Mentions', ttTotal: 'Total', ttTopSources: 'Top sources',
       ttOcc: 'Occurrences', ttCoocc: 'Co-occurrences',
       ttAvgScore: 'Average score', ttScored: 'Scored articles',
+      ttScore: 'Score', twOther: 'Other',
       optAllSources: 'All sources',
       noScore: 'No score',
       tblMore: 'Showing the first {a} of {b} results. Use the table filters to refine the search.',
@@ -2521,7 +2635,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
       emptyNet: 'Não há keywords para exibir na rede.',
       emptyNetEdges: 'Keywords encontradas, mas sem co-ocorrências para criar uma rede.',
       emptyHeat: 'Não há dados semanais para as keywords selecionadas.',
-      emptySources: 'Sem fontes com 3 ou mais artigos pontuados na seleção.',
+      emptySources: 'Sem artigos pontuados na seleção.',
       kArticles: 'Artigos', kSources: 'Fontes', kKeywords: 'Palavras-chave',
       kLastPub: 'Última publicação', kTopSource: 'Top fonte',
       kSubSel: 'na seleção atual', kSubOutlets: 'veículos cobertos',
@@ -2533,6 +2647,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
       ttMentions: 'Menções', ttTotal: 'Total', ttTopSources: 'Top fontes',
       ttOcc: 'Ocorrências', ttCoocc: 'Co-ocorrências',
       ttAvgScore: 'Score médio', ttScored: 'Artigos pontuados',
+      ttScore: 'Score', twOther: 'Outros',
       optAllSources: 'Todas as fontes',
       noScore: 'Sem Pontuação',
       tblMore: 'Mostrando os primeiros {a} de {b} resultados. Use os filtros da tabela para refinar a busca.',
