@@ -7,12 +7,12 @@
   ║             com métricas de atividades e performance      ║
   ╚═══════════════════════════════════════════════════════════╝
 -->
-<html lang="pt-br">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0b'/%3E%3Ctext x='12' y='68' font-family='monospace' font-size='52' font-weight='700' fill='%232563EB'%3E&gt;_%3C/text%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Produtividade SDR | Felippe Yann</title>
+<title>SDR Productivity | Felippe Yann</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,6 +70,13 @@
   @media (max-width:760px){ .desc{display:none} h1{font-size:14px} }
   .version-badge{display:inline-block;background:var(--accent-glow);border:1px solid rgba(37,99,235,.4);color:var(--accent-soft);font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:10px;margin-left:8px;letter-spacing:0.5px;vertical-align:middle}
   .hint{color:var(--ink-4);font-size:12px}
+
+  /* ===== seletor de idioma (mesmo mecanismo do hub) ===== */
+  .lang-sw{display:flex;align-items:center;height:32px;padding:0 8px;background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r-sm);font-family:var(--mono)}
+  .lang-sw button{background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink-4);padding:0 5px}
+  .lang-sw button:hover{color:var(--ink)}
+  .lang-sw button.on{color:var(--accent-soft);font-weight:700}
+  .lang-sw .sep{color:var(--ink-4);font-size:11px;opacity:.5}
 
   /* ===== filter bar ===== */
   .filterbar{border-top:1px solid var(--line);background:rgba(19,19,22,.9)}
@@ -428,41 +435,44 @@
     <div class="brand">
       <div class="logo">&gt;_</div>
       <div>
-        <h1>Produtividade SDR <span class="version-badge">demo</span></h1>
-        <div class="desc">prospecção · atividades por SDR · CSV de atividades do CRM</div>
+        <h1><span data-i18n="h1">SDR Productivity</span> <span class="version-badge">demo</span></h1>
+        <div class="desc" data-i18n="desc">prospecting · activities per SDR · CRM activity CSV</div>
       </div>
     </div>
     <div class="hdr-actions">
       <input type="file" id="csvFile" accept=".csv" hidden/>
       <span id="fileStatus" class="hint" hidden></span>
+      <div class="lang-sw" role="group" aria-label="Language" data-pt-aria="Idioma">
+        <button type="button" data-lang-btn="en" aria-pressed="true">EN</button><span class="sep">/</span><button type="button" data-lang-btn="pt" aria-pressed="false">PT</button>
+      </div>
     </div>
   </div>
   <div class="filterbar">
     <div class="wrap fb-in">
-      <span class="fb-label">período</span>
+      <span class="fb-label" data-i18n="fbPeriod">period</span>
       <input type="date" id="dateStart" class="date-filter">
       <input type="date" id="dateEnd" class="date-filter">
-      <button id="applyDateFilter" class="btn sm">Aplicar</button>
-      <button id="clearDateFilter" class="btn secondary sm">Limpar</button>
+      <button id="applyDateFilter" class="btn sm" data-i18n="btnApply">Apply</button>
+      <button id="clearDateFilter" class="btn secondary sm" data-i18n="btnClear">Clear</button>
       <span class="fb-sep"></span>
       <span class="fb-label">sdr</span>
       <select id="sdrSelect">
-        <option value="Todos_Media">Todos (Média do Time)</option>
-        <option value="Todos_Total">Todos (Números Totais)</option>
+        <option value="Todos_Media">All (team average)</option>
+        <option value="Todos_Total">All (totals)</option>
       </select>
       <span class="fb-sep"></span>
-      <label class="toggle-label"><input type="checkbox" id="hideWeekends" checked/><span>Ocultar fins de semana</span></label>
-      <label class="toggle-label"><input type="checkbox" id="hideZeros" checked/><span>Ocultar dias zerados</span></label>
+      <label class="toggle-label"><input type="checkbox" id="hideWeekends" checked/><span data-i18n="hideWknd">Hide weekends</span></label>
+      <label class="toggle-label"><input type="checkbox" id="hideZeros" checked/><span data-i18n="hideZero">Hide zero days</span></label>
       <span class="fb-sep"></span>
-      <button id="healthCheckBtn" class="btn secondary sm" style="display:none">Diagnóstico</button>
+      <button id="healthCheckBtn" class="btn secondary sm" style="display:none" data-i18n="btnHealth">Data health</button>
     </div>
   </div>
 </header>
 
 <main class="wrap panel">
   <section class="exec-band" id="exec-band">
-    <div class="exec-kicker"><b>//</b> resumo executivo</div>
-    <div class="exec-q">Quem produz no topo do funil e onde a atividade de prospecção vira reunião: volume, taxa de conexão e agendamentos por SDR.</div>
+    <div class="exec-kicker" data-i18n="execKicker"><b>//</b> executive summary</div>
+    <div class="exec-q" data-i18n="execQ">Who produces at the top of the funnel and where prospecting activity turns into meetings: volume, connection rate and bookings per SDR.</div>
     <div class="kpis" id="exec-kpis" style="margin-bottom:14px"></div>
     <div class="exec-insight" id="exec-insight"></div>
   </section>
@@ -470,7 +480,7 @@
   <div id="loadingBar" style="display:none">
     <div class="loading-box">
       <div class="loading-head">
-        <span id="loadingText">Carregando...</span>
+        <span id="loadingText">Loading...</span>
         <span id="loadingProgress">0%</span>
       </div>
       <div class="loading-track"><div id="progressBar" style="width:0%"></div></div>
@@ -478,11 +488,11 @@
   </div>
 
   <div id="emptyState" class="empty-state">
-    <h3>Nenhum arquivo carregado</h3>
-    <p>Envie o CSV de atividades exportado do CRM: uma linha por atividade registrada.</p>
-    <p style="font-size:12px;margin-top:12px">
-      Colunas esperadas: <code>activity_date</code>, <code>activity_type</code>, <code>user_id</code>, <code>duration</code>, <code>activity_id</code>, <code>deal_id</code>.
-      O painel "Como montar o CSV", na barra de dados no topo da página, traz o contrato completo e um template para download.
+    <h3 data-i18n="esTitle">No file loaded</h3>
+    <p data-i18n="esBody">Upload the activity CSV exported from the CRM: one row per logged activity.</p>
+    <p style="font-size:12px;margin-top:12px" data-i18n="esCols">
+      Expected columns: <code>activity_date</code>, <code>activity_type</code>, <code>user_id</code>, <code>duration</code>, <code>activity_id</code>, <code>deal_id</code>.
+      The "How to build the CSV" panel, in the data bar at the top of the page, has the full contract and a downloadable template.
     </p>
   </div>
 
@@ -491,88 +501,88 @@
       <!-- VIZ 01: Timeline de Atividades (small multiples alinhados) -->
       <section class="card col-12">
         <div class="topic-head">
-          <h2 data-number="01">Timeline de Atividades
-            <span class="info-icon">ⓘ<span class="tooltip">Métrica escolhida (linha, painel de cima) alinhada dia a dia ao volume de agendamentos (barras, painel de baixo). Cada painel tem escala própria começando em zero.</span></span>
+          <h2 data-number="01"><span data-i18n="p1h">Activity Timeline</span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="p1tip">Chosen metric (line, top panel) aligned day by day with booking volume (bars, bottom panel). Each panel has its own scale starting at zero.</span></span>
           </h2>
           <div class="topic-actions nowrap">
-            <span class="date-filter-label">Métrica:</span>
+            <span class="date-filter-label" data-i18n="lblMetric">Metric:</span>
             <select id="tlMetricSelect" class="date-filter">
-              <option value="tentativas" selected>Tentativas</option>
-              <option value="ligacoes">Ligações</option>
-              <option value="conexoes">Conexões</option>
-              <option value="emails">Emails</option>
+              <option value="tentativas" selected data-i18n="mAttempts">Attempts</option>
+              <option value="ligacoes" data-i18n="mCalls">Calls</option>
+              <option value="conexoes" data-i18n="mConnections">Connections</option>
+              <option value="emails" data-i18n="mEmails">Emails</option>
               <option value="whatsapp">WhatsApp</option>
-              <option value="tarefas">Tarefas</option>
-              <option value="quantidade">Quantidade</option>
-              <option value="duracao">Duração total (HH:MM)</option>
+              <option value="tarefas" data-i18n="mTasks">Tasks</option>
+              <option value="quantidade" data-i18n="mVolume">Volume</option>
+              <option value="duracao" data-i18n="mDuration">Total duration (HH:MM)</option>
             </select>
           </div>
         </div>
-        <div class="panel-sub">Volume diário da métrica selecionada, com o volume de agendamentos do mesmo dia logo abaixo, no mesmo eixo de tempo.</div>
+        <div class="panel-sub" data-i18n="p1sub">Daily volume of the selected metric, with the same day's booking volume right below, on the same time axis.</div>
         <div id="mainChart" class="chart extra-tall"></div>
       </section>
 
       <!-- VIZ 02: Funil de Conversão -->
       <section class="card col-6">
-        <h2 data-number="02">Funil de Conversão
-          <span class="info-icon">ⓘ<span class="tooltip">Da ligação à reunião marcada: volume em cada etapa do funil de prospecção e a taxa de passagem entre elas.</span></span>
+        <h2 data-number="02"><span data-i18n="p2h">Conversion Funnel</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="p2tip">From call to booked meeting: volume at each stage of the prospecting funnel and the pass-through rate between them.</span></span>
         </h2>
-        <div class="panel-sub">Quanto cada etapa da prospecção retém e a taxa de passagem entre elas.</div>
+        <div class="panel-sub" data-i18n="p2sub">How much each prospecting stage retains and the pass-through rate between stages.</div>
         <div id="funnelBody" class="funnel-body"></div>
       </section>
 
       <!-- VIZ 03: Heatmap de Atividade Semanal -->
       <section class="card col-6">
-        <h2 data-number="03">Heatmap de Atividade por Dia da Semana
-          <span class="info-icon">ⓘ<span class="tooltip">Intensidade de atividades por dia da semana ao longo do período selecionado. Quanto mais claro, maior o volume.</span></span>
+        <h2 data-number="03"><span data-i18n="p3h">Weekday Activity Heatmap</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="p3tip">Activity intensity by weekday across the selected period. The lighter the cell, the higher the volume.</span></span>
         </h2>
-        <div class="panel-sub">Concentração de esforço por dia da semana, filtrável por métrica, SDR e período.</div>
+        <div class="panel-sub" data-i18n="p3sub">Effort concentration by weekday, filterable by metric, SDR and period.</div>
         <div class="opts">
-          <span class="date-filter-label">Métrica:</span>
+          <span class="date-filter-label" data-i18n="lblMetric">Metric:</span>
           <select id="heatmap_metric" class="date-filter">
-            <option value="all" selected>Todas atividades</option>
-            <option value="CALL">Ligações</option>
-            <option value="EMAIL">Emails</option>
-            <option value="TASK">Tarefas</option>
+            <option value="all" selected data-i18n="hmAll">All activities</option>
+            <option value="CALL" data-i18n="mCalls">Calls</option>
+            <option value="EMAIL" data-i18n="mEmails">Emails</option>
+            <option value="TASK" data-i18n="mTasks">Tasks</option>
             <option value="WHATSAPP">WhatsApp</option>
           </select>
           <span class="date-filter-label">SDR:</span>
           <select id="heatmap_sdr" class="date-filter">
-            <option value="all" selected>Todos os SDRs</option>
+            <option value="all" selected>All SDRs</option>
           </select>
-          <span class="date-filter-label">Período:</span>
+          <span class="date-filter-label" data-i18n="lblPeriod">Period:</span>
           <select id="heatmap_period" class="date-filter">
-            <option value="30" selected>Últimos 30 dias</option>
-            <option value="60">Últimos 60 dias</option>
-            <option value="90">Últimos 90 dias</option>
+            <option value="30" selected data-i18n="last30">Last 30 days</option>
+            <option value="60" data-i18n="last60">Last 60 days</option>
+            <option value="90" data-i18n="last90">Last 90 days</option>
           </select>
-          <label><input type="checkbox" id="heatmap_hideWeekends"/><span>Ocultar fins de semana</span></label>
+          <label><input type="checkbox" id="heatmap_hideWeekends"/><span data-i18n="hideWknd">Hide weekends</span></label>
         </div>
         <div id="heatmapChart" class="chart tall"></div>
       </section>
 
       <!-- VIZ 04: Ranking de SDRs -->
       <section class="card col-12">
-        <h2 data-number="04">Ranking de SDRs
-          <span class="info-icon">ⓘ<span class="tooltip">Comparação de performance com taxas de conversão e eficiência por SDR.</span></span>
+        <h2 data-number="04"><span data-i18n="p4h">SDR Ranking</span>
+          <span class="info-icon">ⓘ<span class="tooltip" data-i18n="p4tip">Performance comparison with conversion and efficiency rates per SDR.</span></span>
         </h2>
-        <div class="panel-sub">Comparativo de produtividade por SDR, ordenável por volume, taxa de conexão ou agendamentos.</div>
+        <div class="panel-sub" data-i18n="p4sub">Productivity comparison per SDR, sortable by volume, connection rate or bookings.</div>
         <div class="opts">
-          <span class="date-filter-label">Período:</span>
+          <span class="date-filter-label" data-i18n="lblPeriod">Period:</span>
           <select id="ranking_period" class="date-filter">
-            <option value="7">Últimos 7 dias</option>
-            <option value="15">Últimos 15 dias</option>
-            <option value="30" selected>Últimos 30 dias</option>
-            <option value="90">Últimos 90 dias</option>
-            <option value="all">Todo período</option>
+            <option value="7" data-i18n="last7">Last 7 days</option>
+            <option value="15" data-i18n="last15">Last 15 days</option>
+            <option value="30" selected data-i18n="last30">Last 30 days</option>
+            <option value="90" data-i18n="last90">Last 90 days</option>
+            <option value="all" data-i18n="allTime">All time</option>
           </select>
-          <span class="date-filter-label">Ordenar por:</span>
+          <span class="date-filter-label" data-i18n="lblSort">Sort by:</span>
           <select id="ranking_sort" class="date-filter">
-            <option value="tentativas">Tentativas</option>
-            <option value="conexoes">Conexões</option>
-            <option value="taxa_conexao" selected>Taxa de Conexão (%)</option>
-            <option value="agendamentos">Agendamentos</option>
-            <option value="taxa_agend">Taxa Agend/Conexão (%)</option>
+            <option value="tentativas" data-i18n="mAttempts">Attempts</option>
+            <option value="conexoes" data-i18n="mConnections">Connections</option>
+            <option value="taxa_conexao" selected data-i18n="sortConnRate">Connection rate (%)</option>
+            <option value="agendamentos" data-i18n="mBookings">Bookings</option>
+            <option value="taxa_agend" data-i18n="sortBookRate">Booking/Connection rate (%)</option>
           </select>
         </div>
         <div id="rankingTable" style="overflow-x:auto;"></div>
@@ -601,6 +611,154 @@
     function makeChart(el){ echarts.dispose(el); return echarts.init(el, 'demo'); }
     // resize: um único listener global cuida das instâncias memoizadas (fim do script)
     const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+    // ==================== I18N (EN default, PT via seletor) ====================
+    // Idioma ativo: espelha localStorage 'lang' (mesma chave do hub).
+    let __lang = 'en';
+    try { __lang = (localStorage.getItem('lang') === 'pt') ? 'pt' : 'en'; } catch (e) {}
+    function LANG() { return __lang; }
+    function LOCALE() { return LANG() === 'pt' ? 'pt-BR' : 'en-US'; }
+
+    // Strings renderizadas por JS (KPIs, funil, ranking, heatmap, modal, alerts).
+    const I18N = {
+      en: {
+        optTeamAvg: 'All (team average)',
+        optTeamTotal: 'All (totals)',
+        optAllSdrs: 'All SDRs',
+        loading: 'Loading...',
+        readingRows: 'Reading: {n} rows',
+        processing: 'Processing data...',
+        rowsLoaded: '{n} rows loaded',
+        error: 'Error',
+        alValidCsv: 'Please select a valid CSV file.',
+        alCsvError: 'Error processing CSV: ',
+        alCsvEmpty: 'Empty CSV file',
+        alBadCols: 'Error: the CSV file does not contain the expected columns (activity_date, activity_type, user_id).',
+        alNoValidRows: 'No valid rows found in the CSV. Check that the activity_date, activity_type and user_id columns are filled.',
+        alLoadFirst: 'Load a CSV first!',
+        alDateOrder: 'Start date cannot be later than end date!',
+        alDateBoth: 'Fill in both dates (start and end)',
+        alCopyError: 'Copy failed: ',
+        noData: 'No data',
+        adjustFilters: 'Adjust the filters',
+        kAct: 'Activities', kActH: 'in the period',
+        kSdrs: 'Active SDRs', kSdrsH: 'with activity',
+        kConn: 'Connection rate', kConnH: 'connections / attempts',
+        kBook: 'Bookings', kBookH: 'generated',
+        insightTop: '<b>{sdr}</b> leads in bookings ({n}) this period, turning prospecting into meetings.',
+        insightAlt: '<b>{a}</b> bookings generated from <b>{t}</b> prospecting activities.',
+        fsAttemptsSub: 'contact attempts',
+        fsConnSub: 'calls with a conversation',
+        fsBookSub: 'meetings booked',
+        stepConn: '{p}% of calls connected',
+        stepBook: '{p}% of connections booked',
+        thConnRate: 'Connection rate',
+        thBookRate: 'Booking rate',
+        thAvgDur: 'Avg. duration',
+        thTrend: 'Trend',
+        sparkAria: 'activity trend',
+        wkAbbr: 'Wk',
+        week: 'Week',
+        activities: 'Activities',
+        hcTitle: 'DATA QUALITY SUMMARY',
+        hcModalTitle: 'Data quality summary',
+        copy: 'Copy', copied: 'Copied!', close: 'Close',
+        hcOverview: 'OVERVIEW',
+        hcTotal: 'Total activities',
+        hcPeriod: 'Period', hcTo: 'to', hcDays: 'days',
+        hcCoverage: 'Days with data', hcCoverageSuffix: 'coverage',
+        hcActiveSdrs: 'Active SDRs',
+        hcTypes: 'Activity types',
+        hcDist: 'DISTRIBUTION BY TYPE',
+        hcTop5: 'TOP 5 SDRs (by volume)',
+        hcWarnings: 'WARNINGS',
+        hcIssues: 'DATA LIMITATIONS',
+        hcNone: 'No issues detected.',
+        hcWarnDur: 'All durations (duration) are 0: Connections and Duration always show as zero',
+        hcWarnFew: '{sdr} has only {n} activities in the period',
+        hcWarnCoverage: 'Low date coverage: {p}% ({d} of {e} days with data)',
+        hcIssueNoType: 'Some rows came without an activity type: check that the activity_type column is filled in the CRM export.',
+        hcWarnUnknownType: 'Unrecognized activity type: "{t}" (not counted in the calls, emails, WhatsApp or tasks metrics)',
+        dkSampleActs: '{n} sample activities'
+      },
+      pt: {
+        optTeamAvg: 'Todos (Média do Time)',
+        optTeamTotal: 'Todos (Números Totais)',
+        optAllSdrs: 'Todos os SDRs',
+        loading: 'Carregando...',
+        readingRows: 'Lendo: {n} linhas',
+        processing: 'Processando dados...',
+        rowsLoaded: '{n} linhas carregadas',
+        error: 'Erro',
+        alValidCsv: 'Por favor, selecione um arquivo CSV válido.',
+        alCsvError: 'Erro ao processar CSV: ',
+        alCsvEmpty: 'Arquivo CSV vazio',
+        alBadCols: 'Erro: O arquivo CSV não contém as colunas esperadas (activity_date, activity_type, user_id).',
+        alNoValidRows: 'Nenhuma linha válida encontrada no CSV. Confira se as colunas activity_date, activity_type e user_id estão preenchidas.',
+        alLoadFirst: 'Carregue um CSV primeiro!',
+        alDateOrder: 'Data inicial não pode ser maior que data final!',
+        alDateBoth: 'Preencha ambas as datas (início e fim)',
+        alCopyError: 'Erro ao copiar: ',
+        noData: 'Nenhum dado',
+        adjustFilters: 'Ajuste os filtros',
+        kAct: 'Atividades', kActH: 'no período',
+        kSdrs: 'SDRs ativos', kSdrsH: 'com atividade',
+        kConn: 'Taxa de conexão', kConnH: 'conexões / tentativas',
+        kBook: 'Agendamentos', kBookH: 'gerados',
+        insightTop: '<b>{sdr}</b> lidera em agendamentos ({n}) no período, convertendo prospecção em reuniões.',
+        insightAlt: '<b>{a}</b> agendamentos gerados a partir de <b>{t}</b> atividades de prospecção.',
+        fsAttemptsSub: 'tentativas de contato',
+        fsConnSub: 'ligações com conversa',
+        fsBookSub: 'reuniões marcadas',
+        stepConn: '{p}% das ligações conectaram',
+        stepBook: '{p}% das conexões agendaram',
+        thConnRate: 'Taxa Conexão',
+        thBookRate: 'Taxa Agend',
+        thAvgDur: 'Duração Média',
+        thTrend: 'Tendência',
+        sparkAria: 'tendência de atividade',
+        wkAbbr: 'Sem',
+        week: 'Semana',
+        activities: 'Atividades',
+        hcTitle: 'RESUMO DE QUALIDADE DOS DADOS',
+        hcModalTitle: 'Resumo de qualidade dos dados',
+        copy: 'Copiar', copied: 'Copiado!', close: 'Fechar',
+        hcOverview: 'VISÃO GERAL',
+        hcTotal: 'Total de atividades',
+        hcPeriod: 'Período', hcTo: 'até', hcDays: 'dias',
+        hcCoverage: 'Dias com dados', hcCoverageSuffix: 'cobertura',
+        hcActiveSdrs: 'SDRs ativos',
+        hcTypes: 'Tipos de atividade',
+        hcDist: 'DISTRIBUIÇÃO POR TIPO',
+        hcTop5: 'TOP 5 SDRs (por volume)',
+        hcWarnings: 'AVISOS',
+        hcIssues: 'LIMITAÇÕES DA BASE',
+        hcNone: 'Nenhum problema detectado.',
+        hcWarnDur: 'Todas as durações (duration) são 0: Conexões e Duração ficam sempre zeradas',
+        hcWarnFew: '{sdr} tem apenas {n} atividades no período',
+        hcWarnCoverage: 'Cobertura temporal baixa: {p}% ({d} de {e} dias com dados)',
+        hcIssueNoType: 'Parte das linhas veio sem tipo de atividade: confira se a coluna activity_type está preenchida no export do CRM.',
+        hcWarnUnknownType: 'Tipo de atividade não reconhecido: "{t}" (não entra nas métricas de ligações, e-mails, WhatsApp ou tarefas)',
+        dkSampleActs: '{n} atividades de exemplo'
+      }
+    };
+    function t(k, vars) {
+      let s = I18N[LANG()][k];
+      if (s == null) s = I18N.en[k];
+      if (s == null) return k;
+      if (vars) { for (const v in vars) { s = s.split('{' + v + '}').join(vars[v]); } }
+      return s;
+    }
+
+    // MAPA DE EXIBIÇÃO das métricas: as chaves internas (METRICS, DATA, selects)
+    // ficam como estão; apenas o rótulo mostrado em select/legenda/tooltip/eixo muda.
+    const METRIC_LABELS = {
+      en: { ligacoes: 'Calls', emails: 'Emails', tarefas: 'Tasks', quantidade: 'Volume', whatsapp: 'WhatsApp', tentativas: 'Attempts', conexoes: 'Connections', duracao: 'Total duration (HH:MM)', agendamentos: 'Bookings' },
+      pt: { ligacoes: 'Ligações', emails: 'Emails', tarefas: 'Tarefas', quantidade: 'Quantidade', whatsapp: 'WhatsApp', tentativas: 'Tentativas', conexoes: 'Conexões', duracao: 'Duração total (HH:MM)', agendamentos: 'Agendamentos' }
+    };
+    function metricLabel(key) {
+      return (METRIC_LABELS[LANG()] && METRIC_LABELS[LANG()][key]) || METRIC_LABELS.en[key] || key;
+    }
 
     // ==================== GLOBALS ====================
     let RAW_ACTIVITIES = []; // Atividades brutas do CSV (não agregadas)
@@ -779,16 +937,17 @@
     // Métricas disponíveis. Cada uma ocupa um slot único da paleta categórica,
     // na ordem do objeto; Agendamentos mantém o laranja de destaque (#d95926)
     // e Duração usa o azul-claro de apoio (--accent-soft), fora dos 8 slots.
+    // Rótulo de exibição vem de METRIC_LABELS (i18n); a chave interna não muda.
     const METRICS = [
-      { key: 'ligacoes', label: 'Ligações', color: '#2563eb' },
-      { key: 'emails', label: 'Emails', color: '#199e70' },
-      { key: 'tarefas', label: 'Tarefas', color: '#c98500' },
-      { key: 'quantidade', label: 'Quantidade', color: '#d55181' },
-      { key: 'whatsapp', label: 'WhatsApp', color: '#008300' },
-      { key: 'tentativas', label: 'Tentativas', color: '#9085e9' },
-      { key: 'conexoes', label: 'Conexões', color: '#e66767' },
-      { key: 'duracao', label: 'Duração total (HH:MM)', color: '#60a5fa' },
-      { key: 'agendamentos', label: 'Agendamentos', color: '#d95926' }
+      { key: 'ligacoes', color: '#2563eb' },
+      { key: 'emails', color: '#199e70' },
+      { key: 'tarefas', color: '#c98500' },
+      { key: 'quantidade', color: '#d55181' },
+      { key: 'whatsapp', color: '#008300' },
+      { key: 'tentativas', color: '#9085e9' },
+      { key: 'conexoes', color: '#e66767' },
+      { key: 'duracao', color: '#60a5fa' },
+      { key: 'agendamentos', color: '#d95926' }
     ];
 
     // ==================== UTILS ====================
@@ -818,6 +977,21 @@
       const date = parseDate(str);
       if (!date) return str;
       return date.toISOString().split('T')[0];
+    }
+
+    // Data curta (dia e mês) na locale ativa (pt-BR: dd/mm, en-US: mm/dd)
+    function fmtDM(str) {
+      const date = parseDate(str);
+      if (!date || isNaN(date)) return str;
+      return date.toLocaleDateString(LOCALE(), { day: '2-digit', month: '2-digit' });
+    }
+
+    // Nome curto do dia da semana (0=Dom) na locale ativa; 2023-01-01 é um domingo
+    function wdShort(i) {
+      const d = new Date(Date.UTC(2023, 0, 1 + i));
+      let s = d.toLocaleDateString(LOCALE(), { weekday: 'short', timeZone: 'UTC' });
+      s = s.replace(/\.$/, '');
+      return s.charAt(0).toUpperCase() + s.slice(1);
     }
 
     function isWeekend(dateStr) {
@@ -876,7 +1050,7 @@
       if (!file) return;
 
       if (!file.name.toLowerCase().endsWith('.csv')) {
-        alert('Por favor, selecione um arquivo CSV válido.');
+        alert(t('alValidCsv'));
         e.target.value = '';
         return;
       }
@@ -888,7 +1062,7 @@
 
       loadingBar.style.display = 'block';
       progressBar.style.width = '0%';
-      document.getElementById('fileStatus').textContent = 'Carregando...';
+      document.getElementById('fileStatus').textContent = t('loading');
 
       const chunks = [];
 
@@ -900,24 +1074,24 @@
           const progress = Math.min(50, Math.round((chunks.length / 1000) * 50));
           progressBar.style.width = progress + '%';
           loadingProgress.textContent = progress + '%';
-          loadingText.textContent = `Lendo: ${chunks.length.toLocaleString()} linhas`;
+          loadingText.textContent = t('readingRows', { n: chunks.length.toLocaleString(LOCALE()) });
         },
         complete: () => {
           progressBar.style.width = '100%';
           loadingProgress.textContent = '100%';
-          loadingText.textContent = 'Processando dados...';
+          loadingText.textContent = t('processing');
 
           setTimeout(() => {
             processData(chunks);
             loadingBar.style.display = 'none';
-            document.getElementById('fileStatus').textContent = `${chunks.length.toLocaleString()} linhas carregadas`;
+            document.getElementById('fileStatus').textContent = t('rowsLoaded', { n: chunks.length.toLocaleString(LOCALE()) });
           }, 500);
         },
         error: (err) => {
           console.error('Erro ao ler CSV:', err);
-          alert('Erro ao processar CSV: ' + err.message);
+          alert(t('alCsvError') + err.message);
           loadingBar.style.display = 'none';
-          document.getElementById('fileStatus').textContent = 'Erro';
+          document.getElementById('fileStatus').textContent = t('error');
         }
       });
     });
@@ -925,7 +1099,7 @@
     // ==================== DATA PROCESSING ====================
     function processData(rows) {
       if (rows.length === 0) {
-        alert('Arquivo CSV vazio');
+        alert(t('alCsvEmpty'));
         return;
       }
 
@@ -935,7 +1109,7 @@
       const isActivityCSV = headers.includes('activity_date') && headers.includes('activity_type') && headers.includes('user_id');
 
       if (!isActivityCSV) {
-        alert('Erro: O arquivo CSV não contém as colunas esperadas (activity_date, activity_type, user_id).');
+        alert(t('alBadCols'));
         return;
       }
 
@@ -983,7 +1157,7 @@
       });
 
       if (RAW_ACTIVITIES.length === 0) {
-        alert('Nenhuma linha válida encontrada no CSV. Confira se as colunas activity_date, activity_type e user_id estão preenchidas.');
+        alert(t('alNoValidRows'));
         return;
       }
 
@@ -996,7 +1170,7 @@
     // ==================== DIAGNÓSTICO: RESUMO DE QUALIDADE DOS DADOS ====================
     function showHealthCheck() {
       if (RAW_ACTIVITIES.length === 0) {
-        alert('Carregue um CSV primeiro!');
+        alert(t('alLoadFirst'));
         return;
       }
 
@@ -1037,19 +1211,19 @@
       // Duração sempre zero
       const totalDuration = RAW_ACTIVITIES.reduce((sum, r) => sum + parseFloat(r.duration || 0), 0);
       if (totalDuration === 0) {
-        warnings.push('Todas as durações (duration) são 0: Conexões e Duração ficam sempre zeradas');
+        warnings.push(t('hcWarnDur'));
       }
 
       // SDRs com poucas atividades
       Object.entries(sdrStats).forEach(([sdr, stats]) => {
         if (stats.total < 10) {
-          warnings.push(`${sdr} tem apenas ${stats.total} atividades no período`);
+          warnings.push(t('hcWarnFew', { sdr: sdr, n: stats.total }));
         }
       });
 
       // Cobertura temporal
       if (parseFloat(coveragePercent) < 70) {
-        warnings.push(`Cobertura temporal baixa: ${coveragePercent}% (${uniqueDates.length} de ${expectedDays} dias com dados)`);
+        warnings.push(t('hcWarnCoverage', { p: coveragePercent, d: uniqueDates.length, e: expectedDays }));
       }
 
       // Tipos de atividade fora do vocabulário conhecido
@@ -1057,59 +1231,59 @@
       const unknownTypes = uniqueTypes.filter(type => !knownTypes.includes(type));
 
       if (unknownTypes.includes('UNKNOWN') || unknownTypes.includes('undefined')) {
-        issues.push('Parte das linhas veio sem tipo de atividade: confira se a coluna activity_type está preenchida no export do CRM.');
+        issues.push(t('hcIssueNoType'));
       }
 
       unknownTypes.forEach(type => {
         if (type !== 'UNKNOWN' && type !== 'undefined') {
-          warnings.push(`Tipo de atividade não reconhecido: "${type}" (não entra nas métricas de ligações, e-mails, WhatsApp ou tarefas)`);
+          warnings.push(t('hcWarnUnknownType', { t: type }));
         }
       });
 
       // Montar relatório
-      let report = 'RESUMO DE QUALIDADE DOS DADOS\n';
+      let report = t('hcTitle') + '\n';
       report += '═'.repeat(60) + '\n\n';
 
-      report += 'VISÃO GERAL\n';
-      report += `  • Total de atividades: ${totalRows.toLocaleString('pt-BR')}\n`;
-      report += `  • Período: ${dateRange.min} até ${dateRange.max} (${daysDiff} dias)\n`;
-      report += `  • Dias com dados: ${uniqueDates.length} (${coveragePercent}% cobertura)\n`;
-      report += `  • SDRs ativos: ${uniqueSDRs.length}\n`;
-      report += `  • Tipos de atividade: ${uniqueTypes.length}\n\n`;
+      report += t('hcOverview') + '\n';
+      report += `  • ${t('hcTotal')}: ${totalRows.toLocaleString(LOCALE())}\n`;
+      report += `  • ${t('hcPeriod')}: ${dateRange.min} ${t('hcTo')} ${dateRange.max} (${daysDiff} ${t('hcDays')})\n`;
+      report += `  • ${t('hcCoverage')}: ${uniqueDates.length} (${coveragePercent}% ${t('hcCoverageSuffix')})\n`;
+      report += `  • ${t('hcActiveSdrs')}: ${uniqueSDRs.length}\n`;
+      report += `  • ${t('hcTypes')}: ${uniqueTypes.length}\n\n`;
 
-      report += 'DISTRIBUIÇÃO POR TIPO\n';
+      report += t('hcDist') + '\n';
       Object.entries(typeDistribution)
         .sort((a, b) => b[1] - a[1])
         .forEach(([type, count]) => {
           const percent = ((count / totalRows) * 100).toFixed(1);
-          report += `  • ${type}: ${count.toLocaleString('pt-BR')} (${percent}%)\n`;
+          report += `  • ${type}: ${count.toLocaleString(LOCALE())} (${percent}%)\n`;
         });
       report += '\n';
 
-      report += 'TOP 5 SDRs (por volume)\n';
+      report += t('hcTop5') + '\n';
       Object.entries(sdrStats)
         .sort((a, b) => b[1].total - a[1].total)
         .slice(0, 5)
         .forEach(([sdr, stats]) => {
           const percent = ((stats.total / totalRows) * 100).toFixed(1);
-          report += `  • ${sdr}: ${stats.total.toLocaleString('pt-BR')} (${percent}%)\n`;
+          report += `  • ${sdr}: ${stats.total.toLocaleString(LOCALE())} (${percent}%)\n`;
         });
       report += '\n';
 
       if (warnings.length > 0) {
-        report += 'AVISOS\n';
+        report += t('hcWarnings') + '\n';
         warnings.forEach(w => report += `  ${w}\n`);
         report += '\n';
       }
 
       if (issues.length > 0) {
-        report += 'LIMITAÇÕES DA BASE\n';
+        report += t('hcIssues') + '\n';
         issues.forEach(i => report += `  ${i}\n`);
         report += '\n';
       }
 
       if (issues.length === 0 && warnings.length === 0) {
-        report += 'Nenhum problema detectado.\n\n';
+        report += t('hcNone') + '\n\n';
       }
 
       report += '═'.repeat(60);
@@ -1129,26 +1303,26 @@
       header.className = 'health-modal-head';
 
       const title = document.createElement('h3');
-      title.textContent = 'Resumo de qualidade dos dados';
+      title.textContent = t('hcModalTitle');
 
       const btnGroup = document.createElement('div');
       btnGroup.className = 'btn-group';
 
       const copyBtn = document.createElement('button');
-      copyBtn.textContent = 'Copiar';
+      copyBtn.textContent = t('copy');
       copyBtn.className = 'btn secondary sm';
       copyBtn.onclick = () => {
         navigator.clipboard.writeText(report).then(() => {
           const originalText = copyBtn.textContent;
-          copyBtn.textContent = 'Copiado!';
+          copyBtn.textContent = t('copied');
           setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
         }).catch(err => {
-          alert('Erro ao copiar: ' + err);
+          alert(t('alCopyError') + err);
         });
       };
 
       const closeBtn = document.createElement('button');
-      closeBtn.textContent = 'Fechar';
+      closeBtn.textContent = t('close');
       closeBtn.className = 'btn sm';
       closeBtn.onclick = () => modal.remove();
 
@@ -1244,14 +1418,14 @@
       var tent = 0, conex = 0, agend = 0;
       acts.forEach(function (a) { if (isTentativa(a)) tent++; if (isConexao(a)) conex++; if (isAgendamento(a)) agend++; });
       var top = Math.max(tent, 1);
-      var nf = function (n) { return (n || 0).toLocaleString('pt-BR'); };
+      var nf = function (n) { return (n || 0).toLocaleString(LOCALE()); };
       // Etapas de funil são ordinais: rampa azul de um matiz só, do claro ao escuro.
       var stages = [
-        { l: 'Ligações', s: 'tentativas de contato', n: tent, c: FUNNEL_RAMP[0], tc: '#0a0a0b' },
-        { l: 'Conexões', s: 'ligações com conversa', n: conex, c: FUNNEL_RAMP[1], tc: '#fff' },
-        { l: 'Agendamentos', s: 'reuniões marcadas', n: agend, c: FUNNEL_RAMP[2], tc: '#fff' }
+        { l: metricLabel('ligacoes'), s: t('fsAttemptsSub'), n: tent, c: FUNNEL_RAMP[0], tc: '#0a0a0b' },
+        { l: metricLabel('conexoes'), s: t('fsConnSub'), n: conex, c: FUNNEL_RAMP[1], tc: '#fff' },
+        { l: metricLabel('agendamentos'), s: t('fsBookSub'), n: agend, c: FUNNEL_RAMP[2], tc: '#fff' }
       ];
-      var steps = [null, (tent > 0 ? Math.round(conex / tent * 100) : 0) + '% das ligações conectaram', (conex > 0 ? Math.round(agend / conex * 100) : 0) + '% das conexões agendaram'];
+      var steps = [null, t('stepConn', { p: tent > 0 ? Math.round(conex / tent * 100) : 0 }), t('stepBook', { p: conex > 0 ? Math.round(agend / conex * 100) : 0 })];
       var html = '';
       stages.forEach(function (st, i) {
         var w = Math.max(6, Math.round(st.n / top * 100)), pct = Math.round(st.n / top * 100);
@@ -1285,16 +1459,16 @@
       var connRate = tent > 0 ? Math.round(conex / tent * 100) : 0;
       var topSdr = null, topAg = -1;
       Object.keys(bySdr).forEach(function (s) { if (bySdr[s].ag > topAg) { topAg = bySdr[s].ag; topSdr = s; } });
-      var nf = function (n) { return (n || 0).toLocaleString('pt-BR'); };
+      var nf = function (n) { return (n || 0).toLocaleString(LOCALE()); };
       var kpis = [
-        { v: nf(total), l: 'Atividades', h: 'no período' },
-        { v: nf(nSdr), l: 'SDRs ativos', h: 'com atividade' },
-        { v: connRate + '%', l: 'Taxa de conexão', h: 'conexões / tentativas', cls: connRate >= 30 ? 'good' : '' },
-        { v: nf(agend), l: 'Agendamentos', h: 'gerados' }
+        { v: nf(total), l: t('kAct'), h: t('kActH') },
+        { v: nf(nSdr), l: t('kSdrs'), h: t('kSdrsH') },
+        { v: connRate + '%', l: t('kConn'), h: t('kConnH'), cls: connRate >= 30 ? 'good' : '' },
+        { v: nf(agend), l: t('kBook'), h: t('kBookH') }
       ];
       var insight = (topSdr && topAg > 0)
-        ? '<b>' + escHtml(topSdr) + '</b> lidera em agendamentos (' + nf(topAg) + ') no período, convertendo prospecção em reuniões.'
-        : '<b>' + nf(agend) + '</b> agendamentos gerados a partir de <b>' + nf(total) + '</b> atividades de prospecção.';
+        ? t('insightTop', { sdr: escHtml(topSdr), n: nf(topAg) })
+        : t('insightAlt', { a: nf(agend), t: nf(total) });
       var kw = document.getElementById('exec-kpis');
       if (kw) kw.innerHTML = kpis.map(function (k) {
         return '<div class="kpi"><div class="label">' + k.l + '</div><div class="value' + (k.cls ? ' ' + k.cls : '') + '">' + k.v + '</div><div class="subv">' + k.h + '</div></div>';
@@ -1307,10 +1481,10 @@
       const select = document.getElementById('sdrSelect');
       const sdrs = [...new Set(RAW.map(r => r.sdr))].sort();
 
-      // Preservar as opções "Todos"
+      // Preservar as opções "Todos" (rótulos na língua ativa)
       select.innerHTML = `
-        <option value="Todos_Media">Todos (Média do Time)</option>
-        <option value="Todos_Total">Todos (Números Totais)</option>
+        <option value="Todos_Media">${t('optTeamAvg')}</option>
+        <option value="Todos_Total">${t('optTeamTotal')}</option>
       `;
 
       sdrs.forEach(sdr => {
@@ -1507,7 +1681,7 @@
         document.getElementById('dashboard').style.display = 'none';
         const es = document.getElementById('emptyState');
         es.style.display = 'block';
-        es.innerHTML = '<h3>Nenhum dado</h3><p>Ajuste os filtros</p>';
+        es.innerHTML = '<h3>' + t('noData') + '</h3><p>' + t('adjustFilters') + '</p>';
         return;
       }
 
@@ -1516,13 +1690,15 @@
 
       const metric = METRICS.find(m => m.key === timelineMetric) || METRICS.find(m => m.key === 'tentativas');
       const isDur = metric.key === 'duracao';
-      const dates = DATA.map(d => d.dateDisplay);
+      const mLabel = metricLabel(metric.key);
+      const agLabel = metricLabel('agendamentos');
+      const dates = DATA.map(d => fmtDM(d.date));
       const topData = DATA.map(d => d[metric.key] || 0);
       const agData = DATA.map(d => d.agendamentos || 0);
 
       chart = makeChart(document.getElementById('mainChart'));
       chart.setOption({
-        legend: { data: [metric.label, 'Agendamentos'], top: 0 },
+        legend: { data: [mLabel, agLabel], top: 0 },
         tooltip: {
           trigger: 'axis',
           formatter: (params) => {
@@ -1530,7 +1706,7 @@
             params.forEach(p => {
               let value = p.value;
               // Se for a série de duração, converter para HH:MM
-              if (String(p.seriesName).includes('Duração')) {
+              if (isDur && p.seriesName === mLabel) {
                 value = formatMinutesToHHMM(p.value);
               }
               result += `${p.marker} ${escHtml(p.seriesName)}: <b>${value}</b><br/>`;
@@ -1550,22 +1726,22 @@
         yAxis: [
           {
             id: 'tlYTop', type: 'value', gridIndex: 0, min: 0,
-            name: metric.label, nameTextStyle: { color: '#a1a1aa', fontSize: 11 },
+            name: mLabel, nameTextStyle: { color: '#a1a1aa', fontSize: 11 },
             axisLabel: { formatter: (value) => isDur ? formatMinutesToHHMM(value) : value }
           },
           {
             id: 'tlYBot', type: 'value', gridIndex: 1, min: 0,
-            name: 'Agendamentos', nameTextStyle: { color: '#a1a1aa', fontSize: 11 }
+            name: agLabel, nameTextStyle: { color: '#a1a1aa', fontSize: 11 }
           }
         ],
         series: [
           {
-            name: metric.label, type: 'line', xAxisId: 'tlTop', yAxisId: 'tlYTop', data: topData,
+            name: mLabel, type: 'line', xAxisId: 'tlTop', yAxisId: 'tlYTop', data: topData,
             smooth: true, symbol: 'circle', symbolSize: 5,
             lineStyle: { width: 2, color: '#2563eb' }, itemStyle: { color: '#2563eb' }
           },
           {
-            name: 'Agendamentos', type: 'bar', xAxisId: 'tlBot', yAxisId: 'tlYBot', data: agData,
+            name: agLabel, type: 'bar', xAxisId: 'tlBot', yAxisId: 'tlYBot', data: agData,
             barMaxWidth: 14, itemStyle: { color: '#d95926' }
           }
         ]
@@ -1645,7 +1821,7 @@
         const W=96, H=26, n=vals.length, step = n>1 ? W/(n-1) : W;
         const pts = vals.map((v,i)=> ((i*step).toFixed(1))+','+((H-3 - (v/max)*(H-6)).toFixed(1))).join(' ');
         const lastX = ((n-1)*step).toFixed(1), lastY = (H-3 - (vals[n-1]/max)*(H-6)).toFixed(1);
-        return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="vertical-align:middle;" role="img" aria-label="tendência de atividade">'
+        return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="vertical-align:middle;" role="img" aria-label="'+t('sparkAria')+'">'
           +'<polyline points="'+pts+'" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>'
           +'<circle cx="'+lastX+'" cy="'+lastY+'" r="2.2" fill="#60a5fa"/></svg>';
       }
@@ -1656,13 +1832,13 @@
             <tr>
               <th style="width: 50px;">#</th>
               <th>SDR</th>
-              <th style="text-align: right;">Tentativas</th>
-              <th style="text-align: right;">Conexões</th>
-              <th style="text-align: right;">Taxa Conexão</th>
-              <th style="text-align: right;">Agendamentos</th>
-              <th style="text-align: right;">Taxa Agend</th>
-              <th style="text-align: right;">Duração Média</th>
-              <th style="text-align: center;">Tendência</th>
+              <th style="text-align: right;">${metricLabel('tentativas')}</th>
+              <th style="text-align: right;">${metricLabel('conexoes')}</th>
+              <th style="text-align: right;">${t('thConnRate')}</th>
+              <th style="text-align: right;">${metricLabel('agendamentos')}</th>
+              <th style="text-align: right;">${t('thBookRate')}</th>
+              <th style="text-align: right;">${t('thAvgDur')}</th>
+              <th style="text-align: center;">${t('thTrend')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1777,21 +1953,18 @@
         });
       });
 
-      const allDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      const days = hideWeekendsHm ? ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] : allDays;
+      // Dias da semana na locale ativa (0=Dom)
+      const allDays = [0, 1, 2, 3, 4, 5, 6].map(wdShort);
+      const days = hideWeekendsHm ? allDays.slice(1, 6) : allDays;
 
       // Labels de semana com o intervalo de datas (dispensa legenda separada)
       const weekLabels = weeks.map(w => {
         const dates = weekDatesMap[w];
-        if (!dates) return `Sem ${w}`;
+        if (!dates) return `${t('wkAbbr')} ${w}`;
 
-        const fmtShort = (d) => {
-          const day = String(d.getDate()).padStart(2, '0');
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          return `${day}/${month}`;
-        };
+        const fmtShort = (d) => d.toLocaleDateString(LOCALE(), { day: '2-digit', month: '2-digit' });
 
-        return `Sem ${w} (${fmtShort(dates.startDate)}-${fmtShort(dates.endDate)})`;
+        return `${t('wkAbbr')} ${w} (${fmtShort(dates.startDate)}-${fmtShort(dates.endDate)})`;
       });
 
       heatmapChart = makeChart(document.getElementById('heatmapChart'));
@@ -1806,15 +1979,11 @@
 
             let dateRange = '';
             if (dates) {
-              const fmtFull = (d) => {
-                const dd = String(d.getDate()).padStart(2, '0');
-                const mm = String(d.getMonth() + 1).padStart(2, '0');
-                return `${dd}/${mm}/${d.getFullYear()}`;
-              };
+              const fmtFull = (d) => d.toLocaleDateString(LOCALE(), { day: '2-digit', month: '2-digit', year: 'numeric' });
               dateRange = `<br/><span style="color:var(--ink-4);font-size:11px;">${fmtFull(dates.startDate)} - ${fmtFull(dates.endDate)}</span>`;
             }
 
-            return `<b>Semana ${weekNum} - ${day}</b>${dateRange}<br/>Atividades: ${value}`;
+            return `<b>${t('week')} ${weekNum} - ${day}</b>${dateRange}<br/>${t('activities')}: ${value}`;
           }
         },
         grid: {
@@ -1850,7 +2019,7 @@
           textStyle: { color: '#8a8a94', fontSize: 11 }
         },
         series: [{
-          name: 'Atividades',
+          name: t('activities'),
           type: 'heatmap',
           data: heatmapData,
           label: { show: false },
@@ -1870,7 +2039,7 @@
       const select = document.getElementById('heatmap_sdr');
       const sdrs = [...new Set(RAW.map(r => r.sdr))].sort();
 
-      select.innerHTML = '<option value="all">Todos os SDRs</option>';
+      select.innerHTML = '<option value="all">' + t('optAllSdrs') + '</option>';
       sdrs.forEach(sdr => {
         const opt = document.createElement('option');
         opt.value = sdr;
@@ -1905,14 +2074,14 @@
 
       if (start && end) {
         if (start > end) {
-          alert('Data inicial não pode ser maior que data final!');
+          alert(t('alDateOrder'));
           return;
         }
         dateFilterStart = start;
         dateFilterEnd = end;
         applyFilters();
       } else {
-        alert('Preencha ambas as datas (início e fim)');
+        alert(t('alDateBoth'));
       }
     });
 
@@ -1931,6 +2100,103 @@
 
     // A base de exemplo e o upload de CSV sao controlados pela barra de dados (DATAKIT),
     // no fim do arquivo. Nao gere dados aqui: duas fontes concorrentes se somavam na mesma base.
+
+    // ==================== SELETOR DE IDIOMA (mecanismo do hub) ====================
+    // EN estático é capturado do próprio DOM; PT vem do dicionário abaixo.
+    const PT_HTML = {
+      h1: 'Produtividade SDR',
+      desc: 'prospecção · atividades por SDR · CSV de atividades do CRM',
+      fbPeriod: 'período',
+      btnApply: 'Aplicar',
+      btnClear: 'Limpar',
+      hideWknd: 'Ocultar fins de semana',
+      hideZero: 'Ocultar dias zerados',
+      btnHealth: 'Diagnóstico',
+      execKicker: '<b>//</b> resumo executivo',
+      execQ: 'Quem produz no topo do funil e onde a atividade de prospecção vira reunião: volume, taxa de conexão e agendamentos por SDR.',
+      esTitle: 'Nenhum arquivo carregado',
+      esBody: 'Envie o CSV de atividades exportado do CRM: uma linha por atividade registrada.',
+      esCols: 'Colunas esperadas: <code>activity_date</code>, <code>activity_type</code>, <code>user_id</code>, <code>duration</code>, <code>activity_id</code>, <code>deal_id</code>. O painel "Como montar o CSV", na barra de dados no topo da página, traz o contrato completo e um template para download.',
+      p1h: 'Timeline de Atividades',
+      p1tip: 'Métrica escolhida (linha, painel de cima) alinhada dia a dia ao volume de agendamentos (barras, painel de baixo). Cada painel tem escala própria começando em zero.',
+      p1sub: 'Volume diário da métrica selecionada, com o volume de agendamentos do mesmo dia logo abaixo, no mesmo eixo de tempo.',
+      lblMetric: 'Métrica:',
+      mAttempts: 'Tentativas', mCalls: 'Ligações', mConnections: 'Conexões', mEmails: 'Emails',
+      mTasks: 'Tarefas', mVolume: 'Quantidade', mDuration: 'Duração total (HH:MM)', mBookings: 'Agendamentos',
+      p2h: 'Funil de Conversão',
+      p2tip: 'Da ligação à reunião marcada: volume em cada etapa do funil de prospecção e a taxa de passagem entre elas.',
+      p2sub: 'Quanto cada etapa da prospecção retém e a taxa de passagem entre elas.',
+      p3h: 'Heatmap de Atividade por Dia da Semana',
+      p3tip: 'Intensidade de atividades por dia da semana ao longo do período selecionado. Quanto mais claro, maior o volume.',
+      p3sub: 'Concentração de esforço por dia da semana, filtrável por métrica, SDR e período.',
+      hmAll: 'Todas atividades',
+      lblPeriod: 'Período:',
+      last7: 'Últimos 7 dias', last15: 'Últimos 15 dias', last30: 'Últimos 30 dias',
+      last60: 'Últimos 60 dias', last90: 'Últimos 90 dias',
+      allTime: 'Todo período',
+      p4h: 'Ranking de SDRs',
+      p4tip: 'Comparação de performance com taxas de conversão e eficiência por SDR.',
+      p4sub: 'Comparativo de produtividade por SDR, ordenável por volume, taxa de conexão ou agendamentos.',
+      lblSort: 'Ordenar por:',
+      sortConnRate: 'Taxa de Conexão (%)',
+      sortBookRate: 'Taxa Agend/Conexão (%)'
+    };
+    const META_TITLES = { en: 'SDR Productivity | Felippe Yann', pt: 'Produtividade SDR | Felippe Yann' };
+    const EN_HTML = {}; const I18N_ATTRS = ['alt', 'title', 'aria'];
+    document.querySelectorAll('[data-i18n]').forEach(el => { EN_HTML[el.getAttribute('data-i18n')] = el.innerHTML; });
+    I18N_ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(el => {
+      const real = a === 'aria' ? 'aria-label' : a;
+      el.setAttribute('data-en-' + a, el.getAttribute(real) || '');
+    }));
+
+    function applyLang(lang) {
+      __lang = (lang === 'pt') ? 'pt' : 'en';
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = (__lang === 'pt' ? PT_HTML : EN_HTML)[el.getAttribute('data-i18n')];
+        if (v != null) el.innerHTML = v;
+      });
+      I18N_ATTRS.forEach(a => document.querySelectorAll('[data-pt-' + a + ']').forEach(el => {
+        const real = a === 'aria' ? 'aria-label' : a;
+        el.setAttribute(real, el.getAttribute('data-' + (__lang === 'pt' ? 'pt' : 'en') + '-' + a));
+      }));
+      document.documentElement.setAttribute('lang', __lang === 'pt' ? 'pt-BR' : 'en');
+      document.title = META_TITLES[__lang];
+      document.querySelectorAll('[data-lang-btn]').forEach(b => {
+        const on = b.getAttribute('data-lang-btn') === __lang;
+        b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
+      });
+      try { localStorage.setItem('lang', __lang); } catch (e) {}
+
+      // Selects preenchidos por JS: re-rotula as opções fixas preservando a seleção
+      const sdrSel = document.getElementById('sdrSelect');
+      if (sdrSel) {
+        const oM = sdrSel.querySelector('option[value="Todos_Media"]');
+        const oT = sdrSel.querySelector('option[value="Todos_Total"]');
+        if (oM) oM.textContent = t('optTeamAvg');
+        if (oT) oT.textContent = t('optTeamTotal');
+      }
+      const hmSdr = document.getElementById('heatmap_sdr');
+      if (hmSdr) {
+        const oA = hmSdr.querySelector('option[value="all"]');
+        if (oA) oA.textContent = t('optAllSdrs');
+      }
+
+      // Re-renderiza tudo que é desenhado por JS na língua ativa
+      if (RAW_ACTIVITIES.length > 0) {
+        applyFilters();      // timeline (e estado vazio pós-filtro)
+        renderRanking();
+        renderHeatmap();
+        renderExec();
+        renderFunnel();
+      }
+
+      // Camadas compartilhadas (já bilíngues): barra de dados e onboarding/CTA
+      if (window.DK && typeof DK.relabel === 'function') DK.relabel();
+      if (typeof window.__onbCtaRebuild === 'function') window.__onbCtaRebuild();
+    }
+
+    document.querySelectorAll('[data-lang-btn]').forEach(b => b.addEventListener('click', () => applyLang(b.getAttribute('data-lang-btn'))));
+    applyLang(__lang);
 
   </script>
 <!-- ==== DATAKIT: contrato de dados + preenchimento automatico ==== -->
@@ -1954,6 +2220,48 @@
   var CFG = null;
   var els = {};
   var mode = 'empty'; // 'empty' | 'demo' | 'user'
+  var lastUserFile = null;
+
+  /* ---------- idioma (ingles default; 'pt' via localStorage 'lang') ---------- */
+  function dkLang() { var l = 'en'; try { l = localStorage.getItem('lang') || 'en'; } catch (e) {} return l === 'pt' ? 'pt' : 'en'; }
+  var DK_STR = {
+    en: {
+      kicker: '[ <b>data</b> ]',
+      fill: 'Auto-fill with sample data',
+      upload: 'Upload CSV', uploads: 'Upload CSVs',
+      help: 'How to build the CSV',
+      panelTitle: 'How to use your data',
+      panelIntro: 'This dashboard is fed by a CSV exported from your CRM or source spreadsheet. Parsing happens 100% in the browser: no file ever leaves your machine. Download the template below, replace the sample rows with your data and upload it back. Columns marked with <span class="dk-req">*</span> are required; the rest can be empty.',
+      thCol: 'column', thType: 'type', thWhat: 'what it is', thEx: 'example',
+      tplBtn: 'Download CSV template', upThis: 'Upload this file',
+      panelFoot: 'Just browsing? The <b style="color:#f8f7f3">Auto-fill</b> button generates a synthetic dataset that follows this exact contract and renders every chart instantly.',
+      stDemo: '<b>sample data</b>', stUser: '<b>your data</b>',
+      stNone: 'no data loaded', stFail: 'failed to generate sample data',
+      badge: '<b>sample data</b> &middot; upload your CSV to use yours'
+    },
+    pt: {
+      kicker: '[ <b>dados</b> ]',
+      fill: 'Preencher automaticamente',
+      upload: 'Enviar CSV', uploads: 'Enviar CSVs',
+      help: 'Como montar o CSV',
+      panelTitle: 'Como usar seus dados',
+      panelIntro: 'Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.',
+      thCol: 'coluna', thType: 'tipo', thWhat: 'o que e', thEx: 'exemplo',
+      tplBtn: 'Baixar template CSV', upThis: 'Enviar este arquivo',
+      panelFoot: 'Prefere so olhar? O botao <b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que respeita exatamente esse contrato e renderiza todos os graficos na hora.',
+      stDemo: '<b>dados de exemplo</b>', stUser: '<b>seus dados</b>',
+      stNone: 'sem dados carregados', stFail: 'falha ao gerar dados de exemplo',
+      badge: '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus'
+    }
+  };
+  function S(k) { var d = DK_STR[dkLang()]; return (d && d[k]) || DK_STR.en[k] || k; }
+  function pickCfg(base, enVal) { return dkLang() === 'pt' ? base : (enVal || base); }
+  function summaryText() {
+    try {
+      if (dkLang() === 'en' && CFG && CFG.summary_en) return CFG.summary_en();
+      return CFG && CFG.summary ? CFG.summary() : '';
+    } catch (e) { return ''; }
+  }
 
   /* ---------- utilitarios ---------- */
 
@@ -2085,35 +2393,30 @@
 
   function panelHTML() {
     var out = '<div class="dk-pin">';
-    out += '<h2 class="dk-h">Como usar seus dados</h2>';
-    out += '<p class="dk-p">Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. '
-        + 'O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. '
-        + 'Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. '
-        + 'Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.</p>';
+    out += '<h2 class="dk-h">' + S('panelTitle') + '</h2>';
+    out += '<p class="dk-p">' + S('panelIntro') + '</p>';
 
     CFG.files.forEach(function (f, i) {
       var s = sampleOf(f)[0] || {};
       out += '<div class="dk-file">';
       out += '<div class="dk-fh"><span class="dk-fn">' + esc(f.name) + '</span><span class="dk-fa">';
-      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">Baixar template CSV</button>';
-      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">Enviar este arquivo</button>';
+      out += '<button type="button" class="dk-btn sm p" data-dk-tpl="' + i + '">' + S('tplBtn') + '</button>';
+      if (f.input) out += '<button type="button" class="dk-btn sm" data-dk-up="' + i + '">' + S('upThis') + '</button>';
       out += '</span></div>';
-      out += '<p class="dk-fd">' + esc(f.desc) + '</p>';
+      out += '<p class="dk-fd">' + esc(pickCfg(f.desc, f.desc_en)) + '</p>';
       out += '<div class="dk-scroll"><table class="dk-t"><thead><tr>'
-          + '<th>coluna</th><th>tipo</th><th>o que e</th><th>exemplo</th>'
+          + '<th>' + S('thCol') + '</th><th>' + S('thType') + '</th><th>' + S('thWhat') + '</th><th>' + S('thEx') + '</th>'
           + '</tr></thead><tbody>';
       f.cols.forEach(function (c) {
         out += '<tr><td class="c">' + esc(c.n) + (c.req ? '<span class="dk-req">*</span>' : '') + '</td>'
-            + '<td class="t">' + esc(c.t) + '</td>'
-            + '<td>' + esc(c.d) + '</td>'
+            + '<td class="t">' + esc(pickCfg(c.t, c.t_en)) + '</td>'
+            + '<td>' + esc(pickCfg(c.d, c.d_en)) + '</td>'
             + '<td class="x">' + esc(s[c.n]) + '</td></tr>';
       });
       out += '</tbody></table></div></div>';
     });
 
-    out += '<p class="dk-p" style="margin:2px 0 0">Prefere so olhar? O botao '
-        + '<b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que '
-        + 'respeita exatamente esse contrato e renderiza todos os graficos na hora.</p>';
+    out += '<p class="dk-p" style="margin:2px 0 0">' + S('panelFoot') + '</p>';
     out += '</div>';
     return out;
   }
@@ -2125,14 +2428,14 @@
     bar.setAttribute('aria-label', 'Dados do dashboard');
 
     var many = CFG.files.filter(function (f) { return !!f.input; }).length > 1;
-    var upLabel = many ? 'Enviar CSVs' : 'Enviar CSV';
+    var upLabel = many ? S('uploads') : S('upload');
     var hasInput = CFG.files.some(function (f) { return !!f.input; });
 
     var inner = '<div class="dk-in">'
-      + '<span class="dk-k">[ <b>dados</b> ]</span>'
-      + '<button type="button" class="dk-btn p" data-dk="fill">Preencher automaticamente</button>'
+      + '<span class="dk-k">' + S('kicker') + '</span>'
+      + '<button type="button" class="dk-btn p" data-dk="fill">' + S('fill') + '</button>'
       + (hasInput ? '<button type="button" class="dk-btn" data-dk="upload">' + upLabel + '</button>' : '')
-      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">Como montar o CSV &#9656;</button>'
+      + '<button type="button" class="dk-btn g" data-dk="help" aria-expanded="false">' + S('help') + ' &#9656;</button>'
       + '<span class="dk-sep"></span>'
       + '<span class="dk-st" data-dk="status"></span>'
       + '</div>'
@@ -2163,7 +2466,7 @@
 
     var badge = document.createElement('div');
     badge.className = 'dk-badge';
-    badge.innerHTML = '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus';
+    badge.innerHTML = S('badge');
     els.badge = badge;
 
     document.body.insertBefore(bar, document.body.firstChild);
@@ -2222,7 +2525,7 @@
     var open = (force === undefined) ? !els.panel.classList.contains('open') : !!force;
     els.panel.classList.toggle('open', open);
     els.help.setAttribute('aria-expanded', String(open));
-    els.help.innerHTML = 'Como montar o CSV ' + (open ? '&#9662;' : '&#9656;');
+    els.help.innerHTML = S('help') + ' ' + (open ? '&#9662;' : '&#9656;');
     reflow();
     if (typeof CFG.onResize === 'function') CFG.onResize();
   }
@@ -2264,7 +2567,7 @@
           // espera o dashboard terminar de montar antes do primeiro preenchimento
           waitReady(0);
         } else {
-          setStatus('sem dados carregados');
+          setStatus(S('stNone'));
         }
       };
       if (document.readyState === 'loading') {
@@ -2277,18 +2580,32 @@
         CFG.fill();
         mode = 'demo';
         if (els.badge) els.badge.style.display = '';
-        setStatus('<b>dados de exemplo</b> &middot; ' + (CFG.summary ? CFG.summary() : 'base sintetica'));
+        setStatus(S('stDemo') + ' &middot; ' + summaryText());
       } catch (e) {
         console.error('[DK] falha ao preencher:', e);
-        setStatus('falha ao gerar dados de exemplo');
+        setStatus(S('stFail'));
       }
     },
 
     markUserData: function (name) {
       mode = 'user';
+      lastUserFile = name || null;
       if (els.badge) els.badge.style.display = 'none';
-      setStatus('<b>seus dados</b> &middot; ' + esc(name || 'CSV enviado'));
+      setStatus(S('stUser') + ' &middot; ' + esc(name || 'CSV'));
       toggleHelp(false);
+    },
+
+    relabel: function () {
+      if (!els.bar) return;
+      var open = els.panel && els.panel.classList.contains('open');
+      if (els.bar.parentNode) els.bar.parentNode.removeChild(els.bar);
+      if (els.badge && els.badge.parentNode) els.badge.parentNode.removeChild(els.badge);
+      lastH = -1;
+      build();
+      if (open) toggleHelp(true);
+      if (mode === 'demo') { if (els.badge) els.badge.style.display = ''; setStatus(S('stDemo') + ' &middot; ' + summaryText()); }
+      else if (mode === 'user') { if (els.badge) els.badge.style.display = 'none'; setStatus(S('stUser') + ' &middot; ' + esc(lastUserFile || 'CSV')); }
+      else setStatus(S('stNone'));
     },
 
     mode: function () { return mode; }
@@ -2380,13 +2697,15 @@
       input: '#csvFile',
       desc: 'Export de atividades do CRM. Uma linha por atividade registrada (ligacao, e-mail, WhatsApp, tarefa, agendamento). '
           + 'O dashboard agrega por dia e por SDR.',
+      desc_en: 'Activity export from the CRM. One row per logged activity (call, email, WhatsApp, task, booking). '
+          + 'The dashboard aggregates by day and by SDR.',
       cols: [
-        { n: 'activity_date', t: 'data AAAA-MM-DD', d: 'Dia da atividade.', req: 1 },
-        { n: 'activity_type', t: 'CALL | EMAIL | WHATSAPP | TASK | SCHEDULE', d: 'Tipo da atividade.', req: 1 },
-        { n: 'user_id', t: 'UUID', d: 'Identificador do SDR. E traduzido para nome pelo mapa de usuarios do dashboard.', req: 1 },
-        { n: 'duration', t: 'inteiro (minutos)', d: 'Duracao da ligacao. Use 0 para atividades que nao sao CALL. Ligacao com duracao > 0 conta como conexao.' },
-        { n: 'activity_id', t: 'texto', d: 'Identificador da atividade.' },
-        { n: 'deal_id', t: 'texto', d: 'Negocio relacionado a atividade.' }
+        { n: 'activity_date', t: 'data AAAA-MM-DD', t_en: 'date YYYY-MM-DD', d: 'Dia da atividade.', d_en: 'Day of the activity.', req: 1 },
+        { n: 'activity_type', t: 'CALL | EMAIL | WHATSAPP | TASK | SCHEDULE', d: 'Tipo da atividade.', d_en: 'Activity type.', req: 1 },
+        { n: 'user_id', t: 'UUID', d: 'Identificador do SDR. E traduzido para nome pelo mapa de usuarios do dashboard.', d_en: 'SDR identifier. Translated to a display name by the dashboard user map.', req: 1 },
+        { n: 'duration', t: 'inteiro (minutos)', t_en: 'integer (minutes)', d: 'Duracao da ligacao. Use 0 para atividades que nao sao CALL. Ligacao com duracao > 0 conta como conexao.', d_en: 'Call duration. Use 0 for non-CALL activities. A call with duration > 0 counts as a connection.' },
+        { n: 'activity_id', t: 'texto', t_en: 'text', d: 'Identificador da atividade.', d_en: 'Activity identifier.' },
+        { n: 'deal_id', t: 'texto', t_en: 'text', d: 'Negocio relacionado a atividade.', d_en: 'Deal related to the activity.' }
       ],
       sample: function () { return GEN(); }
     }],
@@ -2398,9 +2717,10 @@
       processData(rows);
       LAST = rows.length;
       var fs = document.getElementById('fileStatus');
-      if (fs) fs.textContent = LAST + ' atividades de exemplo';
+      if (fs) fs.textContent = (typeof t === 'function') ? t('dkSampleActs', { n: LAST }) : (LAST + ' atividades de exemplo');
     },
-    summary: function () { return LAST.toLocaleString('pt-BR') + ' atividades'; }
+    summary: function () { return LAST.toLocaleString('pt-BR') + ' atividades'; },
+    summary_en: function () { return LAST.toLocaleString('en-US') + ' activities'; }
   });
 })();
 </script>
@@ -2428,6 +2748,28 @@
 </style>
 <script id="onb-cta">
 (function(){
+  function oLang(){ var l='en'; try{ l=localStorage.getItem('lang')||'en'; }catch(e){} return l==='pt'?'pt':'en'; }
+  var OT={
+    en:{ h:'How to read this panel',
+      s1:'<li><b>Executive summary</b>: the essentials of the period are right at the top.</li>',
+      s2:'<li><b>Filters</b>: slice by period and segment to investigate.</li>',
+      s3:'<li><b>Panels</b>: each one has a subtitle saying what it shows; hover the info icons for details.</li>',
+      k:'// sales analytics',
+      ch:'Sample dashboards from a RevOps analytics system built by Felippe Yann.',
+      cs:'Want this kind of visibility over your sales operation?',
+      b1:'See all dashboards', b2:'View portfolio', b3:'Chat on LinkedIn',
+      mail:'Prefer email? ' },
+    pt:{ h:'Como ler este painel',
+      s1:'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>',
+      s2:'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>',
+      s3:'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>',
+      k:'// analytics comercial',
+      ch:'Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.',
+      cs:'Quer visibilidade assim no seu comercial?',
+      b1:'Ver todos os dashboards', b2:'Ver portf\u00f3lio', b3:'Falar no LinkedIn',
+      mail:'Prefere conversar por e-mail? ' }
+  };
+  function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
     try{
@@ -2435,11 +2777,9 @@
         var onb=document.createElement('div');
         onb.className='onb-card';
         onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">Como ler este painel</div>'
+          +'<div class="onb-h">'+OS('h')+'</div>'
           +'<ol class="onb-steps">'
-          +'<li><b>Resumo executivo</b>: o essencial do per\u00edodo j\u00e1 est\u00e1 no topo.</li>'
-          +'<li><b>Filtros</b>: recorte por per\u00edodo e segmento para investigar.</li>'
-          +'<li><b>Pain\u00e9is</b>: cada um traz um subt\u00edtulo do que mostra; passe o mouse nos \u00edcones de informa\u00e7\u00e3o para detalhes.</li>'
+          +OS('s1')+OS('s2')+OS('s3')
           +'</ol>';
         band.parentNode.insertBefore(onb, band.nextSibling);
         onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
@@ -2448,18 +2788,22 @@
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
-      cta.innerHTML='<div class="cta-txt"><div class="cta-k">// analytics comercial</div>'
-        +'<div class="cta-h">Dashboards de exemplo de um sistema de RevOps analytics constru\u00eddo por Felippe Yann.</div>'
-        +'<div class="cta-s">Quer visibilidade assim no seu comercial?</div></div>'
+      cta.innerHTML='<div class="cta-txt"><div class="cta-k">'+OS('k')+'</div>'
+        +'<div class="cta-h">'+OS('ch')+'</div>'
+        +'<div class="cta-s">'+OS('cs')+'</div></div>'
         +'<div class="cta-actions">'
-        +'<a class="cta-btn primary" href="index.html">Ver todos os dashboards</a>'
-        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">Ver portf\u00f3lio</a>'
-        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">Falar no LinkedIn</a>'
+        +'<a class="cta-btn primary" href="index.html">'+OS('b1')+'</a>'
+        +'<a class="cta-btn" href="https://felippeyann.github.io" target="_blank" rel="noopener">'+OS('b2')+'</a>'
+        +'<a class="cta-btn" href="https://www.linkedin.com/in/felippeyann/" target="_blank" rel="noopener">'+OS('b3')+'</a>'
         +'</div>';
       (band&&band.parentNode?band.parentNode:document.body).appendChild(cta);
-      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML='Prefere conversar por e-mail? <a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
+      var mail=document.createElement('div');mail.className='cta-mail';mail.innerHTML=OS('mail')+'<a href="mailto:felippe.yann@gmail.com">felippe.yann@gmail.com</a>';(band&&band.parentNode?band.parentNode:document.body).appendChild(mail);
     }
   }
+  window.__onbCtaRebuild=function(){
+    ['.onb-card','.cta-band','.cta-mail'].forEach(function(sel){ var e=document.querySelector(sel); if(e&&e.parentNode) e.parentNode.removeChild(e); });
+    build();
+  };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
 })();
 </script>
