@@ -182,9 +182,12 @@
   /* ===== gráficos ===== */
   .chart{width:100%;height:300px}
   #chart_heatmap{height:380px}
-  #chart_calendar_pies{height:360px}
-  #chart_conv_volume{height:360px}
-  #chart_tags{height:320px}
+  #chart_calendar{height:360px}
+  #chart_conv_volume{height:440px}
+  #chart_sunburst{height:440px}
+  #chart_parallel{height:440px}
+  #chart_themeriver{height:340px}
+  #chart_tags{height:440px}
   #chart_origins{height:clamp(400px,50vw,600px)}
 
   /* Info Icon Tooltip */
@@ -326,55 +329,52 @@
     <div class="exec-insight" id="exec-insight"></div>
   </section>
   <div class="grid">
-    <section id="conv" class="card row-6">
-      <h2 data-number="01"><span data-i18n="c1h">Conversion Rate by Band</span>
-        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c1i">Share of deals converted in each score band (A to D)</span></span>
-      </h2>
-      <div class="panel-sub" data-i18n="c1s">Share of deals converted in each score band.</div>
-      <div class="opts">
-        <label><input id="opt_avg" type="checkbox"> <span data-i18n="o_avg">Weighted average</span></label>
-        <label><input id="opt_highlight" type="checkbox"> <span data-i18n="o_hl">Highlight max/min</span></label>
-      </div>
-      <div id="chart_conversion" class="chart"></div>
-      <div class="foot" data-i18n="c1f">Bands: <span class="pill">A ≥ 80</span> <span class="pill">B 60-79</span> <span class="pill">C 40-59</span> <span class="pill">D &lt; 40</span></div>
-    </section>
-
-    <section id="dist" class="card row-6">
-      <h2 data-number="02"><span data-i18n="c2h">Deal Distribution by Band</span>
-        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c2i">Monthly deal volume stacked by ABCD band</span></span>
-      </h2>
-      <div class="panel-sub" data-i18n="c2s">How many deals fall into each band, month by month.</div>
-      <div class="opts">
-        <label><input id="opt_dist_avg" type="checkbox"> <span data-i18n="o_davg">Simple average</span></label>
-        <label><input id="opt_dist_highlight" type="checkbox"> <span data-i18n="o_hl2">Highlight max/min</span></label>
-      </div>
-      <div id="chart_distribution" class="chart"></div>
-    </section>
-
     <section id="status" class="card row-6">
-      <h2 data-number="03"><span data-i18n="c3h">Status by Band (WON/LOST/OPEN)</span>
-        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c3i">Deal status distribution by score band</span></span>
+      <h2 data-number="01"><span data-i18n="c1h">Band → Status Composition</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c1i">Sunburst: inner ring holds the score bands A to D, outer ring the WON, OPEN and LOST mix within each band</span></span>
       </h2>
-      <div class="panel-sub" data-i18n="c3s">Deal status mix (won, lost, open) by band.</div>
-      <div id="chart_status" class="chart"></div>
+      <div class="panel-sub" data-i18n="c1s">How each band splits into won, open and lost deals, in one ring.</div>
+      <div id="chart_sunburst" class="chart"></div>
+      <div class="foot muted" data-i18n="c1f">Click the inner ring to filter by band, the outer ring to filter by status. The tooltip carries values, shares and conversion.</div>
+    </section>
+
+    <section id="profile" class="card row-6">
+      <h2 data-number="02"><span data-i18n="c2h">Band Profile</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c2i">Parallel coordinates comparing the bands across volume, conversion, average score, tag coverage and paid origin share</span></span>
+      </h2>
+      <div class="panel-sub" data-i18n="c2s">Each line is a band crossing five metrics: volume, conversion, average score, share with tags and share from paid origins.</div>
+      <div id="chart_parallel" class="chart"></div>
+      <div class="foot muted" data-i18n="c2f">Hover a line for the full profile of the band. Click a line to filter by that band.</div>
+    </section>
+
+    <section id="dist" class="card row-12">
+      <h2 data-number="03"><span data-i18n="c3h">Band Flow Over Time</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c3i">Stream graph of monthly deal volume per score band; the width of the river is the size of the base</span></span>
+      </h2>
+      <div class="panel-sub" data-i18n="c3s">Monthly deal volume per band as a stream: each layer is a band, the total width is the whole base.</div>
+      <div id="chart_themeriver" class="chart"></div>
+      <div class="foot muted" data-i18n="c3f">Click a stream to filter by that band.</div>
     </section>
 
     <section id="tags" class="card row-6">
-      <h2 data-number="04"><span data-i18n="c4h">Top Tags by Band</span>
-        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c4i">The 8 most frequent tags in the base and the band mix within each one</span></span>
+      <h2 data-number="04"><span data-i18n="c4h">Tags × Bands Heatmap</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c4i">The 12 most frequent tags crossed with the score bands; cell intensity is the lead count</span></span>
       </h2>
-      <div class="panel-sub" data-i18n="c4s">Top 8 tags in the base and how each one splits across the bands.</div>
+      <div class="panel-sub" data-i18n="c4s">Top 12 tags in the base crossed with the bands; darker cells carry more leads.</div>
       <div id="chart_tags" class="chart"></div>
-      <div class="foot muted" data-i18n="c4f">Click a bar to filter by that tag.</div>
+      <div class="foot muted" data-i18n="c4f">Click a cell to filter by that tag and band.</div>
     </section>
 
-    <section id="funnel" class="card row-6">
-      <h2 data-number="05"><span data-i18n="c5h">Outcome by Band (100%)</span>
-        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c5i">Share of WON, OPEN and LOST within each band, in percent</span></span>
+    <section id="convvol" class="card row-6">
+      <h2 data-number="05"><span data-i18n="c8h">Performance Matrix: Conversion vs Volume</span>
+        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c8i">Each band positioned by lead volume and conversion rate; shaded quadrants split the space at the averages</span></span>
       </h2>
-      <div class="panel-sub" data-i18n="c5s">Share of won, open and lost deals within each band.</div>
-      <div id="chart_funnel" class="chart"></div>
-      <div class="foot muted" data-i18n="c5f">Bars add up to 100% per band; the tooltip shows absolute values. Click to filter by band.</div>
+      <div class="panel-sub" data-i18n="c8s">Each band positioned by volume and by conversion rate.</div>
+      <div id="chart_conv_volume" class="chart"></div>
+      <div class="foot muted">
+        <span id="convvol_insight"></span>
+        <span data-i18n="c8f">Bubble size = total leads. Shaded quadrants split the bands at the volume and conversion averages.</span>
+      </div>
     </section>
 
     <section id="origem" class="card row-12">
@@ -427,20 +427,8 @@
       <div class="foot muted" data-i18n="c7f">Intensity of leads created per day and band. Click a cell to filter by a specific day.</div>
     </section>
 
-    <section id="convvol" class="card row-12">
-      <h2 data-number="08"><span data-i18n="c8h">Performance Matrix: Conversion vs Volume</span>
-        <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c8i">Each band positioned by lead volume and conversion rate; dashed lines mark the averages</span></span>
-      </h2>
-      <div class="panel-sub" data-i18n="c8s">Each band positioned by volume and by conversion rate.</div>
-      <div id="chart_conv_volume" class="chart"></div>
-      <div class="foot muted">
-        <span id="convvol_insight"></span>
-        <span data-i18n="c8f">Bubble size = total leads. Dashed lines mark the volume and conversion averages.</span>
-      </div>
-    </section>
-
     <section id="calendario" class="card row-12">
-      <h2 data-number="09"><span data-i18n="c9h">Daily Activity</span> <small id="calendar_range"></small>
+      <h2 data-number="08"><span data-i18n="c9h">Daily Activity</span> <small id="calendar_range"></small>
         <span class="info-icon">ⓘ<span class="tooltip" data-i18n="c9i">Total leads created per day; the tooltip breaks down the A/B/C/D mix</span></span>
       </h2>
       <div class="panel-sub" data-i18n="c9s">Daily lead volume in the month, with the band mix in the tooltip.</div>
@@ -451,12 +439,12 @@
           </select>
         </label>
       </div>
-      <div id="chart_calendar_pies" class="chart"></div>
+      <div id="chart_calendar" class="chart"></div>
       <div class="foot muted" data-i18n="c9f">Intensity = leads created that day. Click a day to filter.</div>
     </section>
 
     <section id="tabelas" class="card row-12">
-      <h2 data-number="10"><span data-i18n="c10h">Summary Tables</span></h2>
+      <h2 data-number="09"><span data-i18n="c10h">Summary Tables</span></h2>
       <div class="panel-sub" data-i18n="c10s">Numeric breakdown by band for verification.</div>
       <div id="tables"></div>
     </section>
@@ -497,7 +485,9 @@
         f_klass:'Band', f_status:'Status', f_origin:'Origin', f_tag:'Tag', f_month:'Month', f_day:'Day', f_period:'Period',
         rm_filter:'Remove filter', rm_date:'Remove date filter', date_title:'Date filter:', until:'to', range_to:'to',
         tt_conv:'Conversion', tt_won:'Won', tt_lost:'Lost', tt_open:'Open', tt_total:'Total', tt_vol:'Volume', tt_convrate:'Conversion rate',
-        s_convpct:'Conversion %', avg:'Avg', mk_max:'Max', mk_min:'Min',
+        tt_share_band:'Share of band', tt_share_total:'Share of total',
+        pc_vol:'Volume', pc_conv:'Conversion %', pc_score:'Avg score', pc_tags:'% with tags', pc_paid:'% paid origin',
+        q_pri:'Priority', q_niche:'Efficient niche', q_volnoconv:'Volume, low conversion', q_low:'Low priority',
         ax_vol:'Lead Volume', ax_conv:'Conversion Rate (%)', ml_avgvol:'Avg volume', ml_avgconv:'Avg conversion',
         cv_best:'Best', cv_watch:'Watch', cv_wins:'wins', cv_conv:'conv.',
         no_data:'No data to display', hm_lines:' · lines',
@@ -516,7 +506,9 @@
         f_klass:'Faixa', f_status:'Status', f_origin:'Origem', f_tag:'Tag', f_month:'Mês', f_day:'Dia', f_period:'Período',
         rm_filter:'Remover filtro', rm_date:'Remover filtro de data', date_title:'Filtro de data:', until:'até', range_to:'a',
         tt_conv:'Conversão', tt_won:'Ganhos', tt_lost:'Perdas', tt_open:'Abertos', tt_total:'Total', tt_vol:'Volume', tt_convrate:'Taxa de conversão',
-        s_convpct:'Conversão %', avg:'Média', mk_max:'Maior', mk_min:'Menor',
+        tt_share_band:'Participação na faixa', tt_share_total:'Participação no total',
+        pc_vol:'Volume', pc_conv:'Conversão %', pc_score:'Score médio', pc_tags:'% com tags', pc_paid:'% origem paga',
+        q_pri:'Prioridade', q_niche:'Nicho eficiente', q_volnoconv:'Volume, baixa conversão', q_low:'Baixa prioridade',
         ax_vol:'Volume de Leads', ax_conv:'Taxa de Conversão (%)', ml_avgvol:'Vol. médio', ml_avgconv:'Conv. média',
         cv_best:'Melhor', cv_watch:'Atenção', cv_wins:'ganhos', cv_conv:'conv.',
         no_data:'Sem dados para exibir', hm_lines:' · linhas',
@@ -585,8 +577,7 @@
     const filterEmptyText = document.getElementById('filter-empty-text');
 
     let renderAllChartsRef = () => {};
-    let distributionMonths = [];
-    
+
     // Variáveis globais de filtro de data
     let globalDateStart = null;
     let globalDateEnd = null;
@@ -902,15 +893,14 @@
 
     // ---------- Charts init (tema 'demo' + guard de instância) ----------
     const charts = {
-      conversion: makeChart(document.getElementById('chart_conversion')),
-      distribution: makeChart(document.getElementById('chart_distribution')),
-      status: makeChart(document.getElementById('chart_status')),
+      sunburst: makeChart(document.getElementById('chart_sunburst')),
+      parallel: makeChart(document.getElementById('chart_parallel')),
+      themeriver: makeChart(document.getElementById('chart_themeriver')),
       tags: makeChart(document.getElementById('chart_tags')),
-      funnel: makeChart(document.getElementById('chart_funnel')),
       origins: makeChart(document.getElementById('chart_origins')),
       heatmap: makeChart(document.getElementById('chart_heatmap')),
       convvol: makeChart(document.getElementById('chart_conv_volume')),
-      calendarPies: makeChart(document.getElementById('chart_calendar_pies')),
+      calendar: makeChart(document.getElementById('chart_calendar')),
     };
 
     // setOption com replaceMerge de séries (sem lazyUpdate: o flush inicial não dispara e o gráfico fica em branco)
@@ -1107,15 +1097,6 @@
     }
 
     // ---------- Helpers V1 ----------
-    function average(rates, weights){
-      let sum = 0, wsum = 0;
-      for(let i=0;i<rates.length;i++){
-        const r = Number(rates[i]);
-        const w = Number(weights[i]);
-        if (Number.isFinite(r) && Number.isFinite(w)) { sum += r*w; wsum += w; }
-      }
-      return wsum ? +(sum/wsum).toFixed(2) : 0;
-    }
     function getClassColor(k){
       // Rampa azul ordinal (A escuro -> D claro), alinhada a SCORE_COLORS
       const c = String(k || '').trim().charAt(0).toUpperCase();
@@ -1306,30 +1287,13 @@
         `Bands: A >= ${thresholds.A}, B >= ${thresholds.B}, C >= ${thresholds.C}, D < ${thresholds.C}.`
       ]).filter(Boolean).join(' '));
 
-      // ----- Agregações Globais para Tabelas -----
-      // Aplicar filtros globais e de data antes de popular as tabelas
-      const filteredDataForTables = filterByDate(applyGlobalFilters(data), null);
-      
-      const globalBaseByClass = new Map(CLASSES.map(k => [k, []]));
-      filteredDataForTables.forEach(d => {
-        if (globalBaseByClass.has(d.klass)) {
-          globalBaseByClass.get(d.klass).push(d);
-        }
-      });
-      const globalTotals = CLASSES.map(k => globalBaseByClass.get(k).length);
-      const globalWon = CLASSES.map(k => globalBaseByClass.get(k).filter(x => x.status === 'WON').length);
-      const globalLost = CLASSES.map(k => globalBaseByClass.get(k).filter(x => x.status === 'LOST').length);
-      const globalOpen = CLASSES.map(k => globalBaseByClass.get(k).filter(x => x.status === 'OPEN').length);
-      const globalConvRate = CLASSES.map((_, i) => globalTotals[i] ? +(globalWon[i] * 100 / globalTotals[i]).toFixed(2) : 0);
-
       // ----- Rerender all charts -----
       function renderAllCharts() {
         renderExecBand(data); // re-localiza KPIs e insight na língua ativa
-        renderConversion({ showAvg: chkAvg?.checked, showHighlight: chkHighlight?.checked });
-        renderDistribution({ showAvg: chkDistAvg?.checked, showHighlight: chkDistHighlight?.checked });
-        renderStatus();
+        renderSunburst();
+        renderParallel();
+        renderThemeRiver();
         renderTags();
-        renderFunnel();
         renderOrigins();
         renderHeatmap();
         renderConvVol();
@@ -1341,126 +1305,104 @@
       // Atualizar referência global para permitir que filtros chamem renderAllCharts
       renderAllChartsRef = renderAllCharts;
 
-      // ----- Conversão por Faixa -----
-      const chkAvg = document.getElementById('opt_avg');
-      const chkHighlight = document.getElementById('opt_highlight');
+      // ----- Perfil das Faixas (parallel coordinates) -----
+      // Eixos: volume, conversao %, score medio, % com tags, % origem paga.
+      // Uma linha por faixa nas SCORE_COLORS; conversao por faixa vive aqui e no tooltip.
+      const PAID_ORIGIN_RE = /\b(ads|paid|paga|cpc|ppc|midia|mídia)\b/i;
 
-      function renderConversion(opts){
-        const showAvg = !!opts.showAvg;
-        const showHighlight = !!opts.showHighlight;
-        
+      function renderParallel(){
         const filteredData = filterByDate(applyGlobalFilters(data), null);
 
         const baseByClass = new Map(CLASSES.map(k=> [k, []]));
         filteredData.forEach(d=>{ if(baseByClass.has(d.klass)) baseByClass.get(d.klass).push(d); });
 
-        const convCats = CLASSES;
-        const totals = convCats.map(k=> baseByClass.get(k).length);
-        const won = convCats.map(k=> baseByClass.get(k).filter(x=> x.status==='WON').length);
-        const convRate = convCats.map((_,i)=> totals[i]? +(won[i]*100/totals[i]).toFixed(2) : 0);
-        
-        const avgValue = average(convRate, totals);
+        const profiles = CLASSES.map(k => {
+          const rows = baseByClass.get(k);
+          const totalB = rows.length;
+          const won = rows.filter(x=> x.status==='WON').length;
+          const scores = rows.map(r=> r.score).filter(Number.isFinite);
+          const avgScore = scores.length ? scores.reduce((a,b)=> a+b, 0) / scores.length : 0;
+          const withTags = rows.filter(r=> Array.isArray(r.tags) && r.tags.length).length;
+          const paid = rows.filter(r=> PAID_ORIGIN_RE.test(r.origin || '')).length;
+          return {
+            klass: k,
+            values: [
+              totalB,
+              totalB ? +(won*100/totalB).toFixed(1) : 0,
+              +avgScore.toFixed(1),
+              totalB ? +(withTags*100/totalB).toFixed(1) : 0,
+              totalB ? +(paid*100/totalB).toFixed(1) : 0
+            ]
+          };
+        });
 
-        setOptionEnhanced(charts.conversion, {
+        const maxVol = Math.max(1, ...profiles.map(p => p.values[0]));
+        const maxConv = Math.max(10, ...profiles.map(p => p.values[1]));
+
+        charts.parallel.setOption({
           backgroundColor: 'transparent',
           toolbox: {
             right: 10,
             iconStyle:{borderColor:'#8a8a94'},
-            feature: { saveAsImage: { show:true, name:'conversion_by_band' } }
+            feature: { saveAsImage: { show:true, name:'band_profile_parallel' } }
           },
-          tooltip:{
-            trigger:'axis',
-            axisPointer:{type:'shadow'},
-            formatter: (params) => {
-              const i = params[0].dataIndex;
-              const cls = convCats[i];
-              const tot = totals[i] ?? 0;
-              const w = won[i] ?? 0;
-              const l = baseByClass.get(cls).filter(x=> x.status==='LOST').length;
-              const o = baseByClass.get(cls).filter(x=> x.status==='OPEN').length;
-              const rate = convRate[i] ?? 0;
+          tooltip: {
+            trigger: 'item',
+            formatter: (p) => {
+              const v = p.value || [];
               return [
-                `<b>${escHtml(klassLabel(cls))}</b>`,
-                `${t('tt_conv')}: <b>${rate}%</b>`,
-                `${t('tt_won')}: ${fmt.format(w)}`,
-                `${t('tt_lost')}: ${fmt.format(l)}`,
-                `${t('tt_open')}: ${fmt.format(o)}`,
-                `${t('tt_total')}: ${fmt.format(tot)}`
+                `<b>${escHtml(klassLabel(p.seriesName))}</b>`,
+                `${t('pc_vol')}: <b>${fmt.format(v[0] ?? 0)}</b>`,
+                `${t('pc_conv')}: <b>${v[1] ?? 0}%</b>`,
+                `${t('pc_score')}: <b>${v[2] ?? 0}</b>`,
+                `${t('pc_tags')}: <b>${v[3] ?? 0}%</b>`,
+                `${t('pc_paid')}: <b>${v[4] ?? 0}%</b>`
               ].join('<br/>');
             }
           },
-          xAxis:{
-            type:'category',
-            data: convCats,
-            axisLabel:{
-              color:'#d4d4d8',
-              interval: 0,
-              fontSize: 11,
-              formatter: (v) => klassLabel(v)
+          legend: { data: CLASSES, formatter: (name) => klassLabel(name), top: 0 },
+          parallelAxis: [
+            { dim: 0, name: t('pc_vol'), min: 0, max: Math.ceil(maxVol * 1.05) },
+            { dim: 1, name: t('pc_conv'), min: 0, max: Math.ceil(maxConv * 1.1), axisLabel: { formatter: '{value}%' } },
+            { dim: 2, name: t('pc_score'), min: 0, max: 100 },
+            { dim: 3, name: t('pc_tags'), min: 0, max: 100, axisLabel: { formatter: '{value}%' } },
+            { dim: 4, name: t('pc_paid'), min: 0, max: 100, axisLabel: { formatter: '{value}%' } }
+          ],
+          parallel: {
+            left: 55, right: 60, top: 64, bottom: 24,
+            parallelAxisDefault: {
+              nameLocation: 'start',
+              nameTextStyle: { color: '#a1a1aa', fontSize: 11 },
+              axisLine: { lineStyle: { color: 'rgba(248,247,243,.25)' } },
+              axisTick: { lineStyle: { color: 'rgba(248,247,243,.25)' } },
+              axisLabel: { color: '#8a8a94', fontSize: 10 }
             }
           },
-          yAxis:{
-            type:'value',
-            axisLabel:{color:'#d4d4d8', formatter:'{value}%'},
-            splitLine:{lineStyle:{color:'rgba(248,247,243,.08)'}}
-          },
-          series:[{
-            name: t('s_convpct'),
-            type:'bar',
-            data: convRate.map((v,i)=>({ value: v, itemStyle:{ color: getClassColor(convCats[i]) } })),
-            label:{
-              show:true,
-              position:'top',
-              color:'#8a8a94',
-              formatter: (p)=>{
-                const i = p.dataIndex;
-                const wv = won[i] ?? 0;
-                const tv = totals[i] ?? 0;
-                return `${p.value}% (${fmt.format(wv)}/${fmt.format(tv)})`;
-              }
-            },
-            emphasis:{ focus:'series' },
-            markLine: showAvg ? {
-              symbol:'none',
-              lineStyle:{type:'dashed', color:'#8a8a94'},
-              label:{ color:'#d4d4d8', formatter: (p)=> `${t('avg')} ${Number(p.value).toLocaleString(LOCALE(), {minimumFractionDigits:1, maximumFractionDigits:1})}%` },
-              data: [{ yAxis: avgValue }]
-            } : { data: [] },
-            markPoint: showHighlight ? {
-              data:[{type:'max', name:t('mk_max')},{type:'min', name:t('mk_min')}],
-              label:{color:'#f8f7f3'},
-              itemStyle:{color:'#8a8a94'}
-            } : { data: [] }
-          }],
-          grid:{left:60,right:12,top:50,bottom:35,containLabel:true},
+          series: profiles.map(p => ({
+            name: p.klass,
+            type: 'parallel',
+            smooth: 0.08,
+            lineStyle: { width: 3, color: getClassColor(p.klass), opacity: 0.95 },
+            emphasis: { lineStyle: { width: 5, opacity: 1 } },
+            data: [ { value: p.values, name: p.klass } ]
+          })),
           animationDuration: 400
-        });
+        }, true);
       }
+      renderParallel();
 
-      const rerenderConversion = ()=> renderConversion({ showAvg: chkAvg?.checked, showHighlight: chkHighlight?.checked });
-      chkAvg?.addEventListener('change', rerenderConversion);
-      chkHighlight?.addEventListener('change', rerenderConversion);
-      rerenderConversion();
-
-      // Adicionar filtro ao clicar em uma barra de faixa
-      charts.conversion.off('click');
-      charts.conversion.on('click', (params) => {
-        if (params.componentType === 'series' && params.name) {
-          addGlobalFilter({
-            type: 'klass',
-            value: params.name,
-            label: params.name
-          });
+      // Clique em uma linha filtra pela faixa
+      charts.parallel.off('click');
+      charts.parallel.on('click', (params) => {
+        const k = params.seriesName || (params.data && params.data.name);
+        if (k && CLASSES.includes(k)) {
+          addGlobalFilter({ type: 'klass', value: k, label: k });
         }
       });
 
-      // ----- Distribuição por Faixa -----
-      const chkDistAvg = document.getElementById('opt_dist_avg');
-      const chkDistHighlight = document.getElementById('opt_dist_highlight');
-
-      function renderDistribution(opts) {
-        const showAvg = !!opts.showAvg;
-        const showHighlight = !!opts.showHighlight;
+      // ----- Fluxo de Faixas no Tempo (themeRiver) -----
+      // Rio dos volumes mensais A/B/C/D nas SCORE_COLORS, singleAxis temporal.
+      function renderThemeRiver() {
         const filteredSource = filterByDate(applyGlobalFilters(data), null);
 
         // Agrupa dados por mês e classe
@@ -1475,344 +1417,327 @@
           monthMap.set(d.klass, monthMap.get(d.klass) + 1);
         });
 
-        // Ordena meses e prepara dados para o gráfico
         const months = Array.from(monthlyData.keys()).sort();
-        distributionMonths = months;
-        
-        // Função para formatar mês com nome (na locale ativa)
-        const formatMonthName = (monthKey) => {
-          const [year, month] = monthKey.split('-');
-          const raw = new Date(Number(year), parseInt(month) - 1, 1).toLocaleDateString(LOCALE(), { month: 'short' });
-          const label = raw.replace('.', '');
-          const shortYear = year.slice(2); // Últimos 2 dígitos do ano
-          return `${label.charAt(0).toUpperCase() + label.slice(1)}/${shortYear}`;
-        };
-        
-        // Calcula médias mensais
-        const monthlyTotals = months.map(month => 
-          Array.from(monthlyData.get(month).values()).reduce((a, b) => a + b, 0)
-        );
-        const simpleAvgValue = monthlyTotals.length > 0 ? 
-          monthlyTotals.reduce((a, b) => a + b, 0) / monthlyTotals.length : 0;
+        if (!months.length) {
+          charts.themeriver.setOption({
+            title: { text: t('no_data'), left: 'center', top: 'center', textStyle: { color: '#8a8a94', fontSize: 15 } }
+          }, true);
+          return;
+        }
 
-        const series = CLASSES.map((className, idx) => {
-          const baseSeries = {
-            name: className,
-            type: 'bar',
-            stack: 'total',
-            emphasis: { focus: 'series' },
-            itemStyle: { color: getClassColor(className) },
-            data: months.map(month => monthlyData.get(month).get(className))
-          };
-
-          // Adiciona markLine (média) e markPoint (destaque) apenas na última série
-          if (idx === CLASSES.length - 1) {
-            baseSeries.markLine = showAvg ? {
-              symbol: 'none',
-              lineStyle: { type: 'dashed', color: '#8a8a94' },
-              label: { color: '#d4d4d8', formatter: (p) => `${t('avg')} ${fmt.format(Math.round(p.value))}` },
-              data: [{ yAxis: simpleAvgValue }]
-            } : { data: [] };
-
-            baseSeries.markPoint = showHighlight ? {
-              data: [
-                { type: 'max', name: t('mk_max'), coord: [months.indexOf(months[monthlyTotals.indexOf(Math.max(...monthlyTotals))]), Math.max(...monthlyTotals)] },
-                { type: 'min', name: t('mk_min'), coord: [months.indexOf(months[monthlyTotals.indexOf(Math.min(...monthlyTotals))]), Math.min(...monthlyTotals)] }
-              ],
-              label: { color: '#f8f7f3' },
-              itemStyle: { color: '#8a8a94' }
-            } : { data: [] };
+        // themeRiver precisa de >= 2 pontos no tempo para desenhar o rio;
+        // com um único mês, duplica o valor em duas datas do mesmo mês (faixa plana).
+        const riverData = [];
+        CLASSES.forEach(k => {
+          if (months.length === 1) {
+            const v = monthlyData.get(months[0]).get(k);
+            riverData.push([months[0] + '-05', v, k]);
+            riverData.push([months[0] + '-25', v, k]);
+          } else {
+            months.forEach(m => riverData.push([m + '-01', monthlyData.get(m).get(k), k]));
           }
-
-          return baseSeries;
         });
 
-        setOptionEnhanced(charts.distribution, {
+        const monthTooltipLabel = (val) => {
+          const [year, month] = String(val).slice(0, 7).split('-');
+          const raw = new Date(Number(year), Number(month) - 1, 1).toLocaleDateString(LOCALE(), { month: 'long' });
+          return `${raw.charAt(0).toUpperCase() + raw.slice(1)}/${year}`;
+        };
+
+        charts.themeriver.setOption({
           backgroundColor: 'transparent',
+          color: CLASSES.map(getClassColor),
           toolbox: {
             right: 10,
-            iconStyle: {borderColor: '#8a8a94'},
-            feature: { saveAsImage: { show: true, name: 'distribution_by_band' } }
+            iconStyle: { borderColor: '#8a8a94' },
+            feature: { saveAsImage: { show: true, name: 'band_flow_themeriver' } }
           },
           tooltip: {
             trigger: 'axis',
-            axisPointer: { type: 'shadow' },
+            axisPointer: { type: 'line', lineStyle: { color: 'rgba(96,165,250,.5)', width: 1 } },
             formatter: (params) => {
-              const monthIndex = params[0].dataIndex;
-              const monthKey = months[monthIndex];
-
-              // Formatar como "Mês/Ano" para o tooltip (na locale ativa)
-              const [year, month] = monthKey.split('-');
-              const raw = new Date(Number(year), parseInt(month) - 1, 1).toLocaleDateString(LOCALE(), { month: 'long' });
-              const monthName = raw.charAt(0).toUpperCase() + raw.slice(1);
-
-              let tooltip = `<b>${monthName}/${year}</b><br/>`;
+              if (!params || !params.length) return '';
+              const first = params.find(p => Array.isArray(p.data));
+              if (!first) return '';
+              let out = `<b>${monthTooltipLabel(first.data[0])}</b><br/>`;
               let total = 0;
-              params.forEach(param => {
-                tooltip += `${escHtml(klassLabel(param.seriesName))}: ${fmt.format(param.value)}<br/>`;
-                total += param.value;
+              params.forEach(p => {
+                if (!Array.isArray(p.data)) return;
+                out += `${p.marker} ${escHtml(klassLabel(p.data[2]))}: <b>${fmt.format(p.data[1])}</b><br/>`;
+                total += p.data[1];
               });
-              tooltip += `<b>${t('tt_total')}: ${fmt.format(total)}</b>`;
-              return tooltip;
-            }
-          },
-          legend: {
-            data: CLASSES,
-            formatter: (name) => klassLabel(name),
-            textStyle: { color: '#d4d4d8' },
-            top: 10,
-            right: 60
-          },
-          xAxis: {
-            type: 'category',
-            data: months.map(m => formatMonthName(m)),
-            axisLabel: {
-              color: '#d4d4d8',
-              interval: months.length > 12 ? 1 : 0,  // Pula labels se muitos meses
-              rotate: months.length > 6 ? 30 : 0,
-              fontSize: 11
-            }
-          },
-          yAxis: {
-            type: 'value',
-            axisLabel: { color: '#d4d4d8' },
-            splitLine: { lineStyle: { color: 'rgba(248,247,243,.08)' } }
-          },
-          series: series,
-          grid: {
-            left: 60,
-            right: 60,
-            top: 50,
-            bottom: 32,
-            containLabel: true
-          },
-          animationDuration: 400
-        });
-      }
-
-      const rerenderDistribution = () => renderDistribution({ 
-        showAvg: chkDistAvg?.checked, 
-        showHighlight: chkDistHighlight?.checked 
-      });
-
-      
-      chkDistAvg?.addEventListener('change', rerenderDistribution);
-      chkDistHighlight?.addEventListener('change', rerenderDistribution);
-      rerenderDistribution();
-
-      // Adicionar filtro ao clicar em barras da distribuição
-      charts.distribution.off('click');
-      charts.distribution.on('click', (params) => {
-        if (params.componentType === 'series' && params.seriesName) {
-          // Filtro por faixa quando clica na série
-          addGlobalFilter({
-            type: 'klass',
-            value: params.seriesName,
-            label: params.seriesName
-          });
-        } else if (params.componentType === 'xAxis' && distributionMonths[params.dataIndex]) {
-          // Filtro por mês quando clica no eixo X
-          const monthValue = distributionMonths[params.dataIndex];
-          addGlobalFilter({
-            type: 'month',
-            value: monthValue,
-            label: formatMonthLabel(monthValue)
-          });
-        }
-      });
-
-      // ----- Status empilhado -----
-      function renderStatus() {
-        const filteredData = filterByDate(applyGlobalFilters(data), null);
-
-        const baseByClass = new Map(CLASSES.map(k=> [k, []]));
-        filteredData.forEach(d=>{ if(baseByClass.has(d.klass)) baseByClass.get(d.klass).push(d); });
-
-        const won = CLASSES.map(k=> baseByClass.get(k).filter(x=> x.status==='WON').length);
-        const lost = CLASSES.map(k=> baseByClass.get(k).filter(x=> x.status==='LOST').length);
-        const open = CLASSES.map(k=> baseByClass.get(k).filter(x=> x.status==='OPEN').length);
-
-        const statuses = ['WON','LOST','OPEN'];
-        const seriesStatus = [
-          {name:'WON', type:'bar', stack:'x', data: won, itemStyle: { color: STATUS_COLORS.WON, borderColor:'#131316', borderWidth:1 }},
-          {name:'LOST', type:'bar', stack:'x', data: lost, itemStyle: { color: STATUS_COLORS.LOST, borderColor:'#131316', borderWidth:1 }},
-          {name:'OPEN', type:'bar', stack:'x', data: open, itemStyle: { color: STATUS_COLORS.OPEN, borderColor:'#131316', borderWidth:1 }},
-        ];
-        setOptionEnhanced(charts.status, {
-          backgroundColor:'transparent',
-          toolbox: {
-            right: 10,
-            iconStyle:{borderColor:'#8a8a94'},
-            feature: { saveAsImage: { show:true, name:'status_by_band' } }
-          },
-          tooltip:{
-            trigger:'axis',
-            axisPointer:{type:'shadow'},
-            formatter: (params) => {
-              if (!params || !params.length) return '';
-              let total = 0;
-              let out = `<b>${escHtml(klassLabel(params[0].name))}</b><br/>`;
-              params.forEach(p => { out += `${p.marker} ${p.seriesName}: <b>${fmt.format(p.value)}</b><br/>`; total += p.value; });
-              out += `${t('tt_total')}: <b>${fmt.format(total)}</b>`;
-              return out;
-            }
-          },
-          legend:{ data:statuses, top: 5 },
-          xAxis:{ type:'category', data: CLASSES, axisLabel:{ interval: 0, fontSize: 11, formatter: (v) => klassLabel(v) } },
-          yAxis:{ type:'value' },
-          series: seriesStatus,
-          grid:{left:50,right:20,top:45,bottom:35}
-        });
-      }
-      renderStatus();
-
-      // Adicionar filtros ao clicar em status
-      charts.status.off('click');
-      charts.status.on('click', (params) => {
-        if (params.componentType === 'series' && params.seriesName) {
-          // Filtro por status (WON/LOST/OPEN)
-          addGlobalFilter({
-            type: 'status',
-            value: params.seriesName,
-            label: params.seriesName
-          });
-        }
-        if (params.componentType === 'xAxis' && CLASSES[params.value]) {
-          // Filtro por faixa
-          addGlobalFilter({
-            type: 'klass',
-            value: CLASSES[params.value],
-            label: CLASSES[params.value]
-          });
-        }
-      });
-
-      // ----- Top Tags por Faixa (barras horizontais empilhadas) -----
-      function renderTags() {
-        const TOP_N_TAGS = 8;
-        const filteredData = filterByDate(applyGlobalFilters(data), null);
-
-        const tagTotals = new Map();
-        const tagByClass = new Map();
-        filteredData.forEach(d => {
-          d.tags.forEach(t => {
-            if (!t || t === 'nan') return;
-            tagTotals.set(t, (tagTotals.get(t) || 0) + 1);
-            if (!tagByClass.has(t)) tagByClass.set(t, new Map(CLASSES.map(k => [k, 0])));
-            const m = tagByClass.get(t);
-            m.set(d.klass, (m.get(d.klass) || 0) + 1);
-          });
-        });
-
-        const tagNames = topN(tagTotals, TOP_N_TAGS).map(([t]) => t);
-
-        const series = CLASSES.map(k => ({
-          name: k,
-          type: 'bar',
-          stack: 'tags',
-          emphasis: { focus: 'series' },
-          itemStyle: { color: getClassColor(k), borderColor: '#131316', borderWidth: 1 },
-          data: tagNames.map(t => (tagByClass.get(t) && tagByClass.get(t).get(k)) || 0)
-        }));
-
-        setOptionEnhanced(charts.tags, {
-          backgroundColor: 'transparent',
-          toolbox: {
-            right: 10,
-            iconStyle:{borderColor:'#8a8a94'},
-            feature: { saveAsImage: { show:true, name:'top_tags_by_band' } }
-          },
-          tooltip: {
-            trigger: 'axis',
-            axisPointer: { type: 'shadow' },
-            formatter: (params) => {
-              if (!params || !params.length) return '';
-              let total = 0;
-              let out = `<b>${escHtml(params[0].name)}</b><br/>`;
-              params.forEach(p => { out += `${p.marker} ${escHtml(klassLabel(p.seriesName))}: <b>${fmt.format(p.value)}</b><br/>`; total += p.value; });
               out += `${t('tt_total')}: <b>${fmt.format(total)}</b>`;
               return out;
             }
           },
           legend: { data: CLASSES, formatter: (name) => klassLabel(name), top: 0 },
-          grid: { left: 10, right: 20, top: 40, bottom: 10, containLabel: true },
-          xAxis: { type: 'value' },
-          yAxis: { type: 'category', data: tagNames, inverse: true, axisLabel: { fontSize: 11 } },
-          series
-        });
+          singleAxis: {
+            type: 'time',
+            top: 46,
+            bottom: 40,
+            left: 40,
+            right: 40,
+            axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } },
+            axisTick: { lineStyle: { color: 'rgba(248,247,243,.18)' } },
+            axisLabel: {
+              color: '#8a8a94',
+              fontSize: 10,
+              formatter: (val) => {
+                const d = new Date(val);
+                const raw = d.toLocaleDateString(LOCALE(), { month: 'short', year: '2-digit' });
+                return raw.replace('.', '');
+              }
+            },
+            splitLine: { show: false },
+            axisPointer: { label: { show: false } }
+          },
+          series: [{
+            type: 'themeRiver',
+            data: riverData,
+            label: { show: false },
+            itemStyle: { borderColor: '#0a0a0b', borderWidth: 0.5 },
+            emphasis: {
+              focus: 'self',
+              itemStyle: { shadowBlur: 14, shadowColor: 'rgba(0,0,0,.55)' }
+            }
+          }],
+          animationDuration: 400
+        }, true);
       }
-      renderTags();
+      renderThemeRiver();
 
-      // Clique em uma barra filtra pela tag
-      charts.tags.off('click');
-      charts.tags.on('click', (params) => {
-        if (params.componentType === 'series' && params.name) {
-          addGlobalFilter({ type: 'tag', value: params.name, label: params.name });
+      // Clique em uma camada do rio filtra pela faixa
+      charts.themeriver.off('click');
+      charts.themeriver.on('click', (params) => {
+        const name = Array.isArray(params.data) ? params.data[2] : null;
+        if (name && CLASSES.includes(name)) {
+          addGlobalFilter({ type: 'klass', value: name, label: name });
         }
       });
 
-      // ----- Desfecho por Faixa (barra 100% empilhada) -----
-      function renderFunnel() {
+      // ----- Composição Faixa → Status (sunburst) -----
+      // Anel interno: faixas ABCD (SCORE_COLORS). Anel externo: WON/OPEN/LOST por faixa (STATUS_COLORS).
+      function renderSunburst() {
         const filteredData = filterByDate(applyGlobalFilters(data), null);
 
         const baseByClass = new Map(CLASSES.map(k=> [k, []]));
         filteredData.forEach(d=>{ if(baseByClass.has(d.klass)) baseByClass.get(d.klass).push(d); });
 
-        const totals = CLASSES.map(k => baseByClass.get(k).length);
-        const abs = {
-          WON: CLASSES.map(k => baseByClass.get(k).filter(x => x.status === 'WON').length),
-          OPEN: CLASSES.map(k => baseByClass.get(k).filter(x => x.status === 'OPEN').length),
-          LOST: CLASSES.map(k => baseByClass.get(k).filter(x => x.status === 'LOST').length)
-        };
-        const pct = key => abs[key].map((v, i) => totals[i] ? +(v * 100 / totals[i]).toFixed(1) : 0);
+        const grandTotal = filteredData.length;
+        const STATUS_ORDER = ['WON','OPEN','LOST'];
 
-        const series = ['WON','OPEN','LOST'].map(st => ({
-          name: st,
-          type: 'bar',
-          stack: 'pct',
-          barWidth: '55%',
-          emphasis: { focus: 'series' },
-          itemStyle: { color: STATUS_COLORS[st], borderColor: '#131316', borderWidth: 1 },
-          data: pct(st)
-        }));
+        const sbData = CLASSES.map(k => {
+          const rows = baseByClass.get(k);
+          const children = STATUS_ORDER.map(st => ({
+            name: st,
+            value: rows.filter(x => x.status === st).length,
+            klass: k,
+            status: st,
+            itemStyle: { color: STATUS_COLORS[st] }
+          })).filter(n => n.value > 0);
+          return {
+            name: klassLabel(k),
+            klass: k,
+            itemStyle: { color: getClassColor(k) },
+            children
+          };
+        }).filter(n => n.children.length > 0);
 
-        setOptionEnhanced(charts.funnel, {
+        if (!sbData.length) {
+          charts.sunburst.setOption({
+            title: { text: t('no_data'), left: 'center', top: 'center', textStyle: { color: '#8a8a94', fontSize: 15 } }
+          }, true);
+          return;
+        }
+
+        charts.sunburst.setOption({
           backgroundColor: 'transparent',
           toolbox: {
             right: 10,
             iconStyle:{borderColor:'#8a8a94'},
-            feature: { saveAsImage: { show:true, name:'outcome_by_band' } }
+            feature: { saveAsImage: { show:true, name:'band_status_sunburst' } }
           },
           tooltip: {
-            trigger: 'axis',
-            axisPointer: { type: 'shadow' },
-            formatter: (params) => {
-              if (!params || !params.length) return '';
-              const i = params[0].dataIndex;
-              let out = `<b>${escHtml(klassLabel(params[0].name))}</b> · ${fmt.format(totals[i])} leads<br/>`;
-              params.forEach(p => {
-                out += `${p.marker} ${p.seriesName}: <b>${fmt.format(abs[p.seriesName][i])}</b> (${p.value}%)<br/>`;
-              });
-              return out;
+            formatter: (p) => {
+              const d = p.data || {};
+              if (d.status) {
+                const bandTotal = (baseByClass.get(d.klass) || []).length || 1;
+                const pctBand = (p.value * 100 / bandTotal).toFixed(1);
+                const pctTotal = grandTotal ? (p.value * 100 / grandTotal).toFixed(1) : '0.0';
+                return [
+                  `<b>${escHtml(klassLabel(d.klass))} · ${d.status}</b>`,
+                  `${t('tt_total')}: <b>${fmt.format(p.value)}</b>`,
+                  `${t('tt_share_band')}: <b>${pctBand}%</b>`,
+                  `${t('tt_share_total')}: <b>${pctTotal}%</b>`
+                ].join('<br/>');
+              }
+              if (d.klass) {
+                const rows = baseByClass.get(d.klass) || [];
+                const totalB = rows.length;
+                const wonB = rows.filter(x => x.status === 'WON').length;
+                const conv = totalB ? (wonB * 100 / totalB).toFixed(1) : '0.0';
+                const pctTotal = grandTotal ? (totalB * 100 / grandTotal).toFixed(1) : '0.0';
+                return [
+                  `<b>${escHtml(klassLabel(d.klass))}</b>`,
+                  `${t('tt_total')}: <b>${fmt.format(totalB)}</b>`,
+                  `${t('tt_share_total')}: <b>${pctTotal}%</b>`,
+                  `${t('tt_conv')}: <b>${conv}%</b>`
+                ].join('<br/>');
+              }
+              return '';
             }
           },
-          legend: { data: ['WON','OPEN','LOST'], top: 0 },
-          grid: { left: 45, right: 20, top: 40, bottom: 30 },
-          xAxis: { type: 'category', data: CLASSES, axisLabel: { interval: 0, fontSize: 11, formatter: (v) => klassLabel(v) } },
-          yAxis: { type: 'value', max: 100, axisLabel: { formatter: '{value}%' } },
-          series
-        });
+          series: [{
+            type: 'sunburst',
+            nodeClick: false,
+            sort: null,
+            radius: ['16%', '88%'],
+            center: ['50%', '52%'],
+            data: sbData,
+            itemStyle: { borderColor: '#131316', borderWidth: 2 },
+            emphasis: { focus: 'ancestor' },
+            levels: [
+              {},
+              {
+                r0: '16%', r: '52%',
+                label: {
+                  fontSize: 15, fontWeight: 700, color: '#f8f7f3',
+                  formatter: (p) => String((p.data && p.data.klass) || p.name).charAt(0)
+                }
+              },
+              {
+                r0: '52%', r: '88%',
+                label: {
+                  rotate: 'radial', fontSize: 10, color: '#0a0a0b',
+                  formatter: (p) => (grandTotal && p.value * 100 / grandTotal >= 3.5) ? p.name : ''
+                }
+              }
+            ]
+          }],
+          animationDuration: 400
+        }, true);
       }
+      renderSunburst();
 
-      renderFunnel();
-
-      // Clique filtra pela faixa
-      charts.funnel.off('click');
-      charts.funnel.on('click', (params) => {
-        if (params.componentType === 'series' && params.name) {
-          addGlobalFilter({ type: 'klass', value: params.name, label: params.name });
+      // Clique: anel interno filtra a faixa, anel externo filtra o status
+      charts.sunburst.off('click');
+      charts.sunburst.on('click', (params) => {
+        const d = params.data || {};
+        if (d.status) {
+          addGlobalFilter({ type: 'status', value: d.status, label: d.status });
+        } else if (d.klass) {
+          addGlobalFilter({ type: 'klass', value: d.klass, label: d.klass });
         }
       });
+
+      // ----- Heatmap Tags × Faixas -----
+      // Top 12 tags no eixo Y, faixas no X, células em SEQ_BLUE; labels off, contagem no tooltip.
+      function renderTags() {
+        const TOP_N_TAGS = 12;
+        const filteredData = filterByDate(applyGlobalFilters(data), null);
+
+        const tagTotals = new Map();
+        const tagByClass = new Map();
+        filteredData.forEach(d => {
+          d.tags.forEach(tg => {
+            if (!tg || tg === 'nan') return;
+            tagTotals.set(tg, (tagTotals.get(tg) || 0) + 1);
+            if (!tagByClass.has(tg)) tagByClass.set(tg, new Map(CLASSES.map(k => [k, 0])));
+            const m = tagByClass.get(tg);
+            m.set(d.klass, (m.get(d.klass) || 0) + 1);
+          });
+        });
+
+        const tagNames = topN(tagTotals, TOP_N_TAGS).map(([tg]) => tg);
+
+        if (!tagNames.length) {
+          charts.tags.setOption({
+            title: { text: t('no_data'), left: 'center', top: 'center', textStyle: { color: '#8a8a94', fontSize: 15 } }
+          }, true);
+          charts.tags.off('click');
+          return;
+        }
+
+        const heatData = [];
+        let maxVal = 1;
+        tagNames.forEach((tg, yi) => {
+          CLASSES.forEach((k, xi) => {
+            const v = (tagByClass.get(tg) && tagByClass.get(tg).get(k)) || 0;
+            heatData.push([xi, yi, v]);
+            if (v > maxVal) maxVal = v;
+          });
+        });
+
+        charts.tags.setOption({
+          backgroundColor: 'transparent',
+          toolbox: {
+            right: 10,
+            iconStyle:{borderColor:'#8a8a94'},
+            feature: { saveAsImage: { show:true, name:'tags_band_heatmap' } }
+          },
+          tooltip: {
+            position: 'top',
+            formatter: (params) => {
+              if (!params || !Array.isArray(params.value)) return '';
+              const k = CLASSES[params.value[0]];
+              const tg = tagNames[params.value[1]];
+              if (!k || !tg) return '';
+              const rowTotal = tagTotals.get(tg) || 0;
+              const pct = rowTotal ? (params.value[2] * 100 / rowTotal).toFixed(1) : '0.0';
+              return [
+                `<b>${escHtml(tg)}</b> · ${escHtml(klassLabel(k))}`,
+                `Leads: <b>${fmt.format(params.value[2])}</b>`,
+                `${t('tt_share_total')}: <b>${pct}%</b>`
+              ].join('<br/>');
+            }
+          },
+          grid: { left: 10, right: 16, top: 14, bottom: 56, containLabel: true },
+          xAxis: {
+            type: 'category',
+            data: CLASSES,
+            splitArea: { show: true },
+            axisLabel: { interval: 0, fontSize: 11, formatter: (v) => klassLabel(v) }
+          },
+          yAxis: {
+            type: 'category',
+            data: tagNames,
+            inverse: true,
+            splitArea: { show: true },
+            axisLabel: { fontSize: 11 }
+          },
+          visualMap: {
+            min: 0,
+            max: maxVal,
+            calculable: true,
+            orient: 'horizontal',
+            left: 'center',
+            bottom: 0,
+            inRange: { color: SEQ_BLUE },
+            textStyle: { color: '#8a8a94', fontSize: 11 }
+          },
+          series: [{
+            name: 'Tags',
+            type: 'heatmap',
+            data: heatData,
+            label: { show: false },
+            itemStyle: { borderWidth: 1, borderColor: '#131316' },
+            emphasis: { itemStyle: { borderColor: '#60a5fa', borderWidth: 1 } }
+          }],
+          animationDuration: 400
+        }, true);
+
+        // Clique em uma célula filtra pela tag e pela faixa
+        charts.tags.off('click');
+        charts.tags.on('click', (params) => {
+          if (params.componentType === 'series' && Array.isArray(params.value)) {
+            const k = CLASSES[params.value[0]];
+            const tg = tagNames[params.value[1]];
+            if (tg) addGlobalFilter({ type: 'tag', value: tg, label: tg });
+            if (k) addGlobalFilter({ type: 'klass', value: k, label: k });
+          }
+        });
+      }
+      renderTags();
 
       // ----- Principais Origens -----
       const origemTopNSelect = document.getElementById('origem_top_n');
@@ -2176,11 +2101,35 @@
           insightEl.innerHTML = `<strong>${t('cv_best')}:</strong> ${escHtml(klassLabel(best.klass))} (${fmt.format(best.won)} ${t('cv_wins')}, ${best.convRate}%) · <strong>${t('cv_watch')}:</strong> ${escHtml(klassLabel(worst.klass))} (${worst.convRate}% ${t('cv_conv')}) · `;
         }
 
+        const maxVol = Math.max(1, ...totals);
         const scatterData = CLASSES.map((k, i) => ({
           name: k,
           value: [totals[i], convRate[i], totals[i]],
-          itemStyle: { color: getClassColor(k) }
+          itemStyle: { color: getClassColor(k), borderColor: 'rgba(248,247,243,.35)', borderWidth: 1 },
+          // rótulo da faixa dentro da bolha: claro nas faixas escuras (A/B), escuro nas claras (C/D)
+          label: { color: (k.charAt(0) === 'A' || k.charAt(0) === 'B') ? '#f8f7f3' : '#0a0a0b' }
         }));
+
+        // sombreamento discreto dos quadrantes (cortados nas médias) + rótulos de canto
+        const quadLabel = { color: '#8a8a94', fontSize: 10, fontFamily: '"Space Mono",ui-monospace,monospace' };
+        const quadrants = [
+          [{ name: t('q_pri'), xAxis: avgVolume, yAxis: avgConvRate,
+             itemStyle: { color: 'rgba(248,247,243,.04)' },
+             label: { ...quadLabel, position: 'insideTopRight' } },
+           { xAxis: 'max', yAxis: 'max' }],
+          [{ name: t('q_niche'), xAxis: 'min', yAxis: avgConvRate,
+             itemStyle: { color: 'rgba(0,0,0,0)' },
+             label: { ...quadLabel, position: 'insideTopLeft' } },
+           { xAxis: avgVolume, yAxis: 'max' }],
+          [{ name: t('q_volnoconv'), xAxis: avgVolume, yAxis: 'min',
+             itemStyle: { color: 'rgba(0,0,0,0)' },
+             label: { ...quadLabel, position: 'insideBottomRight' } },
+           { xAxis: 'max', yAxis: avgConvRate }],
+          [{ name: t('q_low'), xAxis: 'min', yAxis: 'min',
+             itemStyle: { color: 'rgba(248,247,243,.04)' },
+             label: { ...quadLabel, position: 'insideBottomLeft' } },
+           { xAxis: avgVolume, yAxis: avgConvRate }]
+        ];
 
         setOptionEnhanced(charts.convvol, {
           backgroundColor: 'transparent',
@@ -2220,20 +2169,22 @@
           series: [{
             name: 'Performance',
             type: 'scatter',
-            symbolSize: (val) => {
-              const size = Math.sqrt(val[2]) * 8;
-              return Math.max(30, Math.min(size, 110));
-            },
+            // símbolo proporcional ao volume: raio cresce com sqrt(volume/máximo)
+            symbolSize: (val) => 46 + 88 * Math.sqrt((val[2] || 0) / maxVol),
             data: scatterData,
             label: {
               show: true,
-              position: 'top',
-              formatter: (p) => klassLabel(p.name),
-              color: '#d4d4d8',
-              fontSize: 11
+              position: 'inside',
+              formatter: (p) => String(p.name).charAt(0),
+              fontSize: 17,
+              fontWeight: 700
             },
-            labelLayout: { hideOverlap: false, moveOverlap: 'shiftY' },
+            labelLayout: { hideOverlap: false },
             emphasis: { scale: true, focus: 'self' },
+            markArea: {
+              silent: true,
+              data: quadrants
+            },
             markLine: {
               silent: true,
               symbol: 'none',
@@ -2303,7 +2254,7 @@
         const heatData = Array.from(dailyClassCount.entries()).map(([date, c]) => [date, c.total]);
         const maxVal = heatData.length ? Math.max(...heatData.map(d => d[1])) : 1;
 
-        charts.calendarPies.setOption({
+        charts.calendar.setOption({
           backgroundColor: 'transparent',
           toolbox: { right: 10, iconStyle: { borderColor: '#8a8a94' }, feature: { saveAsImage: { show: true, name: 'daily_activity' } } },
           tooltip: {
@@ -2363,8 +2314,8 @@
           rangeEl.textContent = `(${monthName.charAt(0).toUpperCase() + monthName.slice(1)})`;
         }
 
-        charts.calendarPies.off('click');
-        charts.calendarPies.on('click', (params) => {
+        charts.calendar.off('click');
+        charts.calendar.on('click', (params) => {
           if (params.componentType === 'series' && Array.isArray(params.value) && params.value[0]) {
             const date = params.value[0];
             const [y, m, dd] = date.split('-').map(Number);
@@ -2588,11 +2539,13 @@
 
         <h3 data-i18n="m_h_viz">Available visualizations:</h3>
         <ul data-i18n="m_viz">
-          <li><strong>Conversion and distribution by band:</strong> how much each band converts and how much volume it carries</li>
-          <li><strong>Status and outcome by band:</strong> WON / OPEN / LOST mix in absolute numbers and in percent</li>
-          <li><strong>Top tags and top origins:</strong> where each band comes from and what characterizes it</li>
+          <li><strong>Band → status sunburst:</strong> WON / OPEN / LOST mix within each band in a single ring</li>
+          <li><strong>Band profile (parallel coordinates):</strong> volume, conversion, average score, % with tags and % paid origin</li>
+          <li><strong>Band flow over time (stream):</strong> monthly volume per band as a river</li>
+          <li><strong>Tags × bands heatmap:</strong> the 12 most frequent tags crossed with the bands</li>
+          <li><strong>Top origins:</strong> the channels that feed each band the most</li>
           <li><strong>Leads per day and band:</strong> heatmap or lines, with outlier trimming</li>
-          <li><strong>Conversion vs volume matrix:</strong> each band positioned by volume and conversion rate</li>
+          <li><strong>Conversion vs volume matrix:</strong> each band positioned by volume and conversion rate, with quadrants</li>
           <li><strong>Monthly calendar:</strong> daily volume with the band mix in the tooltip</li>
           <li><strong>Summary tables:</strong> numeric breakdown for verification</li>
         </ul>
@@ -2660,26 +2613,22 @@
       fb_empty: 'nenhum · clique em qualquer gráfico para filtrar', fb_clearall: 'Limpar tudo',
       xk: '<b>//</b> resumo executivo',
       xq: 'O que o score de lead separa de fato: quanto o grupo de alto score converte acima do restante da base.',
-      c1h: 'Taxa de Conversão por Faixa',
-      c1i: 'Percentual de deals convertidos em cada faixa de score (A a D)',
-      c1s: 'Percentual de deals convertidos em cada faixa de score.',
-      o_avg: 'Média ponderada', o_hl: 'Destaque máx/mín',
-      c1f: 'Faixas: <span class="pill">A ≥ 80</span> <span class="pill">B 60-79</span> <span class="pill">C 40-59</span> <span class="pill">D &lt; 40</span>',
-      c2h: 'Distribuição de Deals por Faixa',
-      c2i: 'Volume mensal de deals empilhado por faixa ABCD',
-      c2s: 'Quantos deals caem em cada faixa, mês a mês.',
-      o_davg: 'Média simples', o_hl2: 'Destaque máx/mín',
-      c3h: 'Status por Faixa (WON/LOST/OPEN)',
-      c3i: 'Distribuição de status de negociação por faixa de score',
-      c3s: 'Composição de status da negociação (ganho, perda, aberto) por faixa.',
-      c4h: 'Top Tags por Faixa',
-      c4i: 'As 8 tags mais frequentes da base e a composição de faixas dentro de cada uma',
-      c4s: 'Top 8 tags da base e como cada uma se distribui entre as faixas.',
-      c4f: 'Clique em uma barra para filtrar pela tag.',
-      c5h: 'Desfecho por Faixa (100%)',
-      c5i: 'Participação de WON, OPEN e LOST dentro de cada faixa, em percentual',
-      c5s: 'Participação de ganhos, abertos e perdidos dentro de cada faixa.',
-      c5f: 'Barras somam 100% por faixa; o tooltip traz os valores absolutos. Clique para filtrar pela faixa.',
+      c1h: 'Composição Faixa → Status',
+      c1i: 'Sunburst: o anel interno traz as faixas de score A a D, o externo a composição WON, OPEN e LOST dentro de cada faixa',
+      c1s: 'Como cada faixa se divide em negócios ganhos, abertos e perdidos, em um único anel.',
+      c1f: 'Clique no anel interno para filtrar pela faixa, no externo para filtrar pelo status. O tooltip traz valores, participações e conversão.',
+      c2h: 'Perfil das Faixas',
+      c2i: 'Coordenadas paralelas comparando as faixas em volume, conversão, score médio, cobertura de tags e participação de origem paga',
+      c2s: 'Cada linha é uma faixa cruzando cinco métricas: volume, conversão, score médio, % com tags e % de origens pagas.',
+      c2f: 'Passe o mouse em uma linha para o perfil completo da faixa. Clique em uma linha para filtrar pela faixa.',
+      c3h: 'Fluxo de Faixas no Tempo',
+      c3i: 'Stream graph do volume mensal de deals por faixa de score; a largura do rio é o tamanho da base',
+      c3s: 'Volume mensal de deals por faixa como um rio: cada camada é uma faixa, a largura total é a base inteira.',
+      c3f: 'Clique em uma camada do rio para filtrar pela faixa.',
+      c4h: 'Heatmap Tags × Faixas',
+      c4i: 'As 12 tags mais frequentes cruzadas com as faixas de score; a intensidade da célula é a contagem de leads',
+      c4s: 'Top 12 tags da base cruzadas com as faixas; células mais escuras carregam mais leads.',
+      c4f: 'Clique em uma célula para filtrar pela tag e pela faixa.',
       c6h: 'Principais Origens por Faixa',
       c6i: 'Top origens de tráfego por faixa ABCD, identificando canais de maior qualidade',
       c6s: 'Canais de origem que mais alimentam cada faixa.',
@@ -2693,9 +2642,9 @@
       o_outl: 'Remover outliers',
       c7f: 'Intensidade de leads criados por dia e faixa. Clique em uma célula para filtrar por dia específico.',
       c8h: 'Matriz de Performance: Conversão vs Volume',
-      c8i: 'Cada faixa posicionada por volume de leads e taxa de conversão; linhas tracejadas marcam as médias',
+      c8i: 'Cada faixa posicionada por volume de leads e taxa de conversão; quadrantes sombreados dividem o espaço nas médias',
       c8s: 'Cada faixa posicionada por volume e por taxa de conversão.',
-      c8f: 'Tamanho da bolha = total de leads. Linhas tracejadas marcam as médias de volume e de conversão.',
+      c8f: 'Tamanho da bolha = total de leads. Quadrantes sombreados dividem as faixas nas médias de volume e de conversão.',
       c9h: 'Atividade Diária',
       c9i: 'Volume total de leads criados por dia; o tooltip detalha a composição A/B/C/D',
       c9s: 'Volume diário de leads no mês, com a composição de faixas no tooltip.',
@@ -2712,7 +2661,7 @@
       m_h_proc: 'Processamento automático:',
       m_proc: '<li><strong>Normalização de scores:</strong> Converte valores decimais (ex: 0.85 → 85)</li><li><strong>Normalização de status:</strong> Agrupa variações (ganho/won/ganha → WON)</li><li><strong>Parseamento de datas:</strong> Suporta formatos brasileiros e ISO</li><li><strong>Detecção de colunas:</strong> Reconhece aliases automaticamente</li><li><strong>Validação de dados:</strong> Diagnóstico de valores nulos/inválidos</li><li><strong>Filtro global de datas:</strong> Analise períodos específicos</li>',
       m_h_viz: 'Visualizações disponíveis:',
-      m_viz: '<li><strong>Conversão e distribuição por faixa:</strong> quanto cada faixa converte e quanto volume carrega</li><li><strong>Status e desfecho por faixa:</strong> composição WON / OPEN / LOST em absoluto e em percentual</li><li><strong>Top tags e principais origens:</strong> de onde vem cada faixa e o que a caracteriza</li><li><strong>Leads por dia e faixa:</strong> heatmap ou linhas, com corte de outliers</li><li><strong>Matriz conversão vs volume:</strong> cada faixa posicionada por volume e taxa de conversão</li><li><strong>Calendário mensal:</strong> volume diário com composição de faixas no tooltip</li><li><strong>Tabelas resumo:</strong> detalhamento numérico para conferência</li>',
+      m_viz: '<li><strong>Sunburst faixa → status:</strong> composição WON / OPEN / LOST dentro de cada faixa em um único anel</li><li><strong>Perfil das faixas (coordenadas paralelas):</strong> volume, conversão, score médio, % com tags e % de origem paga</li><li><strong>Fluxo de faixas no tempo (stream):</strong> volume mensal por faixa como um rio</li><li><strong>Heatmap tags × faixas:</strong> as 12 tags mais frequentes cruzadas com as faixas</li><li><strong>Principais origens:</strong> canais que mais alimentam cada faixa</li><li><strong>Leads por dia e faixa:</strong> heatmap ou linhas, com corte de outliers</li><li><strong>Matriz conversão vs volume:</strong> cada faixa posicionada por volume e taxa de conversão, com quadrantes</li><li><strong>Calendário mensal:</strong> volume diário com composição de faixas no tooltip</li><li><strong>Tabelas resumo:</strong> detalhamento numérico para conferência</li>',
       m_h_tips: 'Dicas de uso:',
       m_tips: '<li>Clique em barras, bolhas ou células dos gráficos para aplicar <strong>filtros cruzados</strong>; os filtros ativos aparecem como chips na barra do topo</li><li>Use o <strong>período global</strong> na barra do topo para recortar toda a análise</li><li>As faixas A/B/C/D usam uma <strong>rampa azul ordinal</strong>: quanto mais escuro, melhor a faixa; verde e vermelho ficam reservados para status (WON/LOST)</li>',
       m_h_notes: 'Notas importantes:',
@@ -3274,7 +3223,7 @@
         { n: 'deal_created_at', t: 'data AAAA-MM-DD', t_en: 'date YYYY-MM-DD', d: 'Criacao do negocio. Alimenta os cortes por periodo.', d_en: 'Deal creation date. Drives the period slicing.', req: 1 },
         { n: 'ia_score', t: 'inteiro 0-100', t_en: 'integer 0-100', d: 'Score do lead. Define a faixa ABCD.', d_en: 'Lead score. Defines the ABCD band.', req: 1 },
         { n: 'deal_status', t: 'WON | LOST | OPEN', d: 'Situacao do negocio. Base da taxa de conversao por faixa.', d_en: 'Deal status. Basis of the conversion rate per band.', req: 1 },
-        { n: 'c_tags', t: 'lista separada por virgula', t_en: 'comma-separated list', d: 'Tags do contato. Alimenta o ranking de tags por faixa.', d_en: 'Contact tags. Feeds the tag ranking per band.' },
+        { n: 'c_tags', t: 'lista separada por virgula', t_en: 'comma-separated list', d: 'Tags do contato. Alimenta o heatmap tags x faixas.', d_en: 'Contact tags. Feeds the tags x bands heatmap.' },
         { n: 'origin_name', t: 'texto', t_en: 'text', d: 'Origem do lead. Alimenta o heatmap origem x faixa.', d_en: 'Lead origin. Feeds the origin x band breakdown.' }
       ],
       sample: function () { return GEN(); }
