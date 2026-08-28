@@ -124,28 +124,37 @@
     border-bottom:1px solid var(--line-strong);
   }
   .wrap{max-width:1400px;margin:0 auto;padding:0 20px}
-  .hdr-in{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;min-height:46px;padding:6px 0}
-  .brand{display:flex;align-items:center;gap:10px;min-width:0;flex:none;cursor:default}
+  .hdr-in{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;min-height:36px;padding:4px 0}
+  .brand{display:flex;align-items:center;gap:8px;min-width:0;flex:none;cursor:default}
   .logo{
-    width:26px;height:26px;border-radius:var(--r-sm);flex:none;
+    width:21px;height:21px;border-radius:6px;flex:none;
     background:var(--accent);color:#fff;
-    font-family:var(--mono);font-weight:700;font-size:11px;
+    font-family:var(--mono);font-weight:700;font-size:9.5px;
     display:flex;align-items:center;justify-content:center;
   }
-  h1{font-size:15px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap}
-  .hdr-in input[type="date"]{padding:5px 6px;font-size:11px;width:118px}
-  .hdr-in .select{padding:5px 8px;font-size:11px}
-  .hdr-in .filter-empty-text{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  h1{font-size:13px;margin:0;font-weight:700;letter-spacing:.2px;color:var(--ink);white-space:nowrap}
+  h1 .version-badge{font-size:8.5px;padding:1px 7px;margin-left:5px}
+  .hdr-in input[type="date"]{padding:3px 5px;font-size:10px;width:106px}
+  .hdr-in .select{padding:3px 6px;font-size:10px}
+  .hdr-in .btn.sm{padding:4px 8px;font-size:9.5px}
+  .hdr-in .btn-metodologia{padding:4px 9px;font-size:9.5px}
+  .hdr-in .lang-sw{height:23px;padding:0 6px}
+  .hdr-in .lang-sw button{font-size:10px;padding:0 4px}
+  .hdr-in .fb-label{font-size:9px}
+  .hdr-in .filter-empty-text{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
+  .hdr-in .filter-clear{font-size:9.5px;padding:3px 8px;white-space:nowrap}
+  .hdr-in .fb-sep{height:16px}
   #globalDateInfo:empty{display:none}
-  .hdr-actions{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+  #globalDateInfo{font-size:10px}
+  .hdr-actions{display:flex;gap:6px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
 
   /* barra de dados mais compacta nesta página */
-  .dk-bar .dk-in{padding:6px 16px !important;gap:8px !important}
-  .dk-bar .dk-btn{padding:6px 10px !important;font-size:10px !important;box-shadow:2px 2px 0 0 rgba(0,0,0,.6) !important}
+  .dk-bar .dk-in{padding:4px 14px !important;gap:7px !important}
+  .dk-bar .dk-btn{padding:4px 8px !important;font-size:9px !important;box-shadow:2px 2px 0 0 rgba(0,0,0,.6) !important}
   .dk-bar .dk-btn.p{box-shadow:2px 2px 0 0 #1d4ed8 !important}
   .dk-bar .dk-btn.g{box-shadow:none !important}
-  .dk-bar .dk-k{font-size:10px !important}
-  .dk-bar .dk-st{padding:4px 9px !important;font-size:10px !important}
+  .dk-bar .dk-k{font-size:9px !important}
+  .dk-bar .dk-st{padding:3px 8px !important;font-size:9px !important}
   .lang-sw{display:flex;align-items:center;height:32px;padding:0 8px;background:var(--card);border:1px solid var(--line-strong);border-radius:var(--r-sm);font-family:var(--mono)}
   .lang-sw button{background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink-4);padding:0 5px}
   .lang-sw button:hover{color:var(--ink)}
