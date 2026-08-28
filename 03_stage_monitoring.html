@@ -169,6 +169,9 @@
   .chart{width:100%;height:300px}
   .chart.tall{height:340px}
   #chart_sankey{height:420px}
+  #chart_chord{height:400px}
+  #chart_box{height:380px}
+  #chart_funnel{height:340px}
 
   /* ===== info icon ===== */
   .info-icon{
@@ -323,26 +326,99 @@
 
     <div class="grid">
 
-      <!-- Evolução temporal (saldo + entradas, fundidos) -->
+      <!-- Transições entre etapas (grafo circular tipo chord) -->
+      <div class="card" id="chart-chord">
+        <h2><span data-i18n="chdH">Stage transitions · circular flow</span>
+          <span class="info-icon">ⓘ
+            <span class="tooltip" data-i18n="chdTip">Circular graph of deal movement: node size is stage volume, edge width is the origin to destination flow. Hover an edge for origin, destination and count.</span>
+          </span>
+        </h2>
+        <div class="panel-sub" data-i18n="chdSub">Who sends deals to whom: every stage to stage transition in one circle, including skips and returns.</div>
+        <div class="chart" id="chart_chord"></div>
+        <p class="foot" data-i18n="chdFoot">Chord style view of transition volume between funnel stages</p>
+      </div>
+
+      <!-- Boxplot + jitter do tempo por etapa -->
+      <div class="card" id="chart-box">
+        <h2><span data-i18n="boxH">Time in stage · distribution per stage</span>
+          <span class="info-icon">ⓘ
+            <span class="tooltip" data-i18n="boxTip">Boxplot of the real dwell time distribution per stage, with every record as a jittered point. The red box is the funnel bottleneck (highest median).</span>
+          </span>
+        </h2>
+        <div class="panel-sub" data-i18n="boxSub">Each deal's dwell time per stage: median, quartiles and outliers, with the bottleneck in red.</div>
+        <div class="chart" id="chart_box"></div>
+        <p class="foot" data-i18n="boxFoot">Distribution view: medians, spread and outliers instead of a single average</p>
+      </div>
+
+      <!-- Funil real do pipeline -->
+      <div class="card" id="chart-funnel">
+        <h2><span data-i18n="funH">Pipeline funnel · volume and retention</span>
+          <span class="info-icon">ⓘ
+            <span class="tooltip" data-i18n="funTip">Real funnel of the six stages: width is the inflow volume and each label carries the retention against the previous stage.</span>
+          </span>
+        </h2>
+        <div class="panel-sub" data-i18n="funSub">Inflow volume per stage with retention against the previous stage.</div>
+        <div class="chart" id="chart_funnel"></div>
+        <p class="foot" data-i18n="funFoot">Funnel shape of the pipeline: where volume narrows stage by stage</p>
+      </div>
+
+      <!-- Fluxo de Conversão (Sankey) -->
+      <div class="card" id="chart5">
+        <h2><span data-i18n="snkH">Flow between stages · conversion diagram</span>
+          <span class="info-icon">ⓘ
+            <span class="tooltip" data-i18n="snkTip">Visualization of deal flow between stages: width represents volume</span>
+          </span>
+        </h2>
+        <div class="panel-sub" data-i18n="snkSub">Deals moving from one stage to the next.</div>
+        <div class="chart" id="chart_sankey"></div>
+        <p class="foot" data-i18n="snkFoot">Sankey diagram showing funnel losses and advances</p>
+      </div>
+
+      <!-- Evolução temporal (saldo | entradas | stream) -->
       <div class="card full-width" id="chart-temporal">
         <div class="topic-head">
-          <h2><span data-i18n="tmpH">Time evolution · balance and inflows</span>
+          <h2><span data-i18n="tmpH">Time evolution · balance, inflows and stream</span>
             <span class="info-icon">ⓘ
-              <span class="tooltip" data-i18n="tmpTip">Cumulative deal balance per stage over time, or daily inflows stacked by stage. Use the zoom to investigate periods.</span>
+              <span class="tooltip" data-i18n="tmpTip">Cumulative deal balance per stage, daily inflows stacked by stage, or a stream (themeRiver) of the inflow mix. Use the zoom to investigate periods.</span>
             </span>
           </h2>
           <div class="topic-actions">
             <button type="button" id="tglSaldo" class="btn secondary sm active" data-i18n="tglSaldoBtn">Cumulative balance</button>
             <button type="button" id="tglEntradas" class="btn secondary sm" data-i18n="tglEntradasBtn">Inflows per day</button>
+            <button type="button" id="tglStream" class="btn secondary sm" data-i18n="tglStreamBtn">Stream</button>
           </div>
         </div>
-        <div class="panel-sub" data-i18n="tmpSub">How each stage's stock evolves, and how much enters each one per day.</div>
+        <div class="panel-sub" data-i18n="tmpSub">How each stage's stock evolves, how much enters per day, and how the inflow mix shifts as a stream.</div>
         <div class="chart tall" id="chart_temporal"></div>
         <p class="foot" data-i18n="tmpFoot">Evolution of stock and daily deal flow per stage</p>
       </div>
 
+      <!-- Volume por Stage -->
+      <div class="card" id="chart3">
+        <h2><span data-i18n="volH">Inflow volume · per stage</span>
+          <span class="info-icon">ⓘ
+            <span class="tooltip" data-i18n="volTip">Number of deals that entered each stage in the selected period</span>
+          </span>
+        </h2>
+        <div class="panel-sub" data-i18n="volSub">How many deals entered each stage, in funnel order.</div>
+        <div class="chart" id="chart_volume"></div>
+        <p class="foot" data-i18n="volFoot">Total inflows per stage: volume and distribution view</p>
+      </div>
+
+      <!-- Heatmap de distribuição de tempo -->
+      <div class="card" id="chart8">
+        <h2><span data-i18n="dstH">Time distribution · stage × range heatmap</span>
+          <span class="info-icon">ⓘ
+            <span class="tooltip" data-i18n="dstTip">Heatmap of dwell time: each cell counts deals of that stage within that time range. Brighter cells concentrate more deals.</span>
+          </span>
+        </h2>
+        <div class="panel-sub" data-i18n="dstSub">Where dwell time concentrates in each stage, from under an hour to over a week.</div>
+        <div class="chart" id="chart_distribuicao"></div>
+        <p class="foot" data-i18n="dstFoot">Stage by time range heatmap: dwell time concentration at a glance</p>
+      </div>
+
       <!-- Tabela Entradas/Saídas -->
-      <div class="card" id="chart1">
+      <div class="card full-width" id="chart1">
         <h2><span data-i18n="tblH">Inflows and outflows · per stage</span>
           <span class="info-icon">ⓘ
             <span class="tooltip" data-i18n="tblTip">Detailed movement summary: how many entered and left each stage</span>
@@ -368,78 +444,6 @@
           </table>
         </div>
         <p class="foot" data-i18n="tblFoot">Quantitative analysis of movement between stages</p>
-      </div>
-
-      <!-- Volume por Stage -->
-      <div class="card" id="chart3">
-        <h2><span data-i18n="volH">Inflow volume · per stage</span>
-          <span class="info-icon">ⓘ
-            <span class="tooltip" data-i18n="volTip">Number of deals that entered each stage in the selected period</span>
-          </span>
-        </h2>
-        <div class="panel-sub" data-i18n="volSub">How many deals entered each stage, in funnel order.</div>
-        <div class="chart" id="chart_volume"></div>
-        <p class="foot" data-i18n="volFoot">Total inflows per stage: volume and distribution view</p>
-      </div>
-
-      <!-- Tempo nos Stages -->
-      <div class="card" id="chart4">
-        <h2><span data-i18n="tpoH">Average time · dwell per stage</span>
-          <span class="info-icon">ⓘ
-            <span class="tooltip" data-i18n="tpoTip">Average time deals spend in each stage before moving on or leaving. The highlighted bar is the funnel bottleneck.</span>
-          </span>
-        </h2>
-        <div class="panel-sub" data-i18n="tpoSub">Average deal dwell time in each stage, with the bottleneck highlighted.</div>
-        <div class="chart" id="chart_tempo"></div>
-        <p class="foot" data-i18n="tpoFoot">Speed analysis: identifying funnel bottlenecks</p>
-      </div>
-
-      <!-- Retenção por Stage -->
-      <div class="card" id="chart7">
-        <h2><span data-i18n="retH">Retention · % remaining per stage</span>
-          <span class="info-icon">ⓘ
-            <span class="tooltip" data-i18n="retTip">Percentage of deals that entered the stage and have not left yet. Inflow volume shows in the tooltip.</span>
-          </span>
-        </h2>
-        <div class="panel-sub" data-i18n="retSub">Retention rate per stage: where the funnel holds and where it loses.</div>
-        <div class="chart" id="chart_performance"></div>
-        <p class="foot" data-i18n="retFoot">Each stage's efficiency: where losses and opportunities concentrate</p>
-      </div>
-
-      <!-- Fluxo de Conversão (Sankey) -->
-      <div class="card full-width" id="chart5">
-        <h2><span data-i18n="snkH">Flow between stages · conversion diagram</span>
-          <span class="info-icon">ⓘ
-            <span class="tooltip" data-i18n="snkTip">Visualization of deal flow between stages: width represents volume</span>
-          </span>
-        </h2>
-        <div class="panel-sub" data-i18n="snkSub">Deals moving from one stage to the next.</div>
-        <div class="chart" id="chart_sankey"></div>
-        <p class="foot" data-i18n="snkFoot">Sankey diagram showing funnel losses and advances</p>
-      </div>
-
-      <!-- Distribuição de Tempo -->
-      <div class="card" id="chart8">
-        <h2><span data-i18n="dstH">Time distribution · by range</span>
-          <span class="info-icon">ⓘ
-            <span class="tooltip" data-i18n="dstTip">Distribution of dwell time by range, stacked by stage</span>
-          </span>
-        </h2>
-        <div class="panel-sub" data-i18n="dstSub">Spread of deal dwell time per stage.</div>
-        <div class="chart" id="chart_distribuicao"></div>
-        <p class="foot" data-i18n="dstFoot">Time variability: outliers and behavior patterns</p>
-      </div>
-
-      <!-- Ranking de Stages -->
-      <div class="card" id="chart9">
-        <h2><span data-i18n="rnkH">Movement ranking · inflows and outflows</span>
-          <span class="info-icon">ⓘ
-            <span class="tooltip" data-i18n="rnkTip">Stage comparison by total volume (inflows + outflows) in the period</span>
-          </span>
-        </h2>
-        <div class="panel-sub" data-i18n="rnkSub">Stages ordered by total deal volume in the period.</div>
-        <div class="chart" id="chart_ranking"></div>
-        <p class="foot" data-i18n="rnkFoot">Identifying the most active funnel stages</p>
       </div>
 
     </div>
@@ -489,10 +493,11 @@ const I18N = {
     insFast: 'Velocity of <strong>{v}</strong> movements/day indicates an active funnel.',
     insNone: 'Data loaded successfully. Use the filters for deeper analysis.',
     tipInflows: 'Inflows', tipOutflows: 'Outflows', tipShare: 'Share',
-    tipAvgTime: 'Avg time', tipBottleneck: 'BOTTLENECK: highest average time in the funnel',
-    tipAvgLine: 'Average', tipMoves: 'Movements', tipTotal: 'Total',
+    tipBottleneck: 'BOTTLENECK: highest median time in the funnel',
+    tipMoves: 'Movements',
     tipBalanceTotal: 'Total balance', tipRetention: 'Retention',
-    serRetention: 'Retention rate', serInflows: 'Inflows', serOutflows: 'Outflows'
+    tipVsPrev: 'vs previous stage', tipTime: 'Time in stage',
+    tipMin: 'Min', tipQ1: 'Q1', tipMedian: 'Median', tipQ3: 'Q3', tipMax: 'Max', tipN: 'Records'
   },
   pt: {
     optAllStages: 'Todos os stages',
@@ -523,10 +528,11 @@ const I18N = {
     insFast: 'Velocidade de <strong>{v}</strong> movimentações/dia indica funil ativo.',
     insNone: 'Dados carregados com sucesso. Explore os filtros para análises detalhadas.',
     tipInflows: 'Entradas', tipOutflows: 'Saídas', tipShare: 'Participação',
-    tipAvgTime: 'Tempo médio', tipBottleneck: 'GARGALO: maior tempo médio do funil',
-    tipAvgLine: 'Média', tipMoves: 'Movimentações', tipTotal: 'Total',
+    tipBottleneck: 'GARGALO: maior tempo mediano do funil',
+    tipMoves: 'Movimentações',
     tipBalanceTotal: 'Saldo total', tipRetention: 'Retenção',
-    serRetention: 'Taxa de retenção', serInflows: 'Entradas', serOutflows: 'Saídas'
+    tipVsPrev: 'vs etapa anterior', tipTime: 'Tempo no stage',
+    tipMin: 'Mín', tipQ1: 'Q1', tipMedian: 'Mediana', tipQ3: 'Q3', tipMax: 'Máx', tipN: 'Registros'
   }
 };
 function t(k) {
@@ -566,6 +572,26 @@ const STAGES = {
 };
 function stageColor(stage){ return STAGES[stage]?.color || STAGE_FALLBACK; }
 function stageLabel(stage){ return STAGES[stage]?.label || stage; }
+
+// Cor hex -> rgba com alpha (caixas do boxplot)
+function hexToRgba(hex, alpha) {
+  const n = parseInt(hex.slice(1), 16);
+  return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + alpha + ')';
+}
+// Quantil com interpolacao linear sobre array ja ordenado (boxplot)
+function quantileSorted(sorted, q) {
+  if (sorted.length === 0) return 0;
+  const pos = (sorted.length - 1) * q;
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  return sorted[base + 1] !== undefined ? sorted[base] + rest * (sorted[base + 1] - sorted[base]) : sorted[base];
+}
+// Jitter deterministico por indice: o mesmo ponto cai sempre no mesmo lugar
+// (sem Math.random por render, senao a nuvem treme a cada filtro)
+function seededJitter(i) {
+  const s = Math.sin((i + 1) * 12.9898) * 43758.5453;
+  return (s - Math.floor(s)) - 0.5;
+}
 
 // dataZoom padrão (inside + slider), tokens do arquivo
 function makeDataZoom(len){
@@ -1042,14 +1068,14 @@ function generateInsights(stageVolumes, avgTime, conversionRate, velocity) {
 // Chart rendering functions
 function renderAllCharts() {
   renderCurrentState();
-  renderTemporalChart();
-  renderEntriesExitsTable();
-  renderVolumeChart();
-  renderTempoChart();
-  renderPerformanceChart();
+  renderChordChart();
+  renderBoxplotChart();
+  renderFunnelChart();
   renderSankeyChart();
+  renderTemporalChart();
+  renderVolumeChart();
   renderDistribuicaoChart();
-  renderRankingChart();
+  renderEntriesExitsTable();
 }
 
 function renderCurrentState() {
@@ -1141,29 +1167,33 @@ function renderVolumeChart() {
   addResize(chart);
 }
 
-function renderTempoChart() {
-  const el = document.getElementById('chart_tempo');
+// Boxplot + jitter: distribuicao real do time_in_stage por registro, por etapa
+function renderBoxplotChart() {
+  const el = document.getElementById('chart_box');
   if (!el) return;
   const chart = makeChart(el);
 
-  const stageAvgTime = {};
-  const stageCounts = {};
-
-  filteredData.forEach(d => {
-    if (d.avg_time_in_stage && d.avg_time_in_stage > 0) {
-      if (!stageAvgTime[d.stage_label]) {
-        stageAvgTime[d.stage_label] = 0;
-        stageCounts[d.stage_label] = 0;
+  // 1 valor por registro individual; fallback: medias diarias da base agregada
+  const perStage = {};
+  if (filteredRecords.length > 0) {
+    filteredRecords.forEach(r => {
+      if (r.time_in_stage_seconds > 0 && STAGES[r.stage_label]) {
+        (perStage[r.stage_label] = perStage[r.stage_label] || []).push(r.time_in_stage_seconds);
       }
-      stageAvgTime[d.stage_label] += d.avg_time_in_stage;
-      stageCounts[d.stage_label]++;
-    }
-  });
+    });
+  } else {
+    filteredData.forEach(d => {
+      const v = parseFloat(d.avg_time_in_stage) || 0;
+      if (v > 0 && STAGES[d.stage_label]) {
+        (perStage[d.stage_label] = perStage[d.stage_label] || []).push(v);
+      }
+    });
+  }
 
-  const sortedStages = Object.keys(stageAvgTime).sort((a, b) =>
+  const stages = Object.keys(perStage).sort((a, b) =>
     (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0));
 
-  if (sortedStages.length === 0) {
+  if (stages.length === 0) {
     chart.setOption({
       title: {
         text: t('noTimeData'),
@@ -1176,60 +1206,84 @@ function renderTempoChart() {
     return;
   }
 
-  const avgTimes = sortedStages.map(stage => stageAvgTime[stage] / stageCounts[stage]);
-  // Gargalo por índice (não por igualdade de float)
-  const maxIdx = avgTimes.reduce((mi, v, i, arr) => (v > arr[mi] ? i : mi), 0);
-  const avgOverall = avgTimes.reduce((a, b) => a + b, 0) / avgTimes.length;
+  const stats = stages.map(stage => {
+    const sorted = perStage[stage].slice().sort((a, b) => a - b);
+    return {
+      stage,
+      n: sorted.length,
+      min: sorted[0],
+      q1: quantileSorted(sorted, 0.25),
+      median: quantileSorted(sorted, 0.5),
+      q3: quantileSorted(sorted, 0.75),
+      max: sorted[sorted.length - 1]
+    };
+  });
+  // Gargalo = maior mediana; a caixa dele sai da rampa e vai pro --bad
+  const bottleneckIdx = stats.reduce((mi, s, i, arr) => (s.median > arr[mi].median ? i : mi), 0);
+
+  const boxData = stats.map((s, i) => ({
+    value: [s.min, s.q1, s.median, s.q3, s.max],
+    itemStyle: i === bottleneckIdx
+      ? { color: 'rgba(248,113,113,.35)', borderColor: '#f87171', borderWidth: 1.5 }
+      : { color: hexToRgba(stageColor(s.stage), 0.35), borderColor: stageColor(s.stage), borderWidth: 1.5 }
+  }));
+
+  // Nuvem de pontos: eixo x numerico oculto alinhado as categorias, jitter por indice
+  let ptIdx = 0;
+  const scatterSeries = stages.map((stage, i) => ({
+    name: stageLabel(stage),
+    type: 'scatter',
+    xAxisIndex: 1,
+    symbolSize: 3,
+    z: 3,
+    itemStyle: { color: stageColor(stage), opacity: 0.35 },
+    data: perStage[stage].map(v => [i + seededJitter(ptIdx++) * 0.56, v]),
+    tooltip: {
+      formatter: (p) => `<b>${stageLabel(stage)}</b><br>${t('tipTime')}: <b>${formatTime(p.value[1])}</b>`
+    }
+  }));
 
   chart.setOption({
-    grid: { left: 10, right: 14, top: 28, bottom: 6, containLabel: true },
-    xAxis: {
-      type: 'category',
-      data: sortedStages.map(s => stageLabel(s)),
-      axisLabel: { interval: 0, rotate: 20, fontSize: 10 },
-      axisTick: { alignWithLabel: true }
-    },
+    grid: { left: 10, right: 14, top: 24, bottom: 6, containLabel: true },
+    xAxis: [
+      {
+        type: 'category',
+        data: stages.map(s => stageLabel(s)),
+        axisLabel: { interval: 0, rotate: 20, fontSize: 10 },
+        axisTick: { alignWithLabel: true }
+      },
+      { type: 'value', min: -0.5, max: stages.length - 0.5, show: false }
+    ],
     yAxis: {
       type: 'value',
       axisLabel: { formatter: (value) => formatTime(value) }
     },
-    series: [{
-      type: 'bar',
-      barWidth: '55%',
-      data: avgTimes.map((value, idx) => ({
-        value,
-        isBottleneck: idx === maxIdx,
-        itemStyle: {
-          color: idx === maxIdx ? '#f87171' : stageColor(sortedStages[idx]),
-          borderRadius: [3, 3, 0, 0]
+    series: [
+      {
+        type: 'boxplot',
+        xAxisIndex: 0,
+        boxWidth: ['26%', '46%'],
+        z: 4,
+        data: boxData,
+        tooltip: {
+          formatter: (p) => {
+            const s = stats[p.dataIndex];
+            const flag = p.dataIndex === bottleneckIdx
+              ? `<br><span style="color:#f87171">${t('tipBottleneck')}</span>` : '';
+            return `<b>${stageLabel(s.stage)}</b><br>` +
+              `${t('tipMax')}: ${formatTime(s.max)}<br>` +
+              `${t('tipQ3')}: ${formatTime(s.q3)}<br>` +
+              `${t('tipMedian')}: <b>${formatTime(s.median)}</b><br>` +
+              `${t('tipQ1')}: ${formatTime(s.q1)}<br>` +
+              `${t('tipMin')}: ${formatTime(s.min)}<br>` +
+              `${t('tipN')}: ${formatNumber(s.n)}${flag}`;
+          }
         },
-        label: idx === maxIdx ? {
-          show: true,
-          position: 'top',
-          formatter: (p) => formatTime(p.value),
-          color: '#f87171',
-          fontSize: 10
-        } : { show: false }
-      })),
-      markLine: {
-        silent: true,
-        symbol: 'none',
-        lineStyle: { color: '#8a8a94', type: 'dashed', width: 1.5 },
-        data: [{ yAxis: avgOverall, label: { formatter: t('tipAvgLine'), color: '#8a8a94', fontSize: 10 } }]
+        animationDuration: 700
       },
-      animationDuration: 700
-    }],
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      formatter: (params) => {
-        const p = params[0];
-        const status = p.data.isBottleneck
-          ? `<br><span style="color:#f87171">${t('tipBottleneck')}</span>`
-          : '';
-        return `<b>${p.name}</b><br>${t('tipAvgTime')}: <b>${formatTime(p.value)}</b>${status}`;
-      }
-    }
+      ...scatterSeries
+    ],
+    tooltip: { trigger: 'item' }
   });
   addResize(chart);
 }
@@ -1361,16 +1415,18 @@ function renderSankeyChart() {
   addResize(chart);
 }
 
-// Evolução temporal: um card, dois modos (saldo acumulado | entradas por dia)
+// Evolução temporal: um card, três modos (saldo acumulado | entradas por dia | stream)
 function setTemporalMode(mode) {
   if (temporalMode === mode) return;
   temporalMode = mode;
   document.getElementById('tglSaldo').classList.toggle('active', mode === 'saldo');
   document.getElementById('tglEntradas').classList.toggle('active', mode === 'entradas');
+  document.getElementById('tglStream').classList.toggle('active', mode === 'stream');
   renderTemporalChart();
 }
 document.getElementById('tglSaldo').addEventListener('click', () => setTemporalMode('saldo'));
 document.getElementById('tglEntradas').addEventListener('click', () => setTemporalMode('entradas'));
+document.getElementById('tglStream').addEventListener('click', () => setTemporalMode('stream'));
 
 function renderTemporalChart() {
   const el = document.getElementById('chart_temporal');
@@ -1400,6 +1456,63 @@ function renderTemporalChart() {
 
   const dates = Object.keys(dateData).sort();
   const stages = Object.keys(STAGES).sort((a, b) => STAGES[a].order - STAGES[b].order);
+
+  // Modo stream: themeRiver das entradas por stage (rampa ordinal na ordem do funil)
+  if (temporalMode === 'stream') {
+    const riverData = [];
+    stages.forEach(stage => {
+      dates.forEach(date => {
+        riverData.push([date, dateData[date][stage] || 0, stageLabel(stage)]);
+      });
+    });
+
+    chart.setOption({
+      color: stages.map(stageColor),
+      singleAxis: {
+        type: 'time',
+        top: 24, bottom: 30, left: 10, right: 14,
+        axisLabel: {
+          fontSize: 10,
+          color: '#8a8a94',
+          formatter: (val) => {
+            const d = new Date(val);
+            const dd = String(d.getUTCDate()).padStart(2, '0');
+            const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+            return LANG() === 'pt' ? `${dd}/${mm}` : `${mm}/${dd}`;
+          }
+        },
+        axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } },
+        splitLine: { show: false }
+      },
+      series: [{
+        type: 'themeRiver',
+        boundaryGap: ['6%', '6%'],
+        data: riverData,
+        label: { show: true, color: '#d4d4d8', fontSize: 10 },
+        emphasis: { itemStyle: { shadowBlur: 14, shadowColor: 'rgba(0,0,0,.45)' } }
+      }],
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'line', lineStyle: { color: 'rgba(248,247,243,.3)' } },
+        formatter: (params) => {
+          if (!params || !params.length) return '';
+          const datum = params[0].data || params[0].value || [];
+          const raw = datum[0];
+          const dt = raw instanceof Date ? raw : new Date(raw);
+          const iso = isNaN(dt) ? String(raw).slice(0, 10) :
+            dt.getUTCFullYear() + '-' + String(dt.getUTCMonth() + 1).padStart(2, '0') + '-' + String(dt.getUTCDate()).padStart(2, '0');
+          let tip = `<b>${formatDateLoc(iso)}</b><br>`;
+          params.forEach(p => {
+            const v = p.data || p.value || [];
+            if (v[1] > 0) tip += `<span style="color:${p.color}">●</span> ${escHtml(v[2])}: ${formatNumber(v[1])}<br>`;
+          });
+          return tip;
+        }
+      }
+    }, true);
+    addResize(chart);
+    return;
+  }
 
   let series;
   if (temporalMode === 'saldo') {
@@ -1479,68 +1592,68 @@ function renderTemporalChart() {
   addResize(chart);
 }
 
-function renderPerformanceChart() {
-  const el = document.getElementById('chart_performance');
+// Funil ECharts real: 6 etapas na rampa ordinal, rotulo com volume + retencao vs etapa anterior
+function renderFunnelChart() {
+  const el = document.getElementById('chart_funnel');
   if (!el) return;
   const chart = makeChart(el);
 
-  const stagePerformance = {};
+  const vols = {};
   filteredData.forEach(d => {
-    if (!stagePerformance[d.stage_label]) {
-      stagePerformance[d.stage_label] = { entered: 0, exited: 0 };
-    }
-    stagePerformance[d.stage_label].entered += parseInt(d.deals_entered) || 0;
-    stagePerformance[d.stage_label].exited += getExitValue(d);
+    vols[d.stage_label] = (vols[d.stage_label] || 0) + (parseInt(d.deals_entered) || 0);
   });
+  const stages = Object.keys(STAGES)
+    .filter(s => (vols[s] || 0) > 0)
+    .sort((a, b) => STAGES[a].order - STAGES[b].order);
+  const topVol = stages.length > 0 ? vols[stages[0]] : 0;
 
-  const stages = Object.keys(stagePerformance).sort((a, b) =>
-    (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0));
-
-  const retentionData = stages.map(stage => {
-    const entered = stagePerformance[stage].entered;
-    const exited = stagePerformance[stage].exited;
-    return entered > 0 && exited > 0 ? ((entered - exited) / entered * 100) : (entered > 0 ? 100 : 0);
+  const data = stages.map((stage, i) => {
+    const ret = i > 0 && vols[stages[i - 1]] > 0 ? (vols[stage] / vols[stages[i - 1]] * 100) : 100;
+    return {
+      name: stage,
+      value: vols[stage],
+      ret,
+      itemStyle: { color: stageColor(stage), borderColor: '#131316', borderWidth: 1 },
+      // rotulo interno: texto escuro nos 2 primeiros tons (mais claros) da rampa
+      label: { color: (STAGES[stage].order <= 2) ? '#0a0a0b' : '#f8f7f3' }
+    };
   });
 
   chart.setOption({
-    grid: { left: 10, right: 14, top: 24, bottom: 6, containLabel: true },
-    xAxis: {
-      type: 'category',
-      data: stages.map(s => stageLabel(s)),
-      axisLabel: { interval: 0, rotate: 20, fontSize: 10 },
-      axisTick: { alignWithLabel: true }
-    },
-    yAxis: {
-      type: 'value',
-      min: 0,
-      max: 100,
-      axisLabel: { formatter: '{value}%' }
-    },
     series: [{
-      name: t('serRetention'),
-      type: 'bar',
-      barWidth: '55%',
-      itemStyle: { color: '#2563eb', borderRadius: [3, 3, 0, 0] },
-      data: retentionData.map(v => +v.toFixed(1)),
+      type: 'funnel',
+      sort: 'none',
+      left: 12, right: 12, top: 12, bottom: 12,
+      minSize: '14%',
+      maxSize: '94%',
+      gap: 3,
+      label: {
+        show: true,
+        position: 'inside',
+        fontSize: 11,
+        lineHeight: 15,
+        formatter: (p) => stageLabel(p.name) + '\n' + formatNumber(p.value) + ' · ' + p.data.ret.toFixed(0) + '%'
+      },
+      labelLine: { show: false },
+      emphasis: { label: { fontSize: 12 } },
+      data,
       animationDuration: 700
     }],
     tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      formatter: (params) => {
-        const idx = params[0].dataIndex;
-        const stage = stages[idx];
-        const data = stagePerformance[stage];
-        return `<b>${stageLabel(stage)}</b><br>` +
-          `${t('tipRetention')}: <b>${formatNumber(retentionData[idx])}%</b><br>` +
-          `${t('tipInflows')}: ${formatNumber(data.entered)}<br>` +
-          `${t('tipOutflows')}: ${formatNumber(data.exited)}`;
+      trigger: 'item',
+      formatter: (p) => {
+        const share = topVol > 0 ? (p.value / topVol * 100).toFixed(1) : '0';
+        return `<b>${escHtml(p.name)}</b><br>` +
+          `${t('tipInflows')}: <b>${formatNumber(p.value)}</b><br>` +
+          `${t('tipRetention')} ${t('tipVsPrev')}: <b>${p.data.ret.toFixed(0)}%</b><br>` +
+          `${t('tipShare')}: ${share}%`;
       }
     }
   });
   addResize(chart);
 }
 
+// Heatmap etapa x faixa de tempo (absorve o papel do antigo painel de distribuicao)
 function renderDistribuicaoChart() {
   const el = document.getElementById('chart_distribuicao');
   if (!el) return;
@@ -1556,148 +1669,199 @@ function renderDistribuicaoChart() {
     { label: '>7d', min: 604800, max: Infinity }
   ];
 
-  const stageDistribution = {};
-  Object.keys(STAGES).forEach(stage => {
-    stageDistribution[stage] = new Array(timeRanges.length).fill(0);
-  });
+  const stagesAll = Object.keys(STAGES).sort((a, b) => STAGES[a].order - STAGES[b].order);
+  const counts = {};
+  stagesAll.forEach(s => { counts[s] = new Array(timeRanges.length).fill(0); });
 
-  let totalRecords = 0;
-
-  filteredData.forEach(d => {
-    const timeInSeconds = parseFloat(d.avg_time_in_stage) || 0;
-    if (timeInSeconds === 0) return;
-
-    const stage = d.stage_label;
-    if (!stageDistribution[stage]) return;
-
+  function binTime(seconds, stage, weight) {
+    if (!(seconds > 0) || !counts[stage]) return;
     for (let i = 0; i < timeRanges.length; i++) {
-      if (timeInSeconds >= timeRanges[i].min && timeInSeconds < timeRanges[i].max) {
-        const count = parseInt(d.deals_entered) || 1;
-        stageDistribution[stage][i] += count;
-        totalRecords += count;
-        break;
+      if (seconds >= timeRanges[i].min && seconds < timeRanges[i].max) {
+        counts[stage][i] += weight;
+        return;
       }
     }
-  });
+  }
 
-  const rangeTotals = timeRanges.map((_, i) => {
-    return Object.keys(stageDistribution).reduce((sum, stage) => sum + stageDistribution[stage][i], 0);
-  });
+  // Distribuicao real por registro quando ha dados individuais; fallback agregado
+  if (filteredRecords.length > 0) {
+    filteredRecords.forEach(r => binTime(r.time_in_stage_seconds, r.stage_label, 1));
+  } else {
+    filteredData.forEach(d => binTime(parseFloat(d.avg_time_in_stage) || 0, d.stage_label, parseInt(d.deals_entered) || 1));
+  }
 
-  const series = Object.keys(STAGES).map(stage => ({
-    name: stageLabel(stage),
-    type: 'bar',
-    stack: 'distribution',
-    data: stageDistribution[stage],
-    itemStyle: { color: stageColor(stage), borderRadius: [2, 2, 0, 0] }
-  }));
+  const stageTotals = {};
+  stagesAll.forEach(s => { stageTotals[s] = counts[s].reduce((a, b) => a + b, 0); });
+
+  // Base no topo: eixo y em ordem inversa do funil
+  const yStages = stagesAll.slice().reverse();
+  let maxCount = 0;
+  const heatData = [];
+  yStages.forEach((stage, yi) => {
+    counts[stage].forEach((v, xi) => {
+      if (v > maxCount) maxCount = v;
+      heatData.push([xi, yi, v]);
+    });
+  });
 
   chart.setOption({
-    grid: { left: 10, right: 14, top: 28, bottom: 6, containLabel: true },
+    grid: { left: 10, right: 14, top: 10, bottom: 46, containLabel: true },
     xAxis: {
       type: 'category',
       data: timeRanges.map(r => r.label),
-      axisLabel: { fontSize: 11 }
+      axisLabel: { fontSize: 11 },
+      splitArea: { show: false }
     },
     yAxis: {
-      type: 'value',
-      axisLabel: { formatter: (value) => formatNumber(value) }
+      type: 'category',
+      data: yStages.map(s => stageLabel(s)),
+      axisLabel: { fontSize: 10 }
     },
-    legend: { top: 0 },
-    series: series,
+    visualMap: {
+      min: 0,
+      max: Math.max(maxCount, 1),
+      calculable: false,
+      orient: 'horizontal',
+      left: 'center',
+      bottom: 0,
+      itemWidth: 10,
+      itemHeight: 90,
+      inRange: { color: SEQ_BLUE },
+      textStyle: { color: '#8a8a94', fontSize: 10 }
+    },
+    series: [{
+      type: 'heatmap',
+      data: heatData.map(d => ({
+        value: d,
+        label: { color: maxCount > 0 && d[2] > maxCount * 0.55 ? '#0a0a0b' : '#f8f7f3' }
+      })),
+      label: {
+        show: true,
+        fontSize: 9,
+        formatter: (p) => p.value[2] > 0 ? formatNumber(p.value[2]) : ''
+      },
+      itemStyle: { borderColor: '#0a0a0b', borderWidth: 2, borderRadius: 3 },
+      emphasis: { itemStyle: { borderColor: '#f8f7f3', borderWidth: 1 } },
+      animationDuration: 700
+    }],
     tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      formatter: (params) => {
-        const rangeIdx = params[0].dataIndex;
-        const range = timeRanges[rangeIdx];
-        const total = rangeTotals[rangeIdx];
-        const percent = totalRecords > 0 ? ((total / totalRecords) * 100).toFixed(1) : 0;
-
-        let tooltip = `<b>${range.label}</b><br>`;
-        tooltip += `${t('tipTotal')}: <b>${formatNumber(total)}</b> (${percent}%)<br><br>`;
-
-        params.filter(p => p.value > 0).forEach(param => {
-          const stagePercent = total > 0 ? ((param.value / total) * 100).toFixed(0) : 0;
-          tooltip += `<span style="color:${param.color}">●</span> ${param.seriesName}: ${formatNumber(param.value)} (${stagePercent}%)<br>`;
-        });
-
-        return tooltip;
+      trigger: 'item',
+      formatter: (p) => {
+        const stage = yStages[p.value[1]];
+        const range = timeRanges[p.value[0]].label;
+        const total = stageTotals[stage] || 0;
+        const share = total > 0 ? (p.value[2] / total * 100).toFixed(1) : '0';
+        return `<b>${escHtml(stage)}</b> · ${range}<br>` +
+          `${t('tipMoves')}: <b>${formatNumber(p.value[2])}</b><br>` +
+          `${t('tipShare')}: ${share}%`;
       }
-    },
-    animationDuration: 700
+    }
   });
   addResize(chart);
 }
 
-function renderRankingChart() {
-  const el = document.getElementById('chart_ranking');
+// Chord: grafo circular das transicoes entre etapas (mesma matriz from_stages do Sankey)
+function renderChordChart() {
+  const el = document.getElementById('chart_chord');
   if (!el) return;
   const chart = makeChart(el);
 
-  // Calcular volume total por stage (entradas + saídas)
-  const stageActivity = {};
-  filteredData.forEach(d => {
-    if (!stageActivity[d.stage_label]) {
-      stageActivity[d.stage_label] = { total: 0, entered: 0, exited: 0 };
-    }
-    const entered = parseInt(d.deals_entered) || 0;
-    const exited = getExitValue(d);
+  const transitions = {};
+  if (filteredRecords.length > 0) {
+    filteredRecords.forEach(r => {
+      if (r.from_stage && r.stage_label && r.from_stage !== r.stage_label &&
+          STAGES[r.from_stage] && STAGES[r.stage_label]) {
+        const key = r.from_stage + '|' + r.stage_label;
+        transitions[key] = (transitions[key] || 0) + 1;
+      }
+    });
+  } else {
+    // Base agregada: usa o mapa from_stages de cada linha dia+stage
+    filteredData.forEach(d => {
+      if (!d.from_stages) return;
+      Object.keys(d.from_stages).forEach(fs => {
+        if (fs && fs !== d.stage_label && STAGES[fs] && STAGES[d.stage_label]) {
+          const key = fs + '|' + d.stage_label;
+          transitions[key] = (transitions[key] || 0) + d.from_stages[fs];
+        }
+      });
+    });
+  }
 
-    stageActivity[d.stage_label].entered += entered;
-    stageActivity[d.stage_label].exited += exited;
-    stageActivity[d.stage_label].total += entered + exited;
+  const edges = Object.entries(transitions).map(([key, value]) => {
+    const [source, target] = key.split('|');
+    return { source, target, value };
   });
 
-  // Ordenar por volume total decrescente
-  const sortedStages = Object.keys(stageActivity)
-    .sort((a, b) => stageActivity[b].total - stageActivity[a].total);
+  if (edges.length === 0) {
+    chart.setOption({
+      title: {
+        text: t('sankeyWaitT'),
+        subtext: t('sankeyWaitS'),
+        left: 'center',
+        top: 'center',
+        textStyle: { color: '#a1a1aa', fontSize: 14, fontWeight: 'normal' },
+        subtextStyle: { color: '#8a8a94', fontSize: 11 }
+      }
+    });
+    addResize(chart);
+    return;
+  }
+
+  // Volume por no (entradas + saidas) dimensiona o circulo
+  const nodeVol = {}, nodeIn = {}, nodeOut = {};
+  edges.forEach(e => {
+    nodeVol[e.source] = (nodeVol[e.source] || 0) + e.value;
+    nodeVol[e.target] = (nodeVol[e.target] || 0) + e.value;
+    nodeOut[e.source] = (nodeOut[e.source] || 0) + e.value;
+    nodeIn[e.target] = (nodeIn[e.target] || 0) + e.value;
+  });
+  const maxVol = Math.max(...Object.values(nodeVol));
+  const maxFlow = Math.max(...edges.map(e => e.value));
+
+  const nodes = Object.keys(nodeVol)
+    .sort((a, b) => (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0))
+    .map(stage => ({
+      name: stage,
+      value: nodeVol[stage],
+      symbolSize: 16 + 34 * Math.sqrt(nodeVol[stage] / maxVol),
+      itemStyle: { color: stageColor(stage) }
+    }));
 
   chart.setOption({
-    grid: { left: 10, right: 14, top: 28, bottom: 6, containLabel: true },
-    xAxis: {
-      type: 'value',
-      axisLabel: { formatter: (value) => formatNumber(value) }
-    },
-    yAxis: {
-      type: 'category',
-      data: sortedStages,
-      inverse: true,
-      axisLabel: { fontSize: 11 }
-    },
-    legend: { top: 0 },
-    series: [
-      {
-        name: t('serInflows'),
-        type: 'bar',
-        stack: 'total',
-        barWidth: '55%',
-        itemStyle: { color: '#2563eb' },
-        data: sortedStages.map(stage => stageActivity[stage].entered),
-        animationDuration: 700
+    series: [{
+      type: 'graph',
+      layout: 'circular',
+      circular: { rotateLabel: true },
+      data: nodes,
+      links: edges.map(e => ({
+        source: e.source,
+        target: e.target,
+        value: e.value,
+        lineStyle: { width: 1 + 9 * (e.value / maxFlow) }
+      })),
+      lineStyle: { color: 'source', opacity: 0.4, curveness: 0.35 },
+      label: {
+        show: true,
+        position: 'right',
+        color: '#d4d4d8',
+        fontSize: 11,
+        formatter: (p) => stageLabel(p.name)
       },
-      {
-        name: t('serOutflows'),
-        type: 'bar',
-        stack: 'total',
-        barWidth: '55%',
-        itemStyle: { color: '#d95926' },
-        data: sortedStages.map(stage => stageActivity[stage].exited),
-        animationDuration: 700
-      }
-    ],
+      emphasis: { focus: 'adjacency', lineStyle: { opacity: 0.8 } },
+      roam: false,
+      animationDuration: 700
+    }],
     tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      formatter: (params) => {
-        const stage = params[0].name;
-        const data = stageActivity[stage];
-        const rank = sortedStages.indexOf(stage) + 1;
-        let tooltip = `<b>#${rank} ${stage}</b><br>`;
-        tooltip += `<span style="color:#2563eb">●</span> ${t('tipInflows')}: ${formatNumber(data.entered)}<br>`;
-        tooltip += `<span style="color:#d95926">●</span> ${t('tipOutflows')}: ${formatNumber(data.exited)}<br>`;
-        tooltip += `${t('tipTotal')}: <b>${formatNumber(data.total)}</b>`;
-        return tooltip;
+      trigger: 'item',
+      formatter: (p) => {
+        if (p.dataType === 'edge') {
+          return `<b>${escHtml(p.data.source)}</b> → <b>${escHtml(p.data.target)}</b><br>` +
+            `${t('tipMoves')}: <b>${formatNumber(p.data.value)}</b>`;
+        }
+        return `<b>${escHtml(p.name)}</b><br>` +
+          `${t('tipInflows')}: ${formatNumber(nodeIn[p.name] || 0)}<br>` +
+          `${t('tipOutflows')}: ${formatNumber(nodeOut[p.name] || 0)}`;
       }
     }
   });
@@ -1799,11 +1963,24 @@ function renderEntriesExitsTable() {
     csTip: 'Quantidade atual de deals em cada stage (saldo acumulado mais recente)',
     csSub: 'Distribuição atual de deals em cada etapa do funil.',
     csFoot: 'Snapshot atual do funil: distribuição de deals por etapa',
-    tmpH: 'Evolução temporal · saldo e entradas',
-    tmpTip: 'Saldo acumulado de deals por stage ao longo do tempo, ou entradas diárias empilhadas por stage. Use o zoom para investigar períodos.',
+    chdH: 'Transições entre etapas · fluxo circular',
+    chdTip: 'Grafo circular da movimentação de deals: o tamanho do nó é o volume do stage, a largura da aresta é o fluxo origem-destino. Passe o mouse na aresta para ver origem, destino e contagem.',
+    chdSub: 'Quem envia deals para quem: todas as transições entre etapas em um círculo, incluindo pulos e retornos.',
+    chdFoot: 'Visão de acordes do volume de transição entre as etapas do funil',
+    boxH: 'Tempo no stage · distribuição por etapa',
+    boxTip: 'Boxplot da distribuição real de permanência por etapa, com cada registro como um ponto disperso. A caixa vermelha é o gargalo do funil (maior mediana).',
+    boxSub: 'Tempo de permanência de cada deal por etapa: mediana, quartis e outliers, com o gargalo em vermelho.',
+    boxFoot: 'Visão de distribuição: medianas, dispersão e outliers no lugar de uma média única',
+    funH: 'Funil do pipeline · volume e retenção',
+    funTip: 'Funil real das seis etapas: a largura é o volume de entradas e cada rótulo traz a retenção em relação à etapa anterior.',
+    funSub: 'Volume de entradas por etapa com a retenção contra a etapa anterior.',
+    funFoot: 'A forma do funil: onde o volume estreita etapa a etapa',
+    tmpH: 'Evolução temporal · saldo, entradas e stream',
+    tmpTip: 'Saldo acumulado de deals por stage, entradas diárias empilhadas por stage, ou um stream (themeRiver) do mix de entradas. Use o zoom para investigar períodos.',
     tglSaldoBtn: 'Saldo acumulado',
     tglEntradasBtn: 'Entradas por dia',
-    tmpSub: 'Como o estoque de cada etapa evolui, e quanto entra por dia em cada uma.',
+    tglStreamBtn: 'Stream',
+    tmpSub: 'Como o estoque de cada etapa evolui, quanto entra por dia, e como o mix de entradas muda como um fluxo.',
     tmpFoot: 'Evolução do estoque e do fluxo diário de deals por etapa',
     tblH: 'Entradas e saídas · por etapa',
     tblTip: 'Resumo detalhado de movimentação: quantos entraram e saíram de cada stage',
@@ -1815,26 +1992,14 @@ function renderEntriesExitsTable() {
     volTip: 'Quantidade de deals que entraram em cada stage no período selecionado',
     volSub: 'Quantos deals entraram em cada etapa, na ordem do funil.',
     volFoot: 'Total de entradas por etapa: visão de volume e distribuição',
-    tpoH: 'Tempo médio · permanência por etapa',
-    tpoTip: 'Tempo médio que deals ficam em cada stage antes de avançar ou sair. A barra destacada é o gargalo do funil.',
-    tpoSub: 'Permanência média dos deals em cada etapa, com o gargalo destacado.',
-    tpoFoot: 'Análise de velocidade: identificação de gargalos no funil',
-    retH: 'Retenção · % que permanece por etapa',
-    retTip: 'Percentual de deals que entraram no stage e ainda não saíram. O volume de entradas aparece no tooltip.',
-    retSub: 'Taxa de retenção por etapa: onde o funil segura e onde perde.',
-    retFoot: 'Eficiência de cada etapa: onde há mais perdas e oportunidades',
     snkH: 'Fluxo entre etapas · diagrama de conversão',
     snkTip: 'Visualização do fluxo de deals entre stages: a largura representa o volume',
     snkSub: 'Passagem de deals de uma etapa para a etapa seguinte.',
     snkFoot: 'Diagrama de Sankey mostrando perdas e avanços no funil',
-    dstH: 'Distribuição de tempo · por faixa',
-    dstTip: 'Distribuição do tempo de permanência por faixa, empilhada por stage',
-    dstSub: 'Dispersão do tempo de permanência dos deals por etapa.',
-    dstFoot: 'Variabilidade no tempo: outliers e padrões de comportamento',
-    rnkH: 'Ranking de movimentação · entradas e saídas',
-    rnkTip: 'Comparação de stages por volume total (entradas + saídas) no período',
-    rnkSub: 'Etapas ordenadas pelo volume total de deals no período.',
-    rnkFoot: 'Identificação das etapas mais ativas do funil'
+    dstH: 'Distribuição de tempo · heatmap etapa × faixa',
+    dstTip: 'Heatmap de permanência: cada célula conta deals daquele stage naquela faixa de tempo. Células mais claras concentram mais deals.',
+    dstSub: 'Onde o tempo de permanência se concentra em cada etapa, de menos de uma hora a mais de uma semana.',
+    dstFoot: 'Heatmap etapa por faixa de tempo: concentração de permanência em um relance'
   };
   const META = {
     en: { title: 'Stage Monitoring | Felippe Yann', desc: 'BI dashboard for monitoring social selling pipeline stages' },
@@ -2381,6 +2546,15 @@ function renderEntriesExitsTable() {
     for (var i = 0; i < PESO.length; i++) { r -= PESO[i]; if (r <= 0) return i; }
     return 0;
   }
+  // Origem da transicao: maioria vem da etapa anterior, mas ha pulos de etapa
+  // e retornos (deal que voltou), pro grafo circular ter estrutura real
+  function pickFrom(si) {
+    if (si === 0) return '';
+    var r = Math.random();
+    if (si >= 2 && r < 0.14) return STAGES[si - 2].label;
+    if (si <= STAGES.length - 2 && r >= 0.9) return STAGES[si + 1].label;
+    return STAGES[si - 1].label;
+  }
 
   // A base sintetica termina hoje: os filtros de "ultimos N dias" precisam de dados recentes.
   function inicio(diasAtras) {
@@ -2407,7 +2581,7 @@ function renderEntriesExitsTable() {
           stage_label: stage.label,
           stage_order: String(stage.order),
           entered_day_sp: dateStr,
-          from_stage_label: si > 0 ? STAGES[si - 1].label : '',
+          from_stage_label: pickFrom(si),
           time_in_stage: interval(horas)
         });
       }
@@ -2420,9 +2594,9 @@ function renderEntriesExitsTable() {
       name: 'mudancas_de_stage.csv',
       input: '#fileUpload',
       desc: 'Historico de movimentacao do pipeline. Uma linha por entrada de deal em um stage. '
-          + 'O Sankey de fluxo usa from_stage_label -> stage_label; o grafico de gargalos usa time_in_stage.',
+          + 'O Sankey e o grafo circular usam from_stage_label -> stage_label; o boxplot de gargalo e o heatmap usam time_in_stage.',
       desc_en: 'Pipeline movement history. One row per deal entering a stage. '
-          + 'The flow Sankey uses from_stage_label -> stage_label; the bottleneck chart uses time_in_stage.',
+          + 'The Sankey and the circular graph use from_stage_label -> stage_label; the bottleneck boxplot and the heatmap use time_in_stage.',
       cols: [
         { n: 'deal_id', t: 'texto', t_en: 'text', d: 'Identificador do negocio que se moveu.', d_en: 'Identifier of the deal that moved.', req: 1 },
         { n: 'stage_label', t: 'texto', t_en: 'text', d: 'Stage em que o deal entrou.', d_en: 'Stage the deal entered.', req: 1 },
