@@ -1469,8 +1469,8 @@
     }
 
     // ==================== RESUMO EXECUTIVO (KPIs + insight) ====================
-    function renderExec() {
-      var acts = RAW_ACTIVITIES || [];
+    function renderExec(actsArg) {
+      var acts = actsArg || RAW_ACTIVITIES || [];
       var total = acts.length;
       var sdrs = {}; acts.forEach(function (a) { if (a && a.sdr) sdrs[a.sdr] = 1; });
       var nSdr = Object.keys(sdrs).length;
@@ -1690,6 +1690,12 @@
           return sum > 0;
         });
       }
+
+      // KPIs do executivo respeitam o recorte atual (data + SDR específico)
+      let actsF = RAW_ACTIVITIES;
+      if (dateFilterStart && dateFilterEnd) actsF = actsF.filter(r => r.date >= dateFilterStart && r.date <= dateFilterEnd);
+      if (selectedSDR !== 'Todos_Media' && selectedSDR !== 'Todos_Total') actsF = actsF.filter(r => r.sdr === selectedSDR);
+      renderExec(actsF);
 
       renderChart();
     }
