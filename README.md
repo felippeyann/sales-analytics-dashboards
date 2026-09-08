@@ -23,7 +23,7 @@ Click any preview to open the live dashboard.
     <td width="50%">
       <a href="https://felippeyann.github.io/sales-analytics-dashboards/01_agendamentos.html"><img src="docs/previews/01_agendamentos.webp" alt="Análise de Agendamentos"></a>
       <b>01 · Análise de Agendamentos</b><br>
-      Meeting-booking funnel: UTM origin Sankey, squad comparison, time-to-assignment, cross filters, AI insights
+      Meeting-booking funnel: flow Sankey, squad comparison, time-to-assignment, cross filters, AI insights
     </td>
     <td width="50%">
       <a href="https://felippeyann.github.io/sales-analytics-dashboards/02_produtividade_sdr.html"><img src="docs/previews/02_produtividade_sdr.webp" alt="Produtividade SDR"></a>
@@ -76,7 +76,7 @@ Click any preview to open the live dashboard.
 - Client-side CSV upload (PapaParse) for loading your own data; nothing leaves the browser
 - One-click synthetic data generator per dashboard, plus a downloadable CSV template that matches the documented schema
 - Optional AI-generated insights via Gemini (you provide your own API key in the UI)
-- UI language: Portuguese (pt-BR)
+- UI language: English by default, with a PT-BR toggle (preference shared across the hub and dashboards)
 
 ## Data format
 
