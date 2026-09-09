@@ -1417,7 +1417,17 @@
           monthMap.set(d.klass, monthMap.get(d.klass) + 1);
         });
 
-        const months = Array.from(monthlyData.keys()).sort();
+        let months = Array.from(monthlyData.keys()).sort();
+        // mês corrente incompleto afunila o rio no fim e lê como "base encolhendo": fica fora
+        if (months.length > 2) {
+          const maxISO = filteredSource.reduce((m, d) => { const s = toLocalDateString(d.created); return (s && s > m) ? s : m; }, '');
+          const last = months[months.length - 1];
+          if (maxISO.slice(0, 7) === last) {
+            const [ly, lm] = last.split('-').map(Number);
+            const lastDay = new Date(ly, lm, 0).getDate();
+            if (Number(maxISO.slice(8, 10)) < lastDay) months = months.slice(0, -1);
+          }
+        }
         if (!months.length) {
           charts.themeriver.setOption({
             title: { text: t('no_data'), left: 'center', top: 'center', textStyle: { color: '#8a8a94', fontSize: 15 } }
@@ -1769,6 +1779,9 @@
         if (sortByVolume) {
           originBars.sort((a, b) => b.value - a.value);
         }
+        // eixo de categoria renderiza de baixo pra cima: inverte pra faixa A
+        // (e o maior volume) aparecerem no TOPO do gráfico
+        originBars.reverse();
 
         // Usar cores por faixa
         const barData = originBars.map(bar => ({
@@ -2155,6 +2168,8 @@
             name: t('ax_vol'),
             nameLocation: 'middle',
             nameGap: 36,
+            min: (v) => Math.max(0, Math.floor(v.min - (v.max - v.min) * 0.45 - 5)),
+            max: (v) => Math.ceil(v.max + (v.max - v.min) * 0.45 + 5),
             axisLabel: { formatter: (val) => fmt.format(val) },
             splitLine: { lineStyle: { type: 'dashed' } }
           },
@@ -2171,6 +2186,7 @@
             type: 'scatter',
             // símbolo proporcional ao volume: raio cresce com sqrt(volume/máximo)
             symbolSize: (val) => 46 + 88 * Math.sqrt((val[2] || 0) / maxVol),
+            itemStyle: { borderColor: '#131316', borderWidth: 2 },
             data: scatterData,
             label: {
               show: true,
@@ -2228,7 +2244,16 @@
           return `<option value="${m}">${label.charAt(0).toUpperCase() + label.slice(1)}</option>`;
         }).join('');
         // preserva a seleção atual (repopulado em cada render p/ troca de idioma)
-        if (!selectedCalendarMonth || !months.includes(selectedCalendarMonth)) selectedCalendarMonth = months[0] || null;
+        if (!selectedCalendarMonth || !months.includes(selectedCalendarMonth)) {
+          // default: mês mais recente com pelo menos ~metade do mês coberta pelos dados;
+          // um mês recém-começado abre um calendário quase vazio que lê como defeito
+          let pick = months[0] || null;
+          if (months.length > 1) {
+            const maxISO = data.reduce((m, d) => { const s = toLocalDateString(d.created); return (s && s > m) ? s : m; }, '');
+            if (maxISO.slice(0, 7) === months[0] && Number(maxISO.slice(8, 10)) < 15) pick = months[1];
+          }
+          selectedCalendarMonth = pick;
+        }
         if (selectedCalendarMonth) calendarMonthSelect.value = selectedCalendarMonth;
       }
 
@@ -3287,19 +3312,7 @@
   function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
-    try{
-      if(band && !localStorage.getItem('onbDismissed_v1')){
-        var onb=document.createElement('div');
-        onb.className='onb-card';
-        onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">'+OS('h')+'</div>'
-          +'<ol class="onb-steps">'
-          +OS('s1')+OS('s2')+OS('s3')
-          +'</ol>';
-        band.parentNode.insertBefore(onb, band.nextSibling);
-        onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
-      }
-    }catch(e){}
+    /* Rodada 4: card "como ler" fora da faixa nobre (padrao 01-03). */
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
