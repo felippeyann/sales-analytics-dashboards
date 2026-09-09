@@ -945,8 +945,8 @@
       { key: 'emails', color: '#199e70' },
       { key: 'tarefas', color: '#c98500' },
       { key: 'quantidade', color: '#d55181' },
-      { key: 'whatsapp', color: '#008300' },
-      { key: 'tentativas', color: '#9085e9' },
+      { key: 'whatsapp', color: '#9085e9' },
+      { key: 'tentativas', color: '#008300' },
       { key: 'conexoes', color: '#e66767' },
       { key: 'duracao', color: '#60a5fa' },
       { key: 'agendamentos', color: '#d95926' }
@@ -1714,7 +1714,7 @@
     const STREAM_CATS = [
       { key: 'ligacoes', color: '#2563eb' },
       { key: 'emails', color: '#199e70' },
-      { key: 'whatsapp', color: '#008300' },
+      { key: 'whatsapp', color: '#9085e9' },
       { key: 'tarefas', color: '#c98500' },
       { key: 'agendamentos', color: '#d95926' }
     ];
@@ -1917,10 +1917,12 @@
       const period = parseInt(document.getElementById('heatmap_period').value);
       const hideWeekendsHm = document.getElementById('heatmap_hideWeekends').checked;
 
-      // Janela do calendário: últimos N dias, terminando hoje
+      // Janela do calendário: últimos N dias, terminando no ÚLTIMO DIA COM DADO
+      // (ancorar em "hoje" real desalinha da base carregada e deixa colunas vazias)
       const pad2 = n => String(n).padStart(2, '0');
       const isoOf = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
-      const end = new Date(); end.setHours(12, 0, 0, 0);
+      const dataMaxISO = RAW.reduce((m, r) => (r.date && r.date > m ? r.date : m), '');
+      const end = dataMaxISO ? new Date(dataMaxISO + 'T12:00:00') : new Date(); end.setHours(12, 0, 0, 0);
       const start = new Date(end); start.setDate(start.getDate() - (period - 1));
       const startISO = isoOf(start), endISO = isoOf(end);
 
@@ -2044,6 +2046,12 @@
       });
 
       let weeks = Array.from(weekSet).sort();
+      // semana corrente incompleta embaralha o ranking final: fica de fora
+      if (weeks.length > 2) {
+        const lastEnd = new Date(weeks[weeks.length - 1] + 'T00:00:00'); lastEnd.setDate(lastEnd.getDate() + 6);
+        const maxD = acts.reduce((m, a) => { const d = parseDate(a.date); return (d && d > m) ? d : m; }, new Date(0));
+        if (maxD < lastEnd) weeks.pop();
+      }
       if (weeks.length > 12) weeks = weeks.slice(-12); // últimas 12 semanas: legível
       const topSdrs = Object.keys(totals).sort((a, b) => totals[b] - totals[a]).slice(0, 8);
       if (!weeks.length || !topSdrs.length) return;
@@ -2846,19 +2854,7 @@
   function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
-    try{
-      if(band && !localStorage.getItem('onbDismissed_v1')){
-        var onb=document.createElement('div');
-        onb.className='onb-card';
-        onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">'+OS('h')+'</div>'
-          +'<ol class="onb-steps">'
-          +OS('s1')+OS('s2')+OS('s3')
-          +'</ol>';
-        band.parentNode.insertBefore(onb, band.nextSibling);
-        onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
-      }
-    }catch(e){}
+    /* Rodada 4: card "como ler" fora da faixa nobre (o conteudo era generico; os paineis tem os proprios subtitulos e icones de info). */
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
