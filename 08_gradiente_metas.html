@@ -26,6 +26,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
+  <script>/* theme init: segue localStorage "theme" (setado pelo shell); "?theme=" forca para teste. Dark por default. */(function(){var q=null;try{q=new URLSearchParams(location.search).get("theme");}catch(e){}var t=null;try{t=localStorage.getItem("theme");}catch(e){}var v=(q==="light"||q==="dark")?q:(t==="light"?"light":"dark");document.documentElement.setAttribute("data-theme",v);window.addEventListener("storage",function(e){if(e&&e.key==="theme"){document.documentElement.setAttribute("data-theme",e.newValue==="light"?"light":"dark");}});})();</script>
   <style>
 /* ============================================================================
    GRADIENTE DE METAS — CSS (Dashboard TV 1920×1080)
@@ -54,6 +55,19 @@
   --text-primary:var(--ink); --text-secondary:var(--ink-2); --text-muted:var(--ink-3);
   --header-height:80px; --border-radius:var(--r); --border-radius-sm:var(--r-sm);
 }
+:root[data-theme="light"]{
+  --bg:#f4f3ee;
+  --panel:#ffffff;
+  --card:#faf9f4;
+  --card-h:#eef0f4;
+  --ink:#0a0a0b; --ink-2:#232328; --ink-3:#52525b; --ink-4:#71717a;
+  --accent:#2563eb;
+  --accent-soft:#1d4ed8;
+  --accent-glow:rgba(37,99,235,0.12);
+  --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+  --line:rgba(10,10,11,.12); --line-strong:rgba(10,10,11,.20);
+}
+:root[data-theme="light"] header{background:rgba(244,243,238,.92)}
 
 html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:var(--sans); color:var(--text-primary); }
 

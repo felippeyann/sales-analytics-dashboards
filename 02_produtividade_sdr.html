@@ -20,6 +20,7 @@
 <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
+<script>/* theme init: segue localStorage "theme" (setado pelo shell); "?theme=" forca para teste. Dark por default. */(function(){var q=null;try{q=new URLSearchParams(location.search).get("theme");}catch(e){}var t=null;try{t=localStorage.getItem("theme");}catch(e){}var v=(q==="light"||q==="dark")?q:(t==="light"?"light":"dark");document.documentElement.setAttribute("data-theme",v);})();</script>
 <style>
   /* ===== tokens (fonte única de verdade do arquivo) ===== */
   :root{
@@ -41,6 +42,22 @@
     --text:var(--ink);
     --grid:var(--line-strong);
     --danger:var(--bad);
+    /* chart tokens (lidos por registerDemoTheme via getComputedStyle) */
+    --c-text:#d4d4d8; --c-dim:#8a8a94; --c-legend:#a1a1aa;
+    --c-tip-bg:#131316; --c-tip-text:#d4d4d8;
+    --c-axis:rgba(248,247,243,.18); --c-border:rgba(248,247,243,.18);
+    --c-split:rgba(248,247,243,.10); --c-split-cat:rgba(248,247,243,.045); --c-split-minor:rgba(248,247,243,.035);
+  }
+  :root[data-theme="light"]{
+    --bg:#f4f3ee; --panel:#ffffff; --card:#faf9f4; --card-h:#eef0f4;
+    --ink:#0a0a0b; --ink-2:#232328; --ink-3:#52525b; --ink-4:#71717a;
+    --accent:#2563eb; --accent-soft:#1d4ed8; --accent-glow:rgba(37,99,235,0.12);
+    --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+    --line:rgba(10,10,11,.12); --line-strong:rgba(10,10,11,.20);
+    --c-text:#232328; --c-dim:#6b6b73; --c-legend:#52525b;
+    --c-tip-bg:#ffffff; --c-tip-text:#232328;
+    --c-axis:rgba(10,10,11,.22); --c-border:rgba(10,10,11,.18);
+    --c-split:rgba(10,10,11,.10); --c-split-cat:rgba(10,10,11,.06); --c-split-minor:rgba(10,10,11,.04);
   }
 
   *{box-sizing:border-box}
@@ -49,6 +66,8 @@
   button{font-family:var(--sans)}
 
   /* ===== header (sticky, compacto) ===== */
+  :root[data-theme="light"] header{background:rgba(244,243,238,.92)}
+  :root[data-theme="light"] .filterbar{background:rgba(244,243,238,.9)}
   header{
     position:sticky;top:0;z-index:60;
     background:rgba(10,10,11,.92);
@@ -593,16 +612,54 @@
     const CAT_PALETTE = ['#2563eb','#d95926','#199e70','#c98500','#d55181','#008300','#9085e9','#e66767'];
     const SEQ_BLUE = ['#16233f','#1d3a6b','#1f55a3','#2f74d0','#60a5fa'];
     const FUNNEL_RAMP = ['#7db4f7','#3b82f6','#1d4ed8'];
-    echarts.registerTheme('demo', {
-      color: CAT_PALETTE,
-      backgroundColor: 'transparent',
-      textStyle: { fontFamily: '"Space Grotesk",system-ui,sans-serif', color: '#d4d4d8' },
-      legend: { textStyle: { color: '#a1a1aa', fontSize: 11 }, itemWidth: 12, itemHeight: 12, icon: 'rect' },
-      tooltip: { backgroundColor: '#131316', borderColor: 'rgba(248,247,243,.18)', borderWidth: 1, textStyle: { color: '#d4d4d8', fontSize: 12 } },
-      categoryAxis: { axisLine: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisTick: { lineStyle: { color: 'rgba(248,247,243,.18)' } }, axisLabel: { color: '#8a8a94' }, splitLine: { show: false } },
-      valueAxis: { axisLine: { show: false }, axisLabel: { color: '#8a8a94' }, splitLine: { lineStyle: { color: 'rgba(248,247,243,.07)' } } }
-    });
-    function makeChart(el){ echarts.dispose(el); return echarts.init(el, 'demo'); }
+    // Tema lê os tokens --c-* do CSS, então segue claro/escuro. Re-registrado no switch.
+    function cvar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+    function registerDemoTheme(){
+      echarts.registerTheme('demo', {
+        color: CAT_PALETTE,
+        backgroundColor: 'transparent',
+        textStyle: { fontFamily: '"Space Grotesk",system-ui,sans-serif', color: cvar('--c-text') },
+        legend: { textStyle: { color: cvar('--c-legend'), fontSize: 11 }, itemWidth: 12, itemHeight: 12, icon: 'rect' },
+        tooltip: { backgroundColor: cvar('--c-tip-bg'), borderColor: cvar('--c-border'), borderWidth: 1, textStyle: { color: cvar('--c-tip-text'), fontSize: 12 } },
+        categoryAxis: { axisLine: { lineStyle: { color: cvar('--c-axis') } }, axisTick: { lineStyle: { color: cvar('--c-axis') } }, axisLabel: { color: cvar('--c-dim') }, splitLine: { show: false } },
+        valueAxis: { axisLine: { show: false }, axisLabel: { color: cvar('--c-dim') }, splitLine: { lineStyle: { color: cvar('--c-split') } } }
+      });
+    }
+    registerDemoTheme();
+    // No claro, remapeia só os literais neutros espalhados nas options (linhas quase-brancas
+    // -> quase-pretas; superfícies escuras -> claras). Cores de DADO ficam intocadas.
+    var LIGHT_LINE_RE = /rgba\(\s*248\s*,\s*247\s*,\s*243\s*,\s*([\d.]+)\s*\)/g;
+    function isLightTheme(){ return document.documentElement.getAttribute('data-theme') === 'light'; }
+    function remapLight(o){
+      if (o == null) return o;
+      if (typeof o === 'string'){
+        var v = o.replace(LIGHT_LINE_RE, 'rgba(10,10,11,$1)');
+        if (v === '#131316') v = cvar('--panel');
+        else if (v === '#1a1a1e') v = cvar('--card');
+        else if (v === '#232328') v = cvar('--card-h');
+        else if (v === '#0a0a0b') v = cvar('--bg');
+        return v;
+      }
+      if (Array.isArray(o)){ for (var i = 0; i < o.length; i++) o[i] = remapLight(o[i]); return o; }
+      if (typeof o === 'object'){ for (var k in o){ if (Object.prototype.hasOwnProperty.call(o, k)) o[k] = remapLight(o[k]); } return o; }
+      return o;
+    }
+    function makeChart(el){
+      echarts.dispose(el);
+      var c = echarts.init(el, 'demo');
+      if (isLightTheme()){ var _set = c.setOption.bind(c); c.setOption = function(opt, extra){ return _set(remapLight(opt), extra); }; }
+      return c;
+    }
+    // Troca de tema: atributo + re-registro do tema + re-render completo. O shell (hub) manda via storage.
+    function applyTheme(theme){
+      theme = theme === 'light' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+      try { localStorage.setItem('theme', theme); } catch(e) {}
+      registerDemoTheme();
+      try { applyFilters(); } catch(e) {}
+    }
+    window.applyTheme = applyTheme;
+    window.addEventListener('storage', function(e){ if (e && e.key === 'theme'){ applyTheme(e.newValue === 'light' ? 'light' : 'dark'); } });
     // resize: um único listener global cuida das instâncias memoizadas (fim do script)
     const escHtml = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
