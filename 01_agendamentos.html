@@ -708,21 +708,6 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="exec-insight" id="exec-insight"></div>
   </section>
 
-  <section class="card col-12" id="suggestionsBox" style="margin-bottom:16px;">
-    <div style="display:flex;justify-content:space-between;align-items:start;">
-      <div style="flex:1;">
-        <h2 data-i18n="sugH">Top Suggested Actions and Searches</h2>
-        <div class="sub" data-i18n="sugSub">Click the button to generate a list of recommended searches and actions based on the data you loaded.</div>
-      </div>
-      <button class="panelBtn" id="minimizeSuggestionsBox" title="Minimize" data-pt-title="Minimizar" style="margin-left:8px;">−</button>
-    </div>
-    <div id="suggestionsContent">
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <button id="generateSuggestionsBtn" class="btn sm" disabled data-i18n="sugBtn">Generate search suggestions</button>
-      </div>
-      <div id="suggestionsOutput" class="suggestions-list"></div>
-    </div>
-  </section>
   </div>
 
   <section class="card" id="trendCard">
@@ -743,7 +728,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="chart-actions" data-chart="chartTrend" data-kind="trend" data-csv="evolucao_temporal" data-no-png="1"></div>
       </div>
     </div>
-    <div class="sub" data-i18n="trSub">Weekly bookings by the chosen dimension. Straight lines, delicate points, and the peak/low of each series highlighted.</div>
     <div id="chartTrend" class="chart tall"></div>
   </section>
 
@@ -756,7 +740,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="chart-actions" data-chart="chartFlow" data-kind="flow" data-csv="fluxo_fonte_squad_faixa_closer"></div>
       </div>
     </div>
-    <div class="sub" data-i18n="fwSub">Top 6 sources and top 8 closers; the rest becomes "Others". Channels and squads use the categorical palette; score bands use the ordinal blue ramp.</div>
+    <div class="sub" data-i18n="fwSub">Top 6 sources and top 8 closers; the rest becomes "Others".</div>
     <div id="chartFlow" class="chart sankey"></div>
   </section>
 
@@ -770,7 +754,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="chart-actions" data-chart="chartStatusScore" data-kind="status_score" data-csv="status_score"></div>
         </div>
       </div>
-      <div class="sub" data-i18n="sbSub">Where each status concentrates quality: band A is the darkest blue, band D the lightest.</div>
+      <div class="sub" data-i18n="sbSub">Inner ring: status. Outer ring: the score bands inside it, darker = band A.</div>
       <div id="chartStatusScore" class="chart tall"></div>
     </section>
 
@@ -865,6 +849,22 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="chartSquadRadar" class="scorecard chart tall"></div>
     </section>
   </div>
+
+  <section class="card col-12" id="suggestionsBox" style="margin-top:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:start;">
+      <div style="flex:1;">
+        <h2 data-i18n="sugH">Top Suggested Actions and Searches</h2>
+        <div class="sub" data-i18n="sugSub">Click the button to generate a list of recommended searches and actions based on the data you loaded.</div>
+      </div>
+      <button class="panelBtn" id="minimizeSuggestionsBox" title="Minimize" data-pt-title="Minimizar" style="margin-left:8px;">−</button>
+    </div>
+    <div id="suggestionsContent">
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button id="generateSuggestionsBtn" class="btn sm" disabled data-i18n="sugBtn">Generate search suggestions</button>
+      </div>
+      <div id="suggestionsOutput" class="suggestions-list"></div>
+    </div>
+  </section>
 
 </main>
 
@@ -1377,6 +1377,12 @@ function renderTrend(data){
   const buckets={};
   rows.forEach(d=>{ const ms=msOf(d); if(ms==null) return; const c=d[field]==null?'':d[field]; if(cats.indexOf(c)<0) return; const k=keyOf(ms); (buckets[k]=buckets[k]||{}); buckets[k][c]=(buckets[k][c]||0)+1; });
   const keys=Object.keys(buckets).map(Number).sort((a,b)=>a-b);
+  // período final incompleto (semana/mês parcial) despenca pra perto de zero e engana a leitura: fica fora
+  if(keys.length>2){
+    const lastKey=keys[keys.length-1];
+    const lastEnd=byMonth ? new Date(new Date(lastKey).getFullYear(), new Date(lastKey).getMonth()+1, 1).getTime() : lastKey+7*86400000;
+    if(Math.max(...times) < lastEnd-86400000){ const dropped=keys.pop(); delete buckets[dropped]; }
+  }
   const labels=keys.map(k=>dfmt(new Date(k)));
   const grad=(hex)=>({type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:hexA(hex,.24)},{offset:.6,color:hexA(hex,.06)},{offset:1,color:hexA(hex,0)}]});
   const mkSeries=(c,i)=>{
@@ -1507,7 +1513,7 @@ function renderSankeyFlow(data){
     series:[{
       type:'sankey',
       left:12,right:110,top:12,bottom:16,
-      nodeWidth:14,nodeGap:10,layoutIterations:48,
+      nodeWidth:14,nodeGap:10,layoutIterations:0,
       emphasis:{focus:'adjacency'},
       lineStyle:{color:'source',opacity:0.35,curveness:0.5},
       itemStyle:{borderColor:'#131316',borderWidth:1},
@@ -1836,13 +1842,14 @@ function renderSquadRadar(data) {
     sc.setOption({
       grid:{left:8,right:16,top:24,bottom:28,containLabel:true},
       tooltip:{trigger:'item',formatter:(p)=>{const m=p.data.m;return `<b>${escHtml(m.squad)}</b><br>${escHtml(t('thVolume'))}: <b>${m.volume}</b><br>${escHtml(t('thConvWon'))}: <b>${m.wonPct.toFixed(1)}%</b><br>${escHtml(t('thQualiAB'))}: <b>${m.abPct.toFixed(1)}%</b><br>${escHtml(t('thTa3'))}: <b>${m.fastPct.toFixed(1)}%</b>`;}},
-      xAxis:{type:'value',name:t('thVolume'),nameGap:20,nameLocation:'middle',nameTextStyle:{color:'#8a8a94',fontSize:10},axisLabel:{fontSize:9}},
+      xAxis:{type:'value',name:t('thVolume'),nameGap:20,nameLocation:'middle',nameTextStyle:{color:'#8a8a94',fontSize:10},axisLabel:{fontSize:9},min:(v)=>Math.max(0,Math.floor(v.min-(v.max-v.min)*0.35-1)),max:(v)=>Math.ceil(v.max+(v.max-v.min)*0.35+1)},
       yAxis:{type:'value',name:t('thConvWon')+' %',nameGap:34,nameLocation:'middle',nameTextStyle:{color:'#8a8a94',fontSize:10},axisLabel:{fontSize:9,formatter:'{value}%'}},
       series:[{
         type:'scatter',
         symbolSize:(val)=>10+Math.sqrt(val[2]/maxAb)*30,
         data:list.map((m,i)=>({value:[m.volume,+m.wonPct.toFixed(1),m.abPct],m,itemStyle:{color:CAT_PALETTE[i%CAT_PALETTE.length],opacity:.85,borderColor:'#131316',borderWidth:1}})),
         label:{show:true,formatter:(p)=>dispVal(p.data.m.squad),position:'top',color:'#a1a1aa',fontSize:9},
+        labelLayout:{hideOverlap:true},
         markLine:{silent:true,symbol:'none',lineStyle:{color:'#8a8a94',type:'dashed',width:1},label:{formatter:t('scAvg'),color:'#8a8a94',fontSize:9,position:'insideEndTop'},data:[{yAxis:+avgWon.toFixed(1)}]}
       }]
     });
@@ -2399,15 +2406,14 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
     sugBtn:'Gerar sugestões de pesquisa',
     trH:'Evolução no tempo',
     trTip:'Volume semanal quebrado pela dimensão escolhida. Linhas retas com pontos delicados; o pico de cada série é marcado em verde e o vale em vermelho. As áreas sobrepostas revelam o cruzamento.',
-    trSub:'Volume semanal pela dimensão escolhida. Linhas retas, pontos delicados e o pico/vale de cada série destacados.',
     trDimSquad:'Squad', trDimSdr:'SDR', trDimSource:'Fonte',
     trMetBookings:'Agendamentos', trMetSales:'Vendas',
     fwH:'Fluxo · Fonte → Squad → Faixa → Closer',
     fwTip:'Cada agendamento como um fluxo: canal de origem, squad que trabalhou, faixa de score em que caiu e closer que recebeu. Largura do link = volume. Clique num nó para filtrar por aquela dimensão.',
-    fwSub:'Top 6 fontes e top 8 closers; o resto vira "Outros". Canais e squads usam a paleta categórica; faixas de score usam a rampa azul ordinal.',
+    fwSub:'Top 6 fontes e top 8 closers; o resto vira "Outros".',
     sbH:'Status → mix de score',
     sbTip:'Anel interno: status do negócio (aberto, ganho, perdido). Anel externo: o mix de faixas de score dentro de cada status. Clique no anel interno para filtrar por status, no externo para filtrar por score.',
-    sbSub:'Onde cada status concentra qualidade: a faixa A é o azul mais escuro, a D o mais claro.',
+    sbSub:'Anel interno: status. Anel externo: as faixas de score dentro dele, mais escuro = faixa A.',
     qsH:'Qualidade × velocidade',
     qsTip:'Cada célula conta os agendamentos naquela combinação de faixa de score × faixa de TA. Clique numa célula para aplicar os dois filtros de uma vez.',
     qsSub:'Os melhores leads são agendados mais rápido? Células mais escuras concentram mais agendamentos.',
@@ -3098,19 +3104,7 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
   function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
-    try{
-      if(band && !localStorage.getItem('onbDismissed_v1')){
-        var onb=document.createElement('div');
-        onb.className='onb-card';
-        onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">'+OS('h')+'</div>'
-          +'<ol class="onb-steps">'
-          +OS('s1')+OS('s2')+OS('s3')
-          +'</ol>';
-        band.parentNode.insertBefore(onb, band.nextSibling);
-        onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
-      }
-    }catch(e){}
+    /* Rodada 4: o card "como ler" saiu da faixa nobre; o ensino fica com o tour guiado (botao no header). */
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
@@ -3240,14 +3234,17 @@ function t(k){ var d=I18N[LANG()]; var v=(d&&d[k]!=null)?d[k]:I18N.en[k]; return
   }
   window.__startTour=start;
   window.enrichOnb=function(){
-    var card=document.querySelector('.onb-card'); if(!card) return;
-    if(card.querySelector('.onb-tour-btn')) return;
-    var b=document.createElement('button');
-    b.type='button'; b.className='btn sm onb-tour-btn';
+    // Rodada 4: o tour vive no header, ao lado da Metodologia (sem card ocupando a faixa nobre)
+    var actions=document.querySelector('.hdr-actions'); if(!actions) return;
+    var b=document.querySelector('.hdr-tour-btn');
+    if(!b){
+      b=document.createElement('button');
+      b.type='button'; b.className='btn-metodologia hdr-tour-btn';
+      b.addEventListener('click',start);
+      var meth=actions.querySelector('.btn-metodologia');
+      actions.insertBefore(b, meth||actions.firstChild);
+    }
     b.textContent=TXT[L()].btn;
-    b.addEventListener('click',start);
-    var steps=card.querySelector('.onb-steps');
-    (steps&&steps.parentNode?steps.parentNode:card).appendChild(b);
   };
 })();
 </script>
