@@ -906,6 +906,26 @@ function calculateStatistics(iaData, humanoData) {
   weeklyHumano = calculateWeeklyMedian(humanoData);
   monthlyIA = calculateMonthlyMedian(iaData);
   monthlyHumano = calculateMonthlyMedian(humanoData);
+
+  // Período final incompleto (semana/mês parcial) gera mediana volátil que
+  // distorce o fim da série de tendência: fica fora do gráfico.
+  const allTimes = iaData.concat(humanoData).map(d => d.deal_created_at.getTime());
+  const maxT = allTimes.length ? Math.max.apply(null, allTimes) : 0;
+  const trimWeekTail = (arr) => {
+    const s = arr.slice().sort((a, b) => a[0] - b[0]);
+    while (s.length > 2 && maxT < s[s.length - 1][0] + 6 * 86400000) s.pop();
+    return s;
+  };
+  const trimMonthTail = (arr) => {
+    const s = arr.slice().sort((a, b) => a[0] - b[0]);
+    while (s.length > 2) {
+      const d = new Date(s[s.length - 1][0]);
+      if (maxT < new Date(d.getFullYear(), d.getMonth() + 1, 0).getTime()) s.pop(); else break;
+    }
+    return s;
+  };
+  weeklyIA = trimWeekTail(weeklyIA); weeklyHumano = trimWeekTail(weeklyHumano);
+  monthlyIA = trimMonthTail(monthlyIA); monthlyHumano = trimMonthTail(monthlyHumano);
   
   // Novos visualizadores
   cdfIA = calculateCDF(iaData);
@@ -1184,7 +1204,16 @@ function calculateHeatmapMonthly(iaData, humanoData) {
   
   // Converter para array ordenado
   const months = Array.from(monthMap.values()).sort((a, b) => a.month.localeCompare(b.month));
-  
+
+  // Mês corrente incompleto vira uma linha "fraca" no heatmap e lê como queda: fora
+  if (months.length > 2) {
+    const allT = iaData.concat(humanoData).map(d => d.ta_created_at ? d.ta_created_at.getTime() : 0);
+    const maxD = new Date(allT.length ? Math.max.apply(null, allT) : 0);
+    const last = months[months.length - 1];
+    const lastMonthEnd = new Date(last.year, last.monthNum, 0);
+    if (maxD < lastMonthEnd) months.pop();
+  }
+
   return { type: 'monthly', months };
 }
 
@@ -1719,9 +1748,10 @@ function initFunnel() {
   funnelData.forEach((d, i) => {
     const iaV = Number(d.iaPercent.toFixed(1));
     const humV = Number(d.humanoPercent.toFixed(1));
-    // label do ponto maior vai para a direita, do menor para a esquerda
-    iaPts.push({ value: [iaV, i], label: { position: iaV >= humV ? 'right' : 'left' } });
-    humPts.push({ value: [humV, i], label: { position: humV > iaV ? 'right' : 'left' } });
+    // label do ponto maior vai para a direita, do menor para a esquerda;
+    // valor zero fica sem rótulo (colidia com o nome da categoria no eixo)
+    iaPts.push({ value: [iaV, i], label: { show: iaV > 0, position: iaV >= humV ? 'right' : 'left' } });
+    humPts.push({ value: [humV, i], label: { show: humV > 0, position: humV > iaV ? 'right' : 'left' } });
     links.push([iaV, humV, i]);
   });
   const pctLabel = {
@@ -2653,19 +2683,7 @@ function updateGlobalDateInfo() {
   function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
-    try{
-      if(band && !localStorage.getItem('onbDismissed_v1')){
-        var onb=document.createElement('div');
-        onb.className='onb-card';
-        onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">'+OS('h')+'</div>'
-          +'<ol class="onb-steps">'
-          +OS('s1')+OS('s2')+OS('s3')
-          +'</ol>';
-        band.parentNode.insertBefore(onb, band.nextSibling);
-        onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
-      }
-    }catch(e){}
+    /* Rodada 4: card "como ler" fora da faixa nobre (padrao 01-04). */
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
