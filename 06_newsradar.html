@@ -414,9 +414,9 @@
       <section id="top-keywords" class="card">
         <div class="card-header">
           <h2 data-number="02">Top keywords <small>(treemap)</small>
-            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt1">The 20 keywords with the most mentions in the current selection, sized by mentions; the remaining terms are grouped in the "Other" block. Click a block to filter the whole dashboard by that keyword.</span></span>
+            <span class="info-icon">ⓘ<span class="tooltip" data-i18n="tt1">The 20 keywords with the most mentions in the current selection, sized by mentions. The long tail is excluded so the top terms stay comparable; use the search to reach any term. Click a block to filter the whole dashboard.</span></span>
           </h2>
-          <div class="panel-sub" data-i18n="sub1">Area = mentions. Top 20 keywords plus an aggregated "Other" block. Click a block to apply the filter.</div>
+          <div class="panel-sub" data-i18n="sub1">Area = mentions among the top 20 keywords; the long tail stays out of the comparison. Click a block to apply the filter.</div>
           <div class="actions">
             <div style="position:relative">
               <button class="icon-btn menu-btn" onclick="toggleChartMenu(this)" title="Actions" data-pt-title="Ações" aria-label="Chart actions" data-pt-aria="Ações do gráfico">⋮</button>
@@ -914,14 +914,9 @@ function renderTopKeywords(){
   }
 
   // Treemap: área = menções; um matiz só (accent) com alpha por magnitude; borda #131316.
+  // O agregado "Other" fica FORA da área: a cauda longa é maior que qualquer termo
+  // e esmagava o top 20, matando a comparação que o treemap existe pra mostrar.
   const data = top.map(([name,value])=>({ name, value }));
-  if(restSum){
-    data.push({
-      name: t('twOther'), value: restSum, isOther: true,
-      itemStyle: { color:'#3f3f46' },
-      label: { color:'#a1a1aa' }
-    });
-  }
 
   keywordsTreemap.setOption({
     graphic: {elements:[]},
@@ -991,9 +986,11 @@ function renderThemeRiver(){
       axisTick:{lineStyle:{color:'rgba(248,247,243,.18)'}},
       splitLine:{show:false}
     },
+    legend:{ top:0, left:16, data: topKw, textStyle:{color:'#a1a1aa', fontSize:11}, itemWidth:14, itemHeight:8, icon:'rect' },
     series:[{
       type:'themeRiver',
-      label:{show:true, color:'#d4d4d8', fontSize:11},
+      // rótulos no início das bandas empilhavam num borrão ilegível; a legenda identifica
+      label:{show:false},
       itemStyle:{borderColor:'#131316', borderWidth:1},
       emphasis:{focus:'self', itemStyle:{shadowBlur:14, shadowColor:'rgba(0,0,0,.55)'}},
       data
@@ -1221,7 +1218,7 @@ function renderSources(){
   series.push({
     name:'__avg', type:'scatter', symbol:'diamond', symbolSize:14,
     itemStyle:{ color:'#d95926', borderColor:'#131316', borderWidth:1 },
-    label:{ show:true, position:'top', distance:4, color:'#d95926',
+    label:{ show:true, position:'top', distance:4, color:'#d4d4d8',
             fontFamily:'"Space Mono",ui-monospace,monospace', fontSize:10, fontWeight:700,
             formatter: p=>Number(p.value[0]).toFixed(1) },
     z:5,
@@ -1795,7 +1792,7 @@ window.addEventListener('resize', ()=>{
       <h3 data-i18n="mH3">Available visualizations:</h3>
       <ul data-i18n="mU3">
         <li><strong>Theme river:</strong> weekly stream of the 6 strongest keywords (band thickness = mentions)</li>
-        <li><strong>Top keywords:</strong> treemap of the 20 most mentioned keywords plus an aggregated "Other" block</li>
+        <li><strong>Top keywords:</strong> treemap of the 20 most mentioned keywords (long tail excluded from the area comparison)</li>
         <li><strong>Score distribution by source:</strong> one dot per scored article, with each source's average marked as a diamond (top 8 sources by volume)</li>
         <li><strong>Keyword Explorer:</strong> word cloud, co-occurrence network (up to 30 nodes) and weekly heatmap (up to 30 rows)</li>
         <li><strong>Theme flow by source:</strong> Sankey with the top 5 sources and top 5 keywords</li>
@@ -2461,19 +2458,7 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
   function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
-    try{
-      if(band && !localStorage.getItem('onbDismissed_v1')){
-        var onb=document.createElement('div');
-        onb.className='onb-card';
-        onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">'+OS('h')+'</div>'
-          +'<ol class="onb-steps">'
-          +OS('s1')+OS('s2')+OS('s3')
-          +'</ol>';
-        band.parentNode.insertBefore(onb, band.nextSibling);
-        onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
-      }
-    }catch(e){}
+    /* Rodada 4: card "como ler" fora da faixa nobre (padrao 01-05). */
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
@@ -2517,13 +2502,13 @@ document.getElementById('modalMetodologia')?.addEventListener('click', function(
     c4t: 'Distribuição de score por fonte',
     c5t: 'Fluxo de temas por fonte',
     c6t: 'Top Artigos por Score',
-    tt1: 'As 20 palavras-chave com mais menções na seleção atual, dimensionadas pelas menções; os demais termos ficam agrupados no bloco "Outros". Clique num bloco para filtrar todo o dashboard por essa keyword.',
+    tt1: 'As 20 palavras-chave com mais menções na seleção atual, dimensionadas pelas menções. A cauda longa fica fora para os termos do topo seguirem comparáveis; use a busca para chegar a qualquer termo. Clique num bloco para filtrar todo o dashboard.',
     tt2: 'Fluxo semanal das 6 palavras-chave mais fortes da seleção: a espessura de cada faixa é o número de menções na semana. Clique numa faixa para filtrar todo o dashboard pela keyword.',
     tt3: 'Exploração das palavras-chave em três visões: nuvem, rede de co-ocorrência e heatmap semanal.',
     tt4: 'Um ponto por artigo (x = score editorial, 0-100) nas 8 fontes de maior volume. O losango laranja marca o score médio de cada fonte. Clique num ponto ou losango para filtrar pela fonte.',
     tt5: 'As 5 maiores fontes cruzadas com as 5 keywords mais recorrentes. Clique num nó para filtrar por fonte ou keyword.',
     tt6: 'Lista dos artigos da seleção, ordenável por data, título, fonte e score.',
-    sub1: 'Área = menções. Top 20 keywords mais um bloco agregado "Outros". Clique num bloco para aplicar o filtro.',
+    sub1: 'Área = menções entre as top 20 keywords; a cauda longa fica fora da comparação. Clique num bloco para aplicar o filtro.',
     sub2: 'Fluxo semanal das 6 keywords mais fortes do período. Espessura da faixa = menções. Clique numa faixa para aplicar o filtro.',
     sub3: 'Visões complementares do vocabulário do período. A rede mostra até 30 termos (rótulo nos 10 mais fortes; o resto aparece no hover) e o heatmap até 30 linhas.',
     sub4: 'Top 8 fontes por volume. Cada ponto é o score de um artigo; o losango laranja é a média da fonte. Clique para filtrar.',
