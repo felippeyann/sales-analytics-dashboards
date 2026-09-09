@@ -306,12 +306,6 @@
       <p data-i18n="loadingTxt">Loading data...</p>
     </div>
 
-    <!-- Insights Summary -->
-    <div class="summary-box" id="insightsSummary" style="display:none;">
-      <div class="summary-title" data-i18n="insTitle">Funnel insights</div>
-      <div class="summary-text" id="insightsText" data-i18n="insDefault">Load data to generate automatic insights...</div>
-    </div>
-
     <!-- Estado Atual por Stage -->
     <div class="card" id="current-state" style="display:none;">
       <h2><span data-i18n="csH">Current state · deals per stage</span>
@@ -321,7 +315,6 @@
       </h2>
       <div class="panel-sub" data-i18n="csSub">Current distribution of deals across each funnel stage.</div>
       <div class="current-state" id="current-state-grid"></div>
-      <p class="foot" data-i18n="csFoot">Current funnel snapshot: deal distribution per stage</p>
     </div>
 
     <div class="grid">
@@ -335,7 +328,6 @@
         </h2>
         <div class="panel-sub" data-i18n="chdSub">Who sends deals to whom: every stage to stage transition in one circle, including skips and returns.</div>
         <div class="chart" id="chart_chord"></div>
-        <p class="foot" data-i18n="chdFoot">Chord style view of transition volume between funnel stages</p>
       </div>
 
       <!-- Boxplot + jitter do tempo por etapa -->
@@ -347,7 +339,6 @@
         </h2>
         <div class="panel-sub" data-i18n="boxSub">Each deal's dwell time per stage: median, quartiles and outliers, with the bottleneck in red.</div>
         <div class="chart" id="chart_box"></div>
-        <p class="foot" data-i18n="boxFoot">Distribution view: medians, spread and outliers instead of a single average</p>
       </div>
 
       <!-- Funil real do pipeline -->
@@ -359,7 +350,6 @@
         </h2>
         <div class="panel-sub" data-i18n="funSub">Inflow volume per stage with retention against the previous stage.</div>
         <div class="chart" id="chart_funnel"></div>
-        <p class="foot" data-i18n="funFoot">Funnel shape of the pipeline: where volume narrows stage by stage</p>
       </div>
 
       <!-- Fluxo de Conversão (Sankey) -->
@@ -371,7 +361,6 @@
         </h2>
         <div class="panel-sub" data-i18n="snkSub">Deals moving from one stage to the next.</div>
         <div class="chart" id="chart_sankey"></div>
-        <p class="foot" data-i18n="snkFoot">Sankey diagram showing funnel losses and advances</p>
       </div>
 
       <!-- Evolução temporal (saldo | entradas | stream) -->
@@ -390,7 +379,6 @@
         </div>
         <div class="panel-sub" data-i18n="tmpSub">How each stage's stock evolves, how much enters per day, and how the inflow mix shifts as a stream.</div>
         <div class="chart tall" id="chart_temporal"></div>
-        <p class="foot" data-i18n="tmpFoot">Evolution of stock and daily deal flow per stage</p>
       </div>
 
       <!-- Volume por Stage -->
@@ -402,7 +390,6 @@
         </h2>
         <div class="panel-sub" data-i18n="volSub">How many deals entered each stage, in funnel order.</div>
         <div class="chart" id="chart_volume"></div>
-        <p class="foot" data-i18n="volFoot">Total inflows per stage: volume and distribution view</p>
       </div>
 
       <!-- Heatmap de distribuição de tempo -->
@@ -414,7 +401,6 @@
         </h2>
         <div class="panel-sub" data-i18n="dstSub">Where dwell time concentrates in each stage, from under an hour to over a week.</div>
         <div class="chart" id="chart_distribuicao"></div>
-        <p class="foot" data-i18n="dstFoot">Stage by time range heatmap: dwell time concentration at a glance</p>
       </div>
 
       <!-- Tabela Entradas/Saídas -->
@@ -443,7 +429,6 @@
             </tbody>
           </table>
         </div>
-        <p class="foot" data-i18n="tblFoot">Quantitative analysis of movement between stages</p>
       </div>
 
     </div>
@@ -719,7 +704,6 @@ function processData() {
   // Show KPIs, charts e indicadores
   document.getElementById('current-state').style.display = 'block';
   document.getElementById('dataPeriodIndicator').style.display = 'flex';
-  document.getElementById('insightsSummary').style.display = 'block';
 }
 
 function processAggregatedData() {
@@ -1062,7 +1046,7 @@ function generateInsights(stageVolumes, avgTime, conversionRate, velocity) {
   }
 
   const insightsText = insights.length > 0 ? insights.join(' &nbsp;·&nbsp; ') : t('insNone');
-  document.getElementById('insightsText').innerHTML = insightsText;
+  const insEl = document.getElementById('insightsText'); if (insEl) insEl.innerHTML = insightsText;
 }
 
 // Chart rendering functions
@@ -1516,7 +1500,9 @@ function renderTemporalChart() {
 
   let series;
   if (temporalMode === 'saldo') {
-    // Saldo acumulado: linhas por stage (não empilhado, sem área)
+    // Saldo acumulado em SMALL MULTIPLES: 6 linhas quase iguais num grid só eram
+    // ilegíveis (rampa ordinal não diferencia identidade). Um mini-gráfico por
+    // stage preserva a rampa e devolve a leitura da forma de cada série.
     const cumulativeData = {};
     stages.forEach(stage => {
       cumulativeData[stage] = [];
@@ -1527,18 +1513,36 @@ function renderTemporalChart() {
         cumulativeData[stage].push(runningTotal);
       });
     });
-
-    series = stages.map(stage => ({
-      name: stageLabel(stage),
-      type: 'line',
-      data: cumulativeData[stage],
-      smooth: true,
-      showSymbol: false,
-      lineStyle: { width: 2, color: stageColor(stage) },
-      itemStyle: { color: stageColor(stage) },
-      emphasis: { focus: 'series' }
-    }));
-  } else {
+    const alpha = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; };
+    const grids = [], xAxes = [], yAxes = [], smSeries = [], titles = [];
+    const shortDate = (value) => { const p = String(value).split('-'); return p.length === 3 ? (LANG() === 'pt' ? p[2] + '/' + p[1] : p[1] + '/' + p[2]) : value; };
+    stages.forEach((stage, i) => {
+      const col = i % 3, row = Math.floor(i / 3);
+      grids.push({ left: (4 + col * 33) + '%', width: '27%', top: (14 + row * 46) + '%', height: '30%' });
+      xAxes.push({ type: 'category', data: dates, gridIndex: i, axisTick: { show: false },
+        axisLine: { lineStyle: { color: 'rgba(248,247,243,.14)' } },
+        axisLabel: { show: row === 1, fontSize: 9, color: '#8a8a94', formatter: shortDate, interval: Math.max(1, Math.ceil(dates.length / 4)) } });
+      yAxes.push({ type: 'value', gridIndex: i, splitNumber: 3,
+        axisLabel: { fontSize: 9, color: '#8a8a94' },
+        splitLine: { lineStyle: { color: 'rgba(248,247,243,.05)' } } });
+      smSeries.push({ name: stageLabel(stage), type: 'line', xAxisIndex: i, yAxisIndex: i,
+        data: cumulativeData[stage], smooth: true, showSymbol: false,
+        lineStyle: { width: 2, color: stageColor(stage) }, itemStyle: { color: stageColor(stage) },
+        areaStyle: { color: alpha(stageColor(stage), 0.14) } });
+      titles.push({ text: stageLabel(stage), left: (4 + col * 33) + '%', top: (5 + row * 46) + '%',
+        textStyle: { fontSize: 11, fontWeight: 600, color: '#d4d4d8' } });
+    });
+    chart.setOption({
+      title: titles, grid: grids, xAxis: xAxes, yAxis: yAxes, series: smSeries,
+      tooltip: { trigger: 'axis', backgroundColor: '#131316', borderColor: 'rgba(248,247,243,.18)',
+        textStyle: { color: '#d4d4d8', fontSize: 11 },
+        formatter: (ps) => { const p = ps[0]; return `<b>${formatDateLoc(p.axisValue)}</b><br><span style="color:${p.color}">●</span> ${escHtml(p.seriesName)}: <b>${formatNumber(p.value)}</b>`; } },
+      animationDuration: 500
+    }, true);
+    addResize(chart);
+    return;
+  }
+  {
     // Entradas por dia: barras empilhadas por stage
     series = stages.map(stage => ({
       name: stageLabel(stage),
@@ -1876,17 +1880,34 @@ function renderEntriesExitsTable() {
 
   filteredData.forEach(d => {
     if (!stageData[d.stage_label]) {
-      stageData[d.stage_label] = { entered: 0, exited: 0, saldo: 0 };
+      stageData[d.stage_label] = { entered: 0, exited: 0, declared: 0, saldo: 0 };
     }
 
     stageData[d.stage_label].entered += parseInt(d.deals_entered) || 0;
-    stageData[d.stage_label].exited += getExitValue(d);
+    stageData[d.stage_label].declared += getExitValue(d);
 
     // Use latest saldo_acumulado if available
     if (d.saldo_acumulado) {
       stageData[d.stage_label].saldo = parseInt(d.saldo_acumulado) || 0;
     }
   });
+
+  // Saídas: se o CSV não traz colunas de saída (contrato padrão não traz),
+  // deriva do próprio log de movimentos: sair do estágio X = mover-se a partir dele (from_stage = X).
+  const declaredTotal = Object.values(stageData).reduce((s, o) => s + o.declared, 0);
+  if (declaredTotal > 0) {
+    Object.values(stageData).forEach(o => { o.exited = o.declared; });
+  } else {
+    filteredData.forEach(d => {
+      if (d.from_stages) {
+        Object.entries(d.from_stages).forEach(([origem, qtd]) => {
+          if (stageData[origem]) stageData[origem].exited += (parseInt(qtd) || 0);
+        });
+      } else if (d.from_stage && stageData[d.from_stage]) {
+        stageData[d.from_stage].exited += 1;
+      }
+    });
+  }
 
   const sortedStages = Object.keys(stageData).sort((a, b) =>
     (STAGES[a]?.order || 0) - (STAGES[b]?.order || 0));
@@ -1914,17 +1935,17 @@ function renderEntriesExitsTable() {
       } else {
         const retentionRate = (100 - ((data.exited / data.entered) * 100));
         retentionDisplay = `${formatNumber(retentionRate)}%`;
-        retentionClass = retentionRate >= 80 ? 'positive' : retentionRate >= 50 ? '' : 'negative';
+        retentionClass = '';
       }
     }
 
     const saldo = data.saldo || (data.entered - data.exited);
 
     const saidaDisplay = data.exited > 0 ?
-      formatNumber(data.exited) :
+      '-' + formatNumber(data.exited) :
       '<span style="color: var(--ink-4);">0</span>';
 
-    const saidaClass = data.exited > 0 ? 'negative' : '';
+    const saidaClass = '';
 
     return `
       <tr>
@@ -1933,7 +1954,7 @@ function renderEntriesExitsTable() {
           <strong>${escHtml(stage)}</strong>
         </td>
         <td class="number positive">+${formatNumber(data.entered)}</td>
-        <td class="number ${saidaClass}">-${saidaDisplay}</td>
+        <td class="number ${saidaClass}">${saidaDisplay}</td>
         <td class="number" style="color: ${saldo > 0 ? 'var(--ok)' : saldo < 0 ? 'var(--bad)' : 'var(--ink-4)'}">${formatNumber(Math.abs(saldo))}</td>
         <td class="number ${retentionClass}">${retentionDisplay}</td>
       </tr>
@@ -1962,40 +1983,32 @@ function renderEntriesExitsTable() {
     csH: 'Estado atual · deals por etapa',
     csTip: 'Quantidade atual de deals em cada stage (saldo acumulado mais recente)',
     csSub: 'Distribuição atual de deals em cada etapa do funil.',
-    csFoot: 'Snapshot atual do funil: distribuição de deals por etapa',
     chdH: 'Transições entre etapas · fluxo circular',
     chdTip: 'Grafo circular da movimentação de deals: o tamanho do nó é o volume do stage, a largura da aresta é o fluxo origem-destino. Passe o mouse na aresta para ver origem, destino e contagem.',
     chdSub: 'Quem envia deals para quem: todas as transições entre etapas em um círculo, incluindo pulos e retornos.',
-    chdFoot: 'Visão de acordes do volume de transição entre as etapas do funil',
     boxH: 'Tempo no stage · distribuição por etapa',
     boxTip: 'Boxplot da distribuição real de permanência por etapa, com cada registro como um ponto disperso. A caixa vermelha é o gargalo do funil (maior mediana).',
     boxSub: 'Tempo de permanência de cada deal por etapa: mediana, quartis e outliers, com o gargalo em vermelho.',
-    boxFoot: 'Visão de distribuição: medianas, dispersão e outliers no lugar de uma média única',
     funH: 'Funil do pipeline · volume e retenção',
     funTip: 'Funil real das seis etapas: a largura é o volume de entradas e cada rótulo traz a retenção em relação à etapa anterior.',
     funSub: 'Volume de entradas por etapa com a retenção contra a etapa anterior.',
-    funFoot: 'A forma do funil: onde o volume estreita etapa a etapa',
     tmpH: 'Evolução temporal · saldo, entradas e stream',
     tmpTip: 'Saldo acumulado de deals por stage, entradas diárias empilhadas por stage, ou um stream (themeRiver) do mix de entradas. Use o zoom para investigar períodos.',
     tglSaldoBtn: 'Saldo acumulado',
     tglEntradasBtn: 'Entradas por dia',
     tglStreamBtn: 'Stream',
     tmpSub: 'Como o estoque de cada etapa evolui, quanto entra por dia, e como o mix de entradas muda como um fluxo.',
-    tmpFoot: 'Evolução do estoque e do fluxo diário de deals por etapa',
     tblH: 'Entradas e saídas · por etapa',
     tblTip: 'Resumo detalhado de movimentação: quantos entraram e saíram de cada stage',
     tblSub: 'Fluxo de entradas e saídas de deals em cada etapa no período.',
     thIn: 'Entradas', thOut: 'Saídas', thBal: 'Saldo', thRet: 'Taxa Retenção',
     emptyTable: 'Carregue dados para visualizar',
-    tblFoot: 'Análise quantitativa da movimentação entre etapas',
     volH: 'Volume de entradas · por etapa',
     volTip: 'Quantidade de deals que entraram em cada stage no período selecionado',
     volSub: 'Quantos deals entraram em cada etapa, na ordem do funil.',
-    volFoot: 'Total de entradas por etapa: visão de volume e distribuição',
     snkH: 'Fluxo entre etapas · diagrama de conversão',
     snkTip: 'Visualização do fluxo de deals entre stages: a largura representa o volume',
     snkSub: 'Passagem de deals de uma etapa para a etapa seguinte.',
-    snkFoot: 'Diagrama de Sankey mostrando perdas e avanços no funil',
     dstH: 'Distribuição de tempo · heatmap etapa × faixa',
     dstTip: 'Heatmap de permanência: cada célula conta deals daquele stage naquela faixa de tempo. Células mais claras concentram mais deals.',
     dstSub: 'Onde o tempo de permanência se concentra em cada etapa, de menos de uma hora a mais de uma semana.',
@@ -2128,7 +2141,6 @@ function renderEntriesExitsTable() {
       panelIntro: 'This dashboard is fed by a CSV exported from your CRM or source spreadsheet. Parsing happens 100% in the browser: no file ever leaves your machine. Download the template below, replace the sample rows with your data and upload it back. Columns marked with <span class="dk-req">*</span> are required; the rest can be empty.',
       thCol: 'column', thType: 'type', thWhat: 'what it is', thEx: 'example',
       tplBtn: 'Download CSV template', upThis: 'Upload this file',
-      panelFoot: 'Just browsing? The <b style="color:#f8f7f3">Auto-fill</b> button generates a synthetic dataset that follows this exact contract and renders every chart instantly.',
       stDemo: '<b>sample data</b>', stUser: '<b>your data</b>',
       stNone: 'no data loaded', stFail: 'failed to generate sample data',
       badge: '<b>sample data</b> &middot; upload your CSV to use yours'
@@ -2142,7 +2154,6 @@ function renderEntriesExitsTable() {
       panelIntro: 'Este dashboard e alimentado por CSV exportado do CRM ou da planilha de origem. O parse acontece 100% no navegador: nenhum arquivo sai da sua maquina. Baixe o template abaixo, troque as linhas de exemplo pelos seus dados e envie de volta. Colunas marcadas com <span class="dk-req">*</span> sao obrigatorias; as demais podem vir vazias.',
       thCol: 'coluna', thType: 'tipo', thWhat: 'o que e', thEx: 'exemplo',
       tplBtn: 'Baixar template CSV', upThis: 'Enviar este arquivo',
-      panelFoot: 'Prefere so olhar? O botao <b style="color:#f8f7f3">Preencher automaticamente</b> gera uma base sintetica que respeita exatamente esse contrato e renderiza todos os graficos na hora.',
       stDemo: '<b>dados de exemplo</b>', stUser: '<b>seus dados</b>',
       stNone: 'sem dados carregados', stFail: 'falha ao gerar dados de exemplo',
       badge: '<b>dados de exemplo</b> &middot; envie seu CSV para usar os seus'
@@ -2669,19 +2680,7 @@ function renderEntriesExitsTable() {
   function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
-    try{
-      if(band && !localStorage.getItem('onbDismissed_v1')){
-        var onb=document.createElement('div');
-        onb.className='onb-card';
-        onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">'+OS('h')+'</div>'
-          +'<ol class="onb-steps">'
-          +OS('s1')+OS('s2')+OS('s3')
-          +'</ol>';
-        band.parentNode.insertBefore(onb, band.nextSibling);
-        onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
-      }
-    }catch(e){}
+    /* Rodada 4: card "como ler" fora da faixa nobre (padrao 01/02). */
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
