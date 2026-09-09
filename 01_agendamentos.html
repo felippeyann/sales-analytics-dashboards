@@ -1608,7 +1608,8 @@ function renderCampaignTreemap(data){
     series:[{
       type:'treemap', roam:false, nodeClick:false, breadcrumb:{show:false},
       left:0,right:0,top:0,bottom:0,
-      color:[accent], colorSaturation:[0.35,0.62],
+      // levels explicito: o tema injeta a paleta categorica em levels[0].color e vence a serie
+      levels:[{color:[accent], colorSaturation:[0.35,0.62]}],
       label:{show:true,fontSize:11,color:'#f8f7f3',formatter:(p)=>`${dispVal(p.name)}\n${p.value}`},
       itemStyle:{borderColor:'#131316',borderWidth:2,gapWidth:2},
       data:campTop.map(([n,v])=>({name:n,value:v})),

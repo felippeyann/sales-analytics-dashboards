@@ -926,8 +926,8 @@ function renderTopKeywords(){
       left:0, right:0, top:0, bottom:0,
       roam:false, nodeClick:false,
       breadcrumb:{show:false},
-      color:[ACCENT],
-      colorAlpha:[0.45, 1],
+      // levels explicito: o tema injeta a paleta categorica em levels[0].color e vence a serie
+      levels:[{color:[ACCENT], colorAlpha:[0.45, 1]}],
       itemStyle:{ borderColor:'#131316', borderWidth:2, gapWidth:2 },
       label:{ show:true, formatter: p=>p.name+'\n'+p.value, color:'#f8f7f3', fontSize:11, lineHeight:15, overflow:'truncate' },
       emphasis:{ label:{show:true} },

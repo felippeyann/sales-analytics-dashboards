@@ -775,8 +775,11 @@
             left: 0, right: 0, top: 0, bottom: 0,
             roam: false, nodeClick: false,
             breadcrumb: {show: false},
+            // levels explicito: o tema injeta a paleta categorica em levels[0].color
+            // e level vence series, pintando cada segmento de uma cor sem significado
+            levels: [{color: ['#2563eb'], colorSaturation: [0.4, 0.68]}],
             data: leaves.map(e => ({name: e[0], value: e[1]})),
-            itemStyle: {color: '#2563eb', borderColor: '#131316', borderWidth: 2, gapWidth: 2},
+            itemStyle: {borderColor: '#131316', borderWidth: 2, gapWidth: 2},
             label: {
               show: true, position: 'insideTopLeft', distance: 8,
               formatter: p => p.name + '\n' + nf(p.value),
