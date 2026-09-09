@@ -1594,19 +1594,7 @@
   function OS(k){ return OT[oLang()][k] || OT.en[k] || k; }
   function build(){
     var band=document.getElementById('exec-band');
-    try{
-      if(band && !localStorage.getItem('onbDismissed_v1')){
-        var onb=document.createElement('div');
-        onb.className='onb-card';
-        onb.innerHTML='<button class="onb-x" type="button" aria-label="Fechar">\u00d7</button>'
-          +'<div class="onb-h">'+OS('h')+'</div>'
-          +'<ol class="onb-steps">'
-          +OS('s1')+OS('s2')+OS('s3')
-          +'</ol>';
-        band.parentNode.insertBefore(onb, band.nextSibling);
-        onb.querySelector('.onb-x').addEventListener('click',function(){ onb.parentNode&&onb.parentNode.removeChild(onb); try{localStorage.setItem('onbDismissed_v1','1');}catch(e){} });
-      }
-    }catch(e){}
+    /* Rodada 4: card "como ler" fora da faixa nobre (padrao 01-06). */
     if(!document.querySelector('.cta-band')){
       var cta=document.createElement('div');
       cta.className='cta-band';
